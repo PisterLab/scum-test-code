@@ -10,12 +10,12 @@
       <TargetName>Target 1</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060183::V5.06 update 2 (build 183)::ARMCC</pCCUsed>
+      <pCCUsed>5060422::V5.06 update 4 (build 422)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>ARMCM0</Device>
           <Vendor>ARM</Vendor>
-          <PackID>ARM.CMSIS.4.5.0</PackID>
+          <PackID>ARM.CMSIS.5.0.0</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
           <Cpu>IROM(0x00000000,0x80000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M0") CLOCK(10000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -330,6 +330,7 @@
             <vShortWch>1</vShortWch>
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
+            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -347,6 +348,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -408,14 +410,14 @@
               <FilePath>rf_global_vars.h</FilePath>
             </File>
             <File>
-              <FileName>scm3B_hardware_interface.h</FileName>
+              <FileName>scm3C_hardware_interface.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\scm3B_hardware_interface.h</FilePath>
+              <FilePath>.\scm3C_hardware_interface.h</FilePath>
             </File>
             <File>
-              <FileName>scm3B_hardware_interface.c</FileName>
+              <FileName>scm3C_hardware_interface.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\scm3B_hardware_interface.c</FilePath>
+              <FilePath>.\scm3C_hardware_interface.c</FilePath>
             </File>
             <File>
               <FileName>scm3_hardware_interface.c</FileName>
@@ -426,16 +428,6 @@
               <FileName>scm3_hardware_interface.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\scm3_hardware_interface.h</FilePath>
-            </File>
-            <File>
-              <FileName>bucket_o_functions.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\bucket_o_functions.c</FilePath>
-            </File>
-            <File>
-              <FileName>bucket_o_functions.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\bucket_o_functions.h</FilePath>
             </File>
             <File>
               <FileName>scum_radio_bsp.c</FileName>

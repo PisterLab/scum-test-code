@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include "Memory_Map.h"
 #include "scm3_hardware_interface.h"
-#include "scm3B_hardware_interface.h"
+#include "scm3C_hardware_interface.h"
 #include "bucket_o_functions.h"
 
 extern unsigned int ASC[38];
-extern unsigned int ASC_FPGA[38];
+//extern unsigned int ASC_FPGA[38];
 extern unsigned int cal_iteration;
 extern char recv_packet[130];
 
@@ -48,7 +48,7 @@ extern signed int SFD_timestamp;
 void setFrequencyRX(unsigned int channel){
 	
 	// Set LO code for RX channel
-	LC_monotonic_ASC(RX_channel_codes[channel-11]);
+	LC_monotonic(RX_channel_codes[channel-11]);
 	
 	//printf("chan code = %d\n", RX_channel_codes[channel-11]);
 	
@@ -70,11 +70,11 @@ void setFrequencyRX(unsigned int channel){
 	clear_asc_bit(514); // = gpio_pon_en_div
 
 	// Write and load analog scan chain
-	analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	analog_scan_chain_load_3B_fromFPGA();
+	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+	//analog_scan_chain_load_3B_fromFPGA();
 
 	// Set LO code for TX ack
-	LC_monotonic_ASC(TX_channel_codes[channel-11]);
+	LC_monotonic(TX_channel_codes[channel-11]);
 	
 	// Set GPIOs back
 	GPO_control(0,10,8,10);
@@ -93,7 +93,7 @@ void setFrequencyRX(unsigned int channel){
 	clear_asc_bit(514); // = gpio_pon_en_div
 
 	// Write analog scan chain (do not load yet)
-	analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
 	
 }
 
@@ -102,7 +102,7 @@ void setFrequencyRX(unsigned int channel){
 void setFrequencyTX(unsigned int channel){
 
 	// Set LO code for TX channel
-	LC_monotonic_ASC(TX_channel_codes[channel-11]);
+	LC_monotonic(TX_channel_codes[channel-11]);
 
 	// Turn polyphase off for TX
 	clear_asc_bit(971);
@@ -118,11 +118,11 @@ void setFrequencyTX(unsigned int channel){
 	clear_asc_bit(514); // = gpio_pon_en_div
 
 	// Write and load analog scan chain
-	analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	analog_scan_chain_load_3B_fromFPGA();
+	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+	//analog_scan_chain_load_3B_fromFPGA();
 
 	// Set LO code for RX ack
-	LC_monotonic_ASC(RX_channel_codes[channel-11]);
+	LC_monotonic(RX_channel_codes[channel-11]);
 	
 	// On FPGA, have to use the chip's GPIO outputs for radio signals
 	// Note that can't reprogram while the RX is active
@@ -142,7 +142,7 @@ void setFrequencyTX(unsigned int channel){
 	clear_asc_bit(514); // = gpio_pon_en_div
 
 	// Write analog scan chain (do not load yet)
-	analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
 }
 
 
@@ -377,5 +377,4 @@ void rftimer_disable_interrupts(){
 	// Enable RF timer interrupts in NVIC
 	ICER = 0x80;
 }
-
 

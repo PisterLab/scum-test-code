@@ -5,7 +5,6 @@
 #include "scum_radio_bsp.h"
 
 extern unsigned int ASC[38];
-unsigned int ASC_FPGA[38] = {0};
 extern unsigned int cal_iteration;
 extern char recv_packet[130];
 
@@ -18,6 +17,8 @@ extern unsigned int cal_iteration;
 
 extern unsigned int HF_CLOCK_fine;
 extern unsigned int HF_CLOCK_coarse;
+extern unsigned int RC2M_coarse;
+extern unsigned int RC2M_fine;
 extern unsigned int RC2M_superfine;
 
 unsigned int RX_channel_codes[16] = {0};
@@ -30,90 +31,6 @@ unsigned int guard_time = 500;
 unsigned int radio_startup_time = 70; //200us
 unsigned int expected_RX_arrival = 25000;		// must be > 30ms
 unsigned int ack_turnaround_time = 96;	//192 us
-
-
-
-
-void LC_FREQCHANGE_ASC(int coarse, int mid, int fine){
-	
-	//	Inputs:
-	//		coarse: 5-bit code (0-31) to control the ~15 MHz step frequency DAC
-	//		mid: 5-bit code (0-31) to control the ~800 kHz step frequency DAC
-	//		fine: 5-bit code (0-31) to control the ~100 kHz step frequency DAC
-	//  Outputs:
-	//		none; need to program ASC
-    
-  // mask to ensure that the coarse, mid, and fine are actually 5-bit
-  char coarse_m = (char)(coarse & 0x1F);
-  char mid_m = (char)(mid & 0x1F);
-  char fine_m = (char)(fine & 0x1F);
-	
-	unsigned int j;
-
-	//fine_tune 6 946-950 MSB:LSB+dummy
-	//mid_tune 6 952-956 MSB:LSB+dummy
-	//coarse_tune 6 958-962 MSB:LSB+dummy
-	
-	// Set tuning control to ASC
-	set_asc_bit(964);
-	
-	// Set fine bits
-	for(j=0; j<5; j++){
-		if((fine_m >> j) & 0x1)
-			set_asc_bit(950-j);
-		else
-			clear_asc_bit(950-j);
-	}
-	
-	// Set mid bits
-	for(j=0; j<5; j++){
-		if((mid_m >> j) & 0x1)
-			set_asc_bit(956-j);
-		else
-			clear_asc_bit(956-j);
-	}	
-	
-	// Set coarse bits
-	for(j=0; j<5; j++){
-		if((coarse_m >> j) & 0x1)
-			set_asc_bit(962-j);
-		else
-			clear_asc_bit(962-j);
-	}	
-}
-
-void LC_monotonic_ASC(int LC_code){
-
-	//int coarse_divs = 440;
-	//int mid_divs = 31; // For full fine code sweeps
-	
-	int fine_fix = 0;
-	int mid_fix = 0;
-	//int coarse_divs = 136;
-	int mid_divs = 25; // works for Ioana's board, Fil's board, Brad's other board
-	
-	//int coarse_divs = 167;
-		int coarse_divs = 155;
-	//int mid_divs = 27; // works for Brad's board // 25 and 155 worked really well @ low frequency, 27 167 worked great @ high frequency (Brad's board)
-	
-	int mid;
-	int fine;
-	int coarse = (((LC_code/coarse_divs + 19) & 0x000000FF));
-	
-	LC_code = LC_code % coarse_divs;
-	//mid = ((((LC_code/mid_divs)*4 + mid_fix) & 0x000000FF)); // works for boards (a)
-	 mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
-	//mid = ((((LC_code/mid_divs) + mid_fix) & 0x000000FF));
-	if (LC_code/mid_divs >= 2) {fine_fix = 0;};
-	fine = (((LC_code % mid_divs + fine_fix) & 0x000000FF));
-	if (fine > 15){fine++;};
-	
-	LC_FREQCHANGE_ASC(coarse,mid,fine);
-	
-	//printf("coarse=%d,mid=%d,fine=%d\n",coarse,mid,fine);
-	
-}
-
 
 
 // Reverses (reflects) bits in a 32-bit word.
@@ -267,133 +184,38 @@ void GPI_enables(unsigned int mask){
 }
 	
 
-void set_asc_bit_FPGA(unsigned int position){
-
-	unsigned int index;
-	
-	index = position >> 5;
-	
-	ASC_FPGA[index] |= 0x80000000 >> (position - (index << 5));
-	
-	// Possibly more efficient
-	//ASC[position/32] |= 1 << (position%32);
-}
-
-void clear_asc_bit_FPGA(unsigned int position){
-
-	unsigned int index;
-	
-	index = position >> 5;
-	
-	ASC_FPGA[index] &= ~(0x80000000 >> (position - (index << 5)));
-	
-	// Possibly more efficient
-  //ASC[position/32] &= ~(1 << (position%32));                
-}
-
-
-void GPO_control_FPGA(unsigned char row1, unsigned char row2, unsigned char row3, unsigned char row4) {
-	
-	int j;
-	
-	for (j = 0; j <= 3; j++) { 
-	
-		if((row1 >> j) & 0x1)
-			set_asc_bit_FPGA(245+j);
-		else	
-			clear_asc_bit_FPGA(245+j);
-	}
-	
-	for (j = 0; j <= 3; j++) { 
-	
-		if((row2 >> j) & 0x1)
-			set_asc_bit_FPGA(249+j);
-		else	
-			clear_asc_bit_FPGA(249+j);
-	}
-	
-	for (j = 0; j <= 3; j++) { 
-	
-		if((row3 >> j) & 0x1)
-			set_asc_bit_FPGA(253+j);
-		else	
-			clear_asc_bit_FPGA(253+j);
-	}
-	
-	for (j = 0; j <= 3; j++) { 
-	
-		if((row4 >> j) & 0x1)
-			set_asc_bit_FPGA(257+j);
-		else	
-			clear_asc_bit_FPGA(257+j);
-	}
-}
-
-void GPI_control_FPGA(char row1, char row2, char row3, char row4) {
-	
-	int j;
-	
-	for (j = 0; j <= 1; j++) { 
-	
-		if((row1 >> j) & 0x1)
-			set_asc_bit_FPGA(261+j);
-		else	
-			clear_asc_bit_FPGA(261+j);
-	}
-	
-	for (j = 0; j <= 1; j++) { 
-	
-		if((row2 >> j) & 0x1)
-			set_asc_bit_FPGA(263+j);
-		else	
-			clear_asc_bit_FPGA(263+j);
-	}
-	
-	for (j = 0; j <= 1; j++) { 
-	
-		if((row3 >> j) & 0x1)
-			set_asc_bit_FPGA(265+j);
-		else	
-			clear_asc_bit_FPGA(265+j);
-	}
-	
-	for (j = 0; j <= 1; j++) { 
-	
-		if((row4 >> j) & 0x1)
-			set_asc_bit_FPGA(267+j);
-		else	
-			clear_asc_bit_FPGA(267+j);
-	}
-}
-
 
 // Configure how radio and AUX LDOs are turned on and off
 void init_ldo_control(void){
 	
 	// Analog scan chain setup for radio LDOs
+	// Memory mapped control signals from the cortex are connected to fsm_pon signals
 	clear_asc_bit(501); // = scan_pon_if
-	clear_asc_bit(502); // = scan_pon_lo
+	set_asc_bit(502); // = scan_pon_lo
 	clear_asc_bit(503); // = scan_pon_pa
-	set_asc_bit(504); // = gpio_pon_en_if
-	clear_asc_bit(505); // = fsm_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	clear_asc_bit(507); // = fsm_pon_en_lo 
+	clear_asc_bit(504); // = gpio_pon_en_if
+	set_asc_bit(505); // = fsm_pon_en_if
+	clear_asc_bit(506); // = gpio_pon_en_lo
+	set_asc_bit(507); // = fsm_pon_en_lo 
 	clear_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(509); // = fsm_pon_en_pa
+	set_asc_bit(509); // = fsm_pon_en_pa
 	set_asc_bit(510); // = master_ldo_en_if
 	set_asc_bit(511); // = master_ldo_en_lo
 	set_asc_bit(512); // = master_ldo_en_pa
-	clear_asc_bit(513); // = scan_pon_div
-	set_asc_bit(514); // = gpio_pon_en_div
-	clear_asc_bit(515); // = fsm_pon_en_div
+	set_asc_bit(513); // = scan_pon_div
+	clear_asc_bit(514); // = gpio_pon_en_div
+	set_asc_bit(515); // = fsm_pon_en_div
 	set_asc_bit(516); // = master_ldo_en_div
-
 
 	// AUX LDO Control:
 	// ASC<914> chooses whether ASC<916> or analog_cfg<167> controls LDO
 	// 0 = ASC<916> has control
 	// 1 = analog_cfg<167> has control
-	//set_asc_bit(914);
+	set_asc_bit(914);
+	//set_asc_bit(916);
+	
+	// Initialize all radio LDOs and AUX to off
+	//ANALOG_CFG_REG__10 = 0x0000;
 
 	// Examples of controlling AUX LDO:
 
@@ -437,57 +259,6 @@ void init_ldo_control(void){
 	// Enable the output direction
 
 }
-
-
-void analog_scan_chain_write_3B_fromFPGA(unsigned int* scan_bits) {
-	
-	int i = 0;
-	int j = 0;
-	unsigned int asc_reg;
-	
-	for (i=37; i>=0; i--) {
-		
-		//printf("\n%d,%lX\n",i,scan_bits[i]);
-		
-		for (j=0; j<32; j++) {
-
-		// Set scan_in (should be inverted)
-		if((scan_bits[i] & (0x00000001 << j)) == 0)
-			asc_reg = 0x1;	
-		else
-			asc_reg = 0x0;
-
-		// Write asc_reg to analog_cfg
-		ANALOG_CFG_REG__5 = asc_reg;
-
-		// Lower phi1
-		asc_reg &= ~(0x2);
-		ANALOG_CFG_REG__5 = asc_reg;
-
-		// Toggle phi2
-		asc_reg |= 0x4;
-		ANALOG_CFG_REG__5 = asc_reg;
-		asc_reg &= ~(0x4);
-		ANALOG_CFG_REG__5 = asc_reg;
-
-		// Raise phi1
-		asc_reg |= 0x2;
-		ANALOG_CFG_REG__5 = asc_reg;
-		
-		}	
-	}
-}
-
-void analog_scan_chain_load_3B_fromFPGA() {
-	
-	// Assert load signal (and cfg<357>)
-	ANALOG_CFG_REG__5 = 0x0028;
-
-	// Lower load signal
-	ANALOG_CFG_REG__5 = 0x0020;
-
-}
-
 
 // SRAM Verification Test
 // BW 2-25-18
@@ -1023,15 +794,15 @@ void radio_init_tx(){
 	// A '1' data bit then causes the TX to decrease in frequency by 1 MHz (this generates proper 15.4 output)
 	// If for some reason you wanted to start 500 kHz below the channel and step up by 1 MHz for a '1', then need to change the settings here
 	// In the IC version, comment these two lines out (they switch modulation source to the pad)	
-	set_asc_bit(997);
-	set_asc_bit(996);
-	set_asc_bit(998);
-	set_asc_bit(999);
+	//set_asc_bit(997);
+	//set_asc_bit(996);
+	//set_asc_bit(998);
+	//set_asc_bit(999);
 	
 	// Make sure the BLE modulation mux is not also modulating the BLE DAC at the same time
 	// Bit 1013 sets the BLE mod dac to cortex, since we are using the pad for 15.4 here
 	// In the IC version, comment this line out (ie, leave the ble mod source as the pad since 15.4 will use the cortex)	
-	set_asc_bit(1013);
+	//set_asc_bit(1013);
 	// ----
 
 	
@@ -1084,13 +855,15 @@ void radio_init_divider(unsigned int div_value){
 	set_DIV_supply(0,0);
 
 	// Disable /5 prescaler
-	clear_asc_bit(1023);		//en
-	set_asc_bit(1024);	//enb
+	//clear_asc_bit(1023);		//en
+	//set_asc_bit(1024);	//enb
 	
 	// Enable /2 prescaler
-	set_asc_bit(1022);	//en
-	clear_asc_bit(1021);		//enb
+	//set_asc_bit(1022);	//en
+	//clear_asc_bit(1021);		//enb
 
+	// Set prescaler to div-by-5
+	prescaler(1);
 
 	
 	
@@ -1098,12 +871,15 @@ void radio_init_divider(unsigned int div_value){
 	//eb2 turns on the other /2 (active low)
 	//eb1 and eb0 turn on the other /5 thing --leave these high
 	//pre_dyn<5:0> = asc<1030:1025>
-	set_asc_bit(1025);
-	set_asc_bit(1026);	// set this low to turn on the other /2; must disable all other dividers
-	set_asc_bit(1027);
+	//set_asc_bit(1025);
+	//set_asc_bit(1026);	// set this low to turn on the other /2; must disable all other dividers
+	//set_asc_bit(1027);
 	
 	// Activate 8MHz/20MHz output
-	set_asc_bit(1033);
+	//set_asc_bit(1033);
+	
+	// set divider to div-by-480
+	divProgram(480,1,1);
 	
 
 	// Enable static divider
@@ -1112,40 +888,6 @@ void radio_init_divider(unsigned int div_value){
 	// Set sel12 = 1 (choose whether x2 is active)
 	//set_asc_bit(1012);
 		
-	// Set divider controls to ASC
-	//set_asc_bit(1081);
-	
-	// Release divider reset
-	//set_asc_bit(1062);
-	
-	// Setting static divider N value
-	// div_static_select starts at ASC(1049) and is 18 bits long
-	// [static_code(11:16) static_code(5:10) static_en rstb static_code(1:4)]
-	// The code is also inverted
-	/*
-	div_value = ~div_value & 0xFFFF;
-	
-	for(j=0; j<=5; j++){
-		if((div_value >> (j+10)) & 0x1)
-			set_asc_bit(1049+j);
-		else
-			clear_asc_bit(1049+j);
-	}
-	
-	for(j=0; j<=5; j++){
-		if((div_value >> (j+4)) & 0x1)
-			set_asc_bit(1054+j);
-		else
-			clear_asc_bit(1054+j);
-	}
-		
-		for(j=0; j<=3; j++){
-		if((div_value >> j) & 0x1)
-			set_asc_bit(1063+j);
-		else
-			clear_asc_bit(1063+j);
-	}
-	*/
 }
 
 void read_counters_3B(unsigned int* count_2M, unsigned int* count_LC, unsigned int* count_adc){
@@ -1306,113 +1048,52 @@ void set_sys_clk_secondary_freq(unsigned int coarse, unsigned int fine){
 	}			
 }
 
-void do_fake_cal(){
-	// Turn on LO, divider, IF
-	radio_enable_LO();
-
-	// Keep track of how many iterations of calibration have been done
-	cal_iteration = 0;
-		
-	// This is the target count value to set the receiver's LO to the correct frequency
-	// The count value is RF_freq / 3000
-	// LC_target = 825000;
-	
-	// Reset and disable counters used for frequency calibration
-	ANALOG_CFG_REG__0 = 0x0;		
-					
-	// Enable all counters
-	ANALOG_CFG_REG__0 = 0x3FFF;		
-			
-	// Set compare interrupt 0 to go off when count=1
-	RFTIMER_REG__COMPARE0_CONTROL = 0x03;		
-	//--------------------------------------------------------
-}
-
-void packet_test_loop(unsigned int num_packets){
-	
-	unsigned int packet_count = 0;
-	int t;
-	
-	ICER = 0x81;
-	
-	radio_enable_LO();
-	for(t=0;t<1000;t++);
-	
-	while(packet_count < num_packets){
-			
-		// Turn on radio
-		//radio_enable_LO();
-		
-		// Wait - how long between radio turn on and packet arrival
-		// 50 ~ 50 us
-		//for(t=0;t<1000;t++);
-
-		// Reset baseband
-		ANALOG_CFG_REG__4 = 0x2000;
-		ANALOG_CFG_REG__4 = 0x2800;	
-		
-		// Stop and restart RX mode
-		RFCONTROLLER_REG__CONTROL = 0x10;
-		DMA_REG__RF_RX_ADDR = &recv_packet[0];
-		RFCONTROLLER_REG__CONTROL = 0x4;	
-		
-		// Request a packet be sent by strobing GPIO-0 
-		// (repeat a few times to make sure it is a wide enough pulse)
-		// repeat 3x = resulting pulse is 2us wide
-		GPIO_REG__OUTPUT = 0x0001;
-		GPIO_REG__OUTPUT = 0x0001;
-		GPIO_REG__OUTPUT = 0x0001;
-		GPIO_REG__OUTPUT = 0x0000;
-		
-		// Wait long enough for packet to have arrived
-		for(t=0;t<15000;t++);
-		
-		// Turn off radio
-		//radio_disable_all();
-		
-		// Increment packet counter
-		packet_count++;
-	
-		// Wait
-		//for(t=0;t<1000;t++);
-	}
-	radio_disable_all();
-	ISER = 0x81;
-}
-
 
 void initialize_mote(){
 
 	int t;
-	
-	// Start of new RX
-	RFTIMER_REG__COMPARE0 = 1;
-	
-	// Turn on the RX 
-	RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
 
-	// Time to start listening for packet 
-	RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
-
-	// RX watchdog - packet never arrived
-	RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
+	// Set HCLK source as HF_CLOCK
+	set_asc_bit(1147);
 	
-	// RF Timer rolls over at this value and starts a new cycle
-	RFTIMER_REG__MAX_COUNT = packet_interval;
+	// Set initial coarse/fine on HF_CLOCK
+	//coarse 0:4 = 860 861 875b 876b 877b
+	//fine 0:4 870 871 872 873 874b
+	set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);	//Close to 20MHz at room temp
 
-	// Enable RF Timer
-	RFTIMER_REG__CONTROL = 0x7;
-
-	// Disable interrupts for the radio FSM
-	radio_disable_interrupts();
+	// Program analog scan chain
+	//analog_scan_chain_write(&ASC[0]);
+	//analog_scan_chain_load();
+	printf("-x-");
 	
-	// Disable RF timer interrupts
-	rftimer_disable_interrupts();
+//	// Start of new RX
+//	RFTIMER_REG__COMPARE0 = 1;
+//	
+//	// Turn on the RX 
+//	RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
+
+//	// Time to start listening for packet 
+//	RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
+
+//	// RX watchdog - packet never arrived
+//	RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
+//	
+//	// RF Timer rolls over at this value and starts a new cycle
+//	RFTIMER_REG__MAX_COUNT = packet_interval;
+
+//	// Enable RF Timer
+//	RFTIMER_REG__CONTROL = 0x7;
+
+//	// Disable interrupts for the radio FSM
+//	radio_disable_interrupts();
+//	
+//	// Disable RF timer interrupts
+//	rftimer_disable_interrupts();
 	
 	//--------------------------------------------------------
-	// SCM3B Analog Scan Chain Initialization
+	// SCM3C Analog Scan Chain Initialization
 	//--------------------------------------------------------
-	// Init LDO control - RX enabled by GPIO_PON
+	// Init LDO control
 	init_ldo_control();
 
 	// Set LDO reference voltages
@@ -1420,40 +1101,29 @@ void initialize_mote(){
 	//set_AUX_LDO_voltage(0);
 	//set_ALWAYSON_LDO_voltage(0);
 		
-	// Init GPIO - for access to all clocks
-	// Select input banks for GPIO_PON and interrupts
-	GPI_control(1,0,1,0);
+	// Select banks for GPIO inputs
+	GPI_control(0,0,0,0);
 	
-	// Setup access to clocks for cal
-	// Need to keep first row set to bank 0 for optical bootload to keep working
-	GPO_control(0,10,8,10);
+	// Select banks for GPIO outputs
+	GPO_control(6,5,6,0);
 	
-	// Only GPIO_PON is an input
-	GPI_enables(0x0002);
-	GPO_enables(0xFFFD);
+	// Set all GPIOs as outputs
+	GPI_enables(0x0000);	
+	GPO_enables(0xFFFF);
 
-	// Disable LF_CLOCK
-	set_asc_bit(553); //LF_CLOCK
-	//set_asc_bit(830); //HF_CLOCK
-	
+
 	// Set initial coarse/fine on HF_CLOCK
 	//coarse 0:4 = 860 861 875b 876b 877b
 	//fine 0:4 870 871 872 873 874b
-	set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);	//Close to 20MHz at room temp
+	//set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
 
-	// Need to set crossbar so HF_CLOCK comes out divider_out_integ (gpio5, bank10)
-	// This is connected to JA9 on FPGA which is HF_CLOCK
-	set_asc_bit(1163);
-	
-	// Set passthrough on divide_out_integ divider
-	set_asc_bit(40);
-
-	// Set HCLK source as HF_CLOCK
-	set_asc_bit(1147);	
 	
 	// Set RFTimer source as HF_CLOCK
 	set_asc_bit(1151);
 
+	// Disable LF_CLOCK
+	set_asc_bit(553);
+	
 	// HF_CLOCK will be trimmed to 20MHz, so set RFTimer div value to 40 to get 500kHz (inverted, so 1101 0111)
 	set_asc_bit(49);
 	set_asc_bit(48);
@@ -1466,17 +1136,6 @@ void initialize_mote(){
 	
 	// Set 2M RC as source for chip CLK
 	set_asc_bit(1156);
-
-	// Route IF ADC_CLK out of BLE_PDA_clk for intitial optical calibration 
-	// (Can't use ADC_CLK and optical signals at the same time since they are all in the first group of four)
-	// This pin is shared with Q_LC[2], so that pin was connected to counter 4 in FPGA
-	// Comment these two lines out in IC version
-	set_asc_bit(1180);
-	set_asc_bit(1181);
-	
-	// Then set the divider for BLE_PDA_clk to passthrough
-	// Comment this line out in IC version
-	set_asc_bit(524);
 	
 	// Enable 32k for cal
 	set_asc_bit(623);
@@ -1486,8 +1145,8 @@ void initialize_mote(){
 	
 	// Init counter setup - set all to analog_cfg control
 	// ASC[0] is leftmost
-	//ASC[0] |= 0xFF800000; 
-	for(t=2; t<22; t++) set_asc_bit(t);
+	//ASC[0] |= 0x6F800000; 
+	for(t=2; t<9; t++) set_asc_bit(t);	
 		
 	// Init RX
 	radio_init_rx_MF();
@@ -1499,51 +1158,22 @@ void initialize_mote(){
 	set_IF_clock_frequency(IF_coarse, IF_fine, 0);
 
 	// Set initial TX clock frequency
-	set_2M_RC_frequency(31, 31, 21, 17, RC2M_superfine);
-	
+	set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
+
 	// Turn on RC 2M for cal
 	set_asc_bit(1114);
 		
 	// Set initial LO frequency
-	LC_monotonic_ASC(LC_code);
+	LC_monotonic(LC_code);
 	
 	// Init divider settings
 	radio_init_divider(2000);
 
-	
-	// Program analog scan chain on SCM3B
-	analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	analog_scan_chain_load_3B_fromFPGA();
-	//--------------------------------------------------------
-	
-
-	//--------------------------------------------------------
-	// FPGA Analog Scan Chain Initialization
-	//--------------------------------------------------------
-
-	// Copy settings from 3B ASC
-	for(t=0;t<=38;t++){
-		ASC_FPGA[t] = ASC[t];	
-	}
-
-	// Set up GPIO settings for FPGA
-	// There are no direction controls on FPGA; hard-wired
-	// Connect all GPOs to cortex GP outputs
-	GPO_control_FPGA(6,5,10,10);
-	//GPO_control_FPGA(0,0,0,0);
-	//GPI_control_FPGA(2,3,3,3);
-	
-	
-	// Program analog scan chain on FPGA
-	analog_scan_chain_write(&ASC_FPGA[0]);
+	// Program analog scan chain
+	analog_scan_chain_write(&ASC[0]);
 	analog_scan_chain_load();
-	
-	// GPIO_PON is connected to the LO turn-on signal
-	
-	//printf("Initialization Complete\n");
 	//--------------------------------------------------------
 	
-	//radio_enable_LO();
 }
 
 unsigned int build_RX_channel_table(unsigned int channel_11_LC_code){
@@ -1558,9 +1188,9 @@ unsigned int build_RX_channel_table(unsigned int channel_11_LC_code){
 	//for(ii=0; ii<16; ii++){
 	while(ii<16) {
 	
-		LC_monotonic_ASC(RX_channel_codes[ii]);
-		analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-		analog_scan_chain_load_3B_fromFPGA();
+		LC_monotonic(RX_channel_codes[ii]);
+		//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+		//analog_scan_chain_load_3B_fromFPGA();
 					
 		// Reset all counters
 		ANALOG_CFG_REG__0 = 0x0000;
@@ -1625,9 +1255,9 @@ void build_TX_channel_table(unsigned int channel_11_LC_code, unsigned int count_
 	//for(ii=0; ii<16; ii++){
 	while(ii<16) {
 	
-		LC_monotonic_ASC(TX_channel_codes[ii]);
-		analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-		analog_scan_chain_load_3B_fromFPGA();
+		LC_monotonic(TX_channel_codes[ii]);
+		//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+		//analog_scan_chain_load_3B_fromFPGA();
 					
 		// Reset all counters
 		ANALOG_CFG_REG__0 = 0x0000;
@@ -1729,6 +1359,245 @@ unsigned int estimate_temperature_2M_32k(){
 }
 
 
+void LC_FREQCHANGE(int coarse, int mid, int fine){
+	
+	//	Inputs:
+	//		coarse: 5-bit code (0-31) to control the ~15 MHz step frequency DAC
+	//		mid: 5-bit code (0-31) to control the ~800 kHz step frequency DAC
+	//		fine: 5-bit code (0-31) to control the ~100 kHz step frequency DAC
+	//  Outputs:
+	//		none, it programs the LC radio frequency immediately
+    
+  // mask to ensure that the coarse, mid, and fine are actually 5-bit
+  char coarse_m = (char)(coarse & 0x1F);
+  char mid_m = (char)(mid & 0x1F);
+  char fine_m = (char)(fine & 0x1F);
+	
+	// flip the bit order to make it fit more easily into the ACFG registers
+	unsigned int coarse_f = (unsigned int)(flipChar(coarse_m));
+	unsigned int mid_f = (unsigned int)(flipChar(mid_m));
+	unsigned int fine_f = (unsigned int)(flipChar(fine_m));
+
+  // initialize registers
+  unsigned int fcode = 0x00000000;   // contains everything but LSB of the fine DAC
+  unsigned int fcode2 = 0x00000000;  // contains the LSB of the fine DAC
+	
+	fine_f &= 0x000000FF;
+	mid_f &= 0x000000FF;
+	coarse_f &= 0x000000FF;
+	
+	//printf("%d\n",fine_m);
+	//printf("%d\n",mid_m);
+	//printf("%d\n",coarse_m);
+	    
+  fcode |= (unsigned int)((fine_f & 0x78) << 9);
+	fcode |= (unsigned int)(mid_f << 3);
+  fcode |= (unsigned int)(coarse_f >> 3);
+    
+  fcode2 |= (unsigned int)((fine_f&0x80) >> 7);
+	
+	//printf("%X\n",fcode);
+	//printf("%X\n",fcode2);
+		
+	// ACFG_LO_ADDR   = [ f1 | f2 | f3 | f4 | md | m0 | m1 | m2 | m3 | m4 | cd | c0 | c1 | c2 | c3 | c4 ]
+	// ACFG_LO_ADDR_2 = [ xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | fd | f0 ]
+	    
+  // set the memory and prevent any overwriting of other analog config
+  ANALOG_CFG_REG__7 = fcode;
+  ANALOG_CFG_REG__8 = fcode2;
+		
+}
+void LC_monotonic(int LC_code){
+
+	//int coarse_divs = 440;
+	//int mid_divs = 31; // For full fine code sweeps
+	
+	int fine_fix = 0;
+	int mid_fix = 0;
+	//int coarse_divs = 136;
+	int mid_divs = 25; // works for Ioana's board, Fil's board, Brad's other board
+	
+	//int coarse_divs = 167;
+		int coarse_divs = 155;
+	//int mid_divs = 27; // works for Brad's board // 25 and 155 worked really well @ low frequency, 27 167 worked great @ high frequency (Brad's board)
+	
+	int mid;
+	int fine;
+	int coarse = (((LC_code/coarse_divs + 19) & 0x000000FF));
+	
+	LC_code = LC_code % coarse_divs;
+	//mid = ((((LC_code/mid_divs)*4 + mid_fix) & 0x000000FF)); // works for boards (a)
+	 mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
+	//mid = ((((LC_code/mid_divs) + mid_fix) & 0x000000FF));
+	if (LC_code/mid_divs >= 2) {fine_fix = 0;};
+	fine = (((LC_code % mid_divs + fine_fix) & 0x000000FF));
+	if (fine > 15){fine++;};
+	
+	LC_FREQCHANGE(coarse,mid,fine);
+	
+}
+
+
+void set_LC_current(unsigned int current) {
+	unsigned int current_msb = (current & 0x000000F0) >> 4;
+	unsigned int current_lsb = (current & 0x0000000F) << 28;
+	
+	ASC[30] &= 0xFFFFFFF0;
+	ASC[30] |= current_msb;
+	
+	ASC[31] &= 0x0FFFFFFF;
+	ASC[31] |= current_lsb;
+}
+void disable_polyphase_ASC() {
+	ASC[30] &= 0xFFEFFFFF;
+}
+
+void enable_polyphase_ASC() {
+	ASC[30] |= 0x00100000;
+}
+
+void disable_div_power_ASC() {
+	ASC[16] &= 0xB7FFFFFF;
+}
+void enable_div_power_ASC() {
+	ASC[16] |= 0x48000000;
+}
+
+void ext_clk_ble_ASC() {
+	ASC[32] |= 0x00080000;
+}
+void int_clk_ble_ASC() {
+	ASC[32] &= 0xFFF7FFFF;
+}
+
+
+void enable_1mhz_ble_ASC() {
+	ASC[32] &= 0xFFF9FFFF;
+}
+
+void disable_1mhz_ble_ASC() {
+	ASC[32] |= 0x00060000;
+}
+void set_PA_supply(unsigned int code) {
+	// 7-bit setting (between 0 and 127)
+	// MSB is a "panic" bit that engages the high-voltage settings
+	unsigned int code_ASC = ((~code)&0x0000007F) << 13;
+	ASC[30] &= 0xFFF01FFF;
+	ASC[30] |= code_ASC;
+	
+}
+void set_LO_supply(unsigned int code, unsigned char panic) {
+	// 7-bit setting (between 0 and 127)
+	// MSB is a "panic" bit that engages the high-voltage settings
+	unsigned int code_ASC = ((~code)&0x0000007F) << 5;
+	ASC[30] &= 0xFFFFF017;
+	ASC[30] |= code_ASC;
+}
+void set_DIV_supply(unsigned int code, unsigned char panic) {
+	// 7-bit setting (between 0 and 127)
+	// MSB is a "panic" bit that engages the high-voltage settings
+	unsigned int code_ASC = ((~code)&0x0000007F) << 5;
+	ASC[30] &= 0xFFF01FFF;
+	ASC[30] |= code_ASC;
+}
+
+void prescaler(int code) {
+	
+	
+	
+
+
+	// code is a number between 0 and 5
+	// 0 -> disable pre-scaler entirely
+	// 1 -> enable div-by-5 back-up pre-scaler
+	// 2 -> enable div-by-2 back-up pre-scaler
+	// 3 -> enable dynamic pre-scaler version 1 (div-by-5, strong)
+	// 4 -> enable dynamic pre-scaler version 2 (div-by-2, strong)
+	// 5 -> enable dynamic pre-scaler version 3 (div-by-5, weak)
+	
+	if (code == 0) {
+		// disable div-by-5 backup, disable div-by-2 backup, disable dynamic pre-scaler
+		ASC[31] |= 0x00000004;
+		ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+		ASC[32] |= 0x80000000;
+		ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+		ASC[32] |= 0x70000000; // disable all of the dynamic pre-scalers
+	}
+	else if (code == 1) {
+		// enable div-by-5 backup, disable div-by-2 backup, disable dynamic pre-scaler
+		ASC[31] |= 0x00000002;
+		ASC[31] &= 0xFFFFFFFB; // enable div-by-5 backup
+		ASC[32] |= 0x80000000;
+		ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+		ASC[32] |= 0x70000000; // disable all of the dynamic pre-scalers
+	}
+	else if (code == 2) {
+		// disable div-by-5 backup, enable div-by-2 backup, disable dynamic pre-scaler
+		ASC[31] |= 0x00000004;
+		ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+		ASC[32] &= 0x7FFFFFFF;
+		ASC[31] |= 0x00000001; // enable div-by-2 backup
+		ASC[32] |= 0x70000000; // disable all of the dynamic pre-scalers
+	}
+	else if (code == 3) {
+		// disable div-by-5 backup, disable div-by-2 backup, enable setting #1 of dynamic pre-scaler
+		ASC[31] |= 0x00000004;
+		ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+		ASC[32] |= 0x80000000;
+		ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+		ASC[32] &= 0xBFFFFFFF; // enable first bit of pre-scaler
+	}
+	else if (code == 4) {
+		// disable div-by-5 backup, disable div-by-2 backup, enable setting #2 of dynamic pre-scaler
+		ASC[31] |= 0x00000004;
+		ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+		ASC[32] |= 0x80000000;
+		ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+		ASC[32] &= 0xDFFFFFFF; // enable second bit of pre-scaler
+	}
+	else if (code == 5) {
+		// disable div-by-5 backup, disable div-by-2 backup, enable setting #3 of dynamic pre-scaler
+		ASC[31] |= 0x00000004;
+		ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+		ASC[32] |= 0x80000000;
+		ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+		ASC[32] &= 0x9FFFFFFF; // enable third bit of pre-scaler
+	}
+}
+
+void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable) {
+	// Inputs: 
+	//	div_ratio, a number between 1 and 65536 that determines the integer divide ratio of the static divider (after pre-scaler)
+	//	reset, active low
+	//	enable, active high
+	// Outputs:
+	//	none, it programs the divider immediately
+	// Example:
+	//	divProgram(480,1,1) will further divide the LC tank frequency by 480
+	
+	// For this function to work, the scan chain must have bitwise ASC[1081]=0, or ASC[33] &= 0xFFFFFFBF;
+	// BIG BUG:::: odd divide ratios DO NOT WORK when the input to the divider is a high frequency (~1.2 GHz)
+	
+	// initialize the programming registers
+	unsigned int div_code_1 = 0x00000000;
+	unsigned int div_code_2 = 0x00000000;
+	
+	// 	The two analog config registers look like this:
+	
+	// ACFG_CFG_REG__5   = [ d11 | d10 | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx  | xx  | xx  | xx  ]
+	// ACFG_CFG_REG__6 = [ d3  | d2  | d1 | d0 | rb | en | d9 | d8 | d7 | d6 | d5 | d4 | d15 | d14 | d13 | d12 ]
+
+	div_code_1  = ((div_ratio & 0x00000C00) << 4);
+	div_code_2 |= ((div_ratio & 0x0000F000) >> 12);
+	div_code_2 |= (div_ratio & 0x000003F0);
+	div_code_2 |= (enable << 10);
+	div_code_2 |= (reset << 11);
+	div_code_2 |= ((div_ratio & 0x0000000F) << 12);
+	
+	// also every bit needs to be inverted, hooray
+	ANALOG_CFG_REG__5 = ~div_code_1;
+	ANALOG_CFG_REG__6 = ~div_code_2;
+}
 
 
 

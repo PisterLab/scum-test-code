@@ -1,9 +1,10 @@
 #include "Memory_Map.h"
 #include "rf_global_vars.h"
 #include <stdio.h>
-#include "scm3B_hardware_interface.h"
+#include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"
 #include "scum_radio_bsp.h"
+#include "bucket_o_functions.h"
 
 extern char send_packet[127];
 extern char recv_packet[130];
@@ -21,7 +22,7 @@ extern unsigned int IF_coarse;
 extern unsigned int IF_fine;
 extern unsigned int cal_iteration;
 extern unsigned int ASC[38];
-extern unsigned int ASC_FPGA[38];
+//extern unsigned int ASC_FPGA[38];
 
 unsigned int num_packets_received;
 unsigned int num_crc_errors;
@@ -38,6 +39,8 @@ signed short cdr_tau_value;
 extern unsigned int HF_CLOCK_fine;
 extern unsigned int HF_CLOCK_coarse;
 extern unsigned int RC2M_superfine;
+extern unsigned int RC2M_fine;
+extern unsigned int RC2M_coarse;
 
 unsigned int num_32k_ticks_in_100ms;
 unsigned int num_2MRC_ticks_in_100ms;
@@ -163,21 +166,21 @@ void UART_ISR(){
 		// Attempt to recover if stuck in unprogrammable mode
 		} else if ( (buff[3]=='x') && (buff[2]=='x') && (buff[1]=='1') && (buff[0]=='\n') ) {
 		
-			for(t=0;t<=38;t++){
-				ASC_FPGA[t] = 0;	
-			}
+			//for(t=0;t<=38;t++){
+			//	ASC_FPGA[t] = 0;	
+			//}
 	
 			for(t=0;t<=38;t++){
 				ASC[t] = 0;	
 			}
 			
-			// Program analog scan chain on FPGA
-			analog_scan_chain_write(&ASC_FPGA[0]);
+			// Program analog scan chain
+			analog_scan_chain_write(&ASC[0]);
 			analog_scan_chain_load();
 			
 			// Program analog scan chain on SCM3B
-			analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-			analog_scan_chain_load_3B_fromFPGA();
+			//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+			//analog_scan_chain_load_3B_fromFPGA();
 			
 			printf("Mote re-initialized to default\n");
 			
@@ -279,7 +282,7 @@ void RF_ISR() {
 			if(doing_initial_packet_search == 0){
 
 				// Exit RX mode (so can reprogram on FPGA version)
-				analog_scan_chain_load_3B_fromFPGA();
+				analog_scan_chain_load();
 				
 				radio_rfOff();
 			}
@@ -301,11 +304,11 @@ void RF_ISR() {
 			
 			printf("bad crc\n");
 			
-			// If packet was a failure, turn the radio off
+			// If packet was a failure, turn thfe radio off
 			if(doing_initial_packet_search == 0){
 
 				// Exit RX mode (so can reprogram on FPGA version)
-				analog_scan_chain_load_3B_fromFPGA();
+				analog_scan_chain_load();
 				
 				radio_rfOff();
 			}
@@ -337,7 +340,7 @@ void RF_ISR() {
 				// Enable timer ISRs in the NVIC
 				rftimer_enable_interrupts();
 				
-				analog_scan_chain_load_3B_fromFPGA();
+				analog_scan_chain_load();
 				
 				radio_rfOff();
 				
@@ -371,7 +374,7 @@ void RF_ISR() {
 				RFTIMER_REG__COMPARE4_CONTROL = 0x3;
 				RFTIMER_REG__COMPARE5_CONTROL = 0x3;
 				
-				analog_scan_chain_load_3B_fromFPGA();
+				analog_scan_chain_load();
 			}
 		
 		// Keep listening if not locked yet
@@ -489,7 +492,7 @@ void RFTIMER_ISR() {
 		GPIO_REG__OUTPUT &= ~(0x8);
 		
 		// Exit RX mode (so can reprogram on FPGA version)
-		analog_scan_chain_load_3B_fromFPGA();
+		analog_scan_chain_load();
 		
 		// Turn off the radio
 		radio_rfOff();
@@ -500,7 +503,7 @@ void RFTIMER_ISR() {
 		GPIO_REG__OUTPUT ^= 0x1;
 		
 		// Switch over to TX
-		analog_scan_chain_load_3B_fromFPGA();
+		analog_scan_chain_load();
 	
 		// Turn on RF for TX
 		radio_txEnable();
@@ -619,25 +622,30 @@ void OPTICAL_32_ISR(){
 }
 
 // This interrupt goes off when the optical register holds the value {221, 176, 231, 47}
-// This interrupt is used to synchronize to the start of a data transfer
+// This interrupt can also be used to synchronize to the start of an optical data transfer
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
 void OPTICAL_SFD_ISR(){
 	
 	int t;
-	//printf("Optical SFD interrupt triggered\n");
-	// Enable the 32bit optical interrupt
-	//ISER = 0x4;
-
 	unsigned int rdata_lsb, rdata_msb; 
 	unsigned int count_LC, count_32k, count_2M, count_HFclock, count_IF;
-	
-	GPIO_REG__OUTPUT ^= 0x1;
-	
+		
 	// Disable all counters
 	ANALOG_CFG_REG__0 = 0x007F;
 	
+	// Keep track of how many calibration iterations have been completed
 	optical_cal_iteration++;
-	
+		
+	// Read 32k counter
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
+	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
+	count_32k = rdata_lsb + (rdata_msb << 16);
+
+	// Read HF_CLOCK counter
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x100000);
+	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x140000);
+	count_HFclock = rdata_lsb + (rdata_msb << 16);
+
 	// Read 2M counter
 	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
 	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
@@ -647,75 +655,62 @@ void OPTICAL_SFD_ISR(){
 	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
 	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
 	count_LC = rdata_lsb + (rdata_msb << 16);
-		
-	// Read 32k counter
-	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
-	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
-	count_32k = rdata_lsb + (rdata_msb << 16);
 	
-	// Read HF_CLOCK counter
-	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x100000);
-	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x140000);
-	count_HFclock = rdata_lsb + (rdata_msb << 16);
-
 	// Read IF ADC_CLK counter
-	// This is a convoluted way to get access for initial optical cal
-	// Normally this clock would be read from counter 6, but can't get access to ADC_CLK and optical signals at same time
-	// So workaround is to plug it into counter 4 for initial calibration
-	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x200000);
-	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x240000);
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000);
+	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000);
 	count_IF = rdata_lsb + (rdata_msb << 16);
-	// For the IC version, comment the above 3 lines and uncomment the 3 below
-	//rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000);
-	//rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000);
-	//count_IF = rdata_lsb + (rdata_msb << 16);
 	
 	// Reset all counters
 	ANALOG_CFG_REG__0 = 0x0000;		
 	
 	// Enable all counters
 	ANALOG_CFG_REG__0 = 0x3FFF;	
-	
-	GPIO_REG__OUTPUT ^= 0x1;
-	
-	// Update HF CLOCK if needed
-	if(count_HFclock < 199600) HF_CLOCK_fine--;
-	if(count_HFclock > 20040000) HF_CLOCK_fine++;
-	set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
-	
+		
+	// Don't make updates on the first two executions of this ISR
+	if(optical_cal_iteration > 2){
+		
+		// Do correction on HF CLOCK
+		// Fine DAC step size is about 6000 counts
+		if(count_HFclock < 1997000) HF_CLOCK_fine--;
+		if(count_HFclock > 2003000) HF_CLOCK_fine++;
+		set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
+		
+		// Do correction on LC
+		if(count_LC > (LC_target + 30)) LC_code -= 1;
+		if(count_LC < (LC_target - 30))	LC_code += 1;
+		LC_monotonic(LC_code);
+			
+		// Do correction on 2M RC
+		// Coarse step ~1100 counts, fine ~150 counts, superfine ~25
+		// Too fast
+		if(count_2M > (200600)) RC2M_coarse += 1;
+		else if(count_2M > (200080)) RC2M_fine += 1;
+		else if(count_2M > (200015))	RC2M_superfine += 1;
+		
+		// Too slow
+		if(count_2M < (199400))	RC2M_coarse -= 1;
+		else if(count_2M < (199920)) RC2M_fine -= 1;
+		else if(count_2M < (199985))	RC2M_superfine -= 1;
+		set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
 
-		// Start finer steps
-		if(count_LC > LC_target + 60){
-			LC_code -= 1;
-			LC_monotonic_ASC(LC_code);
-		}
+		// Do correction on IF RC clock
+		// Fine DAC step size is ~2800 counts
+		if(count_IF > (1600000+1400)) IF_fine += 1;
+		if(count_IF < (1600000-1400))	IF_fine -= 1;
+		set_IF_clock_frequency(IF_coarse, IF_fine, 0);
 		
-		else if(count_LC < LC_target - 60){
-			LC_code += 1;
-			LC_monotonic_ASC(LC_code);
-		}	
-	//}
-		
-	// Do correction on 2M RC
-	if(count_2M > (200100)) RC2M_superfine += 1;
-	if(count_2M < (199900))	RC2M_superfine -= 1;
-	set_2M_RC_frequency(31, 31, 21, 17, RC2M_superfine);
-
-		
-	// Do correction on IF RC clock
-	if(count_IF > (1600000+300)) IF_fine += 1;
-	if(count_IF < (1600000-300))	IF_fine -= 1;
-	set_IF_clock_frequency(IF_coarse, IF_fine, 0);
-
+		analog_scan_chain_write(&ASC[0]);
+		analog_scan_chain_load();	
+	}
 	
-	analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	analog_scan_chain_load_3B_fromFPGA();
-		
-		//printf("%d,%d,%d,%d,%d-%d\n",count_32k,count_2M,count_HFclock,count_IF,count_LC,LC_code);
-		//printf("LC_code=%d\n", LC_code);
-	
-	// 
+	// Debugging output
+	printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
+	 
+	//printf("%d\n",count_LC);
+	 
 	if(optical_cal_iteration == 25){
+		// Disable this ISR
 		ICER = 0x0800;
 		optical_cal_iteration = 0;
 		optical_cal_finished = 1;
@@ -737,13 +732,13 @@ void OPTICAL_SFD_ISR(){
 		//printf("IF_fine=%d\n", IF_fine);
 		
 		printf("done\n");
-		printf("Building channel table...");
+		//printf("Building channel table...");
 		
-		build_channel_table(LC_code);
+		//build_channel_table(LC_code);
 		
-		printf("done\n");
+		//printf("done\n");
 		
-		radio_disable_all();
+		//radio_disable_all();
 		
 		// Halt all counters
 		ANALOG_CFG_REG__0 = 0x0000;	

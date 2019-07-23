@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Memory_Map.h"
-#include "scm3B_hardware_interface.h"
+#include "scm3C_hardware_interface.h"
 
 extern unsigned int ASC[38]; // initialize the scan chain in memory
 
@@ -54,8 +54,8 @@ void LC_FREQCHANGE(int coarse, int mid, int fine){
 	// ACFG_LO_ADDR_2 = [ xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | fd | f0 ]
 	    
   // set the memory and prevent any overwriting of other analog config
-  ACFG_LO__ADDR = fcode;
-  ACFG_LO__ADDR_2 = fcode2;
+  ANALOG_CFG_REG__7 = fcode;
+  ANALOG_CFG_REG__8 = fcode2;
 		
 }
 void LC_monotonic(int LC_code){
@@ -89,6 +89,16 @@ void LC_monotonic(int LC_code){
 }
 
 
+void set_LC_current(unsigned int current) {
+	unsigned int current_msb = (current & 0x000000F0) >> 4;
+	unsigned int current_lsb = (current & 0x0000000F) << 28;
+	
+	ASC[30] &= 0xFFFFFFF0;
+	ASC[30] |= current_msb;
+	
+	ASC[31] &= 0x0FFFFFFF;
+	ASC[31] |= current_lsb;
+}
 void disable_polyphase_ASC() {
 	ASC[30] &= 0xFFEFFFFF;
 }
@@ -119,17 +129,6 @@ void enable_1mhz_ble_ASC() {
 void disable_1mhz_ble_ASC() {
 	ASC[32] |= 0x00060000;
 }
-
-void set_LC_current(unsigned int current) {
-	unsigned int current_msb = (current & 0x000000F0) >> 4;
-	unsigned int current_lsb = (current & 0x0000000F) << 28;
-	
-	ASC[30] &= 0xFFFFFFF0;
-	ASC[30] |= current_msb;
-	
-	ASC[31] &= 0x0FFFFFFF;
-	ASC[31] |= current_lsb;
-}
 void set_PA_supply(unsigned int code) {
 	// 7-bit setting (between 0 and 127)
 	// MSB is a "panic" bit that engages the high-voltage settings
@@ -154,6 +153,11 @@ void set_DIV_supply(unsigned int code, unsigned char panic) {
 }
 
 void prescaler(int code) {
+	
+	
+	
+
+
 	// code is a number between 0 and 5
 	// 0 -> disable pre-scaler entirely
 	// 1 -> enable div-by-5 back-up pre-scaler
@@ -210,4 +214,38 @@ void prescaler(int code) {
 		ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
 		ASC[32] &= 0x9FFFFFFF; // enable third bit of pre-scaler
 	}
+}
+
+void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable) {
+	// Inputs: 
+	//	div_ratio, a number between 1 and 65536 that determines the integer divide ratio of the static divider (after pre-scaler)
+	//	reset, active low
+	//	enable, active high
+	// Outputs:
+	//	none, it programs the divider immediately
+	// Example:
+	//	divProgram(480,1,1) will further divide the LC tank frequency by 480
+	
+	// For this function to work, the scan chain must have bitwise ASC[1081]=0, or ASC[33] &= 0xFFFFFFBF;
+	// BIG BUG:::: odd divide ratios DO NOT WORK when the input to the divider is a high frequency (~1.2 GHz)
+	
+	// initialize the programming registers
+	unsigned int div_code_1 = 0x00000000;
+	unsigned int div_code_2 = 0x00000000;
+	
+	// 	The two analog config registers look like this:
+	
+	// ACFG_CFG_REG__5   = [ d11 | d10 | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx  | xx  | xx  | xx  ]
+	// ACFG_CFG_REG__6 = [ d3  | d2  | d1 | d0 | rb | en | d9 | d8 | d7 | d6 | d5 | d4 | d15 | d14 | d13 | d12 ]
+
+	div_code_1  = ((div_ratio & 0x00000C00) << 4);
+	div_code_2 |= ((div_ratio & 0x0000F000) >> 12);
+	div_code_2 |= (div_ratio & 0x000003F0);
+	div_code_2 |= (enable << 10);
+	div_code_2 |= (reset << 11);
+	div_code_2 |= ((div_ratio & 0x0000000F) << 12);
+	
+	// also every bit needs to be inverted, hooray
+	ANALOG_CFG_REG__5 = ~div_code_1;
+	ANALOG_CFG_REG__6 = ~div_code_2;
 }

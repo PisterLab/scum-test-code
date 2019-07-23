@@ -172,13 +172,13 @@
 #define ANALOG_CFG_REG__2               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x080000)
 #define ANALOG_CFG_REG__3               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x0C0000)
 #define ANALOG_CFG_REG__4               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x100000)
-#define ANALOG_CFG_REG__5               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x140000)
-#define ANALOG_CFG_REG__6               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000)
-#define ANALOG_CFG_REG__7               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000)
-#define ANALOG_CFG_REG__8               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x200000)
+#define ANALOG_CFG_REG__5               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x140000) // contains 2.4 GHz divider control, see bucket_o_functions/divProgram()
+#define ANALOG_CFG_REG__6               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000) // contains 2.4 GHz divider control, see bucket_o_functions/divProgram()
+#define ANALOG_CFG_REG__7               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000) // contains 2.4 GHz oscillator control, see bucket_o_functions/LC_freqchange
+#define ANALOG_CFG_REG__8               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x200000) // contains 2.4 GHz oscillator control, see bucket_o_functions/LC_freqchange
 #define ANALOG_CFG_REG__9               *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x240000)
 #define ANALOG_CFG_REG__10              *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000)
-#define ANALOG_CFG_REG__11              *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000)
+#define ANALOG_CFG_REG__11              *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000) // contains control bits for the arbitrary TX FIFO, apparently
 #define ANALOG_CFG_REG__12              *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000)
 #define ANALOG_CFG_REG__13              *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000)
 #define ANALOG_CFG_REG__14              *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x380000)
@@ -199,10 +199,6 @@
 #define ANALOG_CFG_REG__29              *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x740000)
 #define ANALOG_CFG_REG__30              *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x780000)
 	
-
-
-#define ACFG_LO__ADDR                   *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x001C0000)
-#define ACFG_LO__ADDR_2                 *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x00200000)
 
 // Interrupt set enable reg		
 #define ISER														*(unsigned int*)(0xE000E100)
