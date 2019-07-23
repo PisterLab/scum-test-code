@@ -18,7 +18,6 @@ __pycache__/
 *.sct
 *.dep
 *.lst
-*.s
 disasm.txt
 *.Bak
 *.uvguix*
