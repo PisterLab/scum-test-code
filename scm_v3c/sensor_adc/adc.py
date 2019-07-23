@@ -4,17 +4,32 @@ from scipy import stats
 import serial
 import visa
 
-def program_cortex(com_port="COM15", file_binary="./code.bin"):
+def program_cortex(com_port="COM15", file_binary="./code.bin",
+		boot_mode='optical', skip_reset=False, insert_CRC=False,
+		pad_random_payload=False):
 	"""
 	Inputs:
 		com_port: String. Name of the COM port that the Teensy
 			is connected to.
 		file_binary: String. Path to the binary file to program
 			SCM via the Teensy.
+		boot_mode: String. 'optical' or '3wb'. The former will assume an
+			optical bootload, whereas the latter will use the 3-wire
+			bus.
+		skip_reset: Boolean. True: Skip hard reset before optical 
+			programming. False: Perform hard reset before optical programming.
+		insert_CRC: Boolean. True = insert CRC for payload integrity 
+			checking. False = do not insert CRC. Note that SCM C code 
+			must also be set up for CRC check for this to work.
+		pad_random_payload: Boolean. True = pad unused payload space with 
+			random data and check it with CRC. False = pad with zeros, do 
+			not check integrity of padding. This is useful to check for 
+			programming errors over full 64kB payload.
 	Outputs:
 		No return value. Feeds the input from file_binary
-		to the Teensy to run via optical bootload.
+		to the Teensy to run 
 	"""
+	# Open COM port to Teensy
 	ser = serial.Serial(
 		port=com_port,
 		baudrate=19200,
@@ -22,7 +37,76 @@ def program_cortex(com_port="COM15", file_binary="./code.bin"):
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS)
 
-	ser.write()
+	# Open binary file from Keil
+	with open(file_binary, 'rb') as f:
+		bindata = bytearray(f.read())
+
+	# Need to know how long the binary payload is for computing CRC
+	code_length = len(bindata) - 1
+	pad_length = 65536 - code_length - 1
+
+	# Optional: pad out payload with random data if desired
+	# Otherwise pad out with zeros - uC must receive full 64kB
+	if(pad_random_payload):
+		for i in range(pad_length):
+			bindata.append(random.randint(0,255))
+		code_length = len(bindata) - 1 - 8
+	else:
+		for i in range(pad_length):
+			bindata.append(0)
+
+	if insert_CRC:
+	    # Insert code length at address 0x0000FFF8 for CRC calculation
+	    # Teensy will use this length value for calculating CRC
+		bindata[65528] = code_length % 256 
+		bindata[65529] = code_length // 256
+		bindata[65530] = 0
+		bindata[65531] = 0
+	
+	# Transfer payload to Teensy
+	ser.write(b'transfersram\n')
+	print(ser.readline())
+	# Send the binary data over uart
+	ser.write(bindata)
+
+	if insert_CRC:
+	    # Have Teensy calculate 32-bit CRC over the code length 
+	    # It will store the 32-bit result at address 0x0000FFFC
+		ser.write(b'insertcrc\n')
+
+	if boot_mode == 'optical':
+	    # Configure parameters for optical TX
+		ser.write(b'configopt\n')
+		ser.write(b'80\n')	
+		ser.write(b'80\n')
+		ser.write(b'3\n')
+		ser.write(b'80\n')
+		
+	    # Encode the payload into 4B5B for optical transmission
+		ser.write(b'encode4b5b\n')
+
+		if not skip_reset:
+	        # Do a hard reset and then optically boot
+			ser.write(b'bootopt4b5b\n')
+		else:
+	        # Skip the hard reset before booting
+			ser.write(b'bootopt4b5bnorst\n')
+
+	    # Display confirmation message from Teensy
+		print(ser.readline())
+
+	elif boot_mode == '3wb':
+	    # Execute 3-wire bus bootloader on Teensy
+		ser.write(b'boot3wb\n')
+
+	    # Display confirmation message from Teensy
+		print(ser.readline())
+	else:
+		raise ValueError("Boot mode '{}' invalid.".format(boot_mode))
+
+	ser.write(b'opti_cal\n');
+
+	# Due diligence
 	ser.close()
 
 def test_adc_internal(com_port="COM10", iterations=1):
@@ -242,16 +326,11 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 
 if __name__ == "__main__":
 	if True:
-		print("blep")
-		ser = serial.Serial(
-			port="COM15",
-			baudrate=19200,
-			parity=serial.PARITY_NONE,
-			stopbits=serial.STOPBITS_ONE,
-			bytesize=serial.EIGHTBITS)
-			
-		ser.write(b'adc\n')
-		print(ser.readline())
-		ser.close()
-		# vbatDiv4_outs = test_adc_internal(com_port="COM15", iterations=1)
-		# print(vbatDiv4_outs)
+
+		program_cortex_specs = dict(com_port="COM15",
+									file_binary="../code.bin",
+									boot_mode="optical",
+									skip_reset=False,
+									insert_CRC=False,
+									pad_random_payload=False)
+		program_cortex(**program_cortex_specs)
