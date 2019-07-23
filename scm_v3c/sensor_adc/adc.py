@@ -4,10 +4,14 @@ from scipy import stats
 import serial
 import visa
 
-def program_cortex(com_port="COM15", file_binary="./code.bin",
+def __program_cortex__(com_port="COM15", file_binary="./code.bin",
 		boot_mode='optical', skip_reset=False, insert_CRC=False,
 		pad_random_payload=False):
 	"""
+	Notes:
+		INTERNAL USE ONLY! Note that this refrains from closing 
+		any open serial connections at the end--example use case 
+		can be found in program_cortex().
 	Inputs:
 		com_port: String. Name of the COM port that the Teensy
 			is connected to.
@@ -29,10 +33,12 @@ def program_cortex(com_port="COM15", file_binary="./code.bin",
 			not check integrity of padding. This is useful to check for 
 			programming errors over full 64kB payload.
 	Outputs:
-		No return value. Feeds the input from file_binary
-		to the Teensy to program SCM.
+		Returns the still-open Serial object after programming the cortex.
+		Feeds the input from file_binary to the Teensy to program SCM. 
+		Does NOT close out the serial connection.
 	Raises:
 		ValueError if the boot_mode isn't 'optical' or '3wb'.
+	
 	"""
 	# Open COM port to Teensy
 	ser = serial.Serial(
@@ -99,7 +105,6 @@ def program_cortex(com_port="COM15", file_binary="./code.bin",
 
 	    # Display confirmation message from Teensy
 		print(ser.readline())
-
 	elif boot_mode == '3wb':
 	    # Execute 3-wire bus bootloader on Teensy
 		ser.write(b'boot3wb\n')
@@ -110,28 +115,101 @@ def program_cortex(com_port="COM15", file_binary="./code.bin",
 		raise ValueError("Boot mode '{}' invalid.".format(boot_mode))
 
 	ser.write(b'opti_cal\n');
+	return ser
 
-	# Due diligence
-	ser.close()
-
-def test_adc_internal(com_port="COM10", iterations=1):
+def program_cortex(com_port="COM15", file_binary="./code.bin",
+		boot_mode='optical', skip_reset=False, insert_CRC=False,
+		pad_random_payload=False):
 	"""
 	Inputs:
 		com_port: String. Name of the COM port that the Teensy
 			is connected to.
-		iterations: Integer. Number of times to take readings.
+		file_binary: String. Path to the binary file to 
+			feed to Teensy to program SCM. This binary file shold be
+			compiled using whatever software is meant to end up 
+			on the Cortex. This group tends to compile it using Keil
+			projects.
+		boot_mode: String. 'optical' or '3wb'. The former will assume an
+			optical bootload, whereas the latter will use the 3-wire
+			bus.
+		skip_reset: Boolean. True: Skip hard reset before optical 
+			programming. False: Perform hard reset before optical programming.
+		insert_CRC: Boolean. True = insert CRC for payload integrity 
+			checking. False = do not insert CRC. Note that SCM C code 
+			must also be set up for CRC check for this to work.
+		pad_random_payload: Boolean. True = pad unused payload space with 
+			random data and check it with CRC. False = pad with zeros, do 
+			not check integrity of padding. This is useful to check for 
+			programming errors over full 64kB payload.
 	Outputs:
-		Returns an ordered collection of ADC output codes
-		where the ith element corresponds to the ith reading.
+		No return value. Feeds the input from file_binary
+		to the Teensy to program SCM. Closes out the serial at the
+		end.
+	Raises:
+		ValueError if the boot_mode isn't 'optical' or '3wb'.
+	"""
+	ser = __program_cortex__(com_port, file_binary,
+		boot_mode, skip_reset, insert_CRC,
+		pad_random_payload)
+
+	# Due diligence
+	ser.close()
+
+def test_adc_spot(teensy_port="COM15", uart_port="COM16", iterations=1,
+		file_binary="./code.bin",
+		boot_mode='optical', skip_reset=False, insert_CRC=False,
+		pad_random_payload=False):
+	"""
+	Inputs:
+		teensy_port: String. Name of the COM port that the Teensy
+			is connected to.
+		uart_port: String. Name of the COM port that the UART 
+			is connected to.
+		iterations: Integer. Number of times to take readings.
+		file_binary: String. Path to the binary file to 
+			feed to Teensy to program SCM. This binary file shold be
+			compiled using whatever software is meant to end up 
+			on the Cortex. This group tends to compile it using Keil
+			projects.
+		boot_mode: String. 'optical' or '3wb'. The former will assume an
+			optical bootload, whereas the latter will use the 3-wire
+			bus.
+		skip_reset: Boolean. True: Skip hard reset before optical 
+			programming. False: Perform hard reset before optical programming.
+		insert_CRC: Boolean. True = insert CRC for payload integrity 
+			checking. False = do not insert CRC. Note that SCM C code 
+			must also be set up for CRC check for this to work.
+		pad_random_payload: Boolean. True = pad unused payload space with 
+			random data and check it with CRC. False = pad with zeros, do 
+			not check integrity of padding. This is useful to check for 
+			programming errors over full 64kB payload.
+	Outputs:
+		Feeds the input from file_binary to the Teensy to program SCM
+		and boot the cortex. Returns an ordered collection of ADC 
+		output codes where the ith element corresponds to the ith reading.
+	Raises:
+		ValueError if the boot_mode isn't 'optical' or '3wb'.
 	"""
 	adc_outs = []
+
+	uart_ser = serial.Serial(
+		port=uart_port,
+		baudrate=19200,
+		parity=serial.PARITY_NONE,
+		stopbits=serial.STOPBITS_ONE,
+		bytesize=serial.EIGHTBITS,
+		timeout=1)
+
 	for i in range(iterations):
-		ser.write(b'\n')
-		adc_out = ser.readline()
+		teensy_ser = __program_cortex__(teensy_port, file_binary,
+			boot_mode, skip_reset, insert_CRC,
+			pad_random_payload)
+		adc_out = uart_ser.readline()
 		adc_outs.append(adc_out)
+		teensy_ser.close()
 	
-	ser.close()
-	
+	uart_ser.close()
+
 	return adc_outs
 
 def test_adc_psu(
@@ -163,7 +241,8 @@ def test_adc_psu(
 		baudrate=19200,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
-		bytesize=serial.EIGHTBITS)
+		bytesize=serial.EIGHTBITS,
+		timeout=2)
 
 	# Connecting to the arbitrary waveform generator
 	rm = visa.ResourceManager()
@@ -188,7 +267,7 @@ def test_adc_psu(
 		psu.write("SOURCE2:VOLTAGE:OFFSET {}".format(vin))
 		for i in range(iterations):
 			ser.write('adc\n')
-			adc_out = ser.readline()
+			adc_out = ser.read()
 			adc_outs[vin].append(adc_out)
 			print("Vin={}V/Iteration {} -- {}".format(vin, i, adc_outs[vin][i]))
 	
@@ -330,8 +409,8 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 	return INLs
 
 if __name__ == "__main__":
-	if True:
-
+	### Testing programming the cortex ###
+	if False:
 		program_cortex_specs = dict(com_port="COM15",
 									file_binary="../code.bin",
 									boot_mode="optical",
@@ -339,3 +418,16 @@ if __name__ == "__main__":
 									insert_CRC=False,
 									pad_random_payload=False)
 		program_cortex(**program_cortex_specs)
+
+	if True:
+		test_adc_spot_specs = dict(
+			teensy_port="COM15",
+			uart_port="COM16",
+			iterations=1,
+			file_binary="../code.bin",
+			boot_mode='optical',
+			skip_reset=False,
+			insert_CRC=False,
+			pad_random_payload=False)
+		adc_out = test_adc_spot(**test_adc_spot_specs)
+		print(adc_out)
