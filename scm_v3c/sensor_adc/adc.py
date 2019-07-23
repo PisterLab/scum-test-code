@@ -1,10 +1,24 @@
-def test_adc_psu_loop(
+def test_adc_psu(
 		vin_vec, com_port="COM10",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
 	Inputs:
+		vin_vec: 1D collection of floats. 
+		com_port: String. The name of the COM port (or whatever port)
+			used to communicate with the Teensy/microcontroller.
+		psu_name: String. Name to use in the connection for the 
+			waveform generator.
+		iterations: Integer. Number of times to take a reading for
+			a single input voltage.
 	Outputs:
+		Returns a dictionary vouts where vouts[vin][i] will give the 
+		vout value associated with the i'th iteration when the input
+		voltage is 'vin'.
+
+		Uses a serial as well as an arbitrary waveform generator to
+		sweep the input voltage to the ADC. Bypasses the PGA. Does 
+		NOT program scan.
 	"""
 	# Opening up serial connection to Teensy
 	ser = serial.Serial(
