@@ -89,7 +89,7 @@ ARM Macro Assembler    Page 2
    65 00000000         
    66 00000000 4941            LDR              R1, =0xE000E100 ;Interrupt Set 
                                                             Enable Register
-   67 00000002 4842            LDR              R0, =0x0001 ;<- REMEMBER TO ENA
+   67 00000002 4842            LDR              R0, =0x0009 ;<- REMEMBER TO ENA
                                                             BLE THE INTERRUPTS!
                                                             !
    68 00000004 6008            STR              R0, [R1]
@@ -431,19 +431,18 @@ ARM Macro Assembler    Page 7
   341 00000108         
   342 00000108                 END
               E000E100 
-              00000001 
+              00000009 
               00000000 
               00000000 
               00000800 
               00000400 
               00000000 
 Command Line: --16 --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interwork
- --depend=.\cm0dsasm.d -o.\cm0dsasm.o -I"C:\Research\Box Sync\Group\VAPR\SCM\SC
-Mv3C_Testing\Software\SCM3C_v2\RTE\_Target_1" -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5
-.0.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\
-PACK\ARM\CMSIS\5.0.0\Device\Include --predefine="__EVAL SETA 1" --predefine="__
-UVISION_VERSION SETA 522" --predefine="ARMCM0 SETA 1" --list=.\cm0dsasm.lst cm0
-dsasm.s
+ --depend=.\cm0dsasm.d -o.\cm0dsasm.o -I.\RTE\_Target_1 -IC:\Users\lydialee\App
+Data\Local\Arm\Packs\ARM\CMSIS\5.6.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM
+\CMSIS\Include -IC:\Users\lydialee\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\Devi
+ce\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 528"
+ --predefine="ARMCM0 SETA 1" --list=.\cm0dsasm.lst cm0dsasm.s
 
 
 

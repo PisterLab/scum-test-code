@@ -317,7 +317,7 @@ if __name__ == "__main__":
 		print(len(ASC))
 
 		# Program the scan chain
-		program_scan('COM10', ASC)
+		program_scan('COM15', ASC)
 
 	### Scratch: Teensy AnalogRead Sanity Check ###
 	if True:
