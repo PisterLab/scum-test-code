@@ -777,6 +777,7 @@ def construct_scan(
 	ASC[940] = ring_20MHz_enable
 	
 	ASC[1086] = sensorADC_mux_sel[1]
+	ASC[1087] = sensorADC_pga_bypas
 
 	ASC[945:951] = lo_fine_tune
 	ASC[951:957] = lo_mid_tune

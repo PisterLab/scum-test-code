@@ -8,7 +8,7 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 				unsigned int pga_gain[], unsigned int adc_settle[], 
 				unsigned int bgr_tune[], unsigned int constgm_tune[], 
 				unsigned int vbatDiv4_en, unsigned int ldo_en,
-				unsigned int input_mux_sel[]) {
+				unsigned int input_mux_sel[], unsigned int pga_byp) {
 	/*
 	Inputs: 
 		sel_reset: 0 or 1. Chooses source for ADC reset signal. 
@@ -32,6 +32,7 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 			01: VBAT/4
 			10: External pad
 			11: Floating
+		pga_byp: 0 or 1. 1 bypasses the PGA.
 	Outputs:
 		None. Configures the scan chain for testing the sensor ADC.
 	Notes:
@@ -40,6 +41,10 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	*/
 	int i;
 	int start_idx;
+
+	// Setting GPIOs in/out
+	GPI_enables(0x0FFF);
+	GPO_enables(0xF000);
 
 	// Selecting where the reset comes from
 	prog_asc_bit(241, sel_reset);
@@ -86,6 +91,9 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 
 	// Input mux selection programming
 	prog_asc_bit(914, input_mux_sel[0]);
-	prog_asc_bit(1086, input_mux_sel[1]);	
+	prog_asc_bit(1086, input_mux_sel[1]);
+
+	// PGA bypass
+	prog_asc_bit(1087, pga_byp);
 }
 
