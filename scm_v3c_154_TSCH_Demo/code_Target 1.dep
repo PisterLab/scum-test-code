@@ -1,0 +1,45 @@
+Dependencies for Project 'code', Target 'Target 1': (DO NOT MODIFY !)
+F (cm0dsasm.s)(0x5D36578C)(--cpu Cortex-M0 --pd "__EVAL SETA 1" --16 --apcs=interwork -I"C:\Research\Box Sync\Group\VAPR\SCM\SCMv3C_Testing\Software\SCM3C_v2\RTE\_Target_1"-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include-IC:\Keil_v5\ARM\CMSIS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\Include--pd "__UVISION_VERSION SETA 522" --pd "ARMCM0 SETA 1"--list .\cm0dsasm.lst --xref -o .\cm0dsasm.o --depend .\cm0dsasm.d)
+F (Int_Handlers.h)(0x5D365787)()
+F (main.c)(0x5D365560)(-c --cpu Cortex-M0 -D__EVAL -O0 --apcs=interwork -I"C:\Research\Box Sync\Group\VAPR\SCM\SCMv3C_Testing\Software\SCM3C_v2\RTE\_Target_1"-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include-IC:\Keil_v5\ARM\CMSIS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\Include-D__UVISION_VERSION="522" -DARMCM0-o .\main.o --omf_browse .\main.crf --depend .\main.d)
+I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\time.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\rt_misc.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x57F6E7B8)
+I (Memory_map.h)(0x5D34ADA0)
+I (Int_Handlers.h)(0x5D365787)
+I (rf_global_vars.h)(0x5C4755A0)
+I (scm3C_hardware_interface.h)(0x5D31F01A)
+I (scm3_hardware_interface.h)(0x5D34A8E0)
+I (scum_radio_bsp.h)(0x5C62F8BE)
+I (bucket_o_functions.h)(0x5D34A27A)
+I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x57F6E7B6)
+F (Memory_Map.h)(0x5D34ADA0)()
+F (retarget.c)(0x5C47559E)(-c --cpu Cortex-M0 -D__EVAL -O0 --apcs=interwork -I"C:\Research\Box Sync\Group\VAPR\SCM\SCMv3C_Testing\Software\SCM3C_v2\RTE\_Target_1"-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include-IC:\Keil_v5\ARM\CMSIS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\Include-D__UVISION_VERSION="522" -DARMCM0-o .\retarget.o --omf_browse .\retarget.crf --depend .\retarget.d)
+I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\time.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\rt_misc.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x57F6E7B8)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57F6E7B8)
+I (Memory_Map.h)(0x5D34ADA0)
+F (rf_global_vars.h)(0x5C4755A0)()
+F (.\scm3C_hardware_interface.h)(0x5D31F01A)()
+F (.\scm3C_hardware_interface.c)(0x5D36515E)(-c --cpu Cortex-M0 -D__EVAL -O0 --apcs=interwork -I"C:\Research\Box Sync\Group\VAPR\SCM\SCMv3C_Testing\Software\SCM3C_v2\RTE\_Target_1"-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include-IC:\Keil_v5\ARM\CMSIS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\Include-D__UVISION_VERSION="522" -DARMCM0-o .\scm3c_hardware_interface.o --omf_browse .\scm3c_hardware_interface.crf --depend .\scm3c_hardware_interface.d)
+I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x57F6E7B8)
+I (Memory_Map.h)(0x5D34ADA0)
+I (scm3_hardware_interface.h)(0x5D34A8E0)
+I (bucket_o_functions.h)(0x5D34A27A)
+I (scum_radio_bsp.h)(0x5C62F8BE)
+F (.\scm3_hardware_interface.c)(0x5C5C631E)(-c --cpu Cortex-M0 -D__EVAL -O0 --apcs=interwork -I"C:\Research\Box Sync\Group\VAPR\SCM\SCMv3C_Testing\Software\SCM3C_v2\RTE\_Target_1"-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include-IC:\Keil_v5\ARM\CMSIS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\Include-D__UVISION_VERSION="522" -DARMCM0-o .\scm3_hardware_interface.o --omf_browse .\scm3_hardware_interface.crf --depend .\scm3_hardware_interface.d)
+I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x57F6E7B8)
+I (Memory_Map.h)(0x5D34ADA0)
+F (.\scm3_hardware_interface.h)(0x5D34A8E0)()
+F (.\scum_radio_bsp.c)(0x5D35143C)(-c --cpu Cortex-M0 -D__EVAL -O0 --apcs=interwork -I"C:\Research\Box Sync\Group\VAPR\SCM\SCMv3C_Testing\Software\SCM3C_v2\RTE\_Target_1"-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include-IC:\Keil_v5\ARM\CMSIS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\Include-D__UVISION_VERSION="522" -DARMCM0-o .\scum_radio_bsp.o --omf_browse .\scum_radio_bsp.crf --depend .\scum_radio_bsp.d)
+I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x57F6E7B8)
+I (Memory_Map.h)(0x5D34ADA0)
+I (scm3_hardware_interface.h)(0x5D34A8E0)
+I (scm3C_hardware_interface.h)(0x5D31F01A)
+I (bucket_o_functions.h)(0x5D34A27A)
+F (.\scum_radio_bsp.h)(0x5C62F8BE)()
