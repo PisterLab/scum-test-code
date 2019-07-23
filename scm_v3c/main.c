@@ -50,82 +50,114 @@ unsigned short do_debug_print = 0;
 //////////////////////////////////////////////////////////////////
 
 int main(void) {
-	int t,t2;
-	unsigned int calc_crc;
+	// Configures the scan chain for the sensor ADC
+	if (true) {
+		unsigned int sel_reset;
+		unsigned int sel_convert;
+		unsigned int sel_pga_amplify;
+		unsigned int[8] pga_gain;
+		unsigned int[8] adc_settle;
+		unsigned int[7] bgr_tune;
+		unsigned int[8] constgm_tune;
+		unsigned int vbatDiv4_en;
+		unsigned int ldo_en;
+		unsigned int[4] input_mux_sel;
 
-	// Check CRC
-	printf("\n-------------------\n");
-	printf("Validating program integrity..."); 
-	
-	calc_crc = crc32c(0x0000,code_length);
+		sel_reset = 0;
+		sel_convert = 0;
+		sel_pga_amplify = 0;
+		pga_gain = {0,0,0,0, 0,0,0,0};
+		adc_settle = {1,1,1,1, 1,1,1,1};
+		bgr_tune = {0,0,0, 0,0,0,1};
+		constgm_tune = {1,1,1,1, 1,1,1,1};
+		vbatDiv4_en = 0;
+		ldo_en = 1;
+		input_mux_sel = {1,0};
 
-	if(calc_crc == crc_value){
-		printf("CRC OK\n");
+		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
+					pga_gain, adc_settle, bgr_tune, constgm_tune,
+					vbatDiv4_en, ldo_en,
+					input_mux_sel);
 	}
-	else{
-		printf("\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\n");
-		while(1);
-	}
-	//printf("\nCode length is %u bytes",code_length); 
-	//printf("\nCRC calculated by SCM is: 0x%X",calc_crc);
 	
-	printf("Initializing...");
-		
-	// Set up mote configuration 
-	initialize_mote();
-	
-	printf("done\n");
-	printf("Calibrating frequencies...");
-	
-	// Turn on LC + divider for initial frequency calibration
-	radio_enable_LO();
-	
-	// Enable optical SFD interrupt for optical calibration
-	ISER = 0x0800;
-	
-	// Wait for optical cal to finish
-	while(optical_cal_finished == 0);
-	optical_cal_finished = 0;
-	
-	current_RF_channel = 13;
+	// TODO: What does this do?
+	if (false) {
+		int t,t2;
+		unsigned int calc_crc;
 
-	printf("Listening for packets on ch %d (LC_code=%d)\n",current_RF_channel,RX_channel_codes[current_RF_channel-11]);
+		// Check CRC
+		printf("\n-------------------\n");
+		printf("Validating program integrity..."); 
+		
+		calc_crc = crc32c(0x0000,code_length);
 
-	// First listen continuously for rx packet
-	doing_initial_packet_search = 1;
-	
-	// Enable interrupts for the radio FSM
-	radio_enable_interrupts();
-	
-	// Begin listening
-	setFrequencyRX(current_RF_channel);
-	radio_rxEnable();
-	radio_rxNow();	
-	
-	// Wait awhile
-	for (t2=0; t2<100; t2++){
+		if(calc_crc == crc_value){
+			printf("CRC OK\n");
+		}
+		else{
+			printf("\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\n");
+			while(1);
+		}
+		//printf("\nCode length is %u bytes",code_length); 
+		//printf("\nCRC calculated by SCM is: 0x%X",calc_crc);
 		
-		// Delay
-		for(t=0; t<100000; t++);
+		printf("Initializing...");
+			
+		// Set up mote configuration 
+		initialize_mote();
 		
-		if(doing_initial_packet_search == 0) {
-			printf("Locked to incoming packet rate...\n");
-			break;
+		printf("done\n");
+		printf("Calibrating frequencies...");
+		
+		// Turn on LC + divider for initial frequency calibration
+		radio_enable_LO();
+		
+		// Enable optical SFD interrupt for optical calibration
+		ISER = 0x0800;
+		
+		// Wait for optical cal to finish
+		while(optical_cal_finished == 0);
+		optical_cal_finished = 0;
+		
+		current_RF_channel = 13;
+
+		printf("Listening for packets on ch %d (LC_code=%d)\n",current_RF_channel,RX_channel_codes[current_RF_channel-11]);
+
+		// First listen continuously for rx packet
+		doing_initial_packet_search = 1;
+		
+		// Enable interrupts for the radio FSM
+		radio_enable_interrupts();
+		
+		// Begin listening
+		setFrequencyRX(current_RF_channel);
+		radio_rxEnable();
+		radio_rxNow();	
+		
+		// Wait awhile
+		for (t2=0; t2<100; t2++){
+			
+			// Delay
+			for(t=0; t<100000; t++);
+			
+			if(doing_initial_packet_search == 0) {
+				printf("Locked to incoming packet rate...\n");
+				break;
+			}
+		}
+		
+		// If no packet received, then stop RX so can reprogram
+		if(doing_initial_packet_search == 1) {
+				radio_rfOff();
+				radio_disable_interrupts();
+				printf("RX Stopped - Lock Failed\n");
+			}
+		
+	while(1) {
+		int t;
+		
+		for(t=0; t<1000; t++);
+			
 		}
 	}
-	
-	// If no packet received, then stop RX so can reprogram
-	if(doing_initial_packet_search == 1) {
-			radio_rfOff();
-			radio_disable_interrupts();
-			printf("RX Stopped - Lock Failed\n");
-		}
-	
-while(1) {
-	int t;
-	
-	for(t=0; t<1000; t++);
-		
-	}
-
 }

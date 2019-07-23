@@ -758,7 +758,7 @@ def construct_scan(
 	ASC[622] = TIMER32k_enable
 	ASC[757:765] = sensorADC_constgm_tune[::-1]
 	ASC[765:771] = sensorADC_pga_gain[0:6]
-	ASC[799] = sensorADC_pga_gain[7]
+	ASC[772] = sensorADC_pga_gain[7]
 	ASC[777] = sensorADC_ldo_bgr_tune[0]
 	ASC[778:784] = sensorADC_ldo_bgr_tune[1:][::-1]
 
