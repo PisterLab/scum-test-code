@@ -12,7 +12,10 @@ def program_cortex(com_port="COM15", file_binary="./code.bin",
 		com_port: String. Name of the COM port that the Teensy
 			is connected to.
 		file_binary: String. Path to the binary file to 
-			feed to Teensy to program SCM.
+			feed to Teensy to program SCM. This binary file shold be
+			compiled using whatever software is meant to end up 
+			on the Cortex. This group tends to compile it using Keil
+			projects.
 		boot_mode: String. 'optical' or '3wb'. The former will assume an
 			optical bootload, whereas the latter will use the 3-wire
 			bus.
