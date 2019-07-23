@@ -11,8 +11,8 @@ def program_cortex(com_port="COM15", file_binary="./code.bin",
 	Inputs:
 		com_port: String. Name of the COM port that the Teensy
 			is connected to.
-		file_binary: String. Path to the binary file to program
-			SCM via the Teensy.
+		file_binary: String. Path to the binary file to 
+			feed to Teensy to program SCM.
 		boot_mode: String. 'optical' or '3wb'. The former will assume an
 			optical bootload, whereas the latter will use the 3-wire
 			bus.
@@ -27,7 +27,9 @@ def program_cortex(com_port="COM15", file_binary="./code.bin",
 			programming errors over full 64kB payload.
 	Outputs:
 		No return value. Feeds the input from file_binary
-		to the Teensy to run 
+		to the Teensy to program SCM.
+	Raises:
+		ValueError if the boot_mode isn't 'optical' or '3wb'.
 	"""
 	# Open COM port to Teensy
 	ser = serial.Serial(
