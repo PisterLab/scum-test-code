@@ -8,6 +8,14 @@ __pycache__/
 *.crf
 *.o
 
+# Keil intermediary files
+*.axf
+*.build_log.htm
+*.htm
+*.lnp
+*.map
+*.sct
+*.dep
 
 # Distribution / packaging
 .Python
