@@ -12,8 +12,8 @@ def test_adc_psu(
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
 	Outputs:
-		Returns a dictionary vouts where vouts[vin][i] will give the 
-		vout value associated with the i'th iteration when the input
+		Returns a dictionary adc_outs where adc_outs[vin][i] will give the 
+		ADC code associated with the i'th iteration when the input
 		voltage is 'vin'.
 
 		Uses a serial as well as an arbitrary waveform generator to
@@ -44,16 +44,150 @@ def test_adc_psu(
 	psu.write("SOURCE2:VOLTAGE:OFFSET 0")
 	psu.write("OUTPUT2 ON")
 
-	# Sweeping vin and getting the output	
-	vouts = dict()
+	# Sweeping vin and getting the ADC output code	
+	adc_outs = dict()
 	for vin in vin_vec:
+		adc_outs[vin] = []
 		psu.write("SOURCE2:VOLTAGE:OFFSET {}".format(vin))
 		for i in range(iterations):
-			vouts[vin][i] = ser.readline()
-			print("Vin={}V/Iteration {} -- {}".format(vin, i, vouts[vin][i]))
+			ser.write('adc\n')
+			adc_out = ser.readline()
+			adc_outs[vin].append(adc_out)
+			print("Vin={}V/Iteration {} -- {}".format(vin, i, adc_outs[vin][i]))
 	
 	# Due diligence for closing things out
 	ser.close()
 	psu.close()
 	
-	return vouts
+	return adc_outs
+
+def test_adc_dnl(vin_min, vin_max, num_bits, 
+		com_port="COM10",
+		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
+		iterations=1):
+	"""
+	Inputs:
+		vin_min/max: Float. The min and max voltages to feed to the
+			ADC.
+		num_bits: Integer. The bit resolution of the ADC.
+		com_port: String. The name of the COM port (or whatever port)
+			used to communicate with the Teensy/microcontroller.
+		psu_name: String. Name to use in the connection for the 
+			waveform generator.
+		iterations: Integer. Number of times to take a reading for
+			a single input voltage.
+	Outputs:
+		Returns a collection of DNLs for each nominal LSB. The length
+		should be 2**(num_bits)-1
+	"""
+	# Constructing the vector of input voltages to give the ADC
+	vlsb_ideal = (vin_max-vin_min)/2**num_bits
+	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/10)
+
+	# Running the test
+	adc_outs = test_adc_psu(vin_vec, com_port, psu_name, iterations)
+	
+	# Averaging over all the iterations to get an average of what the ADC
+	# returns.
+	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
+					in adc_outs.items()}
+
+	vin_prev = vin_min
+	code_prev = adc_outs_avg[vin_prev]
+	DNLs = []
+
+	# Calculate the DNL for every step
+	for vin,code in adc_outs_avg.items():
+		if code > code_prev:
+			DNL_val = (vin-vin_prev)/vlsb_ideal - 1
+			DNLs.append(DNL_val)
+			# If a code is skipped, make the one it skipped functionally
+			# zero width.
+			if code > code_prev + 1:
+				DNLs.append(0)
+			code_prev = code
+	return DNLs
+
+def test_adc_inl_straightline(vin_min, vin_max, num_bits, 
+		com_port="COM10",
+		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
+		iterations=1):
+	"""
+	Inputs:
+		vin_min/max: Float. The min and max voltages to feed to the
+			ADC.
+		num_bits: Integer. The bit resolution of the ADC.
+		com_port: String. The name of the COM port (or whatever port)
+			used to communicate with the Teensy/microcontroller.
+		psu_name: String. Name to use in the connection for the 
+			waveform generator.
+		iterations: Integer. Number of times to take a reading for
+			a single input voltage.
+	Outputs:
+		Returns the slope, intercept of the linear regression
+		of the ADC code vs. vin. 
+	"""
+	# Constructing the vector of input voltages to give the ADC
+	vlsb_ideal = (vin_max-vin_min)/2**num_bits
+	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/4)
+
+	# Running the test
+	adc_outs = test_adc_psu(vin_vec, com_port, psu_name, iterations)
+	
+	# Averaging over all the iterations to get an average of what the ADC
+	# returns.
+	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
+					in adc_outs.items()}
+
+	vin_prev = vin_min
+	code_prev = adc_outs_avg[vin_prev]
+
+	x = adc_outs_avg.keys()
+	y = [adc_outs_avg[k] for k in x]
+	slope, intercept, r_value, p_value, std_error = stats.linregress(x, y)
+
+	return slope, intercept
+
+def test_adc_inl_endpoint(vin_min, vin_max, num_bits, 
+		com_port="COM10",
+		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
+		iterations=1):
+	"""
+	Inputs:
+		vin_min/max: Float. The min and max voltages to feed to the
+			ADC.
+		num_bits: Integer. The bit resolution of the ADC.
+		com_port: String. The name of the COM port (or whatever port)
+			used to communicate with the Teensy/microcontroller.
+		psu_name: String. Name to use in the connection for the 
+			waveform generator.
+		iterations: Integer. Number of times to take a reading for
+			a single input voltage.
+	Outputs:
+		Returns a collection of endpoint INLs taken from vin_min 
+		up to vin_max.
+	"""
+	# Constructing the vector of input voltages to give the ADC
+	vlsb_ideal = (vin_max-vin_min)/2**num_bits
+	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/4)
+
+	# Running the test
+	adc_outs = test_adc_psu(vin_vec, com_port, psu_name, iterations)
+	
+	# Averaging over all the iterations to get an average of what the ADC
+	# returns.
+	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
+					in adc_outs.items()}
+
+	code_low = adc_outs_avg[vin_min]
+	INLs = []
+
+	# Calculate the endpoint INL for every step
+	for vin,code in adc_outs_avg.items():
+		if code == code_low:
+			continue
+		code_diff = code - code_low
+		INL_val = (vin-vin_min)/vlsb_ideal - code_diff
+		INLs.append(INLs)
+
+	return INLs

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Memory_Map.h"
-#include "scm3B_hardware_interface.h"
+#include "../scm3C_hardware_interface.h"
 
 void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert, 
 				unsigned int sel_pga_amplify,
@@ -39,6 +39,7 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 		handled internally.
 	*/
 	int i;
+	int start_idx;
 
 	// Selecting where the reset comes from
 	prog_asc_bit(241, sel_reset);
@@ -50,11 +51,12 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	prog_asc_bit(243, sel_pga_amplify);
 
 	// PGA gain bits
-	int start_idx = 765;
-	for (i=0; i<7; i++) {
+	start_idx = 765;
+	for (i=0; i<6; i++) {
 		prog_asc_bit(start_idx+i, pga_gain[i]);
 	}
-	prog_asc_bit(799, pga_gain[7]);
+	prog_asc_bit(799, pga_gain[6]);
+	prog_asc_bit(772, pga_gain[7]);
 
 	// ADC settling bits
 	start_idx = 815;
