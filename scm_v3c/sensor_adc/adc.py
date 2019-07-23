@@ -198,7 +198,7 @@ def test_adc_spot(teensy_port="COM15", uart_port="COM16", iterations=1,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS,
-		timeout=1)
+		timeout=5)
 
 	for i in range(iterations):
 		teensy_ser = __program_cortex__(teensy_port, file_binary,
