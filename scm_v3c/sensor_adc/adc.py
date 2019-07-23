@@ -4,14 +4,16 @@ from scipy import stats
 import serial
 import visa
 
-def program_teensy(com_port="COM15", file_binary="./code.bin"):
+def program_cortex(com_port="COM15", file_binary="./code.bin"):
 	"""
 	Inputs:
-		com_port: 
-		file_binary:
+		com_port: String. Name of the COM port that the Teensy
+			is connected to.
+		file_binary: String. Path to the binary file to program
+			SCM via the Teensy.
 	Outputs:
 		No return value. Feeds the input from file_binary
-		to the Teensy via COM port.
+		to the Teensy to run via optical bootload.
 	"""
 	ser = serial.Serial(
 		port=com_port,
@@ -26,7 +28,12 @@ def program_teensy(com_port="COM15", file_binary="./code.bin"):
 def test_adc_internal(com_port="COM10", iterations=1):
 	"""
 	Inputs:
+		com_port: String. Name of the COM port that the Teensy
+			is connected to.
+		iterations: Integer. Number of times to take readings.
 	Outputs:
+		Returns an ordered collection of ADC output codes
+		where the ith element corresponds to the ith reading.
 	"""
 	adc_outs = []
 	for i in range(iterations):
@@ -44,7 +51,8 @@ def test_adc_psu(
 		iterations=1):
 	"""
 	Inputs:
-		vin_vec: 1D collection of floats. 
+		vin_vec: 1D collection of floats. Input voltages in volts 
+			to feed to the ADC.
 		com_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
 		psu_name: String. Name to use in the connection for the 
