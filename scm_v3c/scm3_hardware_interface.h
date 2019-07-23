@@ -10,7 +10,7 @@ void TX_load_PN_data(unsigned int num_bytes);
 void TX_load_counter_data(unsigned int num_bytes);
 void set_asc_bit(unsigned int position);
 void clear_asc_bit(unsigned int position);
-void prog_asc_bit(unsigned int position, unsigned int val)
+void prog_asc_bit(unsigned int position, unsigned int val);
 
 // Functions written by Fil, mostly for 3
 void enable_polyphase_ASC(void);

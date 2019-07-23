@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Memory_Map.h"
+#include "../Memory_Map.h"
+#include "../scm3_hardware_interface.h"
 #include "../scm3C_hardware_interface.h"
 
 void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert, 

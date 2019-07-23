@@ -3,6 +3,7 @@
 #include "scm3_hardware_interface.h"
 #include "bucket_o_functions.h"
 #include "scum_radio_bsp.h"
+#include "sensor_adc/adc_config.h"
 
 extern unsigned int ASC[38];
 extern unsigned int cal_iteration;
@@ -1168,6 +1169,27 @@ void initialize_mote(){
 	
 	// Init divider settings
 	radio_init_divider(2000);
+
+	// Sensor ADC initialization
+	if (1) {
+		unsigned int sel_reset 			= 0;
+		unsigned int sel_convert 		= 0;
+		unsigned int sel_pga_amplify 	= 0;
+		unsigned int pga_gain[8] 		= {0,0,0,0, 0,0,0,0};
+		unsigned int adc_settle[8] 		= {1,1,1,1, 1,1,1,1};
+		unsigned int bgr_tune[7] 		= {0,0,0, 0,0,0,1};
+		unsigned int constgm_tune[8] 	= {1,1,1,1, 1,1,1,1};
+		unsigned int vbatDiv4_en 		= 1;
+		unsigned int ldo_en 			= 1;
+		unsigned int input_mux_sel[2] 	= {0,1};
+		unsigned int pga_byp 			= 1;
+		
+		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
+						pga_gain, adc_settle, 
+						bgr_tune, constgm_tune,
+						vbatDiv4_en, ldo_en,
+						input_mux_sel, pga_byp);
+	}
 
 	// Program analog scan chain
 	analog_scan_chain_write(&ASC[0]);

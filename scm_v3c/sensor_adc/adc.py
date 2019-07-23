@@ -1,3 +1,43 @@
+import numpy as np
+import scipy as sp
+from scipy import stats
+import serial
+import visa
+
+def program_teensy(com_port="COM15", file_binary="./code.bin"):
+	"""
+	Inputs:
+		com_port: 
+		file_binary:
+	Outputs:
+		No return value. Feeds the input from file_binary
+		to the Teensy via COM port.
+	"""
+	ser = serial.Serial(
+		port=com_port,
+		baudrate=19200,
+		parity=serial.PARITY_NONE,
+		stopbits=serial.STOPBITS_ONE,
+		bytesize=serial.EIGHTBITS)
+
+	ser.write()
+	ser.close()
+
+def test_adc_internal(com_port="COM10", iterations=1):
+	"""
+	Inputs:
+	Outputs:
+	"""
+	adc_outs = []
+	for i in range(iterations):
+		ser.write(b'\n')
+		adc_out = ser.readline()
+		adc_outs.append(adc_out)
+	
+	ser.close()
+	
+	return adc_outs
+
 def test_adc_psu(
 		vin_vec, com_port="COM10",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
@@ -191,3 +231,19 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 		INLs.append(INLs)
 
 	return INLs
+
+if __name__ == "__main__":
+	if True:
+		print("blep")
+		ser = serial.Serial(
+			port="COM15",
+			baudrate=19200,
+			parity=serial.PARITY_NONE,
+			stopbits=serial.STOPBITS_ONE,
+			bytesize=serial.EIGHTBITS)
+			
+		ser.write(b'adc\n')
+		print(ser.readline())
+		ser.close()
+		# vbatDiv4_outs = test_adc_internal(com_port="COM15", iterations=1)
+		# print(vbatDiv4_outs)
