@@ -4,6 +4,8 @@ def construct_scan(
 	#############
 	# All things are MSB -> LSB unless otherwise noted. Any flips, etc. have
 	# been handled internally so everyone can keep their sanity.
+	# Everything _looks_ like it's off-by-one, but it isn't; there's
+	# the zeroth element appended at the beginning!
 
 	##############################
 	### GPIO Direction Control ###

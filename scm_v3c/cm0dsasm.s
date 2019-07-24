@@ -64,7 +64,7 @@ Reset_Handler   PROC
 		ENTRY
 		
 		LDR     R1, =0xE000E100           ;Interrupt Set Enable Register
-		LDR     R0, =0x0001				;<- REMEMBER TO ENABLE THE INTERRUPTS!!
+		LDR     R0, =0x0009				;<- REMEMBER TO ENABLE THE INTERRUPTS!!
 		STR     R0, [R1]
 		
 		;IP wake up just to solve interrupts

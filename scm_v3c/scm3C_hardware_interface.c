@@ -1103,14 +1103,14 @@ void initialize_mote(){
 	//set_ALWAYSON_LDO_voltage(0);
 		
 	// Select banks for GPIO inputs
-	GPI_control(0,0,0,0);
+	// GPI_control(0,0,0,0);
 	
-	// Select banks for GPIO outputs
-	GPO_control(6,5,6,0);
+	// // Select banks for GPIO outputs
+	// // GPO_control(6,5,6,0);
 	
-	// Set all GPIOs as outputs
-	GPI_enables(0x0000);	
-	GPO_enables(0xFFFF);
+	// // Set all GPIOs as outputs
+	// GPI_enables(0x0000);	
+	// GPO_enables(0xFFFF);
 
 
 	// Set initial coarse/fine on HF_CLOCK
@@ -1170,7 +1170,7 @@ void initialize_mote(){
 	// Init divider settings
 	radio_init_divider(2000);
 
-	// Sensor ADC initialization
+	// SENSOR ADC INITIALIZATION
 	if (1) {
 		unsigned int sel_reset 			= 0;
 		unsigned int sel_convert 		= 0;
@@ -1181,8 +1181,16 @@ void initialize_mote(){
 		unsigned int constgm_tune[8] 	= {1,1,1,1, 1,1,1,1};
 		unsigned int vbatDiv4_en 		= 1;
 		unsigned int ldo_en 			= 1;
-		unsigned int input_mux_sel[2] 	= {0,1};
+		unsigned int input_mux_sel[2] 	= {1,0};
 		unsigned int pga_byp 			= 1;
+
+		// Set all GPIOs as outputs
+		GPI_enables(0x0000);	
+		GPO_enables(0xFFFF);
+
+		// Select banks for GPI/O
+		GPI_control(0,0,0,0);
+		GPO_control(10,9,9,9);
 		
 		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
 						pga_gain, adc_settle, 

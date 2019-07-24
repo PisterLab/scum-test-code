@@ -224,22 +224,3 @@ void clear_asc_bit(unsigned int position){
 
 }
 
-void prog_asc_bit(unsigned int position, unsigned int val){
-	/*
-	Inputs:
-		position: Unsigned integer. The position in the ASC to change.
-		val: Unsigned integer. Nonzero if the value should be set to 1, 
-			zero if it should be set to 0.
-	Outputs:
-		No return value. Sets the value in the ASC with the proper 
-		masking, etc. given the input boolean value.
-	*/
-	unsigned int index = position >> 5;
-	if (val) {
-		ASC[index] |= 0x80000000 >> (position - (index << 5));
-	}
-	else {
-		ASC[index] &= ~(0x80000000 >> (position - (index << 5)));
-	}
-
-}

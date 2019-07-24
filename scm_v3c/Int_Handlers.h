@@ -134,7 +134,7 @@ void UART_ISR(){
 		// Initiates an ADC conversion
 	  } else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='c') && (buff[0]=='\n') ) {
 		  ADC_REG__START = 0x1;
-		  printf("starting ADC conversion\n");
+		  printf("Starting ADC conversion\n");
 		// Uses the radio timer to send TX_LOAD in 0.5s, TX_SEND in 1s, capture when SFD is sent and capture when packet is sent
 		} else if ( (buff[3]=='a') && (buff[2]=='t') && (buff[1]=='x') && (buff[0]=='\n') ) {
 			unsigned int t = RFTIMER_REG__COUNTER + 0x3D090;
@@ -202,7 +202,7 @@ void UART_ISR(){
 }
 
 void ADC_ISR() {
-	printf("Conversion complete: 0x%x\n", ADC_REG__DATA);
+	printf("0d%d\n", ADC_REG__DATA);
 }
 
 void RF_ISR() {
@@ -705,7 +705,7 @@ void OPTICAL_SFD_ISR(){
 	}
 	
 	// Debugging output
-	printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
+	// printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
 	 
 	//printf("%d\n",count_LC);
 	 
