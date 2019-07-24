@@ -1,3 +1,4 @@
+void prog_asc_bit(unsigned int position, unsigned int val);
 void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert, 
 	unsigned int sel_pga_amplify,
 	unsigned int pga_gain[], unsigned int adc_settle[], 

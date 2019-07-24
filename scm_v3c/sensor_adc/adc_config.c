@@ -4,6 +4,27 @@
 #include "../scm3_hardware_interface.h"
 #include "../scm3C_hardware_interface.h"
 
+void prog_asc_bit(unsigned int position, unsigned int val){
+	/*
+	Inputs:
+		position: Unsigned integer. The position in the ASC to change.
+		val: Unsigned integer. Nonzero if the value should be set to 1, 
+			zero if it should be set to 0.
+	Outputs:
+		No return value. Sets the value in the ASC with the proper 
+		masking, etc. given the input boolean value.
+	*/
+	// unsigned int index = position >> 5;
+	if (val != 0) {
+		set_asc_bit(position);
+	}
+	else {
+		clear_asc_bit(position);
+	}
+
+}
+
+
 void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert, 
 				unsigned int sel_pga_amplify,
 				unsigned int pga_gain[], unsigned int adc_settle[], 
@@ -43,58 +64,54 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	int i;
 	int start_idx;
 
-	// Setting GPIOs in/out
-	GPI_enables(0x0FFF);
-	GPO_enables(0xF000);
-
 	// Selecting where the reset comes from
-	prog_asc_bit(241, sel_reset);
+	prog_asc_bit(242, sel_reset);
 
 	// Selecting where the convert signal comes from
-	prog_asc_bit(242, sel_convert);
+	prog_asc_bit(243, sel_convert);
 	
 	// Selecting where the amplify signal comes from
-	prog_asc_bit(243, sel_pga_amplify);
+	prog_asc_bit(244, sel_pga_amplify);
 
 	// PGA gain bits
-	start_idx = 765;
+	start_idx = 766;
 	for (i=0; i<6; i++) {
 		prog_asc_bit(start_idx+i, pga_gain[i]);
 	}
-	prog_asc_bit(799, pga_gain[6]);
-	prog_asc_bit(772, pga_gain[7]);
+	prog_asc_bit(800, pga_gain[6]);
+	prog_asc_bit(773, pga_gain[7]);
 
 	// ADC settling bits
-	start_idx = 815;
+	start_idx = 816;
 	for (i=0; i<8; i++) {
 		prog_asc_bit(i+start_idx, adc_settle[i]);
 	}
 
 	// LDO BGR tuning
-	prog_asc_bit(777, bgr_tune[0]);
-	start_idx = 783;
-	for (i=1; i<8; i++) {
+	prog_asc_bit(778, bgr_tune[0]);
+	start_idx = 784;
+	for (i=1; i<7; i++) {
 		prog_asc_bit(start_idx, bgr_tune[i]);
 		start_idx--;
 	}
 
 	// Constant gm tuning
-	start_idx = 764;
+	start_idx = 765;
 	for (i=0; i<8; i++) {
 		prog_asc_bit(start_idx-i, constgm_tune[i]);
 	}
 
 	// Enabling/disabling VBAT/4
-	prog_asc_bit(797, vbatDiv4_en);
+	prog_asc_bit(798, vbatDiv4_en);
 
 	// Enabling/disabling on-chip LDO
-	prog_asc_bit(800, ldo_en);
+	prog_asc_bit(801, ldo_en);
 
 	// Input mux selection programming
-	prog_asc_bit(914, input_mux_sel[0]);
-	prog_asc_bit(1086, input_mux_sel[1]);
+	prog_asc_bit(1087, input_mux_sel[0]);
+	prog_asc_bit(780, input_mux_sel[1]);
 
 	// PGA bypass
-	prog_asc_bit(1087, pga_byp);
+	prog_asc_bit(1088, pga_byp);
 }
 

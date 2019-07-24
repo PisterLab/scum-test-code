@@ -3,8 +3,10 @@ import scipy as sp
 from scipy import stats
 import serial
 import visa
+import time
+import random
 
-def __program_cortex__(com_port="COM15", file_binary="./code.bin",
+def __program_cortex__(teensy_port="COM15", file_binary="./code.bin",
 		boot_mode='optical', skip_reset=False, insert_CRC=False,
 		pad_random_payload=False):
 	"""
@@ -13,7 +15,7 @@ def __program_cortex__(com_port="COM15", file_binary="./code.bin",
 		any open serial connections at the end--example use case 
 		can be found in program_cortex().
 	Inputs:
-		com_port: String. Name of the COM port that the Teensy
+		teensy_port: String. Name of the COM port that the Teensy
 			is connected to.
 		file_binary: String. Path to the binary file to 
 			feed to Teensy to program SCM. This binary file shold be
@@ -42,7 +44,7 @@ def __program_cortex__(com_port="COM15", file_binary="./code.bin",
 	"""
 	# Open COM port to Teensy
 	ser = serial.Serial(
-		port=com_port,
+		port=teensy_port,
 		baudrate=19200,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
@@ -88,7 +90,7 @@ def __program_cortex__(com_port="COM15", file_binary="./code.bin",
 	if boot_mode == 'optical':
 	    # Configure parameters for optical TX
 		ser.write(b'configopt\n')
-		ser.write(b'80\n')	
+		ser.write(b'80\n')
 		ser.write(b'80\n')
 		ser.write(b'3\n')
 		ser.write(b'80\n')
@@ -117,12 +119,14 @@ def __program_cortex__(com_port="COM15", file_binary="./code.bin",
 	ser.write(b'opti_cal\n');
 	return ser
 
-def program_cortex(com_port="COM15", file_binary="./code.bin",
+def program_cortex(teensy_port="COM15", uart_port="COM16", file_binary="./code.bin",
 		boot_mode='optical', skip_reset=False, insert_CRC=False,
 		pad_random_payload=False):
 	"""
 	Inputs:
-		com_port: String. Name of the COM port that the Teensy
+		teensy_port: String. Name of the COM port that the Teensy
+			is connected to.
+		uart_port: String. Name of the COM port that the UART 
 			is connected to.
 		file_binary: String. Path to the binary file to 
 			feed to Teensy to program SCM. This binary file shold be
@@ -148,12 +152,25 @@ def program_cortex(com_port="COM15", file_binary="./code.bin",
 	Raises:
 		ValueError if the boot_mode isn't 'optical' or '3wb'.
 	"""
-	ser = __program_cortex__(com_port, file_binary,
+	teensy_ser = __program_cortex__(teensy_port, file_binary,
 		boot_mode, skip_reset, insert_CRC,
 		pad_random_payload)
 
+	uart_ser = serial.Serial(
+		port=uart_port,
+		baudrate=19200,
+		parity=serial.PARITY_NONE,
+		stopbits=serial.STOPBITS_ONE,
+		bytesize=serial.EIGHTBITS,
+		timeout=1)
+
+	print(uart_ser.readline())
+	print(uart_ser.readline())
+	print(uart_ser.readline())
+
 	# Due diligence
-	ser.close()
+	teensy_ser.close()
+	uart_ser.close()
 
 def test_adc_spot(teensy_port="COM15", uart_port="COM16", iterations=1,
 		file_binary="./code.bin",
@@ -198,29 +215,37 @@ def test_adc_spot(teensy_port="COM15", uart_port="COM16", iterations=1,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS,
-		timeout=5)
+		timeout=1)
+
+	teensy_ser = __program_cortex__(teensy_port, file_binary,
+		boot_mode, skip_reset, insert_CRC,
+		pad_random_payload)
+
+	for i in range(12):
+		time.sleep(.2)
+		print(uart_ser.readline())
 
 	for i in range(iterations):
-		teensy_ser = __program_cortex__(teensy_port, file_binary,
-			boot_mode, skip_reset, insert_CRC,
-			pad_random_payload)
+		uart_ser.write(b'adc\n')
+		time.sleep(.5)
+		print(uart_ser.readline())
 		adc_out = uart_ser.readline()
 		adc_outs.append(adc_out)
-		teensy_ser.close()
 	
+	teensy_ser.close()
 	uart_ser.close()
 
 	return adc_outs
 
 def test_adc_psu(
-		vin_vec, com_port="COM10",
+		vin_vec, teensy_port="COM10",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
 	Inputs:
 		vin_vec: 1D collection of floats. Input voltages in volts 
 			to feed to the ADC.
-		com_port: String. The name of the COM port (or whatever port)
+		teensy_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
@@ -237,12 +262,12 @@ def test_adc_psu(
 	"""
 	# Opening up serial connection to Teensy
 	ser = serial.Serial(
-		port=com_port,
+		port=teensy_port,
 		baudrate=19200,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS,
-		timeout=2)
+		timeout=1)
 
 	# Connecting to the arbitrary waveform generator
 	rm = visa.ResourceManager()
@@ -267,6 +292,7 @@ def test_adc_psu(
 		psu.write("SOURCE2:VOLTAGE:OFFSET {}".format(vin))
 		for i in range(iterations):
 			ser.write('adc\n')
+			print(ser.read())
 			adc_out = ser.read()
 			adc_outs[vin].append(adc_out)
 			print("Vin={}V/Iteration {} -- {}".format(vin, i, adc_outs[vin][i]))
@@ -278,7 +304,7 @@ def test_adc_psu(
 	return adc_outs
 
 def test_adc_dnl(vin_min, vin_max, num_bits, 
-		com_port="COM10",
+		teensy_port="COM10",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
@@ -286,7 +312,7 @@ def test_adc_dnl(vin_min, vin_max, num_bits,
 		vin_min/max: Float. The min and max voltages to feed to the
 			ADC.
 		num_bits: Integer. The bit resolution of the ADC.
-		com_port: String. The name of the COM port (or whatever port)
+		teensy_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
@@ -301,19 +327,33 @@ def test_adc_dnl(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/10)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, com_port, psu_name, iterations)
+	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations)
 	
+	return calc_adc_dnl(adc_outs, vlsb_ideal)
+
+def calc_adc_dnl(adc_outs, vlsb_ideal):
+	"""
+	Inputs: 
+		adc_outs: A dictionary of ADC codes where the key is the vin,
+			and the value is a list of measured codes (more than one
+			measurement can be taken).
+		vlsb_ideal: The nominal voltage associated with a single LSB.
+	Outputs:
+		Returns a collection of DNLs for each nominal LSB. The length
+		should be 2**(num_bits)-1
+	"""
 	# Averaging over all the iterations to get an average of what the ADC
 	# returns.
 	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
 					in adc_outs.items()}
 
-	vin_prev = vin_min
+	vin_prev = min(adc_outs_avg.keys())
 	code_prev = adc_outs_avg[vin_prev]
 	DNLs = []
 
 	# Calculate the DNL for every step
-	for vin,code in adc_outs_avg.items():
+	for vin in sorted(adc_outs_avg.keys()):
+		code = adc_outs_avg[vin]
 		if code > code_prev:
 			DNL_val = (vin-vin_prev)/vlsb_ideal - 1
 			DNLs.append(DNL_val)
@@ -324,8 +364,9 @@ def test_adc_dnl(vin_min, vin_max, num_bits,
 			code_prev = code
 	return DNLs
 
+
 def test_adc_inl_straightline(vin_min, vin_max, num_bits, 
-		com_port="COM10",
+		teensy_port="COM10",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
@@ -333,7 +374,7 @@ def test_adc_inl_straightline(vin_min, vin_max, num_bits,
 		vin_min/max: Float. The min and max voltages to feed to the
 			ADC.
 		num_bits: Integer. The bit resolution of the ADC.
-		com_port: String. The name of the COM port (or whatever port)
+		teensy_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
@@ -348,16 +389,28 @@ def test_adc_inl_straightline(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/4)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, com_port, psu_name, iterations)
-	
+	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations)
+
+	return calc_adc_inl_straightline(adc_outs, vlsb_ideal)
+
+def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
+	"""
+	Inputs: 
+		adc_outs: A dictionary of ADC codes where the key is the vin,
+			and the value is a list of measured codes (more than one
+			measurement can be taken).
+		vlsb_ideal: The nominal voltage associated with a single LSB.
+	Outputs:
+		Returns the slope, intercept of the linear regression of the 
+		ADC codes vs. vin.
+
+	"""
 	# Averaging over all the iterations to get an average of what the ADC
 	# returns.
 	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
 					in adc_outs.items()}
 
-	vin_prev = vin_min
-	code_prev = adc_outs_avg[vin_prev]
-
+	# Using linear regressiontto figure out the slope and intercept
 	x = adc_outs_avg.keys()
 	y = [adc_outs_avg[k] for k in x]
 	slope, intercept, r_value, p_value, std_error = stats.linregress(x, y)
@@ -365,7 +418,7 @@ def test_adc_inl_straightline(vin_min, vin_max, num_bits,
 	return slope, intercept
 
 def test_adc_inl_endpoint(vin_min, vin_max, num_bits, 
-		com_port="COM10",
+		teensy_port="COM10",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
@@ -373,7 +426,7 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 		vin_min/max: Float. The min and max voltages to feed to the
 			ADC.
 		num_bits: Integer. The bit resolution of the ADC.
-		com_port: String. The name of the COM port (or whatever port)
+		teensy_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
@@ -388,13 +441,27 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/4)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, com_port, psu_name, iterations)
-	
+	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations)
+
+	return calc_adc_inl_endpoint(adc_outs, vlsb_ideal)
+
+def calc_adc_inl_endpoint(adc_outs, vlsb_ideal):
+	"""
+	Inputs: 
+		adc_outs: A dictionary of ADC codes where the key is the vin,
+			and the value is a list of measured codes (more than one
+			measurement can be taken).
+		vlsb_ideal: The nominal voltage associated with a single LSB.
+	Outputs:
+		Returns a collection of endpoint INLs taken from the minimum
+		input voltage up to the maximum input voltage.
+	"""
 	# Averaging over all the iterations to get an average of what the ADC
 	# returns.
 	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
 					in adc_outs.items()}
 
+	vin_min = min(adc_outs_avg.keys())
 	code_low = adc_outs_avg[vin_min]
 	INLs = []
 
@@ -411,19 +478,22 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 if __name__ == "__main__":
 	### Testing programming the cortex ###
 	if False:
-		program_cortex_specs = dict(com_port="COM15",
+		program_cortex_specs = dict(teensy_port="COM15",
+									uart_port="COM17",
 									file_binary="../code.bin",
 									boot_mode="optical",
 									skip_reset=False,
-									insert_CRC=False,
+									insert_CRC=True,
 									pad_random_payload=False)
 		program_cortex(**program_cortex_specs)
 
+	### Programming the Cortex and then attempting to ###
+	### run a spot check with the ADC.				  ###
 	if True:
 		test_adc_spot_specs = dict(
 			teensy_port="COM15",
-			uart_port="COM16",
-			iterations=1,
+			uart_port="COM17",
+			iterations=5,
 			file_binary="../code.bin",
 			boot_mode='optical',
 			skip_reset=False,
