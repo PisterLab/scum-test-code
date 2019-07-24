@@ -191,7 +191,7 @@ void init_ldo_control(void){
 	// Analog scan chain setup for radio LDOs
 	// Memory mapped control signals from the cortex are connected to fsm_pon signals
 	clear_asc_bit(501); // = scan_pon_if
-	set_asc_bit(502); // = scan_pon_lo
+	clear_asc_bit(502); // = scan_pon_lo
 	clear_asc_bit(503); // = scan_pon_pa
 	clear_asc_bit(504); // = gpio_pon_en_if
 	set_asc_bit(505); // = fsm_pon_en_if
@@ -202,15 +202,20 @@ void init_ldo_control(void){
 	set_asc_bit(510); // = master_ldo_en_if
 	set_asc_bit(511); // = master_ldo_en_lo
 	set_asc_bit(512); // = master_ldo_en_pa
-	set_asc_bit(513); // = scan_pon_div
+	clear_asc_bit(513); // = scan_pon_div
 	clear_asc_bit(514); // = gpio_pon_en_div
-	set_asc_bit(515); // = fsm_pon_en_div
+	clear_asc_bit(515); // = fsm_pon_en_div
 	set_asc_bit(516); // = master_ldo_en_div
 
+	
+	// Initialize all radio LDOs and AUX to off
+	ANALOG_CFG_REG__10 = 0x0000;
+	
 	// AUX LDO Control:
 	// ASC<914> chooses whether ASC<916> or analog_cfg<167> controls LDO
 	// 0 = ASC<916> has control
 	// 1 = analog_cfg<167> has control
+	// Enable is inverted so 0=on
 	set_asc_bit(914);
 	//set_asc_bit(916);
 	
@@ -233,7 +238,7 @@ void init_ldo_control(void){
 	// Memory-mapped LDO control
 	// ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
 	// For MUX signals, '1' = FSM control, '0' = memory mapped control
-	// For EN signals, '1' = turn on LDO
+	// For EN signals, '1' = turn on LDO (except for AUX which is inverted)
 
 	// Some examples:
 		
@@ -601,14 +606,14 @@ void radio_init_rx_MF(){
 	set_asc_bit(425);
 
 	// Set gain for I and Q
-	set_IF_gain_ASC(43,43);
+	set_IF_gain_ASC(63,63);
 	
 	// Set gm for stg3 ADC drivers
 	set_IF_stg3gm_ASC(7, 7); //(I, Q)
 
 	// Set comparator trims
-	set_IF_comparator_trim_I(0, 5); //(p,n)
-	set_IF_comparator_trim_Q(15, 0); //(p,n)
+	set_IF_comparator_trim_I(0, 0); //(p,n)
+	set_IF_comparator_trim_Q(0, 0); //(p,n)
 
 	// Setup baseband
 
@@ -624,6 +629,10 @@ void radio_init_rx_MF(){
 	
 	// AGC Setup
 	
+	// Set gain control signals to come from ASC
+	clear_asc_bit(271);
+	clear_asc_bit(491);
+	
 	// ASC<100> = envelope detector  
 	// '0' to choose envelope detector, 
 	// '1' chooses original scm3 overload detector
@@ -634,8 +643,8 @@ void radio_init_rx_MF(){
 	// 00 = AGC FSM
 	// 01 or 10 = analog_cfg
 	// 11 = GPIN
-	set_asc_bit(101);
-	set_asc_bit(102);
+	clear_asc_bit(101);
+	clear_asc_bit(102);
 	
 	// Activate TIA only mode
 	// '1' = only control gain of TIA
@@ -655,6 +664,7 @@ void radio_init_rx_MF(){
 	
 	// MF/CDR
 	// Choose output polarity of demod
+	// If RX LO is 2.5MHz below the channel, use ASC<103>=1
 	set_asc_bit(103);
 	
 	// CDR feedback parameters
@@ -663,7 +673,7 @@ void radio_init_rx_MF(){
 	ANALOG_CFG_REG__3 = (tau_shift << 11) | (e_k_shift << 7);
 	
 	// Threshold used for packet detection
-	correlation_threshold = 14;
+	correlation_threshold = 5;
 	ANALOG_CFG_REG__9 = correlation_threshold;
 
 	// Mux select bits to choose internal demod or external clk/data from gpio
@@ -1052,43 +1062,30 @@ void set_sys_clk_secondary_freq(unsigned int coarse, unsigned int fine){
 void initialize_mote(){
 
 	int t;
-
-	// Set HCLK source as HF_CLOCK
-	set_asc_bit(1147);
 	
-	// Set initial coarse/fine on HF_CLOCK
-	//coarse 0:4 = 860 861 875b 876b 877b
-	//fine 0:4 870 871 872 873 874b
-	set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);	//Close to 20MHz at room temp
-
-	// Program analog scan chain
-	//analog_scan_chain_write(&ASC[0]);
-	//analog_scan_chain_load();
-	printf("-x-");
+	// Start of new RX
+	RFTIMER_REG__COMPARE0 = 1;
 	
-//	// Start of new RX
-//	RFTIMER_REG__COMPARE0 = 1;
-//	
-//	// Turn on the RX 
-//	RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
+	// Turn on the RX 
+	RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
 
-//	// Time to start listening for packet 
-//	RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
+	// Time to start listening for packet 
+	RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
 
-//	// RX watchdog - packet never arrived
-//	RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
-//	
-//	// RF Timer rolls over at this value and starts a new cycle
-//	RFTIMER_REG__MAX_COUNT = packet_interval;
+	// RX watchdog - packet never arrived
+	RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
+	
+	// RF Timer rolls over at this value and starts a new cycle
+	RFTIMER_REG__MAX_COUNT = packet_interval;
 
-//	// Enable RF Timer
-//	RFTIMER_REG__CONTROL = 0x7;
+	// Enable RF Timer
+	RFTIMER_REG__CONTROL = 0x7;
 
-//	// Disable interrupts for the radio FSM
-//	radio_disable_interrupts();
-//	
-//	// Disable RF timer interrupts
-//	rftimer_disable_interrupts();
+	// Disable interrupts for the radio FSM
+	radio_disable_interrupts();
+	
+	// Disable RF timer interrupts
+	rftimer_disable_interrupts();
 	
 	//--------------------------------------------------------
 	// SCM3C Analog Scan Chain Initialization
@@ -1105,18 +1102,19 @@ void initialize_mote(){
 	GPI_control(0,0,0,0);
 	
 	// Select banks for GPIO outputs
-	GPO_control(6,5,6,0);
+	GPO_control(6,6,6,0);
 	
 	// Set all GPIOs as outputs
 	GPI_enables(0x0000);	
 	GPO_enables(0xFFFF);
 
-
+	// Set HCLK source as HF_CLOCK
+	set_asc_bit(1147);
+	
 	// Set initial coarse/fine on HF_CLOCK
 	//coarse 0:4 = 860 861 875b 876b 877b
 	//fine 0:4 870 871 872 873 874b
-	//set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
-
+	set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);	
 	
 	// Set RFTimer source as HF_CLOCK
 	set_asc_bit(1151);

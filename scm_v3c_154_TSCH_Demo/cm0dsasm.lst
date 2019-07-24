@@ -438,12 +438,12 @@ ARM Macro Assembler    Page 7
               00000400 
               00000000 
 Command Line: --16 --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interwork
- --depend=.\cm0dsasm.d -o.\cm0dsasm.o -I"C:\Research\Box Sync\Group\VAPR\SCM\SC
-Mv3C_Testing\Software\SCM3C_v2\RTE\_Target_1" -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5
-.0.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\
-PACK\ARM\CMSIS\5.0.0\Device\Include --predefine="__EVAL SETA 1" --predefine="__
-UVISION_VERSION SETA 522" --predefine="ARMCM0 SETA 1" --list=.\cm0dsasm.lst cm0
-dsasm.s
+ --depend=.\cm0dsasm.d -o.\cm0dsasm.o -I"C:\Research\Box Sync\Group\VAPR\SCM\sc
+um-test-code\scm_v3c_154_TSCH_Demo\RTE\_Target_1" -IC:\Keil_v5\ARM\PACK\ARM\CMS
+IS\5.0.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\
+ARM\PACK\ARM\CMSIS\5.0.0\Device\Include --predefine="__EVAL SETA 1" --predefine
+="__UVISION_VERSION SETA 522" --predefine="ARMCM0 SETA 1" --list=.\cm0dsasm.lst
+ cm0dsasm.s
 
 
 

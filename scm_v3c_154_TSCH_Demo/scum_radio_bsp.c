@@ -54,7 +54,7 @@ void setFrequencyRX(unsigned int channel){
 	
 	// On FPGA, have to use the chip's GPIO outputs for radio signals
 	// Note that can't reprogram while the RX is active
-	GPO_control(2,10,1,1);
+	//GPO_control(2,10,1,1);
 
 	// Turn polyphase on for RX
 	set_asc_bit(971);
@@ -62,35 +62,40 @@ void setFrequencyRX(unsigned int channel){
 	// Enable mixer for RX
 	clear_asc_bit(298);
 	clear_asc_bit(307);
-
+	
+	// Make sure polyphase/mixer mux still pointed to ASC
+	clear_asc_bit(744);
+	clear_asc_bit(745);
+	clear_asc_bit(746);
+	
 	// Analog scan chain setup for radio LDOs for RX
-	set_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	clear_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(514); // = gpio_pon_en_div
+	//set_asc_bit(504); // = gpio_pon_en_if
+	//set_asc_bit(506); // = gpio_pon_en_lo
+	//clear_asc_bit(508); // = gpio_pon_en_pa
+	//clear_asc_bit(514); // = gpio_pon_en_div
 
 	// Write and load analog scan chain
-	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	//analog_scan_chain_load_3B_fromFPGA();
+	analog_scan_chain_write(&ASC[0]);
+	analog_scan_chain_load();
 
 	// Set LO code for TX ack
-	LC_monotonic(TX_channel_codes[channel-11]);
+	//LC_monotonic(TX_channel_codes[channel-11]);
 	
 	// Set GPIOs back
-	GPO_control(0,10,8,10);
+	//GPO_control(0,10,8,10);
 
 	// Turn polyphase off for TX
-	clear_asc_bit(971);
+	//clear_asc_bit(971);
 
 	// Hi-Z mixer wells for TX
-	set_asc_bit(298);
-	set_asc_bit(307);
+	//set_asc_bit(298);
+	//set_asc_bit(307);
 
 	// Analog scan chain setup for radio LDOs for TX
-	clear_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	set_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(514); // = gpio_pon_en_div
+	//clear_asc_bit(504); // = gpio_pon_en_if
+	//set_asc_bit(506); // = gpio_pon_en_lo
+	//set_asc_bit(508); // = gpio_pon_en_pa
+	//clear_asc_bit(514); // = gpio_pon_en_div
 
 	// Write analog scan chain (do not load yet)
 	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
@@ -112,34 +117,34 @@ void setFrequencyTX(unsigned int channel){
 	set_asc_bit(307);
 
 	// Analog scan chain setup for radio LDOs for TX
-	clear_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	set_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(514); // = gpio_pon_en_div
+	//clear_asc_bit(504); // = gpio_pon_en_if
+	//set_asc_bit(506); // = gpio_pon_en_lo
+	//set_asc_bit(508); // = gpio_pon_en_pa
+	//clear_asc_bit(514); // = gpio_pon_en_div
 
 	// Write and load analog scan chain
-	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	//analog_scan_chain_load_3B_fromFPGA();
+	analog_scan_chain_write(&ASC[0]);
+	analog_scan_chain_load();
 
 	// Set LO code for RX ack
-	LC_monotonic(RX_channel_codes[channel-11]);
+	//LC_monotonic(RX_channel_codes[channel-11]);
 	
 	// On FPGA, have to use the chip's GPIO outputs for radio signals
 	// Note that can't reprogram while the RX is active
-	GPO_control(2,10,1,1);
+	//GPO_control(2,10,1,1);
 
 	// Turn polyphase on for RX
-	set_asc_bit(971);
+	//set_asc_bit(971);
 
 	// Enable mixer for RX
-	clear_asc_bit(298);
-	clear_asc_bit(307);
+	//clear_asc_bit(298);
+	//clear_asc_bit(307);
 
 	// Analog scan chain setup for radio LDOs for RX
-	set_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	clear_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(514); // = gpio_pon_en_div
+	//set_asc_bit(504); // = gpio_pon_en_if
+	//set_asc_bit(506); // = gpio_pon_en_lo
+	//clear_asc_bit(508); // = gpio_pon_en_pa
+	//clear_asc_bit(514); // = gpio_pon_en_div
 
 	// Write analog scan chain (do not load yet)
 	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
@@ -166,7 +171,7 @@ void radio_loadPacket(unsigned int len){
 void radio_txEnable(){
 	
 	// Turn on LO, PA, and AUX LDOs
-	ANALOG_CFG_REG__10 = 0x00A8;
+	ANALOG_CFG_REG__10 = 0x0028;
 }
 
 // Begin modulating the radio output for TX 
@@ -176,11 +181,11 @@ void radio_txNow(){
 }
 
 // Turn on the radio for receive
-// This should be done at least X us before rxNow()
+// This should be done at least ~50 us before rxNow()
 void radio_rxEnable(){
 	
 	// Turn on LO, IF, and AUX LDOs via memory mapped register
-	ANALOG_CFG_REG__10 = 0x0098;
+	ANALOG_CFG_REG__10 = 0x0018;
 
 	// Reset radio FSM
 	RFCONTROLLER_REG__CONTROL = 0x10;
@@ -210,13 +215,6 @@ void radio_rfOff(){
 
 	// Turn off LDOs
 	ANALOG_CFG_REG__10 = 0x0000;
-	
-	
-	// Make sure GPIOs are set back to allow for reprogramming
-//	GPO_control(0,10,8,10);
-	// Write and load analog scan chain
-	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	//analog_scan_chain_load_3B_fromFPGA();
 	
 }
 

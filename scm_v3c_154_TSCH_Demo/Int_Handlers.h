@@ -222,7 +222,7 @@ void RF_ISR() {
 		
 		
 		// Packet sent; turn transmitter off
-		radio_rfOff();
+		//radio_rfOff();
 		
 		// Apply frequency corrections
 		radio_frequency_housekeeping();
@@ -282,9 +282,9 @@ void RF_ISR() {
 			if(doing_initial_packet_search == 0){
 
 				// Exit RX mode (so can reprogram on FPGA version)
-				analog_scan_chain_load();
+				//analog_scan_chain_load();
 				
-				radio_rfOff();
+				//radio_rfOff();
 			}
 			else{
 				
@@ -308,9 +308,9 @@ void RF_ISR() {
 			if(doing_initial_packet_search == 0){
 
 				// Exit RX mode (so can reprogram on FPGA version)
-				analog_scan_chain_load();
+				//analog_scan_chain_load();
 				
-				radio_rfOff();
+				//radio_rfOff();
 			}
 			else{
 				
@@ -340,9 +340,9 @@ void RF_ISR() {
 				// Enable timer ISRs in the NVIC
 				rftimer_enable_interrupts();
 				
-				analog_scan_chain_load();
+				//analog_scan_chain_load();
 				
-				radio_rfOff();
+				//radio_rfOff();
 				
 
 			}	
@@ -374,7 +374,7 @@ void RF_ISR() {
 				RFTIMER_REG__COMPARE4_CONTROL = 0x3;
 				RFTIMER_REG__COMPARE5_CONTROL = 0x3;
 				
-				analog_scan_chain_load();
+				//analog_scan_chain_load();
 			}
 		
 		// Keep listening if not locked yet
@@ -492,7 +492,7 @@ void RFTIMER_ISR() {
 		GPIO_REG__OUTPUT &= ~(0x8);
 		
 		// Exit RX mode (so can reprogram on FPGA version)
-		analog_scan_chain_load();
+		//analog_scan_chain_load();
 		
 		// Turn off the radio
 		radio_rfOff();
@@ -503,7 +503,7 @@ void RFTIMER_ISR() {
 		GPIO_REG__OUTPUT ^= 0x1;
 		
 		// Switch over to TX
-		analog_scan_chain_load();
+		//analog_scan_chain_load();
 	
 		// Turn on RF for TX
 		radio_txEnable();
@@ -677,8 +677,8 @@ void OPTICAL_SFD_ISR(){
 		set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
 		
 		// Do correction on LC
-		if(count_LC > (LC_target + 30)) LC_code -= 1;
-		if(count_LC < (LC_target - 30))	LC_code += 1;
+		//if(count_LC > (LC_target + 30)) LC_code -= 1;
+		//if(count_LC < (LC_target - 30))	LC_code += 1;
 		LC_monotonic(LC_code);
 			
 		// Do correction on 2M RC
@@ -705,9 +705,7 @@ void OPTICAL_SFD_ISR(){
 	}
 	
 	// Debugging output
-	printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
-	 
-	//printf("%d\n",count_LC);
+	//printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
 	 
 	if(optical_cal_iteration == 25){
 		// Disable this ISR
@@ -732,6 +730,12 @@ void OPTICAL_SFD_ISR(){
 		//printf("IF_fine=%d\n", IF_fine);
 		
 		printf("done\n");
+		
+		//skip building a channel table for now; hardcode LC values
+		RX_channel_codes[0] = LC_code;
+		TX_channel_codes[0] = 793;
+		
+		
 		//printf("Building channel table...");
 		
 		//build_channel_table(LC_code);
@@ -742,7 +746,17 @@ void OPTICAL_SFD_ISR(){
 		
 		// Halt all counters
 		ANALOG_CFG_REG__0 = 0x0000;	
-	
+		
+		
+		
+		// Turn off clocks
+		// Disable RC 2M 
+		clear_asc_bit(1114);
+		// Enable 32k
+		clear_asc_bit(623);
+		analog_scan_chain_write(&ASC[0]);
+		analog_scan_chain_load();	
+		
 	}
 }
 	

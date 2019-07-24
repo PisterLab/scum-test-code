@@ -21,18 +21,44 @@ Target DLL:      UL2CM3.DLL V1.159.0.0
 Dialog DLL:      TARMCM1.DLL V1.11.0.0
  
 <h2>Project:</h2>
-C:\Research\Box Sync\Group\VAPR\SCM\SCMv3C_Testing\Software\SCM3C_v2\code.uvprojx
+C:\Research\Box Sync\Group\VAPR\SCM\scum-test-code\scm_v3c_154_TSCH_Demo\code.uvprojx
 Project File Date:  07/22/2019
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 4 (build 422)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
+compiling main.c...
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+Int_Handlers.h(212): warning:  #177-D: variable "t"  was declared but never referenced
+  	int t;
+Int_Handlers.h(629): warning:  #177-D: variable "t"  was declared but never referenced
+  	int t;
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+main.c(65): warning:  #177-D: variable "t2"  was declared but never referenced
+  	int t,t2;
+main.c(68): warning:  #177-D: variable "rdata_lsb"  was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(68): warning:  #177-D: variable "rdata_msb"  was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(68): warning:  #177-D: variable "count_LC"  was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(68): warning:  #177-D: variable "count_32k"  was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(68): warning:  #177-D: variable "count_2M"  was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c: 10 warnings, 0 errors
+linking...
+.\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
+Program Size: Code=13048 RO-data=328 RW-data=260 ZI-data=4140  
+Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 0 Warning(s).
+".\code.axf" - 0 Error(s), 11 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
-  C:\Research\Box Sync\Group\VAPR\SCM\SCMv3C_Testing\Software\SCM3C_v2\RTE\_Target_1
+  C:\Research\Box Sync\Group\VAPR\SCM\scum-test-code\scm_v3c_154_TSCH_Demo\RTE\_Target_1
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
