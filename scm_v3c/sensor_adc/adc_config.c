@@ -43,7 +43,7 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 		adc_settle: 8-bit binary [0,255]. Settle time of the ADC (exact
 			relationship unknown).
 		bgr_tune: 7-bit binary [0,127]. Value for adjusting the band gap 
-			reference.
+			reference. The LSB (RHS) is the panic bit.
 		constgm_tune: 8-bit binary [0,255]. Value for adjusting the constant
 			gm device.
 		vbatDiv4_en: Integer 0 or 1. 1 enables the vbat divide-by-4, 0
@@ -108,8 +108,8 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	prog_asc_bit(801, ldo_en);
 
 	// Input mux selection programming
-	prog_asc_bit(1087, input_mux_sel[0]);
-	prog_asc_bit(915, input_mux_sel[1]);
+	prog_asc_bit(1087, input_mux_sel[1]);
+	prog_asc_bit(915, input_mux_sel[0]);
 
 	// PGA bypass
 	prog_asc_bit(1088, pga_byp);
