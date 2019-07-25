@@ -109,7 +109,7 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 
 	// Input mux selection programming
 	prog_asc_bit(1087, input_mux_sel[0]);
-	prog_asc_bit(780, input_mux_sel[1]);
+	prog_asc_bit(915, input_mux_sel[1]);
 
 	// PGA bypass
 	prog_asc_bit(1088, pga_byp);

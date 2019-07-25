@@ -477,9 +477,9 @@ def calc_adc_inl_endpoint(adc_outs, vlsb_ideal):
 
 if __name__ == "__main__":
 	### Testing programming the cortex ###
-	if False:
+	if True:
 		program_cortex_specs = dict(teensy_port="COM15",
-									uart_port="COM17",
+									uart_port="COM18",
 									file_binary="../code.bin",
 									boot_mode="optical",
 									skip_reset=False,
@@ -489,10 +489,10 @@ if __name__ == "__main__":
 
 	### Programming the Cortex and then attempting to ###
 	### run a spot check with the ADC.				  ###
-	if True:
+	if False:
 		test_adc_spot_specs = dict(
 			teensy_port="COM15",
-			uart_port="COM17",
+			uart_port="COM18",
 			iterations=5,
 			file_binary="../code.bin",
 			boot_mode='optical',
