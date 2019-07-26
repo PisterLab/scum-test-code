@@ -175,7 +175,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM16", file_binary="./code.b
 def test_adc_spot(teensy_port="COM15", uart_port="COM16", iterations=1,
 		file_binary="./code.bin",
 		boot_mode='optical', skip_reset=False, insert_CRC=False,
-		pad_random_payload=False):
+		pad_random_payload=False, program_cortex=True):
 	"""
 	Inputs:
 		teensy_port: String. Name of the COM port that the Teensy
@@ -200,6 +200,8 @@ def test_adc_spot(teensy_port="COM15", uart_port="COM16", iterations=1,
 			random data and check it with CRC. False = pad with zeros, do 
 			not check integrity of padding. This is useful to check for 
 			programming errors over full 64kB payload.
+		program_cortex: Boolean. True = program the cortex before running
+			the ADC test. False = don't program the cortex.
 	Outputs:
 		Feeds the input from file_binary to the Teensy to program SCM
 		and boot the cortex. Returns an ordered collection of ADC 
@@ -217,9 +219,10 @@ def test_adc_spot(teensy_port="COM15", uart_port="COM16", iterations=1,
 		bytesize=serial.EIGHTBITS,
 		timeout=1)
 
-	teensy_ser = __program_cortex__(teensy_port, file_binary,
-		boot_mode, skip_reset, insert_CRC,
-		pad_random_payload)
+	if program_cortex:
+		teensy_ser = program_cortex(teensy_port, file_binary,
+			boot_mode, skip_reset, insert_CRC,
+			pad_random_payload)
 
 	for i in range(12):
 		time.sleep(.2)
@@ -232,25 +235,34 @@ def test_adc_spot(teensy_port="COM15", uart_port="COM16", iterations=1,
 		adc_out = uart_ser.readline()
 		adc_outs.append(adc_out)
 	
-	teensy_ser.close()
 	uart_ser.close()
 
 	return adc_outs
 
 def test_adc_psu(
-		vin_vec, teensy_port="COM10",
+		vin_vec, teensy_port="COM10", uart_port="COM18", 
+		file_binary="./code.bin",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-		iterations=1):
+		iterations=1, program_cortex=True):
 	"""
 	Inputs:
 		vin_vec: 1D collection of floats. Input voltages in volts 
 			to feed to the ADC.
 		teensy_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
+		uart_port: String. Name of the COM port that the UART 
+			is connected to.
+		file_binary: String. Path to the binary file to 
+			feed to Teensy to program SCM. This binary file shold be
+			compiled using whatever software is meant to end up 
+			on the Cortex. This group tends to compile it using Keil
+			projects.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
+		program_cortex: Boolean. True = program the cortex before running
+			the ADC test. False = don't program the cortex.
 	Outputs:
 		Returns a dictionary adc_outs where adc_outs[vin][i] will give the 
 		ADC code associated with the i'th iteration when the input
@@ -260,14 +272,21 @@ def test_adc_psu(
 		sweep the input voltage to the ADC. Bypasses the PGA. Does 
 		NOT program scan.
 	"""
-	# Opening up serial connection to Teensy
-	ser = serial.Serial(
-		port=teensy_port,
+	# Opening up the UART connection
+	uart_ser = serial.Serial(
+		port=uart_port,
 		baudrate=19200,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS,
 		timeout=1)
+
+	# Opening up serial connection to Teensy if necessary
+	if program_cortex:
+		teensy_ser = program_cortex(teensy_port, file_binary,
+			boot_mode, skip_reset, insert_CRC,
+			pad_random_payload)
+
 
 	# Connecting to the arbitrary waveform generator
 	rm = visa.ResourceManager()
@@ -291,22 +310,24 @@ def test_adc_psu(
 		adc_outs[vin] = []
 		psu.write("SOURCE2:VOLTAGE:OFFSET {}".format(vin))
 		for i in range(iterations):
-			ser.write('adc\n')
-			print(ser.read())
-			adc_out = ser.read()
+			uart_ser.write(b'adc\n')
+			time.sleep(.5)
+			print(uart_ser.readline())
+			adc_out = uart_ser.readline()
 			adc_outs[vin].append(adc_out)
 			print("Vin={}V/Iteration {} -- {}".format(vin, i, adc_outs[vin][i]))
-	
+
+
 	# Due diligence for closing things out
-	ser.close()
+	uart_ser.close()
 	psu.close()
 	
 	return adc_outs
 
 def test_adc_dnl(vin_min, vin_max, num_bits, 
-		teensy_port="COM10",
+		teensy_port="COM10", uart_port="COM18", file_binary="./code_bin",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-		iterations=1):
+		iterations=1, program_cortex=True):
 	"""
 	Inputs:
 		vin_min/max: Float. The min and max voltages to feed to the
@@ -314,10 +335,19 @@ def test_adc_dnl(vin_min, vin_max, num_bits,
 		num_bits: Integer. The bit resolution of the ADC.
 		teensy_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
+		uart_port: String. Name of the COM port that the UART 
+			is connected to.
+		file_binary: String. Path to the binary file to 
+			feed to Teensy to program SCM. This binary file shold be
+			compiled using whatever software is meant to end up 
+			on the Cortex. This group tends to compile it using Keil
+			projects.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
+		program_cortex: Boolean. True = program the cortex before running
+			the ADC test. False = don't program the cortex.
 	Outputs:
 		Returns a collection of DNLs for each nominal LSB. The length
 		should be 2**(num_bits)-1
@@ -327,7 +357,8 @@ def test_adc_dnl(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/10)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations)
+	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations, \
+			program_cortex)
 	
 	return calc_adc_dnl(adc_outs, vlsb_ideal)
 
@@ -366,9 +397,9 @@ def calc_adc_dnl(adc_outs, vlsb_ideal):
 
 
 def test_adc_inl_straightline(vin_min, vin_max, num_bits, 
-		teensy_port="COM10",
+		teensy_port="COM10", uart_port="COM18", file_binary="./code.bin",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-		iterations=1):
+		iterations=1, program_cortex=True):
 	"""
 	Inputs:
 		vin_min/max: Float. The min and max voltages to feed to the
@@ -376,10 +407,19 @@ def test_adc_inl_straightline(vin_min, vin_max, num_bits,
 		num_bits: Integer. The bit resolution of the ADC.
 		teensy_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
+		uart_port: String. Name of the COM port that the UART 
+			is connected to.
+		file_binary: String. Path to the binary file to 
+			feed to Teensy to program SCM. This binary file shold be
+			compiled using whatever software is meant to end up 
+			on the Cortex. This group tends to compile it using Keil
+			projects.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
+		program_cortex: Boolean. True = program the cortex before running
+			the ADC test. False = don't program the cortex.
 	Outputs:
 		Returns the slope, intercept of the linear regression
 		of the ADC code vs. vin. 
@@ -389,7 +429,7 @@ def test_adc_inl_straightline(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/4)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations)
+	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations program_cortex)
 
 	return calc_adc_inl_straightline(adc_outs, vlsb_ideal)
 
@@ -418,9 +458,9 @@ def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
 	return slope, intercept
 
 def test_adc_inl_endpoint(vin_min, vin_max, num_bits, 
-		teensy_port="COM10",
+		teensy_port="COM10", uart_port="COM18", file_binary="./code.binary",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-		iterations=1):
+		iterations=1, program_cortex=True):
 	"""
 	Inputs:
 		vin_min/max: Float. The min and max voltages to feed to the
@@ -428,10 +468,19 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 		num_bits: Integer. The bit resolution of the ADC.
 		teensy_port: String. The name of the COM port (or whatever port)
 			used to communicate with the Teensy/microcontroller.
+		uart_port: String. Name of the COM port that the UART 
+			is connected to.
+		file_binary: String. Path to the binary file to 
+			feed to Teensy to program SCM. This binary file shold be
+			compiled using whatever software is meant to end up 
+			on the Cortex. This group tends to compile it using Keil
+			projects.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
+		program_cortex: Boolean. True = program the cortex before running
+			the ADC test. False = don't program the cortex.
 	Outputs:
 		Returns a collection of endpoint INLs taken from vin_min 
 		up to vin_max.
@@ -441,7 +490,8 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/4)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations)
+	adc_outs = test_adc_psu(vin_vec, teensy_port, psu_name, iterations, \
+		program_cortex)
 
 	return calc_adc_inl_endpoint(adc_outs, vlsb_ideal)
 
@@ -484,7 +534,7 @@ if __name__ == "__main__":
 									boot_mode="optical",
 									skip_reset=False,
 									insert_CRC=True,
-									pad_random_payload=False)
+									pad_random_payload=False,)
 		program_cortex(**program_cortex_specs)
 
 	### Programming the Cortex and then attempting to ###
@@ -498,6 +548,7 @@ if __name__ == "__main__":
 			boot_mode='optical',
 			skip_reset=False,
 			insert_CRC=False,
-			pad_random_payload=False)
+			pad_random_payload=False,
+			program_cortex=True)
 		adc_out = test_adc_spot(**test_adc_spot_specs)
 		print(adc_out)
