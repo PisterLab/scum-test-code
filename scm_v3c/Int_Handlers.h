@@ -202,7 +202,7 @@ void UART_ISR(){
 }
 
 void ADC_ISR() {
-	printf("0d%d\n", ADC_REG__DATA);
+	printf("%d\n", ADC_REG__DATA);
 }
 
 void RF_ISR() {
