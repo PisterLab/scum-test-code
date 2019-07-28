@@ -5,6 +5,7 @@ import serial
 import visa
 import time
 import random
+from data_handling import *
 
 def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.bin",
 		boot_mode='optical', skip_reset=False, insert_CRC=False,
@@ -487,3 +488,8 @@ if __name__ == "__main__":
 			pad_random_payload=False)
 		adc_out = test_adc_spot(**test_adc_spot_specs)
 		print(adc_out)
+		adc_out_dict = dict()
+		adc_out_dict[0.0] = adc_out
+
+		fname = './test_write.csv'
+		write_adc_data(adc_out_dict, fname)
