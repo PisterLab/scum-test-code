@@ -123,7 +123,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS,
-		timeout=1)
+		timeout=.5)
 
 	# After programming, several lines are sent from SCM over UART
 	print(uart_ser.readline())
@@ -137,7 +137,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 
 def test_adc_spot(uart_port="COM16", iterations=1,
 		file_binary="./code.bin",
-		boot_mode='optical', skip_reset=False, insert_CRC=False,
+		skip_reset=False, insert_CRC=False,
 		pad_random_payload=False):
 	"""
 	Inputs:
@@ -149,9 +149,6 @@ def test_adc_spot(uart_port="COM16", iterations=1,
 			compiled using whatever software is meant to end up 
 			on the Cortex. This group tends to compile it using Keil
 			projects.
-		boot_mode: String. 'optical' or '3wb'. The former will assume an
-			optical bootload, whereas the latter will use the 3-wire
-			bus.
 		skip_reset: Boolean. True: Skip hard reset before optical 
 			programming. False: Perform hard reset before optical programming.
 		insert_CRC: Boolean. True = insert CRC for payload integrity 
@@ -166,8 +163,6 @@ def test_adc_spot(uart_port="COM16", iterations=1,
 		and boot the cortex. Returns an ordered collection of ADC 
 		output codes where the ith element corresponds to the ith reading.
 		Note that this assumes that SCM has already been programmed.
-	Raises:
-		ValueError if the boot_mode isn't 'optical' or '3wb'.
 	"""
 	adc_outs = []
 
@@ -177,7 +172,7 @@ def test_adc_spot(uart_port="COM16", iterations=1,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS,
-		timeout=1)
+		timeout=.5)
 
 	for i in range(12):
 		time.sleep(.2)
@@ -230,7 +225,7 @@ def test_adc_psu(
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS,
-		timeout=1)
+		timeout=.5)
 
 
 	# Connecting to the arbitrary waveform generator
@@ -461,9 +456,9 @@ def calc_adc_inl_endpoint(adc_outs, vlsb_ideal):
 
 if __name__ == "__main__":
 	### Testing programming the cortex ###
-	if True:
+	if False:
 		program_cortex_specs = dict(teensy_port="COM15",
-									uart_port="COM18",
+									uart_port="COM19",
 									file_binary="../code.bin",
 									boot_mode="optical",
 									skip_reset=False,
@@ -473,21 +468,20 @@ if __name__ == "__main__":
 
 	### Programming the Cortex and then attempting to ###
 	### run a spot check with the ADC.				  ###
-	if False:
+	if True:
 		program_cortex_specs = dict(teensy_port="COM15",
-									uart_port="COM18",
+									uart_port="COM19",
 									file_binary="../code.bin",
 									boot_mode="optical",
 									skip_reset=False,
-									insert_CRC=True,
+									insert_CRC=False,
 									pad_random_payload=False,)
 		program_cortex(**program_cortex_specs)
 
 		test_adc_spot_specs = dict(
-			uart_port="COM18",
-			iterations=5,
+			uart_port="COM19",
+			iterations=10,
 			file_binary="../code.bin",
-			boot_mode='optical',
 			skip_reset=False,
 			insert_CRC=False,
 			pad_random_payload=False)

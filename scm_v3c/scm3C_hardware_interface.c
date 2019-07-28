@@ -1098,9 +1098,9 @@ void initialize_mote(){
 	init_ldo_control();
 
 	// Set LDO reference voltages
-	//set_VDDD_LDO_voltage(0);
+	// set_VDDD_LDO_voltage(0);
 	//set_AUX_LDO_voltage(0);
-	//set_ALWAYSON_LDO_voltage(0);
+	set_ALWAYSON_LDO_voltage(0);
 		
 	// Select banks for GPIO inputs
 	// GPI_control(0,0,0,0);
@@ -1180,9 +1180,9 @@ void initialize_mote(){
 		unsigned int bgr_tune[7] 		= {0,0,0, 0,0,0,1};
 		unsigned int constgm_tune[8] 	= {1,1,1,1, 1,1,1,1};
 		unsigned int vbatDiv4_en 		= 1;
-		unsigned int ldo_en 			= 0;
-		unsigned int input_mux_sel[2] 	= {0,1};
-		unsigned int pga_byp 			= 0;
+		unsigned int ldo_en 			= 1;
+		unsigned int input_mux_sel[2] 	= {1,0};
+		unsigned int pga_byp 			= 1;
 
 		// Set all GPIOs as outputs
 		GPI_enables(0x0000);	
@@ -1190,7 +1190,7 @@ void initialize_mote(){
 
 		// Select banks for GPI/O
 		GPI_control(0,0,0,0);
-		GPO_control(9,9,9,9);
+		GPO_control(0,9,9,0);
 		
 		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
 						pga_gain, adc_settle, 
