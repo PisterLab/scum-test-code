@@ -1,11 +1,12 @@
 import numpy as np
 import scipy as sp
 from scipy import stats
+import matplotlib.pyplot as plt
 import serial
 import visa
 import time
 import random
-from data_handling import *
+# from data_handling import *
 
 def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.bin",
 		boot_mode='optical', skip_reset=False, insert_CRC=False,
@@ -325,6 +326,7 @@ def calc_adc_dnl(adc_outs, vlsb_ideal):
 		if code > code_prev:
 			DNL_val = (vin-vin_prev)/vlsb_ideal - 1
 			DNLs.append(DNL_val)
+			vin_prev = vin
 			# If a code is skipped, make the one it skipped functionally
 			# zero width.
 			if code > code_prev + 1:
@@ -385,7 +387,7 @@ def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
 					in adc_outs.items()}
 
 	# Using linear regressiontto figure out the slope and intercept
-	x = adc_outs_avg.keys()
+	x = list(adc_outs_avg.keys())
 	y = [adc_outs_avg[k] for k in x]
 	slope, intercept, r_value, p_value, std_error = stats.linregress(x, y)
 
@@ -469,7 +471,7 @@ if __name__ == "__main__":
 
 	### Programming the Cortex and then attempting to ###
 	### run a spot check with the ADC.				  ###
-	if True:
+	if False:
 		program_cortex_specs = dict(teensy_port="COM15",
 									uart_port="COM19",
 									file_binary="../code.bin",
@@ -493,3 +495,51 @@ if __name__ == "__main__":
 
 		fname = './test_write.csv'
 		write_adc_data(adc_out_dict, fname)
+
+
+	if True:
+		vlsb_ideal = 1.2/2**10
+
+		file_sweep = './data/psu_run_first_linear.csv'
+		adc_sweep = read_adc_data(file_sweep)
+
+		dnl = calc_adc_dnl(adc_sweep, vlsb_ideal)
+		# inl_endpoint = calc_adc_inl_endpoint(adc_sweep, vlsb_ideal)
+		slope, intercept = calc_adc_inl_straightline(adc_sweep, vlsb_ideal)
+
+		dnl_max = max(dnl)
+		dnl_min = min(dnl)
+		# inl_endpoint_max = max(inl_endpoint)
+		# inl_endpoint_min = min(inl_endpoint)
+
+		# print(dnl)
+
+		print("DNL Min/Max: {}/{}".format(dnl_min, dnl_max))
+		# print("INL Endpoint Min/Max: {}/{}".format(inl_endpoint_min, inl_endpoint_max))
+		print("INL Straightline Slope/Intercept: {}/{}".format(slope, intercept))
+
+		x = list(adc_sweep.keys())
+		adc_avg = {vin:round(np.average(codes)) for (vin,codes) \
+					in adc_sweep.items()}
+		y = [adc_avg[i] for i in x]
+		plt.plot(x,y,label="ADC Readings")
+		plt.plot(x, [slope*i+intercept for i in x], label="INL")
+		plt.plot(x, [1024/1.2*i for i in x], label="Ideal")
+		plt.legend()
+		plt.grid()
+		plt.xlabel("$V_{IN}$ (V)")
+		plt.ylabel("ADC Code")
+		plt.title("$V_{DD}$ = 1.2V, Average over 5 Samples")
+		plt.show()
+
+	if False:
+		file_noise = './data/psu_run_noise.csv'
+		adc_noise = read_adc_data(file_noise)
+
+		for vin in adc_noise.keys():
+			plt.figure()
+			plt.hist(adc_noise[vin], bins=100)
+			plt.title("Vin={} V".format(vin))
+			plt.xlabel("Code")
+			plt.ylabel("Occurrences")
+			plt.show()
