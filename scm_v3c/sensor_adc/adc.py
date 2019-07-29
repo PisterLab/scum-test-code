@@ -6,7 +6,7 @@ import serial
 import visa
 import time
 import random
-# from data_handling import *
+from data_handling import *
 
 def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.bin",
 		boot_mode='optical', skip_reset=False, insert_CRC=False,
@@ -39,7 +39,10 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		and programs SCM. 
 	Raises:
 		ValueError if the boot_mode isn't 'optical' or '3wb'.
-	
+	Notes:
+		When setting optical parameters, all values can be toggled to improve
+		success when programming. In particular, too small a third value can
+		cause the optical programmer to lose/eat the short pulses.
 	"""
 	# Open COM port to Teensy
 	teensy_ser = serial.Serial(
@@ -91,7 +94,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		teensy_ser.write(b'configopt\n')
 		teensy_ser.write(b'80\n')
 		teensy_ser.write(b'80\n')
-		teensy_ser.write(b'3\n')
+		teensy_ser.write(b'8\n')
 		teensy_ser.write(b'80\n')
 		
 	    # Encode the payload into 4B5B for optical transmission
@@ -493,11 +496,34 @@ if __name__ == "__main__":
 		adc_out_dict = dict()
 		adc_out_dict[0.0] = adc_out
 
-		fname = './test_write.csv'
+		fname = './spot_check.csv'
 		write_adc_data(adc_out_dict, fname)
 
-
+	### Programming the cortex and running many iterations on a large ###
+	### sweep. ###
 	if True:
+		program_cortex_specs = dict(teensy_port="COM15",
+									uart_port="COM19",
+									file_binary="../code.bin",
+									boot_mode="optical",
+									skip_reset=False,
+									insert_CRC=False,
+									pad_random_payload=False,)
+		program_cortex(**program_cortex_specs)
+
+		test_adc_psu_specs = dict(vin_vec=,
+								uart_port="COM19",
+								file_binary="../code.bin",
+								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
+								iterations=100)
+		adc_outs = test_adc_psu(**test_adc_psu_specs)
+
+		ts = time.gmtime()
+		datetime = time.strftime("%Y%m%d_%H%M%S",ts)
+		write_adc_data(adc_outs, 'psu_{}'.format(datetime))
+
+	### Reading in data and plotting appropriately ###
+	if False:
 		vlsb_ideal = 1.2/2**10
 
 		file_sweep = './data/psu_run_first_linear.csv'
