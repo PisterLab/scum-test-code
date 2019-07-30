@@ -141,7 +141,6 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 	return
 
 def test_adc_spot(uart_port="COM16", iterations=1,
-		file_binary="./code.bin",
 		skip_reset=False, insert_CRC=False,
 		pad_random_payload=False):
 	"""
@@ -149,11 +148,6 @@ def test_adc_spot(uart_port="COM16", iterations=1,
 		uart_port: String. Name of the COM port that the UART 
 			is connected to.
 		iterations: Integer. Number of times to take readings.
-		file_binary: String. Path to the binary file to 
-			feed to Teensy to program SCM. This binary file shold be
-			compiled using whatever software is meant to end up 
-			on the Cortex. This group tends to compile it using Keil
-			projects.
 		skip_reset: Boolean. True: Skip hard reset before optical 
 			programming. False: Perform hard reset before optical programming.
 		insert_CRC: Boolean. True = insert CRC for payload integrity 
@@ -196,7 +190,6 @@ def test_adc_spot(uart_port="COM16", iterations=1,
 
 def test_adc_psu(
 		vin_vec, uart_port="COM18", 
-		file_binary="./code.bin",
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
@@ -205,11 +198,6 @@ def test_adc_psu(
 			to feed to the ADC.
 		uart_port: String. Name of the COM port that the UART 
 			is connected to.
-		file_binary: String. Path to the binary file to 
-			feed to Teensy to program SCM. This binary file shold be
-			compiled using whatever software is meant to end up 
-			on the Cortex. This group tends to compile it using Keil
-			projects.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
@@ -270,7 +258,7 @@ def test_adc_psu(
 	return adc_outs
 
 def test_adc_dnl(vin_min, vin_max, num_bits, 
-		uart_port="COM18", file_binary="./code_bin",
+		uart_port="COM18", 
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
@@ -280,11 +268,6 @@ def test_adc_dnl(vin_min, vin_max, num_bits,
 		num_bits: Integer. The bit resolution of the ADC.
 		uart_port: String. Name of the COM port that the UART 
 			is connected to.
-		file_binary: String. Path to the binary file to 
-			feed to Teensy to program SCM. This binary file shold be
-			compiled using whatever software is meant to end up 
-			on the Cortex. This group tends to compile it using Keil
-			projects.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
@@ -339,7 +322,7 @@ def calc_adc_dnl(adc_outs, vlsb_ideal):
 
 
 def test_adc_inl_straightline(vin_min, vin_max, num_bits, 
-		uart_port="COM18", file_binary="./code.bin",
+		uart_port="COM18", 
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
@@ -349,11 +332,6 @@ def test_adc_inl_straightline(vin_min, vin_max, num_bits,
 		num_bits: Integer. The bit resolution of the ADC.
 		uart_port: String. Name of the COM port that the UART 
 			is connected to.
-		file_binary: String. Path to the binary file to 
-			feed to Teensy to program SCM. This binary file shold be
-			compiled using whatever software is meant to end up 
-			on the Cortex. This group tends to compile it using Keil
-			projects.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
@@ -397,7 +375,7 @@ def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
 	return slope, intercept
 
 def test_adc_inl_endpoint(vin_min, vin_max, num_bits, 
-		uart_port="COM18", file_binary="./code.binary",
+		uart_port="COM18", 
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 		iterations=1):
 	"""
@@ -407,11 +385,6 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 		num_bits: Integer. The bit resolution of the ADC.
 		uart_port: String. Name of the COM port that the UART 
 			is connected to.
-		file_binary: String. Path to the binary file to 
-			feed to Teensy to program SCM. This binary file shold be
-			compiled using whatever software is meant to end up 
-			on the Cortex. This group tends to compile it using Keil
-			projects.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
@@ -463,8 +436,8 @@ def calc_adc_inl_endpoint(adc_outs, vlsb_ideal):
 if __name__ == "__main__":
 	### Testing programming the cortex ###
 	if False:
-		program_cortex_specs = dict(teensy_port="COM15",
-									uart_port="COM19",
+		program_cortex_specs = dict(teensy_port="COM14",
+									uart_port="COM21",
 									file_binary="../code.bin",
 									boot_mode="optical",
 									skip_reset=False,
@@ -474,9 +447,9 @@ if __name__ == "__main__":
 
 	### Programming the Cortex and then attempting to ###
 	### run a spot check with the ADC.				  ###
-	if False:
-		program_cortex_specs = dict(teensy_port="COM15",
-									uart_port="COM19",
+	if True:
+		program_cortex_specs = dict(teensy_port="COM14",
+									uart_port="COM21",
 									file_binary="../code.bin",
 									boot_mode="optical",
 									skip_reset=False,
@@ -485,9 +458,8 @@ if __name__ == "__main__":
 		program_cortex(**program_cortex_specs)
 
 		test_adc_spot_specs = dict(
-			uart_port="COM19",
+			uart_port="COM21",
 			iterations=10,
-			file_binary="../code.bin",
 			skip_reset=False,
 			insert_CRC=False,
 			pad_random_payload=False)
@@ -501,19 +473,18 @@ if __name__ == "__main__":
 
 	### Programming the cortex and running many iterations on a large ###
 	### sweep. ###
-	if True:
-		program_cortex_specs = dict(teensy_port="COM15",
-									uart_port="COM19",
-									file_binary="../code.bin",
-									boot_mode="optical",
-									skip_reset=False,
-									insert_CRC=False,
-									pad_random_payload=False,)
-		program_cortex(**program_cortex_specs)
+	if False:
+		# program_cortex_specs = dict(teensy_port="COM14",
+		# 							uart_port="COM21",
+		# 							file_binary="../code.bin",
+		# 							boot_mode="optical",
+		# 							skip_reset=False,
+		# 							insert_CRC=False,
+		# 							pad_random_payload=False,)
+		# program_cortex(**program_cortex_specs)
 
-		test_adc_psu_specs = dict(vin_vec=,
-								uart_port="COM19",
-								file_binary="../code.bin",
+		test_adc_psu_specs = dict(vin_vec=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+								uart_port="COM21",
 								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 								iterations=100)
 		adc_outs = test_adc_psu(**test_adc_psu_specs)
