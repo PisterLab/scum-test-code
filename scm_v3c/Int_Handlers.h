@@ -67,6 +67,11 @@ extern unsigned short current_RF_channel;
 
 extern unsigned short do_debug_print;
 
+// Sensor ADC memory
+short adc_outs[5];	// Modify the size of the array to the number
+						// of readings you'd like
+unsigned int adc_outs_idx = 0;
+size_t adc_outs_size = sizeof(adc_outs)/sizeof(short);
 
 void UART_ISR(){	
 	static char i=0;
@@ -202,7 +207,53 @@ void UART_ISR(){
 }
 
 void ADC_ISR() {
-	printf("%d\n", ADC_REG__DATA);
+	/*
+	Writes the ADC value to memory. If the memory for ADC values is 
+	filled, it starts bit-banging GPIO1 as the clock and GPIO2 as the 
+	bit value.
+
+	When taking readings, also printf's the ADC value held in 
+	ADC_REG__DATA
+	*/
+
+	// Avoid overstepping the bounds of the array
+	if (adc_outs_idx < adc_outs_size) {
+		// Store the value in memory
+		adc_outs[adc_outs_idx] = (short)ADC_REG__DATA;
+		
+		// Increment the location memory
+		adc_outs_idx++;
+
+		// Write the value over UART
+		printf("%d\n", ADC_REG__DATA);
+	}
+	else {
+		// If you've filled up, start bit-banging the clock and GPIO
+		int i;
+		int j;
+		for (adc_outs_idx=0; adc_outs_idx<adc_outs_size; adc_outs_idx++) {
+			// Read the ADC data out MSB first
+			for (i=0; i<10; i++) {
+				short gpio_val = (adc_outs[adc_outs_idx] >> (9-i)) & 1;
+				if (gpio_val) {
+					GPIO_REG__OUTPUT |= 0x6;
+				}
+				else {
+					GPIO_REG__OUTPUT |= 0x2;
+				}
+
+				// Wait a wee bit
+				for (j=0; j<5; j++) {}
+
+				// Set the clock low
+				GPIO_REG__OUTPUT &= ~(0x2);
+
+				// Wait a wee bit longer
+				for (j=0; j<5; j++) {}
+			}
+		}
+	}
+
 }
 
 void RF_ISR() {
