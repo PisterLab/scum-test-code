@@ -140,23 +140,12 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 
 	return
 
-def test_adc_spot(uart_port="COM16", iterations=1,
-		skip_reset=False, insert_CRC=False,
-		pad_random_payload=False):
+def test_adc_spot(uart_port="COM16", iterations=1):
 	"""
 	Inputs:
 		uart_port: String. Name of the COM port that the UART 
 			is connected to.
 		iterations: Integer. Number of times to take readings.
-		skip_reset: Boolean. True: Skip hard reset before optical 
-			programming. False: Perform hard reset before optical programming.
-		insert_CRC: Boolean. True = insert CRC for payload integrity 
-			checking. False = do not insert CRC. Note that SCM C code 
-			must also be set up for CRC check for this to work.
-		pad_random_payload: Boolean. True = pad unused payload space with 
-			random data and check it with CRC. False = pad with zeros, do 
-			not check integrity of padding. This is useful to check for 
-			programming errors over full 64kB payload.
 	Outputs:
 		Feeds the input from file_binary to the Teensy to program SCM
 		and boot the cortex. Returns an ordered collection of ADC 
@@ -460,9 +449,7 @@ if __name__ == "__main__":
 		test_adc_spot_specs = dict(
 			uart_port="COM21",
 			iterations=10,
-			skip_reset=False,
-			insert_CRC=False,
-			pad_random_payload=False)
+			skip_reset=False)
 		adc_out = test_adc_spot(**test_adc_spot_specs)
 		print(adc_out)
 		adc_out_dict = dict()
