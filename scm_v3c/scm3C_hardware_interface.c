@@ -1190,7 +1190,7 @@ void initialize_mote(){
 
 		// Select banks for GPI/O
 		GPI_control(0,0,0,0);
-		GPO_control(0,9,9,0);
+		GPO_control(0,0,0,0);
 		
 		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
 						pga_gain, adc_settle, 

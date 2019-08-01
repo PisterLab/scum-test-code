@@ -48,5 +48,6 @@ void loop() {
 
 void  memread_ISR() {
    int val = digitalRead(pin_GPIO_DATA_IN);
+   Serial.println("Ah!");
    Serial.println(val);
 }

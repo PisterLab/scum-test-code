@@ -94,7 +94,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		teensy_ser.write(b'configopt\n')
 		teensy_ser.write(b'80\n')
 		teensy_ser.write(b'80\n')
-		teensy_ser.write(b'8\n')
+		teensy_ser.write(b'3\n')
 		teensy_ser.write(b'80\n')
 		
 	    # Encode the payload into 4B5B for optical transmission
@@ -349,7 +349,6 @@ def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
 	Outputs:
 		Returns the slope, intercept of the linear regression of the 
 		ADC codes vs. vin.
-
 	"""
 	# Averaging over all the iterations to get an average of what the ADC
 	# returns.
@@ -423,10 +422,13 @@ def calc_adc_inl_endpoint(adc_outs, vlsb_ideal):
 	return INLs
 
 if __name__ == "__main__":
+	programmer_port = "COM15"
+	scm_port = "COM30"
+
 	### Testing programming the cortex ###
 	if False:
-		program_cortex_specs = dict(teensy_port="COM14",
-									uart_port="COM21",
+		program_cortex_specs = dict(teensy_port=programmer_port,
+									uart_port=scm_port,
 									file_binary="../code.bin",
 									boot_mode="optical",
 									skip_reset=False,
@@ -437,32 +439,8 @@ if __name__ == "__main__":
 	### Programming the Cortex and then attempting to ###
 	### run a spot check with the ADC.				  ###
 	if True:
-		program_cortex_specs = dict(teensy_port="COM14",
-									uart_port="COM21",
-									file_binary="../code.bin",
-									boot_mode="optical",
-									skip_reset=False,
-									insert_CRC=False,
-									pad_random_payload=False,)
-		program_cortex(**program_cortex_specs)
-
-		test_adc_spot_specs = dict(
-			uart_port="COM21",
-			iterations=10,
-			skip_reset=False)
-		adc_out = test_adc_spot(**test_adc_spot_specs)
-		print(adc_out)
-		adc_out_dict = dict()
-		adc_out_dict[0.0] = adc_out
-
-		fname = './spot_check.csv'
-		write_adc_data(adc_out_dict, fname)
-
-	### Programming the cortex and running many iterations on a large ###
-	### sweep. ###
-	if False:
-		# program_cortex_specs = dict(teensy_port="COM14",
-		# 							uart_port="COM21",
+		# program_cortex_specs = dict(teensy_port=programmer_port,
+		# 							uart_port=scm_port,
 		# 							file_binary="../code.bin",
 		# 							boot_mode="optical",
 		# 							skip_reset=False,
@@ -470,8 +448,31 @@ if __name__ == "__main__":
 		# 							pad_random_payload=False,)
 		# program_cortex(**program_cortex_specs)
 
+		test_adc_spot_specs = dict(
+			uart_port=scm_port,
+			iterations=10)
+		adc_out = test_adc_spot(**test_adc_spot_specs)
+		print(adc_out)
+		adc_out_dict = dict()
+		adc_out_dict[0.0] = adc_out
+
+		fname = './data/spot_check.csv'
+		write_adc_data(adc_out_dict, fname)
+
+	### Programming the cortex and running many iterations on a large ###
+	### sweep. ###
+	if False:
+		program_cortex_specs = dict(teensy_port=programmer_port,
+									uart_port=scm_port,
+									file_binary="../code.bin",
+									boot_mode="optical",
+									skip_reset=False,
+									insert_CRC=False,
+									pad_random_payload=False,)
+		program_cortex(**program_cortex_specs)
+
 		test_adc_psu_specs = dict(vin_vec=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-								uart_port="COM21",
+								uart_port=scm_port,
 								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 								iterations=100)
 		adc_outs = test_adc_psu(**test_adc_psu_specs)

@@ -207,6 +207,10 @@ void UART_ISR(){
 }
 
 void ADC_ISR() {
+	printf("%d\n", ADC_REG__DATA);	
+}
+
+void ADC_mem_ISR() {
 	/*
 	Writes the ADC value to memory. If the memory for ADC values is 
 	filled, it starts bit-banging GPIO1 as the clock and GPIO2 as the 
@@ -255,6 +259,7 @@ void ADC_ISR() {
 	}
 
 }
+
 
 void RF_ISR() {
 	

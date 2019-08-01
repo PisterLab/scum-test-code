@@ -21,7 +21,6 @@ void prog_asc_bit(unsigned int position, unsigned int val){
 	else {
 		clear_asc_bit(position);
 	}
-
 }
 
 
