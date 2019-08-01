@@ -438,7 +438,7 @@ if __name__ == "__main__":
 
 	### Programming the Cortex and then attempting to ###
 	### run a spot check with the ADC.				  ###
-	if True:
+	if False:
 		# program_cortex_specs = dict(teensy_port=programmer_port,
 		# 							uart_port=scm_port,
 		# 							file_binary="../code.bin",
@@ -461,7 +461,7 @@ if __name__ == "__main__":
 
 	### Programming the cortex and running many iterations on a large ###
 	### sweep. ###
-	if False:
+	if True:
 		program_cortex_specs = dict(teensy_port=programmer_port,
 									uart_port=scm_port,
 									file_binary="../code.bin",
@@ -471,7 +471,7 @@ if __name__ == "__main__":
 									pad_random_payload=False,)
 		program_cortex(**program_cortex_specs)
 
-		test_adc_psu_specs = dict(vin_vec=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+		test_adc_psu_specs = dict(vin_vec=np.linspace(0, 0.9, 2048),
 								uart_port=scm_port,
 								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 								iterations=100)
