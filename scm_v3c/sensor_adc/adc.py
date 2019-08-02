@@ -1,7 +1,6 @@
 import numpy as np
 import scipy as sp
-from scipy import stats
-import matplotlib.pyplot as plt
+
 import serial
 import visa
 import time
@@ -277,40 +276,6 @@ def test_adc_dnl(vin_min, vin_max, num_bits,
 	
 	return calc_adc_dnl(adc_outs, vlsb_ideal)
 
-def calc_adc_dnl(adc_outs, vlsb_ideal):
-	"""
-	Inputs: 
-		adc_outs: A dictionary of ADC codes where the key is the vin,
-			and the value is a list of measured codes (more than one
-			measurement can be taken).
-		vlsb_ideal: The nominal voltage associated with a single LSB.
-	Outputs:
-		Returns a collection of DNLs for each nominal LSB. The length
-		should be 2**(num_bits)-1
-	"""
-	# Averaging over all the iterations to get an average of what the ADC
-	# returns.
-	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
-					in adc_outs.items()}
-
-	vin_prev = min(adc_outs_avg.keys())
-	code_prev = adc_outs_avg[vin_prev]
-	DNLs = []
-
-	# Calculate the DNL for every step
-	for vin in sorted(adc_outs_avg.keys()):
-		code = adc_outs_avg[vin]
-		if code > code_prev:
-			DNL_val = (vin-vin_prev)/vlsb_ideal - 1
-			DNLs.append(DNL_val)
-			vin_prev = vin
-			# If a code is skipped, make the one it skipped functionally
-			# zero width.
-			if code > code_prev + 1:
-				DNLs.append(0)
-			code_prev = code
-	return DNLs
-
 
 def test_adc_inl_straightline(vin_min, vin_max, num_bits, 
 		uart_port="COM18", 
@@ -341,28 +306,6 @@ def test_adc_inl_straightline(vin_min, vin_max, num_bits,
 
 	return calc_adc_inl_straightline(adc_outs, vlsb_ideal)
 
-def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
-	"""
-	Inputs: 
-		adc_outs: A dictionary of ADC codes where the key is the vin,
-			and the value is a list of measured codes (more than one
-			measurement can be taken).
-		vlsb_ideal: The nominal voltage associated with a single LSB.
-	Outputs:
-		Returns the slope, intercept of the linear regression of the 
-		ADC codes vs. vin.
-	"""
-	# Averaging over all the iterations to get an average of what the ADC
-	# returns.
-	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
-					in adc_outs.items()}
-
-	# Using linear regressiontto figure out the slope and intercept
-	x = list(adc_outs_avg.keys())
-	y = [adc_outs_avg[k] for k in x]
-	slope, intercept, r_value, p_value, std_error = stats.linregress(x, y)
-
-	return slope, intercept
 
 def test_adc_inl_endpoint(vin_min, vin_max, num_bits, 
 		uart_port="COM18", 
@@ -393,35 +336,7 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 
 	return calc_adc_inl_endpoint(adc_outs, vlsb_ideal)
 
-def calc_adc_inl_endpoint(adc_outs, vlsb_ideal):
-	"""
-	Inputs: 
-		adc_outs: A dictionary of ADC codes where the key is the vin,
-			and the value is a list of measured codes (more than one
-			measurement can be taken).
-		vlsb_ideal: The nominal voltage associated with a single LSB.
-	Outputs:
-		Returns a collection of endpoint INLs taken from the minimum
-		input voltage up to the maximum input voltage.
-	"""
-	# Averaging over all the iterations to get an average of what the ADC
-	# returns.
-	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
-					in adc_outs.items()}
 
-	vin_min = min(adc_outs_avg.keys())
-	code_low = adc_outs_avg[vin_min]
-	INLs = []
-
-	# Calculate the endpoint INL for every step
-	for vin,code in adc_outs_avg.items():
-		if code == code_low:
-			continue
-		code_diff = code - code_low
-		INL_val = (vin-vin_min)/vlsb_ideal - code_diff
-		INLs.append(INLs)
-
-	return INLs
 
 if __name__ == "__main__":
 	programmer_port = "COM15"
@@ -463,7 +378,7 @@ if __name__ == "__main__":
 
 	### Programming the cortex and running many iterations on a large ###
 	### sweep. ###
-	if True:
+	if False:
 		program_cortex_specs = dict(teensy_port=programmer_port,
 									uart_port=scm_port,
 									file_binary="../code.bin",
@@ -484,40 +399,15 @@ if __name__ == "__main__":
 		write_adc_data(adc_outs, 'psu_{}'.format(datetime))
 
 	### Reading in data and plotting appropriately ###
-	if False:
-		vlsb_ideal = 1.2/2**10
+	if True:
+		fname = "./data/psu_20190801_235753_formatted.csv"
 
-		file_sweep = './data/psu_run_first_linear.csv'
-		adc_sweep = read_adc_data(file_sweep)
-
-		dnl = calc_adc_dnl(adc_sweep, vlsb_ideal)
-		# inl_endpoint = calc_adc_inl_endpoint(adc_sweep, vlsb_ideal)
-		slope, intercept = calc_adc_inl_straightline(adc_sweep, vlsb_ideal)
-
-		dnl_max = max(dnl)
-		dnl_min = min(dnl)
-		# inl_endpoint_max = max(inl_endpoint)
-		# inl_endpoint_min = min(inl_endpoint)
-
-		# print(dnl)
-
-		print("DNL Min/Max: {}/{}".format(dnl_min, dnl_max))
-		# print("INL Endpoint Min/Max: {}/{}".format(inl_endpoint_min, inl_endpoint_max))
-		print("INL Straightline Slope/Intercept: {}/{}".format(slope, intercept))
-
-		x = list(adc_sweep.keys())
-		adc_avg = {vin:round(np.average(codes)) for (vin,codes) \
-					in adc_sweep.items()}
-		y = [adc_avg[i] for i in x]
-		plt.plot(x,y,label="ADC Readings")
-		plt.plot(x, [slope*i+intercept for i in x], label="INL")
-		plt.plot(x, [1024/1.2*i for i in x], label="Ideal")
-		plt.legend()
-		plt.grid()
-		plt.xlabel("$V_{IN}$ (V)")
-		plt.ylabel("ADC Code")
-		plt.title("$V_{DD}$ = 1.2V, Average over 5 Samples")
-		plt.show()
+		plot_adc_data_specs = dict(adc_outs=read_adc_data(fname),
+								plot_inl=False,
+								plot_ideal=False,
+								vdd=1.2,
+								num_bits=10)
+		plot_adc_data(**plot_adc_data_specs)
 
 	if False:
 		file_noise = './data/psu_run_noise.csv'
