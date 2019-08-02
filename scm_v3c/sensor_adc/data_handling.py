@@ -60,7 +60,7 @@ def read_adc_data(file_in):
 				continue
 			# Casting call, anyone?
 			vin = float(row[0])
-			codes = [float(i) for i in row[1:]]
+			codes = [float(i.replace("b'", '').replace("\n'",'')) for i in row[1:]]
 			adc_outs[vin] = codes
 	return adc_outs
 

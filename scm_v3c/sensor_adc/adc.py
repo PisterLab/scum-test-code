@@ -175,9 +175,8 @@ def test_adc_spot(uart_port="COM16", iterations=1):
 		uart_ser.write(b'adc\n')
 		time.sleep(.5)
 		print(uart_ser.readline())
-		adc_out_str = uart_ser.readline()
-		adc_out = int(adc_out_str.replace("\n'",'').replace("b'",''))
-		# adc_out = uart_ser.readline()
+		adc_out_str = uart_ser.readline().decode('utf-8').replace('\n', '')
+		adc_out = int(adc_out_str)
 		adc_outs.append(adc_out)
 	
 	uart_ser.close()
