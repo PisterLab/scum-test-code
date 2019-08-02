@@ -94,7 +94,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		teensy_ser.write(b'configopt\n')
 		teensy_ser.write(b'80\n')
 		teensy_ser.write(b'80\n')
-		teensy_ser.write(b'3\n')
+		teensy_ser.write(b'8\n')
 		teensy_ser.write(b'80\n')
 		
 	    # Encode the payload into 4B5B for optical transmission
@@ -170,7 +170,9 @@ def test_adc_spot(uart_port="COM16", iterations=1):
 		uart_ser.write(b'adc\n')
 		time.sleep(.5)
 		print(uart_ser.readline())
-		adc_out = uart_ser.readline()
+		adc_out_str = uart_ser.readline()
+		adc_out = int(adc_out_str.replace("\n'",'').replace("b'",''))
+		# adc_out = uart_ser.readline()
 		adc_outs.append(adc_out)
 	
 	uart_ser.close()
