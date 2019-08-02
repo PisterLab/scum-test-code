@@ -1,6 +1,12 @@
+"""
+Lydia Lee, 2019
+This file contains the code to run various tests on the ADC. The functions in this file
+are meant to communicate with other entities like the Teensy, SCM, and others. For post-
+processing and data reading/writing/plotting, please see data_handling.py. 
+"""
+
 import numpy as np
 import scipy as sp
-
 import serial
 import visa
 import time
@@ -388,7 +394,7 @@ if __name__ == "__main__":
 									pad_random_payload=False,)
 		program_cortex(**program_cortex_specs)
 
-		test_adc_psu_specs = dict(vin_vec=np.linspace(0, 0.9, 2048),
+		test_adc_psu_specs = dict(vin_vec=np.arange(0, 0.9, 0.1e-3),
 								uart_port=scm_port,
 								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
 								iterations=100)
@@ -398,13 +404,13 @@ if __name__ == "__main__":
 		datetime = time.strftime("%Y%m%d_%H%M%S",ts)
 		write_adc_data(adc_outs, 'psu_{}'.format(datetime))
 
-	### Reading in data and plotting appropriately ###
+	### Reading in data from a file and plotting appropriately ###
 	if True:
 		fname = "./data/psu_20190801_235753_formatted.csv"
 
 		plot_adc_data_specs = dict(adc_outs=read_adc_data(fname),
 								plot_inl=False,
-								plot_ideal=False,
+								plot_ideal=True,
 								vdd=1.2,
 								num_bits=10)
 		plot_adc_data(**plot_adc_data_specs)
