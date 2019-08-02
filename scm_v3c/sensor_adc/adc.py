@@ -248,6 +248,8 @@ def test_adc_psu(
 
 	# Due diligence for closing things out
 	uart_ser.close()
+	psu.write("SOURCE2:VOLTAGE:OFFSET 0")
+	psu.write("OUTPUT2 OFF")
 	psu.close()
 	
 	return adc_outs
