@@ -9,6 +9,18 @@ def trigger_uart(uart_ser):
 	uart_ser.write(b'adc\n')
 	return
 
+def initialize_gpio(teensy_ser):
+	"""
+	Inputs:
+		teensy_ser: The serial connection (type Serial) associated with the 
+			Teensy you'll be going through to talk to the chip.
+	Outputs:
+		No return value. Initializes all the GPIO in/outs to the correct settings
+		on the Teensy (NOT on SCM!)
+	"""
+	teensy_ser.write(b'sensoradcinitialize')
+	return
+
 def trigger_gpi(teensy_ser, adc_settle_cycles, pga_bypass, pga_settle_us):
 	"""
 	Inputs:

@@ -53,6 +53,9 @@ def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iteration
 		bytesize=serial.EIGHTBITS,
 		timeout=.5)
 
+	if control_mode == 'gpio':
+		initialize_gpio(teensy_ser)
+
 	for i in range(iterations):
 		if control_mode == 'uart':
 			trigger_uart(ser)
@@ -144,7 +147,11 @@ def test_adc_psu(
 	psu.write("SOURCE2:VOLTAGE:OFFSET 0")
 	psu.write("OUTPUT2 ON")
 
-	# Sweeping vin and getting the ADC output code	
+	# Sweeping vin and getting the ADC output code
+
+	if control_mode == 'gpio':
+		initialize_gpio(teensy_ser)
+
 	adc_outs = dict()
 	for vin in vin_vec:
 		adc_outs[vin] = []
