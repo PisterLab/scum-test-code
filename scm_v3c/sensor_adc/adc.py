@@ -14,6 +14,7 @@ import time
 import random
 from data_handling import *
 from cortex import *
+from adc_fsm import *
 
 def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iterations=1,
 		gpio_settings=dict()):
@@ -360,19 +361,22 @@ if __name__ == "__main__":
 	### Programming the cortex and running many iterations on a large ###
 	### sweep. ###
 	if False:
-		program_cortex_specs = dict(teensy_port=programmer_port,
-									uart_port=scm_port,
-									file_binary="../code.bin",
-									boot_mode="optical",
-									skip_reset=False,
-									insert_CRC=False,
-									pad_random_payload=False,)
-		program_cortex(**program_cortex_specs)
+		# program_cortex_specs = dict(teensy_port=programmer_port,
+		# 							uart_port=scm_port,
+		# 							file_binary="../code.bin",
+		# 							boot_mode="optical",
+		# 							skip_reset=False,
+		# 							insert_CRC=False,
+		# 							pad_random_payload=False,)
+		# program_cortex(**program_cortex_specs)
 
-		test_adc_psu_specs = dict(vin_vec=np.arange(0, 0.9, 0.1e-3),
-								uart_port=scm_port,
+		test_adc_psu_specs = dict(vin_vec=np.arange(0, 0.9, 0.5e-3),
+								port=scm_port,
+								control_mode='uart',
+								read_mode='uart',
 								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-								iterations=100)
+								iterations=10,
+								gpio_settings=dict())
 		adc_outs = test_adc_psu(**test_adc_psu_specs)
 
 		ts = time.gmtime()
