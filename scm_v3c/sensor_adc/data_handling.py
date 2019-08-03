@@ -2,8 +2,8 @@
 Lydia Lee, 2019
 This file contains the code specific to the ADC for writing, reading, plotting,
 and performing various calculations on ADC data. It does not contain any code to 
-actually run tests on the ADC. For that, see adc.py. This is strictly for information
-post-processing.
+actually run tests on the ADC. For that, see adc_*.py. This is 
+strictly for information post-processing.
 """
 import csv
 import matplotlib.pyplot as plt
