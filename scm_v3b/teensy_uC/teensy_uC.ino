@@ -42,9 +42,6 @@
 //  Add CRC computation
 //  Update pin mapping
 
-//  SCM3B - v2
-//  Add function to send optical SFDs at fixed interval for optical calibration
-
 
 // PIN MAPPINGS (Teensy 3.6)
 // ---------------
@@ -59,14 +56,7 @@ const int dataPin = 14;
 const int hReset = 17;
 
 // Optical bootloader
-const int optical_out = 24;
-
-// Digital Scan Chain (DSC)
-const int dPHI = 32;
-const int dPHIb = 31;
-const int dSCANi0o1 = 30;
-const int dSCANOUT = 29;
-const int dSCANIN = 28;
+const int optical_out = 5;
 
 // Analog Scan Chain (ASC)
 const int asc_source_select = 33;
@@ -76,45 +66,51 @@ const int aLOAD = 35;
 const int aSCANIN = 34;
 const int aSCANOUT = 36;
 
-// GPIO pins
-const int gpio00 = ;
-const int gpio01 = ;
-const int gpio02 = 4;
-const int gpio03 = 5;
+// Clock output
+const int clock_out = 18;
 
-const int gpio04 = 6;
-const int gpio05 = 7;
-const int gpio06 = 8;
-const int gpio07 = 9;
+// GPIOs
+const int gpio00 = 32;
+const int gpio01 = 31;
+const int gpio02 = 30;
+const int gpio03 = 29;
 
-const int gpio08 = 10;
+const int gpio04 = 28;
+const int gpio05 = 27;
+const int gpio06 = 26;
+const int gpio07 = 25;
+
+const int gpio08 = 12;
 const int gpio09 = 11;
-const int gpio10 = 12;
-const int gpio11 = 39;
+const int gpio10 = 10;
+const int gpio11 = 9;
 
-const int gpio12 = 22;
-const int gpio13 = 23;
-const int gpio14 = 2;
-const int gpio15 = 3;
+const int gpio12 = 8;
+const int gpio13 = 7;
+const int gpio14 = 6;
+const int gpio15 = 24;
 
-// Sensor ADC
+// sensor ADC
 const int adc_reset_gpi = gpio00;
 const int adc_convert_gpi = gpio01;
-const int adc_pga_amplify_gpi = gpio02;
-const int adc_done = gpio05;
-const int sensoradc_0 = gpio12;
-const int sensoradc_1 = gpio13;
-const int sensoradc_2 = gpio14;
-const int sensoradc_3 = gpio15;
-const int sensoradc_4 = gpio08;
-const int sensoradc_5 = gpio09;
-const int sensoradc_6 = gpio10;
-const int sensoradc_7 = gpio11;
-const int sensoradc_8 = gpio06;
-const int sensoradc_9 = gpio07;
+const int adc_pga_amplify_gpi = gpio02; 
+const int adc_done = gpio05; 
+const int sensor_adc8 = gpio06; 
+const int sensor_adc9 = gpio07; 
+const int sensor_adc4 = gpio08; 
+const int sensor_adc5 = gpio09; 
+const int sensor_adc6 = gpio10; 
+const int sensor_adc7 = gpio11; 
+const int sensor_adc0 = gpio12; 
+const int sensor_adc1 = gpio13; 
+const int sensor_adc2 = gpio14; 
+const int sensor_adc3 = gpio15; 
 
-// Clock output
-const int clock_out = 20;
+// Digital Scan Chain (DSC)
+const int dPHI = gpio11;
+const int dPHIb = gpio12;
+const int dSCANi0o1 = gpio13;
+const int dSCANOUT = gpio06;
 
 // Variables for command interpreter
 String inputString = "";
@@ -139,7 +135,7 @@ int p1, p2, p3, p4;
 // Runs once at power-on
 void setup() {
   // Open USB serial port; baud doesn't matter; 12Mbps regardless of setting
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // Reserve 200 bytes for the inputString:
   inputString.reserve(200);
@@ -161,22 +157,6 @@ void setup() {
   pinMode(dPHIb, INPUT);
   pinMode(dSCANi0o1, INPUT);
   pinMode(dSCANOUT, INPUT);
-  pinMode(dSCANIN, INPUT);
-
-  // Setup pins for analog scan chain
-  pinMode(aPHI, OUTPUT);
-  pinMode(aPHIb, OUTPUT);
-  pinMode(aLOAD, OUTPUT);
-  pinMode(aSCANIN, OUTPUT);
-  pinMode(aSCANOUT, INPUT);
-  digitalWrite(aPHI, LOW);
-  digitalWrite(aPHIb, LOW);
-  digitalWrite(aLOAD, LOW);
-  digitalWrite(aSCANIN, LOW);
-
-  // Pin for optical TX
-  pinMode(optical_out, OUTPUT);
-  digitalWrite(optical_out, LOW);
 
   // Setup pins for GPIO
   pinMode(gpio00, INPUT);
@@ -195,6 +175,22 @@ void setup() {
   pinMode(gpio13, INPUT);
   pinMode(gpio14, INPUT);
   pinMode(gpio15, INPUT);
+
+  // Setup pins for analog scan chain
+  pinMode(aPHI, OUTPUT);
+  pinMode(aPHIb, OUTPUT);
+  pinMode(aLOAD, OUTPUT);
+  pinMode(aSCANIN, OUTPUT);
+  pinMode(aSCANOUT, INPUT);
+  digitalWrite(aPHI, LOW);
+  digitalWrite(aPHIb, LOW);
+  digitalWrite(aLOAD, LOW);
+  digitalWrite(aSCANIN, LOW);
+
+  // Pin for optical TX
+  pinMode(optical_out, OUTPUT);
+  digitalWrite(optical_out, LOW);
+
 }
 
 
@@ -230,10 +226,6 @@ void loop() {
 
     else if (inputString == "boot3wb\n") {
       bootload_3wb();
-    }
-
-    else if (inputString == "boot3wb_debug\n") {
-      bootload_3wb_debug();
     }
 
     else if (inputString == "boot3wb4b5b\n") {
@@ -276,18 +268,10 @@ void loop() {
       asc_read();
     }
 
-    else if (inputString == "toggle3wbclk\n") {
-      toggle_3wb_enable();
-    }
-
     else if (inputString == "dscread\n") {
       dsc_read();
     }
-    
-    else if (inputString == "dscdebug\n") {
-      dsc_debug();
-    }
-    
+
     else if (inputString == "stepclk\n") {
       step_clock();
     }
@@ -299,142 +283,27 @@ void loop() {
     else if (inputString == "clockoff\n") {
       clock_off();
     }
-    else if (inputString == "sensoradcinitialize\n") {
-      sensoradc_initialize();
-    }
-    else if (inputString == "sensoradctrigger\n") {
-      sensoradc_trigger();
-    }
-    else if (inputString == "sensoradcread\n") {
-      sensoradc_read();
-    }
+
     else if (inputString == "togglehardreset\n") {
       togglehardreset();
     }
 
+    else if (inputString == "sample_sensor_adc\n") {
+      sample_sensor_adc();
+    }
+
+    else if (inputString == "a\n") {
+      sample_sensor_adc_debug();
+    }
     // Reset to listen for a new '\n' terminated string over serial
     inputString = "";
     stringComplete = false;
   }
 }
 
-void sensoradc_initialize() {
-  /*
-  Outputs:
-    No return value. Sets up the GPIOs on the Teensy side
-    for the GPI-controlled and GPO-read ADC interface.
-  */
-  pinMode(adc_reset_gpi, OUTPUT);
-  pinMode(adc_convert_gpi, OUTPUT);
-  pinMode(adc_pga_amplify_gpi, OUTPUT);
-
-  pinMode(sensoradc_9, INPUT);
-  pinMode(sensoradc_8, INPUT);
-  pinMode(sensoradc_7, INPUT);
-  pinMode(sensoradc_6, INPUT);
-  pinMode(sensoradc_5, INPUT);
-  pinMode(sensoradc_4, INPUT);
-  pinMode(sensoradc_3, INPUT);
-  pinMode(sensoradc_2, INPUT);
-  pinMode(sensoradc_1, INPUT);
-  pinMode(sensoradc_0, INPUT);
-}
-
-void sensoradc_trigger() {
-  /*
-  Outputs:
-    No return value. Controls the FSM for the ADC reading without
-    actually taking the reading.
-  Notes:
-    - sensoradcinitialize should have been run before this started
-    - Assumes the GPIOs have been set appropriately 
-    - Assumes scan has been set appropriately
-    - Assumes SCM has been programmed appropriately
-  */
-  // Reading the ADC settling microseconds and whether or not to bypass
-  // the PGA + the number of cycles
-  int adc_settle_cycles = (int)Serial.read();
-  int pga_bypass = (int)Serial.read();
-  int pga_settle_us = (int)Serial.read();
-
-  Serial.println("Starting ADC conversion");
-  
-  // Put ADC in acquire mode
-  digitalWrite(adc_convert_gpi, LOW);
-
-  // Put PGA in acquire mode
-  digitalWrite(adc_pga_amplify_gpi, HIGH);
-
-  // Reset ADC
-  digitalWrite(adc_reset_gpi, LOW);
-  delayMicroseconds(10);
-  digitalWrite(adc_reset_gpi, HIGH);
-
-  // Wait on the input to the PGA or ADC to settle
-  delayMicroseconds(50);
-
-  // Put PGA in amplify mode
-  if (~pga_bypass) {
-    digitalwrite(adc_pga_amplify_gpi, LOW);
-    delayMicroseconds(pga_settle_us);
-  }
-
-  // Put ADC in convert mode
-  digitalWrite(adc_convert_gpi, HIGH);
-}
-
-void sensoradc_read() {
-  /*
-  Outputs:
-    No return value. Waits on the adc_done signal to go high and then
-    reads the ADC bit outputs from the appropriate GPOs. Prints the final
-    integer value over the serial. 2048 indicates that the conversion took
-    too long.
-  Notes:
-    - sensoradcinitialize should have been run before this started
-    - Assumes the GPIOs have been set appropriately
-    - Assumes scan has been set appropriately
-    - Assumes SCM has been programmed appropriately
-  */
-  // TODO: Set up GPIO for ADC interface
-
-  int timeout_cycles = 100000;
-  int t;
-  bool adc_done = false;
-  int adc_value = 0;
-  
-  // Wait for the done signal
-  while (t < timeout_cycles && !adc_done) {
-    t++;
-  }
-
-  // Timing out spits out 2048
-  if (t >= timeout_cycles) {
-    Serial.println(2048);
-  } 
-  // Otherwise it uses the serial to spit out the ADC 
-  // value read from the GPIOs
-  else {
-    adc_value = adc_value + digitalRead() * 512
-                          + digitalRead() * 256
-                          + digitalRead() * 128
-                          + digitalRead() * 64
-                          + digitalRead() * 32
-                          + digitalRead() * 16
-                          + digitalRead() * 8
-                          + digitalRead() * 4
-                          + digitalRead() * 2
-                          + digitalRead() * 1;
-    Serial.println(adc_value);
-  }
-  // TODO: Put ADC in acquire mode
-  // TODO: Put PGA in acquire mode
-  // TODO: Reset ADC
-
-}
 
 void transfer_sram() {
-  Serial.println("Executing SRAM Transfer - SCM3B Rev 2");
+  Serial.println("Executing SRAM Transfer - SCM3B Rev 1");
   int doneflag = 0;
   iindex = 0;
 
@@ -449,7 +318,7 @@ void transfer_sram() {
 
     if (iindex == 65536)  {
       doneflag = 1;
-      //Serial.println("SRAM Transfer Complete");
+      Serial.println("SRAM Transfer Complete");
     }
   }
 }
@@ -475,59 +344,18 @@ void transfer_sram_4b5b() {
   }
 
 
-  // For checking if Teensy-based 4b5b encoding matches matlab
-  //  for (int i = 0; i < 81920; i++) {
-  //    if (ram[i] != payload4b5b[i]) {
-  //      Serial.println("ram = " + String(ram[i]) + ", 4b5b = " + String(payload4b5b[i]) + ", i =" + String(i));
-  //    }
-  //  }
-  //Serial.println("OK");
+// For checking if Teensy-based 4b5b encoding matches matlab
+//  for (int i = 0; i < 81920; i++) {
+//    if (ram[i] != payload4b5b[i]) {
+//      Serial.println("ram = " + String(ram[i]) + ", 4b5b = " + String(payload4b5b[i]) + ", i =" + String(i));
+//    }
+//  }
+//Serial.println("OK");
 
 
 
 
 }
-
-
-// Transmits 32 bits over 3wb for debugging
-void bootload_3wb_debug()  {
-  //Serial.println("Executing 3wb Bootload");
-
-  //ram[0] = 0;
-  //ram[1] = 255;
-  //ram[2] = 0;
-  //ram[3] = 255;
-
-  int xx = 64*1024;
-
-  // Need to send at least 64*1024 bytes to get cortex to reset
-  for (int i = 1; i < (xx+1); i++) {
-
-    // Loop through one byte at a time
-    for (int j = 0; j < 8; j++) {
-      digitalWrite(dataPin, (ram[i - 1] >> j) & 1);
-      delayMicroseconds(1);
-
-      // Every 32 bits need to strobe the enable high for one cycle
-      if ((i % 4 == 0) && (j == 7)) {
-        digitalWrite(enablePin, 1);
-      }
-      else {
-        digitalWrite(enablePin, 0);
-      }
-
-      // Toggle the clock
-      delayMicroseconds(1);
-      digitalWrite(clkPin, 1);
-      delayMicroseconds(1);
-      digitalWrite(clkPin, 0);
-      delayMicroseconds(1);
-    }
-  }
-Serial.println("3WB Debug Complete");
-}
-
-
 
 void transfer_dig_data() {
   //Serial.println("Executing Digital Data Transfer");
@@ -736,8 +564,8 @@ void bootload_opt_4b5b(int p1, int p2, int p3, int p4) {
   }
 
   // Need to send 5 extra bits to clock last value through
-//  for (int j = 0; j < 6; j++) {
-  for (int j = 0; j < 600; j++) {
+  for (int j = 0; j < 6; j++) {
+
     digitalWriteFast(optical_out, HIGH);
     for (xx = 0; xx < p1; xx++) {
       __asm__(NOP1);
@@ -1161,21 +989,6 @@ void bootload_3wb_4b5b()  {
 
 }
 
-void toggle_3wb_enable()  {
-  for (int i = 1; i < 2; i++){
-    // Toggle the clock
-      delayMicroseconds(1);
-      digitalWrite(enablePin, 1);
-      digitalWrite(dataPin, 1);
-      delayMicroseconds(1);
-      digitalWrite(clkPin, 1);
-      delayMicroseconds(1);
-      digitalWrite(enablePin, 0);
-      digitalWrite(clkPin, 0);
-      digitalWrite(dataPin, 0);
-      //delayMicroseconds(20);
-  }
-}
 
 // Transmits 64kB binary over wired 3wb
 void bootload_3wb()  {
@@ -1219,31 +1032,6 @@ void bootload_3wb()  {
   //  digitalWrite(sReset, HIGH);
   //  delay(20);
 
-  for (int i = 1; i < 10000; i++) {
-
-    // Loop through one byte at a time
-    for (int j = 0; j < 8; j++) {
-      digitalWrite(dataPin, 1);
-      delayMicroseconds(1);
-
-      // Every 32 bits need to strobe the enable high for one cycle
-      if ((i % 4 == 0) && (j == 7)) {
-        digitalWrite(enablePin, 1);
-      }
-      else {
-        digitalWrite(enablePin, 0);
-      }
-
-      // Toggle the clock
-      delayMicroseconds(1);
-      digitalWrite(clkPin, 1);
-      delayMicroseconds(1);
-      digitalWrite(clkPin, 0);
-      delayMicroseconds(1);
-    }
-  }
-
-
   Serial.println("3WB Bootload Complete");
 }
 
@@ -1283,35 +1071,21 @@ void transmit_chips()  {
 
 //10 KHz clock, 40 percent duty cycle
 void dtick() {
-  delayMicroseconds(1);
   digitalWrite(dPHI, HIGH);
-  delayMicroseconds(1);
+  delayMicroseconds(10);
 
   //Read
   digitalWrite(dPHI, LOW);
-  delayMicroseconds(1);
+  delayMicroseconds(40);
 
   //Shift
   digitalWrite(dPHIb, HIGH);
-  delayMicroseconds(1);
+  delayMicroseconds(40);
   digitalWrite(dPHIb, LOW);
-  delayMicroseconds(1);
+  delayMicroseconds(10);
 
 
 }
-
-void dsc_debug() {
-  // Setup pins for digital scan chain
-  pinMode(dPHI, OUTPUT);
-  pinMode(dPHIb, OUTPUT);
-  pinMode(dSCANi0o1, OUTPUT);
-  pinMode(dSCANIN, OUTPUT);
-  digitalWrite(dPHI, HIGH);
-  digitalWrite(dPHIb, HIGH);
-  digitalWrite(dSCANi0o1, LOW);   //stay low until ready
-  digitalWrite(dSCANIN, LOW);
-}
-
 
 //Note that Serial.println has a 697 char (699 out) max.
 //2157 = 600 + 600 + 600 + 357
@@ -1324,11 +1098,9 @@ void dsc_read() {
   pinMode(dPHI, OUTPUT);
   pinMode(dPHIb, OUTPUT);
   pinMode(dSCANi0o1, OUTPUT);
-  pinMode(dSCANIN, OUTPUT);
   digitalWrite(dPHI, LOW);
   digitalWrite(dPHIb, LOW);
   digitalWrite(dSCANi0o1, LOW);   //stay low until ready
-  digitalWrite(dSCANIN, LOW);
   delay(1);
 
   digitalWrite(dSCANi0o1, HIGH);
@@ -1353,8 +1125,6 @@ void dsc_read() {
   Serial.print(st);
   st = "";
 
-   //digitalWrite(dSCANIN, HIGH);
-
   //601-1200
   for (int i = 0; i < 600 ; i = i + 1) {
     dtick();
@@ -1367,7 +1137,6 @@ void dsc_read() {
   Serial.print(st);
   st = "";
 
-
   //1201-1800
   for (int i = 0; i < 600 ; i = i + 1) {
     dtick();
@@ -1379,9 +1148,6 @@ void dsc_read() {
   }
   Serial.print(st);
   st = "";
-
-  //digitalWrite(dSCANIN, LOW);
-
 
   //1801-2157
   for (int i = 0; i < 357 ; i = i + 1) {
@@ -1401,7 +1167,6 @@ void dsc_read() {
   pinMode(dPHI, INPUT);
   pinMode(dPHIb, INPUT);
   pinMode(dSCANi0o1, INPUT);
-  pinMode(dSCANIN, INPUT);
 
   return;
 }
@@ -1476,7 +1241,7 @@ void asc_read() {
 
 
 // Toggle pin a specified number of times for use as clock when debugging
-// Note that the period of this clock is < 5MHz (measured 491.8kHz on scope) (when delayu = 1)
+// Note that the period of this clock is < 5MHz (measured 491.8kHz on scope)
 void step_clock() {
   // Read number of clock ticks to output
   inputString = "";
@@ -1489,20 +1254,18 @@ void step_clock() {
   int num_ticks = inputString.toInt();
   //pinMode(optical_out, OUTPUT);
 
-  pinMode(clock_out, OUTPUT);
-
   for (int i = 0; i < num_ticks ; i = i + 1) {
-    digitalWrite(clock_out, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(clock_out, LOW);
-    delayMicroseconds(10);
+    digitalWriteFast(clock_out, HIGH);
+    delayMicroseconds(1);
+    digitalWriteFast(clock_out, LOW);
+    delayMicroseconds(1);
   }
 }
 
-// Output a 100kHz clock
+// Output a 5MHz clock
 void clock_on() {
-  analogWrite(clock_out, 128);
-  analogWriteFrequency(clock_out, 10000);
+  analogWriteFrequency(clock_out, 5000000);
+  //analogWriteFrequency(optical_out,10000);
   analogWrite(clock_out, 128);
 }
 
@@ -1515,128 +1278,27 @@ void clock_off() {
 
 // Toggle hard reset low then high
 void togglehardreset() {
-  pinMode(clock_out, OUTPUT);
   digitalWrite(hReset, LOW);
-  delay(10);
-    digitalWrite(clock_out, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(clock_out, LOW);
-    delayMicroseconds(10);
+  delay(1);
   digitalWrite(hReset, HIGH);
 }
 
-// This interrupt rate is too fast
-//// For timing transfer via optical
-//// Toggle the optical transmitter pin at 320kHz for 1s
-//// Should cause interrupts at 100 kHz rate
-//void opti_cal() {
-//  // Output 320kHz clock with 25% duty cycle
-//  analogWriteFrequency(optical_out, 320000);
-//  analogWrite(optical_out, 64);
-//
-//  // Wait 1s
-//  delay(1000);
-//
-//  // Stop
-//  pinMode(optical_out, OUTPUT);
-//  digitalWriteFast(optical_out, LOW);
-//}
-
 // For timing transfer via optical
-// Send optical SFDs at 100ms intervals
+// Toggle the optical transmitter pin at 320kHz for 1s
+// Should cause interrupts at 100 kHz rate
 void opti_cal() {
+  // Output 320kHz clock with 25% duty cycle
+  analogWriteFrequency(optical_out, 320000);
+  analogWrite(optical_out, 64);
 
-    for (int ii = 0; ii < 30; ii++) {
-    
-  #define NOP1 "nop\n\t"
-  
-    int bitmask = 0x01;
-    noInterrupts();
-    int xx;
-  
-    int sfd[4] = {221, 176, 231, 47};
-    int preamble = 85;
-  
-    // Send Preamble of 101010 to allow optical RX to settle
-    for (int i = 0; i < PREAMBLE_LENGTH; i++) {
-      for (int j = 0; j < 8; j++) {
-  
-        //data = 1, long pulse
-        if (preamble & (bitmask << j)) {
-  
-          digitalWriteFast(optical_out, HIGH);
-          for (xx = 0; xx < p1; xx++) {
-            __asm__(NOP1);
-          }
-          digitalWriteFast(optical_out, LOW);
-          for (xx = 0; xx < p2; xx++) {
-            __asm__(NOP1);
-          }
-        }
-        else {    // data = 0, short pulse
-  
-          digitalWriteFast(optical_out, HIGH);
-          for (xx = 0; xx < p3; xx++) {
-            __asm__(NOP1);
-          }
-          digitalWriteFast(optical_out, LOW);
-          for (xx = 0; xx < p4; xx++) {
-            __asm__(NOP1);
-          }
-        }
-      }
-    }
-  
-    // Send start symbol to throw interrupt 
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 8; j++) {
-  
-        //data = 1, long pulse
-        if (sfd[i] & (bitmask << j)) {
-  
-          digitalWriteFast(optical_out, HIGH);
-          for (xx = 0; xx < p1; xx++) {
-            __asm__(NOP1);
-          }
-          digitalWriteFast(optical_out, LOW);
-          for (xx = 0; xx < p2; xx++) {
-            __asm__(NOP1);
-          }
-        }
-        else {    // data = 0, short pulse
-  
-          digitalWriteFast(optical_out, HIGH);
-          for (xx = 0; xx < p3; xx++) {
-            __asm__(NOP1);
-          }
-          digitalWriteFast(optical_out, LOW);
-          for (xx = 0; xx < p4; xx++) {
-            __asm__(NOP1);
-          }
-        }
-      }
-    }
+  // Wait 1s
+  delay(1000);
 
-      // Need to send some extra bits to clock last value through
-  for (int j = 0; j < 50; j++) {
-
-    digitalWriteFast(optical_out, HIGH);
-    for (xx = 0; xx < p1; xx++) {
-      __asm__(NOP1);
-    }
-    digitalWriteFast(optical_out, LOW);
-    for (xx = 0; xx < p2; xx++) {
-      __asm__(NOP1);
-    }
-  }
-
-    // Adjusted by measuring interrupt rate on scope
-    //delay(96);
-    //delayMicroseconds(877);
-    delay(96);
-    delayMicroseconds(910);
-    }
+  // Stop
+  pinMode(optical_out, OUTPUT);
+  digitalWriteFast(optical_out, LOW);
 }
+
 
 // First use transfer_sram() to copy 64kB payload into Teensy SRAM variable ram[]
 // Then call insert_crc() if desired
@@ -1654,26 +1316,26 @@ void encode_4b5b() {
     for (int jj = 0; jj < 4 ; jj = jj + 1) {
 
       //MSBs
-      converted_nibbles[2 * jj + 1] = LUT_4B5B(ram[ii * 4 + jj] >> 4);
+      converted_nibbles[2 * jj + 1] = LUT_4B5B(ram[ii*4 + jj] >> 4);
 
       //LSBs
-      converted_nibbles[2 * jj] = LUT_4B5B(ram[ii * 4 + jj] & 0xF);
+      converted_nibbles[2 * jj] = LUT_4B5B(ram[ii*4 + jj] & 0xF);
 
     }
 
     // The 8 chunks of 5 bits are then turned back into 5 bytes
-    payload4b5b[ii * 5 + 0]  = converted_nibbles[0] | converted_nibbles[1] << 5;
-    payload4b5b[ii * 5 + 1] = converted_nibbles[1] >> 3 | converted_nibbles[2] << 2 | converted_nibbles[3] << 7;
-    payload4b5b[ii * 5 + 2] = converted_nibbles[3] >> 1 | converted_nibbles[4] << 4;
-    payload4b5b[ii * 5 + 3] = converted_nibbles[4] >> 4 | converted_nibbles[5] << 1 | converted_nibbles[6] << 6;
-    payload4b5b[ii * 5 + 4] = converted_nibbles[6] >> 2 | converted_nibbles[7] << 3;
+    payload4b5b[ii*5 + 0]  = converted_nibbles[0] | converted_nibbles[1] << 5;
+    payload4b5b[ii*5 + 1] = converted_nibbles[1] >> 3 | converted_nibbles[2] << 2 | converted_nibbles[3] << 7;
+    payload4b5b[ii*5 + 2] = converted_nibbles[3] >> 1 | converted_nibbles[4] << 4;
+    payload4b5b[ii*5 + 3] = converted_nibbles[4] >> 4 | converted_nibbles[5] << 1 | converted_nibbles[6] << 6;
+    payload4b5b[ii*5 + 4] = converted_nibbles[6] >> 2 | converted_nibbles[7] << 3;
   }
 
-  // For debug printing
-  //  for (byte ii = 0; ii < 15 ; ii = ii + 1) {
-  //    Serial.println(payload4b5b[ii]);
-  //  }
-  // Serial.println("Encoding Done");
+// For debug printing
+//  for (byte ii = 0; ii < 15 ; ii = ii + 1) {
+//    Serial.println(payload4b5b[ii]);
+//  }
+// Serial.println("Encoding Done");
 
 }
 
@@ -1703,12 +1365,12 @@ byte LUT_4B5B(byte in) {
 
 // Reverses (reflects) bits in a 32-bit word.
 unsigned reverse(unsigned x) {
-  x = ((x & 0x55555555) <<  1) | ((x >>  1) & 0x55555555);
-  x = ((x & 0x33333333) <<  2) | ((x >>  2) & 0x33333333);
-  x = ((x & 0x0F0F0F0F) <<  4) | ((x >>  4) & 0x0F0F0F0F);
-  x = (x << 24) | ((x & 0xFF00) << 8) |
-      ((x >> 8) & 0xFF00) | (x >> 24);
-  return x;
+   x = ((x & 0x55555555) <<  1) | ((x >>  1) & 0x55555555);
+   x = ((x & 0x33333333) <<  2) | ((x >>  2) & 0x33333333);
+   x = ((x & 0x0F0F0F0F) <<  4) | ((x >>  4) & 0x0F0F0F0F);
+   x = (x << 24) | ((x & 0xFF00) << 8) |
+       ((x >> 8) & 0xFF00) | (x >> 24);
+   return x;
 }
 
 // Same C function used for calculating CRC on SCM
@@ -1717,19 +1379,19 @@ unsigned int crc32c(unsigned int length) {
   unsigned int byte, crc;
 
   i = 0;
-  crc = 0xFFFFFFFF;
-  while (i < length) {
-    byte = ram[i];            // Get next byte.
-    byte = reverse(byte);         // 32-bit reversal.
-    for (j = 0; j <= 7; j++) {    // Do eight times.
-      if ((int)(crc ^ byte) < 0)
-        crc = (crc << 1) ^ 0x04C11DB7;
-      else crc = crc << 1;
-      byte = byte << 1;          // Ready next msg bit.
-    }
-    i = i + 1;
-  }
-  return reverse(~crc);
+   crc = 0xFFFFFFFF;
+   while (i < length) {
+      byte = ram[i];            // Get next byte.
+      byte = reverse(byte);         // 32-bit reversal.
+      for (j = 0; j <= 7; j++) {    // Do eight times.
+         if ((int)(crc ^ byte) < 0)
+              crc = (crc << 1) ^ 0x04C11DB7;
+         else crc = crc << 1;
+         byte = byte << 1;          // Ready next msg bit.
+        }
+      i = i + 1;
+   }
+   return reverse(~crc);
 }
 
 // First use transfer_sram() to copy 64kB payload into Teensy SRAM variable ram[]
@@ -1741,7 +1403,7 @@ void insert_crc() {
   unsigned int code_length, calculated_crc;
 
   // Extract code length from address 0xFFF8
-  code_length = 256 * ram[65529] + ram[65528];
+  code_length = 256*ram[65529] + ram[65528];
 
   // Calculate CRC value
   calculated_crc = crc32c(code_length);
@@ -1751,7 +1413,7 @@ void insert_crc() {
   ram[65534] = (calculated_crc & 0x00FF0000) >> 16;
   ram[65533] = (calculated_crc & 0x0000FF00) >> 8;
   ram[65532] =  calculated_crc & 0x000000FF;
-
+  
   // For debugging
   //Serial.println("Code length = " + String(code_length) + " -- " + String(ram[65529]) + " - " + String(ram[65528]));
   //Serial.println("Calculated CRC = " + String(calculated_crc));
@@ -1776,3 +1438,256 @@ void serialEvent() {
     }
   }
 }
+
+
+void sample_sensor_adc() { // Assumes scanchain GPIO settings are already done otherwise these outputs will fight
+  int iterations=1000;
+  int ADC_VALUE=9999;
+  int watchdog=0;
+  int sumtotal=0;
+  int ii=0;
+  int t=0;
+  int WATCHDOG_MAX = 100000;
+  int ADC_DATA_VALID=0;
+  int result=0;
+  
+  // Setup gpio for ADC interface
+  pinMode(gpio00, OUTPUT); // adc_reset_gpi
+  pinMode(gpio01, OUTPUT); // adc_convert_gpi
+  pinMode(gpio02, OUTPUT); // adc_pga_amplify_gpi
+  pinMode(gpio03, INPUT);  // unused 
+  pinMode(gpio04, INPUT);  // unused
+  pinMode(gpio05, INPUT);  // adc_done
+  pinMode(gpio06, INPUT);  // sensor_adc8, yes this is 8, this and the rest are not a typo 
+  pinMode(gpio07, INPUT);  // sensor_adc9
+  pinMode(gpio08, INPUT);  // sensor_adc4
+  pinMode(gpio09, INPUT);  // sensor_adc5
+  pinMode(gpio10, INPUT);  // sensor_adc6
+  pinMode(gpio11, INPUT);  // sensor_adc7
+  pinMode(gpio12, INPUT);  // sensor_adc0
+  pinMode(gpio13, INPUT);  // sensor_adc1
+  pinMode(gpio14, INPUT);  // sensor_adc2
+  pinMode(gpio15, INPUT);  // sensor_adc3
+
+  // reset adc
+  digitalWrite(adc_reset_gpi, LOW);
+  delayMicroseconds(10);
+  digitalWrite(adc_reset_gpi, HIGH);
+
+  for(ii=0; ii<iterations; ii++) {
+
+    // do state machine
+
+    // set PGA to amplify mode (low) and wait for amp to settle
+    digitalWrite(adc_pga_amplify_gpi, LOW);
+
+    for(t=0;t<100000;t++) {}; // count to 100 ends up being about 50us at 5MHz clock; not sure how long on Teensy clock
+
+    // put ADC in convert mode
+    digitalWrite(adc_convert_gpi, HIGH);
+    for(t=0;t<100000;t++) {};
+    // wait for adc to finish
+    watchdog=0;
+    while(ADC_DATA_VALID != 1) {
+      ADC_DATA_VALID=digitalRead(adc_done);
+      watchdog++;
+      if(watchdog>WATCHDOG_MAX)
+        break;
+    }
+    ADC_DATA_VALID=0;
+    for(t=0;t<100000;t++) {};
+    // get result
+    ADC_VALUE=0;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc9)*512;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc8)*256;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc7)*128;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc6)*64;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc5)*32;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc4)*16;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc3)*8;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc2)*4;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc1)*2;
+    ADC_VALUE=ADC_VALUE + digitalRead(sensor_adc0)*1;
+    sumtotal=sumtotal+ADC_VALUE;
+
+    // put ADC back in acquire mode 
+    digitalWrite(adc_convert_gpi, LOW);
+    
+    // put PGA back in acquire mode
+    digitalWrite(adc_pga_amplify_gpi, HIGH);
+
+    // reset adc
+    digitalWrite(adc_reset_gpi, LOW);
+    delayMicroseconds(10);
+    digitalWrite(adc_reset_gpi, HIGH);
+
+    if(watchdog>WATCHDOG_MAX) {
+      sumtotal=2222*iterations; // if adc result is 2222 we know the watchdog triggered
+      break; 
+    }
+  }
+
+
+  
+  result = sumtotal/iterations;
+  Serial.println("ADC result: " + String(result));
+
+  // Return to normal
+  pinMode(gpio00, INPUT);
+  pinMode(gpio01, INPUT);
+  pinMode(gpio02, INPUT);
+  pinMode(gpio03, INPUT);
+  pinMode(gpio04, INPUT);
+  pinMode(gpio05, INPUT);
+  pinMode(gpio06, INPUT);
+  pinMode(gpio07, INPUT);
+  pinMode(gpio08, INPUT);
+  pinMode(gpio09, INPUT);
+  pinMode(gpio10, INPUT);
+  pinMode(gpio11, INPUT);
+  pinMode(gpio12, INPUT);
+  pinMode(gpio13, INPUT);
+  pinMode(gpio14, INPUT);
+  pinMode(gpio15, INPUT);
+
+} // end sample_sensor_adc
+
+
+void sample_sensor_adc_debug() { // Assumes scanchain GPIO settings are already done otherwise these outputs will fight
+  int iterations=100;
+  int ADC_VALUE=0;
+  int watchdog=0;
+  double sumtotal=0;
+  int ii=0;
+  int t=0;
+  int WATCHDOG_MAX = 100000000; //100000; // it only takes 10-30 cycles for the adc to finish so this is way too many
+  int ADC_DATA_VALID=0;
+  int result=0;
+  int bit9,bit8,bit7,bit6,bit5,bit4,bit3,bit2,bit1,bit0;
+  int watchdog_sum=0;
+  bool PGA=true; // if false, PGA disabled
+  
+  // Setup gpio for ADC interface
+  pinMode(gpio00, OUTPUT); // adc_reset_gpi
+  pinMode(gpio01, OUTPUT); // adc_convert_gpi
+  pinMode(gpio02, OUTPUT); // adc_pga_amplify_gpi
+  pinMode(gpio03, INPUT);  // unused 
+  pinMode(gpio04, INPUT);  // unused
+  pinMode(gpio05, INPUT);  // adc_done
+  pinMode(gpio06, INPUT);  // sensor_adc8, yes this is 8, this and the rest are not a typo 
+  pinMode(gpio07, INPUT);  // sensor_adc9
+  pinMode(gpio08, INPUT);  // sensor_adc4
+  pinMode(gpio09, INPUT);  // sensor_adc5
+  pinMode(gpio10, INPUT);  // sensor_adc6
+  pinMode(gpio11, INPUT);  // sensor_adc7
+  pinMode(gpio12, INPUT);  // sensor_adc0
+  pinMode(gpio13, INPUT);  // sensor_adc1
+  pinMode(gpio14, INPUT);  // sensor_adc2
+  pinMode(gpio15, INPUT);  // sensor_adc3
+
+  // put ADC in acquire mode 
+  digitalWrite(adc_convert_gpi, LOW);
+    
+  // put PGA in acquire mode
+  digitalWrite(adc_pga_amplify_gpi, HIGH);
+  
+  // reset adc
+  digitalWrite(adc_reset_gpi, LOW);
+  delayMicroseconds(10);
+  digitalWrite(adc_reset_gpi, HIGH);
+
+  delay(1);
+
+  for(ii=0; ii<iterations; ii++) {
+    ADC_VALUE=0;
+    // do state machine
+
+    delayMicroseconds(100); // wait for input to settle, whether that's the PGA sampling cap or the ADC capdac
+
+    // set PGA to amplify mode (low) and wait for amp to settle
+    if(PGA) { 
+      digitalWrite(adc_pga_amplify_gpi, LOW);
+      delayMicroseconds(100);
+    }
+
+    // put ADC in convert mode, let
+    digitalWrite(adc_convert_gpi, HIGH);
+
+    // loop to wait for adc to finish
+    ADC_DATA_VALID=0;
+    watchdog=0;
+    while(ADC_DATA_VALID != 1) {
+      ADC_DATA_VALID=digitalRead(adc_done);
+      watchdog++;
+      if(watchdog>WATCHDOG_MAX)
+        break;
+    }
+    watchdog_sum = watchdog_sum + watchdog; // just curious how many cycles it takes to finish
+
+    // get result
+    bit9=digitalRead(sensor_adc9);
+    bit8=digitalRead(sensor_adc8);
+    bit7=digitalRead(sensor_adc7);
+    bit6=digitalRead(sensor_adc6);
+    bit5=digitalRead(sensor_adc5);
+    bit4=digitalRead(sensor_adc4);
+    bit3=digitalRead(sensor_adc3);
+    bit2=digitalRead(sensor_adc2);
+    bit1=digitalRead(sensor_adc1);
+    bit0=digitalRead(sensor_adc0);
+    
+    ADC_VALUE=ADC_VALUE + bit9*512;
+    ADC_VALUE=ADC_VALUE + bit8*256;
+    ADC_VALUE=ADC_VALUE + bit7*128;
+    ADC_VALUE=ADC_VALUE + bit6*64;
+    ADC_VALUE=ADC_VALUE + bit5*32;
+    ADC_VALUE=ADC_VALUE + bit4*16;
+    ADC_VALUE=ADC_VALUE + bit3*8;
+    ADC_VALUE=ADC_VALUE + bit2*4;
+    ADC_VALUE=ADC_VALUE + bit1*2;
+    ADC_VALUE=ADC_VALUE + bit0*1;
+    sumtotal=sumtotal+ADC_VALUE;
+
+    // put ADC back in acquire mode 
+    digitalWrite(adc_convert_gpi, LOW);
+    
+    // put PGA back in acquire mode
+    if(PGA) digitalWrite(adc_pga_amplify_gpi, HIGH);
+
+    // reset adc
+    digitalWrite(adc_reset_gpi, LOW);
+    delayMicroseconds(1); // TODO: Does delay() actually do anything? ANSWER: Only if it's >= 1ms
+    digitalWrite(adc_reset_gpi, HIGH);
+    delayMicroseconds(1);
+
+    if(watchdog>WATCHDOG_MAX) {
+      sumtotal=2222*iterations; // if adc result is 2222 we know the watchdog triggered
+      break; 
+    }
+  }
+
+  result = round( ((float) sumtotal) / ((float) iterations) );
+  //Serial.println("ADC result: " + String(result) + " " + String(bit9) + String(bit8) + String(bit7) + String(bit6) + String(bit5) + String(bit4) + String(bit3) + String(bit2) + String(bit1) + String(bit0) + " " + String(watchdog_sum));
+  Serial.println(String(result));
+  Serial.println(String(watchdog_sum));
+/*
+  // Return to normal
+  pinMode(gpio00, INPUT);
+  pinMode(gpio01, INPUT);
+  pinMode(gpio02, INPUT);
+  pinMode(gpio03, INPUT);
+  pinMode(gpio04, INPUT);
+  pinMode(gpio05, INPUT);
+  pinMode(gpio06, INPUT);
+  pinMode(gpio07, INPUT);
+  pinMode(gpio08, INPUT);
+  pinMode(gpio09, INPUT);
+  pinMode(gpio10, INPUT);
+  pinMode(gpio11, INPUT);
+  pinMode(gpio12, INPUT);
+  pinMode(gpio13, INPUT);
+  pinMode(gpio14, INPUT);
+  pinMode(gpio15, INPUT);
+*/
+} // end sample_sensor_adc_debug
+
