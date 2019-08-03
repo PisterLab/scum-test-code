@@ -25,6 +25,9 @@ def trigger_gpi(teensy_ser, adc_settle_cycles, pga_bypass, pga_settle_us):
 		Teensy in question with the specified ADC settling time.
 	Notes:
 		The Teensy should have been flashed with the code in teensy_uC_programmer.ino
+
+		sensoradcinitialize should have run on the Teensy at some point 
+		before running this function.
 	"""
 	teensy_ser.write(b'sensoradctrigger\n')
 	teensy_ser.write(adc_settle_cycles)
@@ -32,20 +35,36 @@ def trigger_gpi(teensy_ser, adc_settle_cycles, pga_bypass, pga_settle_us):
 	teensy_ser.write(pga_settle_us)
 	return
 
-def read_output(ser):
+def read_uart(uart_ser):
 	"""
 	Inputs:
-		ser: The serial connection (type Serial) associated with the UART
-			serial connection or the Teensy. This is _not_ a string!
+		uart_ser: The serial connection (type Serial) associated with the UART
+			serial connection. This is _not_ a string!
 	Outputs:
 		Returns the integer ADC output. Reads the ADC value via UART. This prints
-		out some of the intermediate excess that gets sent over UART without
-		returning it.
+		out some of the intermediate excess that gets sent over UART.
+	"""
+	print(uart_ser.readline())
+	adc_out_str = uart_ser.readline().decode('utf-8').replace('\n', '')
+	return int(adc_out_str)
+
+def read_gpo(teensy_ser):
+	"""
+	Inputs:
+		teensy_ser: The serial connection (type Serial) associated with the Teensy
+			serial connection. This is _not_ a string!
+	Outputs:
+		Returns the integer ADC output. A return value of 2048 indicates a timeout while
+		waiting on the ADC to finish converting.
 	Notes:
 		If using the Teensy, the Teensy should have been flashed with the code in 
 		teensy_uC_programmer.ino. A return value of 2048 indicates a timeout while
 		waiting on the ADC to finish converting.
+
+		sensoradcinitialize should have run on the Teensy at some point 
+		before running this function.
 	"""
-	print(uart_ser.readline())
-	adc_out_str = uart_ser.readline().decode('utf-8').replace('\n', '')
+	print(teensy_ser.readline())
+	teensy_ser.write(b'sensoradcread\n')
+	adc_out_str = teensy_ser.readline().decode('utf-8').replace('\n','')
 	return int(adc_out_str)

@@ -15,37 +15,64 @@ import random
 from data_handling import *
 from cortex import *
 
-def test_adc_spot(uart_port="COM16", iterations=1):
+def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iterations=1,
+		gpio_settings=dict()):
 	"""
 	Inputs:
-		uart_port: String. Name of the COM port that the UART 
+		port: String. Name of the COM port that the UART or the reading Teensy
 			is connected to.
+		control_mode: String 'uart' or 'gpio'. Determines if you'll be triggering
+			the FSM via UART or GPIO.
+		read_mode: String 'uart' or 'gpio'. Determines if you're reading via GPIO.
 		iterations: Integer. Number of times to take readings.
+		gpio_settings: Dictionary with the following key:value pairings
+			adc_settle_cycles: Integer [1,256]. Unclear what the control in the original 
+				FSM is, but this will dictate the number of microseconds to wait 
+				for the ADC to settle. Applicable only if the Teensy is used rather than
+				UART.
+			pga_bypass: Integer 0 or 1. 1 = bypass the PGA, otherwise use the PGA. Applicable
+				only if the Teensy is used rather than UART.
+			pga_settle_us: Integer. Number of microseconds to wait for the PGA output to
+				to settle. Applicable only if the Teensy is used rather than
+				UART.
 	Outputs:
 		Returns an ordered collection of ADC 
 		output codes where the ith element corresponds to the ith reading.
 		Note that this assumes that SCM has already been programmed.
+	Raises:
+		ValueError if the control mode is not 'uart' or 'gpio'.
+		ValueError if the read mode is not 'uart' or 'gpio'.
 	"""
 	adc_outs = []
 
-	uart_ser = serial.Serial(
-		port=uart_port,
+	ser = serial.Serial(
+		port=port,
 		baudrate=19200,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
 		bytesize=serial.EIGHTBITS,
 		timeout=.5)
 
-	for i in range(12):
-		time.sleep(.2)
-		print(uart_ser.readline())
-
 	for i in range(iterations):
-		uart_ser.write(b'adc\n')
+		if control_mode == 'uart':
+			trigger_uart(ser)
+		elif control_mode == 'gpio':
+			adc_settle_cycles = gpio_settings['adc_settle_cycles']
+			pga_bypass = gpio_settings['pga_bypass']
+			pga_settle_us = gpio_settings['pga_settle_us']
+			trigger_gpi(ser, adc_settle_cycles, pga_bypass, pga_settle_us)
+		else:
+			raise ValueError("Invalid control mode.")
+		
 		time.sleep(.5)
-		print(uart_ser.readline())
-		adc_out_str = uart_ser.readline().decode('utf-8').replace('\n', '')
-		adc_out = int(adc_out_str)
+
+		if read_mode == 'uart':
+			adc_out = read_uart(ser)
+		elif read_mode == 'gpio':
+			adc_out = read_gpo(ser)
+		else:
+			raise ValueError("Invalid read mode.")
+
 		adc_outs.append(adc_out)
 	
 	uart_ser.close()
@@ -53,19 +80,32 @@ def test_adc_spot(uart_port="COM16", iterations=1):
 	return adc_outs
 
 def test_adc_psu(
-		vin_vec, uart_port="COM18", 
+		vin_vec, port="COM18", control_mode='uart', read_mode='uart',
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-		iterations=1):
+		iterations=1, gpio_settings=dict()):
 	"""
 	Inputs:
 		vin_vec: 1D collection of floats. Input voltages in volts 
 			to feed to the ADC.
-		uart_port: String. Name of the COM port that the UART 
+		port: String. Name of the COM port that the UART or the reading Teensy
 			is connected to.
+		control_mode: String 'uart' or 'gpio'. Determines if you'll be triggering
+			the FSM via UART or GPIO.
+		read_mode: String 'uart' or 'gpio'. Determines if you're reading via GPIO.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
+		gpio_settings: Dictionary with the following key:value pairings
+			adc_settle_cycles: Integer [1,256]. Unclear what the control in the original 
+				FSM is, but this will dictate the number of microseconds to wait 
+				for the ADC to settle. Applicable only if the Teensy is used rather than
+				UART.
+			pga_bypass: Integer 0 or 1. 1 = bypass the PGA, otherwise use the PGA. Applicable
+				only if the Teensy is used rather than UART.
+			pga_settle_us: Integer. Number of microseconds to wait for the PGA output to
+				to settle. Applicable only if the Teensy is used rather than
+				UART.
 	Outputs:
 		Returns a dictionary adc_outs where adc_outs[vin][i] will give the 
 		ADC code associated with the i'th iteration when the input
@@ -74,10 +114,13 @@ def test_adc_psu(
 		Uses a serial as well as an arbitrary waveform generator to
 		sweep the input voltage to the ADC. Bypasses the PGA. Does 
 		NOT program scan.
+	Raises:
+		ValueError if the control mode is not 'uart' or 'gpio'.
+		ValueError if the read mode is not 'uart' or 'gpio'.
 	"""
 	# Opening up the UART connection
-	uart_ser = serial.Serial(
-		port=uart_port,
+	ser = serial.Serial(
+		port=port,
 		baudrate=19200,
 		parity=serial.PARITY_NONE,
 		stopbits=serial.STOPBITS_ONE,
@@ -107,16 +150,30 @@ def test_adc_psu(
 		adc_outs[vin] = []
 		psu.write("SOURCE2:VOLTAGE:OFFSET {}".format(vin))
 		for i in range(iterations):
-			uart_ser.write(b'adc\n')
+			if control_mode == 'uart':
+				trigger_uart(ser)
+			elif control_mode == 'gpio':
+				adc_settle_cycles = gpio_settings['adc_settle_cycles']
+				pga_bypass = gpio_settings['pga_bypass']
+				pga_settle_us = gpio_settings['pga_settle_us']
+				trigger_gpi(ser, adc_settle_cycles, pga_bypass, pga_settle_us)
+			else:
+				raise ValueError("Invalid control mode.")
+			
 			time.sleep(.5)
-			print(uart_ser.readline())
-			adc_out = uart_ser.readline()
+
+			if read_mode == 'uart':
+				adc_out = read_uart(ser)
+			elif read_mode == 'gpio':
+				adc_out = read_gpo(ser)
+			else:
+				raise ValueError("Invalid read mode.")
+			
 			adc_outs[vin].append(adc_out)
 			print("Vin={}V/Iteration {} -- {}".format(vin, i, adc_outs[vin][i]))
 
-
 	# Due diligence for closing things out
-	uart_ser.close()
+	ser.close()
 	psu.write("SOURCE2:VOLTAGE:OFFSET 0")
 	psu.write("OUTPUT2 OFF")
 	psu.close()
@@ -124,20 +181,33 @@ def test_adc_psu(
 	return adc_outs
 
 def test_adc_dnl(vin_min, vin_max, num_bits, 
-		uart_port="COM18", 
+		port="COM18", control_mode='uart', read_mode='uart',
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-		iterations=1):
+		iterations=1, gpio_settings=dict()):
 	"""
 	Inputs:
 		vin_min/max: Float. The min and max voltages to feed to the
 			ADC.
 		num_bits: Integer. The bit resolution of the ADC.
-		uart_port: String. Name of the COM port that the UART 
+		port: String. Name of the COM port that the UART or the reading Teensy
 			is connected to.
+		control_mode: String 'uart' or 'gpio'. Determines if you'll be triggering
+			the FSM via UART or GPIO.
+		read_mode: String 'uart' or 'gpio'. Determines if you're reading via GPIO.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
+		gpio_settings: Dictionary with the following key:value pairings
+			adc_settle_cycles: Integer [1,256]. Unclear what the control in the original 
+				FSM is, but this will dictate the number of microseconds to wait 
+				for the ADC to settle. Applicable only if the Teensy is used rather than
+				UART.
+			pga_bypass: Integer 0 or 1. 1 = bypass the PGA, otherwise use the PGA. Applicable
+				only if the Teensy is used rather than UART.
+			pga_settle_us: Integer. Number of microseconds to wait for the PGA output to
+				to settle. Applicable only if the Teensy is used rather than
+				UART.
 	Outputs:
 		Returns a collection of DNLs for each nominal LSB. The length
 		should be 2**(num_bits)-1. Note that this assumes that SCM has 
@@ -148,26 +218,40 @@ def test_adc_dnl(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/10)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, psu_name, iterations)
+	adc_outs = test_adc_psu(vin_vec, port, control_mode, read_mode, \
+							psu_name, iterations, gpio_settings)
 	
 	return calc_adc_dnl(adc_outs, vlsb_ideal)
 
 
 def test_adc_inl_straightline(vin_min, vin_max, num_bits, 
-		uart_port="COM18", 
+		port="COM18", control_mode='uart', read_mode='uart',
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-		iterations=1):
+		iterations=1, gpio_settings=dict()):
 	"""
 	Inputs:
 		vin_min/max: Float. The min and max voltages to feed to the
 			ADC.
 		num_bits: Integer. The bit resolution of the ADC.
-		uart_port: String. Name of the COM port that the UART 
+		port: String. Name of the COM port that the UART or the reading Teensy
 			is connected to.
+		control_mode: String 'uart' or 'gpio'. Determines if you'll be triggering
+			the FSM via UART or GPIO.
+		read_mode: String 'uart' or 'gpio'. Determines if you're reading via GPIO.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
+		gpio_settings: Dictionary with the following key:value pairings
+			adc_settle_cycles: Integer [1,256]. Unclear what the control in the original 
+				FSM is, but this will dictate the number of microseconds to wait 
+				for the ADC to settle. Applicable only if the Teensy is used rather than
+				UART.
+			pga_bypass: Integer 0 or 1. 1 = bypass the PGA, otherwise use the PGA. Applicable
+				only if the Teensy is used rather than UART.
+			pga_settle_us: Integer. Number of microseconds to wait for the PGA output to
+				to settle. Applicable only if the Teensy is used rather than
+				UART.
 	Outputs:
 		Returns the slope, intercept of the linear regression
 		of the ADC code vs. vin. Note that this assumes that SCM 
@@ -178,26 +262,40 @@ def test_adc_inl_straightline(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/4)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, psu_name, iterations)
+	adc_outs = test_adc_psu(vin_vec, port, control_mode, read_mode, \
+							psu_name, iterations, gpio_settings)
 
 	return calc_adc_inl_straightline(adc_outs, vlsb_ideal)
 
 
 def test_adc_inl_endpoint(vin_min, vin_max, num_bits, 
-		uart_port="COM18", 
+		port="COM18", control_mode='uart', read_mode='uart',
 		psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-		iterations=1):
+		iterations=1, gpio_settings=dict()):
 	"""
 	Inputs:
 		vin_min/max: Float. The min and max voltages to feed to the
 			ADC.
 		num_bits: Integer. The bit resolution of the ADC.
-		uart_port: String. Name of the COM port that the UART 
+		port: String. Name of the COM port that the UART or the reading Teensy
 			is connected to.
+		control_mode: String 'uart' or 'gpio'. Determines if you'll be triggering
+			the FSM via UART or GPIO.
+		read_mode: String 'uart' or 'gpio'. Determines if you're reading via GPIO.
 		psu_name: String. Name to use in the connection for the 
 			waveform generator.
 		iterations: Integer. Number of times to take a reading for
 			a single input voltage.
+		gpio_settings: Dictionary with the following key:value pairings
+			adc_settle_cycles: Integer [1,256]. Unclear what the control in the original 
+				FSM is, but this will dictate the number of microseconds to wait 
+				for the ADC to settle. Applicable only if the Teensy is used rather than
+				UART.
+			pga_bypass: Integer 0 or 1. 1 = bypass the PGA, otherwise use the PGA. Applicable
+				only if the Teensy is used rather than UART.
+			pga_settle_us: Integer. Number of microseconds to wait for the PGA output to
+				to settle. Applicable only if the Teensy is used rather than
+				UART.
 	Outputs:
 		Returns a collection of endpoint INLs taken from vin_min 
 		up to vin_max. Note that this assumes that SCM has already 
@@ -208,10 +306,10 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 	vin_vec = np.arange(vin_min, vin_max, vlsb_ideal/4)
 
 	# Running the test
-	adc_outs = test_adc_psu(vin_vec, psu_name, iterations)
+	adc_outs = test_adc_psu(vin_vec, port, control_mode, read_mode, \
+							psu_name, iterations, gpio_settings)
 
 	return calc_adc_inl_endpoint(adc_outs, vlsb_ideal)
-
 
 
 if __name__ == "__main__":
