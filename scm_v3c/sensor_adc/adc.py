@@ -385,7 +385,7 @@ if __name__ == "__main__":
 
 	### Reading in data from a file and plotting appropriately ###
 	if True:
-		fname = "./data/psu_20190801_235753_formatted.csv"
+		fname = "./data/psu_20190805_013208_q8.csv"
 
 		plot_adc_data_specs = dict(adc_outs=read_adc_data(fname),
 								plot_inl=False,
