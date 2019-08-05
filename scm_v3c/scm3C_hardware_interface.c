@@ -183,8 +183,123 @@ void GPI_enables(unsigned int mask){
 			clear_asc_bit(asc_locations[j]);
 	}
 }
-	
 
+unsigned short get_GPI_enables() {
+	/*
+	Inputs:
+		None.
+	Outputs:
+		Returns the mask for the GPI enables in unsigned
+		int form. Note that this is intended to be 2 bytes long.
+	Notes;
+		Untested.
+	*/
+	unsigned int gpi_enables = 0x0000;
+	// LSB -> MSB
+	unsigned short asc_locations[16] = {1132,1134,1136,1138,1139,1141,1143,1145,1116,1118,1120,1122,1123,1125,1127,1129};
+	int i;
+	for (i=0; i<16; i++) {
+		gpi_enables |= (get_asc_bit(asc_locations[i]) << i);
+	}
+	return gpi_enables;
+}
+
+
+unsigned int get_GPO_enables() {
+	/*
+	Inputs:
+		None.
+	Outputs:
+		Returns the mask for the GPO enables in unsigned int form.
+		Note that this is intended to be 2 bytes long.
+	Notes:
+		Untested.
+	*/
+	unsigned int gpo_enables;
+	// LSB -> MSB
+	unsigned short asc_locations[16] = {1131,1133,1135,1137,1140,1142,1144,1146,1115,1117,1119,1121,1124,1126,1128,1130};
+	int i;
+	for (i=0; i<16; i++) {
+		gpo_enables |= (get_asc_bit(asc_locations[i] << i))
+	}
+	return gpo_enables;
+}
+
+unsigned char get_GPI_control(unsigned short rowNum) {
+	/*
+	Inputs:
+		rowNum: Integer [0,3]. Determines which grouping of GPIs you'd 
+			like to get the bank for.
+	Outputs:
+		Returns (in unsigned character form) the bank number associated
+		a specific grouping of GPIOs. e.g. if you have the GPI setting such
+		that D_OUT<0> is adc_reset_gpi, get_GPI_control(0) will return 
+		3. A return value of 0xFF indicates that the row number was invalid.
+	Notes:
+		Untested.
+	*/
+	int start_idx;
+	int i;
+	unsigned char row_value;
+	switch (rowNum) {
+		case 0:
+			start_idx = 261;
+			break;
+		case 1:
+			start_idx = 263;
+			break;
+		case 2:
+			start_idx = 265;
+			break;
+		case 3:
+			start_idx = 267;
+			break;
+		default:
+			// Do nothing
+			return 0xFF;
+	}
+	for(i=0; i<2; i++) {
+		row_value |= (get_asc_bit(start_idx+i) << i);
+	}
+}
+
+unsigned char get_GPO_control(unsigned short rowNum) {
+	/*
+	Inputs:
+		rowNum: Integer [0,3]. Determines which grouping of GPIs you'd 
+			like to get the bank for.
+	Outputs:
+		Returns (in unsigned character form) the bank number associated
+		a specific grouping of GPIOs. e.g. if you have the GPI setting such
+		that D_OUT<0> is ADC_CLK, get_GPO_control(0) will return 2. A return
+		value of 0xFF indicates that the row number was invalid.
+	Notes:
+		Untested.
+	*/
+	int start_idx;
+	int i;
+	unsigned char row_value;
+	switch (rowNum) {
+		case 0:
+			start_idx = 245;
+			break;
+		case 1:
+			start_idx = 249;
+			break;
+		case 2:
+			start_idx = 253;
+			break;
+		case 3:
+			start_idx = 257;
+			break;
+		default:
+			// Do nothing
+			return 0xFF;
+	}
+	for(i=0; i<4; i++) {
+		row_value |= (get_asc_bit(start_idx+i) << i);
+	}
+}
 
 // Configure how radio and AUX LDOs are turned on and off
 void init_ldo_control(void){

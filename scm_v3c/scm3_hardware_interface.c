@@ -224,3 +224,19 @@ void clear_asc_bit(unsigned int position){
 
 }
 
+unsigned int get_asc_bit(unsigned int position) {
+	/*
+	Inputs:
+		position: The position in the ASC to get the bit value.
+	Outputs:
+		The bit (the LSB of unsigned int form) at the particular
+		position in the analog scan chain.
+	Note:
+		Untested!
+	*/
+	unsigned int word_index = position >> 5;
+	unsigned int ASC_word_rev = reverse(ASC[word_index])
+	unsigned int ASC_bit = (ASC_word_rev >> (position - (word_index<<5))) 
+							& 0x1;
+	return ASC_bit;
+}
