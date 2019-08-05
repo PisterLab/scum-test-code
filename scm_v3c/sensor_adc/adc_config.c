@@ -114,3 +114,66 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	prog_asc_bit(1088, pga_byp);
 }
 
+void gpio_loopback_config_adc() {
+	/*
+	Inputs:
+		No inputs.
+	Outputs:
+		No return value. Enables I/O buffers for the GPIOs and the appropriate
+		banks for the GPIOs. Does not disable buffers from their initial setting
+		and does not affect GPIOs outside of the specified banks.
+
+		Untested.
+	*/
+	unsigned int gpo_mask = get_GPO_enables() |= 0x07FF;
+	unsigned int gpi_mask = get_GPI_enables() |= 0x07FF;
+	
+	GPO_enables(gpo_mask);
+	GPI_enables(gpi_mask);
+
+	GPO_control(6,6,6,6);
+	GPI_control(0,0,0,0);
+}
+
+void gpio_config_adc(bool gpi_control, bool gpo_read) {
+	/*
+	Inputs:
+		gpi_control: Boolean. True = control the FSM via GPI
+			rather than relying on the taped-out FSM.
+		gpo_read: Boolean. True = use GPOs to output the sensor
+			ADC output bits and the ``done'' signal.
+	Outputs:
+		None. Enables the necessary GPIO buffers and sets the 
+		banks appropriately for the GPIOs to control the FSM via GPI
+		and/or read the ADC data from the GPO. 
+	Note:
+		This disables any potentially conflicting buffers in the affected
+		GPIOs, i.e. input and output buffers will not be enabled 
+		simultaneously for the GPIOs necessarily set by this function.
+		All other GPIOs will be left as-is.
+	
+		Untested.
+	*/
+	unsigned int gpi_mask = get_GPI_enables();
+	unsigned int gpo_mask = get_GPO_enables();
+
+	if (gpi_control) {
+		gpi_mask = gpi_mask |= 0xE000;
+		GPI_control(3, 
+					get_GPI_control(1), 
+					get_GPI_control(2), 
+					get_GPI_control(3));
+		gpo_mask = gpo_mask &= ~0xE000;
+	}
+
+	if (gpo_read) {
+		gpo_mask = gpo_mask |= 0x07FF;
+		gpi_mask = gpi_mask &= ~0x07FF;
+		GPO_control(get_GPO_control(0),
+					9,
+					9,
+					9);
+	}
+	GPI_enables(gpi_mask);
+	GPO_enables(gpo_mask);
+}

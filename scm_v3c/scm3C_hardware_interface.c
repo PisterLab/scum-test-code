@@ -184,7 +184,7 @@ void GPI_enables(unsigned int mask){
 	}
 }
 
-unsigned short get_GPI_enables() {
+unsigned int get_GPI_enables() {
 	/*
 	Inputs:
 		None.
