@@ -1,4 +1,3 @@
-unsigned reverse(unsigned x);
 unsigned int crc32c(unsigned char *message, unsigned int length);
 unsigned char flipChar(unsigned char b);
 void init_ldo_control(void);
@@ -16,6 +15,10 @@ unsigned int read_RSSI(void);
 void set_IF_clock_frequency(int coarse, int fine, int high_range);
 void GPO_enables(unsigned int mask);
 void GPI_enables(unsigned int mask);
+unsigned int get_GPI_enables(void);
+unsigned int get_GPO_enables(void);
+unsigned char get_GPI_control(unsigned short rowNum);
+unsigned char get_GPO_control(unsigned short rowNum);
 void set_IF_LDO_voltage(int code);
 void set_VDDD_LDO_voltage(int code);
 void set_AUX_LDO_voltage(int code);

@@ -10,6 +10,17 @@ unsigned int current_lfsr = 0x12345678;
 unsigned int dac_2M_settings[5] = {31, 31, 29, 2, 2};
 
 
+
+// Reverses (reflects) bits in a 32-bit word.
+unsigned reverse(unsigned x) {
+   x = ((x & 0x55555555) <<  1) | ((x >>  1) & 0x55555555);
+   x = ((x & 0x33333333) <<  2) | ((x >>  2) & 0x33333333);
+   x = ((x & 0x0F0F0F0F) <<  4) | ((x >>  4) & 0x0F0F0F0F);
+   x = (x << 24) | ((x & 0xFF00) << 8) |
+       ((x >> 8) & 0xFF00) | (x >> 24);
+   return x;
+}
+
 // Reverse endianness of lower 16 bits
 unsigned int flip_lsb8(unsigned int in){
 	int out = 0;
@@ -235,7 +246,7 @@ unsigned int get_asc_bit(unsigned int position) {
 		Untested!
 	*/
 	unsigned int word_index = position >> 5;
-	unsigned int ASC_word_rev = reverse(ASC[word_index])
+	unsigned int ASC_word_rev = reverse(ASC[word_index]);
 	unsigned int ASC_bit = (ASC_word_rev >> (position - (word_index<<5))) 
 							& 0x1;
 	return ASC_bit;

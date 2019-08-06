@@ -1,3 +1,4 @@
+unsigned reverse(unsigned x);
 // Functions written by Brad, originally for 3B
 void analog_scan_chain_write(unsigned int* scan_bits);
 void analog_scan_chain_load(void);
@@ -10,6 +11,7 @@ void TX_load_PN_data(unsigned int num_bytes);
 void TX_load_counter_data(unsigned int num_bytes);
 void set_asc_bit(unsigned int position);
 void clear_asc_bit(unsigned int position);
+unsigned int get_asc_bit(unsigned int position);
 
 // Functions written by Fil, mostly for 3
 void enable_polyphase_ASC(void);

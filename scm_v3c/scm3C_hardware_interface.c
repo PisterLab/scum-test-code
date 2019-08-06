@@ -34,15 +34,6 @@ unsigned int expected_RX_arrival = 25000;		// must be > 30ms
 unsigned int ack_turnaround_time = 96;	//192 us
 
 
-// Reverses (reflects) bits in a 32-bit word.
-unsigned reverse(unsigned x) {
-   x = ((x & 0x55555555) <<  1) | ((x >>  1) & 0x55555555);
-   x = ((x & 0x33333333) <<  2) | ((x >>  2) & 0x33333333);
-   x = ((x & 0x0F0F0F0F) <<  4) | ((x >>  4) & 0x0F0F0F0F);
-   x = (x << 24) | ((x & 0xFF00) << 8) |
-       ((x >> 8) & 0xFF00) | (x >> 24);
-   return x;
-}
 
 // Computes 32-bit crc from a starting address over 'length' dwords
 unsigned int crc32c(unsigned char *message, unsigned int length) {
@@ -184,7 +175,7 @@ void GPI_enables(unsigned int mask){
 	}
 }
 
-unsigned int get_GPI_enables() {
+unsigned int get_GPI_enables(void) {
 	/*
 	Inputs:
 		None.
@@ -205,7 +196,7 @@ unsigned int get_GPI_enables() {
 }
 
 
-unsigned int get_GPO_enables() {
+unsigned int get_GPO_enables(void) {
 	/*
 	Inputs:
 		None.
@@ -220,7 +211,7 @@ unsigned int get_GPO_enables() {
 	unsigned short asc_locations[16] = {1131,1133,1135,1137,1140,1142,1144,1146,1115,1117,1119,1121,1124,1126,1128,1130};
 	int i;
 	for (i=0; i<16; i++) {
-		gpo_enables |= (get_asc_bit(asc_locations[i] << i))
+		gpo_enables |= (get_asc_bit(asc_locations[i] << i));
 	}
 	return gpo_enables;
 }
@@ -261,6 +252,7 @@ unsigned char get_GPI_control(unsigned short rowNum) {
 	for(i=0; i<2; i++) {
 		row_value |= (get_asc_bit(start_idx+i) << i);
 	}
+	return row_value;
 }
 
 unsigned char get_GPO_control(unsigned short rowNum) {
@@ -299,6 +291,7 @@ unsigned char get_GPO_control(unsigned short rowNum) {
 	for(i=0; i<4; i++) {
 		row_value |= (get_asc_bit(start_idx+i) << i);
 	}
+	return row_value;
 }
 
 // Configure how radio and AUX LDOs are turned on and off
