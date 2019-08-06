@@ -100,14 +100,6 @@ void setup() {
   pinMode(asc_source_select, OUTPUT);
   digitalWrite(asc_source_select, LOW);
 
-  // Setup pins for digital scan chain
-  // Leave these high-Z until needed or else will fight GPIO
-  pinMode(dPHI, INPUT);
-  pinMode(dPHIb, INPUT);
-  pinMode(dSCANi0o1, INPUT);
-  pinMode(dSCANOUT, INPUT);
-  pinMode(dSCANIN, INPUT);
-
   // Setup pins for analog scan chain
   pinMode(aPHI, OUTPUT);
   pinMode(aPHIb, OUTPUT);
@@ -224,15 +216,6 @@ void loop() {
     else if (inputString == "toggle3wbclk\n") {
       toggle_3wb_enable();
     }
-
-    else if (inputString == "dscread\n") {
-      dsc_read();
-    }
-    
-    else if (inputString == "dscdebug\n") {
-      dsc_debug();
-    }
-    
     else if (inputString == "stepclk\n") {
       step_clock();
     }
@@ -320,7 +303,7 @@ void sensoradc_trigger() {
 
   // Put PGA in amplify mode
   if (~pga_bypass) {
-    digitalwrite(adc_pga_amplify_gpi, LOW);
+    digitalWrite(adc_pga_amplify_gpi, LOW);
     delayMicroseconds(pga_settle_us);
   }
 
@@ -341,7 +324,6 @@ void sensoradc_read() {
     - Assumes scan has been set appropriately
     - Assumes SCM has been programmed appropriately
   */
-  // TODO: Set up GPIO for ADC interface
 
   int timeout_cycles = 100000;
   int t;
@@ -360,21 +342,18 @@ void sensoradc_read() {
   // Otherwise it uses the serial to spit out the ADC 
   // value read from the GPIOs
   else {
-    adc_value = adc_value + digitalRead() * 512
-                          + digitalRead() * 256
-                          + digitalRead() * 128
-                          + digitalRead() * 64
-                          + digitalRead() * 32
-                          + digitalRead() * 16
-                          + digitalRead() * 8
-                          + digitalRead() * 4
-                          + digitalRead() * 2
-                          + digitalRead() * 1;
+    adc_value = adc_value + digitalRead(sensoradc_9) * 512
+                          + digitalRead(sensoradc_8) * 256
+                          + digitalRead(sensoradc_7) * 128
+                          + digitalRead(sensoradc_6) * 64
+                          + digitalRead(sensoradc_5) * 32
+                          + digitalRead(sensoradc_4) * 16
+                          + digitalRead(sensoradc_3) * 8
+                          + digitalRead(sensoradc_2) * 4
+                          + digitalRead(sensoradc_1) * 2
+                          + digitalRead(sensoradc_0) * 1;
     Serial.println(adc_value);
   }
-  // TODO: Put ADC in acquire mode
-  // TODO: Put PGA in acquire mode
-  // TODO: Reset ADC
 
 }
 
@@ -1225,131 +1204,6 @@ void transmit_chips()  {
   }
 }
 
-
-//10 KHz clock, 40 percent duty cycle
-void dtick() {
-  delayMicroseconds(1);
-  digitalWrite(dPHI, HIGH);
-  delayMicroseconds(1);
-
-  //Read
-  digitalWrite(dPHI, LOW);
-  delayMicroseconds(1);
-
-  //Shift
-  digitalWrite(dPHIb, HIGH);
-  delayMicroseconds(1);
-  digitalWrite(dPHIb, LOW);
-  delayMicroseconds(1);
-
-
-}
-
-void dsc_debug() {
-  // Setup pins for digital scan chain
-  pinMode(dPHI, OUTPUT);
-  pinMode(dPHIb, OUTPUT);
-  pinMode(dSCANi0o1, OUTPUT);
-  pinMode(dSCANIN, OUTPUT);
-  digitalWrite(dPHI, HIGH);
-  digitalWrite(dPHIb, HIGH);
-  digitalWrite(dSCANi0o1, LOW);   //stay low until ready
-  digitalWrite(dSCANIN, LOW);
-}
-
-
-//Note that Serial.println has a 697 char (699 out) max.
-//2157 = 600 + 600 + 600 + 357
-void dsc_read() {
-  //Serial.println("Executing DSC Read");
-  String st = "";
-  int val = 0;
-
-  // Setup pins for digital scan chain
-  pinMode(dPHI, OUTPUT);
-  pinMode(dPHIb, OUTPUT);
-  pinMode(dSCANi0o1, OUTPUT);
-  pinMode(dSCANIN, OUTPUT);
-  digitalWrite(dPHI, LOW);
-  digitalWrite(dPHIb, LOW);
-  digitalWrite(dSCANi0o1, LOW);   //stay low until ready
-  digitalWrite(dSCANIN, LOW);
-  delay(1);
-
-  digitalWrite(dSCANi0o1, HIGH);
-  dtick();
-  digitalWrite(dSCANi0o1, LOW);
-  //First bit should be available
-  val = digitalRead(dSCANOUT);
-  if (val)
-    st = String(st + "1");
-  else
-    st = String(st + "0");
-
-  //2-600
-  for (int i = 1; i < 600 ; i = i + 1) {
-    dtick();
-    val = digitalRead(dSCANOUT);
-    if (val)
-      st = String(st + "1");
-    else
-      st = String(st + "0");
-  }
-  Serial.print(st);
-  st = "";
-
-   //digitalWrite(dSCANIN, HIGH);
-
-  //601-1200
-  for (int i = 0; i < 600 ; i = i + 1) {
-    dtick();
-    val = digitalRead(dSCANOUT);
-    if (val)
-      st = String(st + "1");
-    else
-      st = String(st + "0");
-  }
-  Serial.print(st);
-  st = "";
-
-
-  //1201-1800
-  for (int i = 0; i < 600 ; i = i + 1) {
-    dtick();
-    val = digitalRead(dSCANOUT);
-    if (val)
-      st = String(st + "1");
-    else
-      st = String(st + "0");
-  }
-  Serial.print(st);
-  st = "";
-
-  //digitalWrite(dSCANIN, LOW);
-
-
-  //1801-2157
-  for (int i = 0; i < 357 ; i = i + 1) {
-    dtick();
-    val = digitalRead(dSCANOUT);
-    if (val)
-      st = String(st + "1");
-    else
-      st = String(st + "0");
-  }
-  Serial.print(st);
-  st = "";
-
-  Serial.println(); //Terminator
-
-  // Set pins back to hi-Z
-  pinMode(dPHI, INPUT);
-  pinMode(dPHIb, INPUT);
-  pinMode(dSCANi0o1, INPUT);
-  pinMode(dSCANIN, INPUT);
-
-  return;
-}
 
 //10 KHz clock, 40 percent duty cycle
 void atick() {
