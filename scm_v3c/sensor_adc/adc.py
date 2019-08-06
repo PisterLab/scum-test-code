@@ -329,7 +329,7 @@ if __name__ == "__main__":
 		program_cortex_specs = dict(teensy_port=programmer_port,
 									uart_port=scm_port,
 									file_binary="../code.bin",
-									boot_mode="optical",
+									boot_mode="3wb",
 									skip_reset=False,
 									insert_CRC=True,
 									pad_random_payload=False,)

@@ -36,7 +36,7 @@ def trigger_gpi(teensy_ser, adc_settle_cycles, pga_bypass, pga_settle_us):
 		No return value. Triggers the ADC conversion and controls the FSM with the 
 		Teensy in question with the specified ADC settling time.
 	Notes:
-		The Teensy should have been flashed with the code in teensy_uC_programmer.ino
+		The Teensy should have been flashed with the code in teensy_uC_adc.ino
 
 		sensoradcinitialize should have run on the Teensy at some point 
 		before running this function.
@@ -70,7 +70,7 @@ def read_gpo(teensy_ser):
 		waiting on the ADC to finish converting.
 	Notes:
 		If using the Teensy, the Teensy should have been flashed with the code in 
-		teensy_uC_programmer.ino. A return value of 2048 indicates a timeout while
+		teensy_uC_adc.ino. A return value of 2048 indicates a timeout while
 		waiting on the ADC to finish converting.
 
 		sensoradcinitialize should have run on the Teensy at some point 
