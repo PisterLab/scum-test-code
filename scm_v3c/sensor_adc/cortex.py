@@ -1,5 +1,4 @@
 """
-Lydia Lee, 2019
 This file contains the code to run various tests on the ADC. The functions in this file
 are meant to communicate with other entities like the Teensy, SCM, and others. For post-
 processing and data reading/writing/plotting, please see data_handling.py. This assumes
