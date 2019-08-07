@@ -10,6 +10,8 @@ const int enablePin = 15;
 const int dataPin = 14;
 const int hReset = 17;
 
+const int sReset = 18;
+
 // Optical bootloader
 const int optical_out = 24;
 
@@ -95,8 +97,7 @@ void setup() {
   pinMode(dataPin, OUTPUT); // DATA
 
   // Setup misc pins
-  pinMode(hReset, OUTPUT);
-  digitalWrite(hReset, HIGH);
+  pinMode(hReset, INPUT);
   pinMode(asc_source_select, OUTPUT);
   digitalWrite(asc_source_select, LOW);
 
@@ -195,6 +196,10 @@ void loop() {
 
     else if (inputString == "opti_cal\n") {
       opti_cal();
+    }
+
+    else if (inputString == "3wb_cal\n") {
+      cal_3wb();
     }
 
     else if (inputString == "encode4b5b\n") {
@@ -1106,11 +1111,10 @@ void bootload_3wb()  {
   //Serial.println("Executing 3wb Bootload");
 
   // Execute hard reset
-  digitalWrite(hReset, LOW);
+  pinMode(hReset, OUTPUT);
   delayMicroseconds(500);
-  digitalWrite(hReset, HIGH);
-  delay(500);
-  //delayMicroseconds(500);
+  pinMode(hReset, INPUT);
+  delayMicroseconds(500);
 
   // Need to send at least 64*1024 bytes to get cortex to reset
   for (int i = 1; i < 65537; i++) {
@@ -1315,31 +1319,39 @@ void clock_off() {
 // Toggle hard reset low then high
 void togglehardreset() {
   pinMode(clock_out, OUTPUT);
-  digitalWrite(hReset, LOW);
+  pinmode(hReset, OUTPUT)
   delay(10);
     digitalWrite(clock_out, HIGH);
     delayMicroseconds(10);
     digitalWrite(clock_out, LOW);
     delayMicroseconds(10);
-  digitalWrite(hReset, HIGH);
+  pinMode(hReset, INPUT);
 }
 
-// This interrupt rate is too fast
-//// For timing transfer via optical
-//// Toggle the optical transmitter pin at 320kHz for 1s
-//// Should cause interrupts at 100 kHz rate
-//void opti_cal() {
-//  // Output 320kHz clock with 25% duty cycle
-//  analogWriteFrequency(optical_out, 320000);
-//  analogWrite(optical_out, 64);
-//
-//  // Wait 1s
-//  delay(1000);
-//
-//  // Stop
-//  pinMode(optical_out, OUTPUT);
-//  digitalWriteFast(optical_out, LOW);
-//}
+// For timing transfer after 3wb programming
+// Trigger an interrupt at 100ms intervals
+// clk_3wb comes out GPO<8> for debug visibility
+// GPI<8> is connected to EXT_INTERRUPT<1> which is active high
+// So to calibrate, after booting the software should enable this interrupt,
+// set group 3 GPI input to bank 1 and enable GPI<8>
+// When the cal_3wb function is called, it will pulse clk_3wb every 100ms to execute the ISR in software
+// 30 pulses in total will be sent
+void cal_3wb() {
+
+  int jj;
+
+  for(jj=0; jj<30; jj++){
+  
+    digitalWriteFast(clkPin,HIGH);
+    delayMicroseconds(1); //Pulse stays high long enough to trigger interrupt (at least one HCLK cycle)
+    digitalWriteFast(clkPin,LOW);
+
+    // These values adjusted by measuring interrupt rate on scope
+    delay(99);
+    delayMicroseconds(995);
+ 
+  }
+}
 
 // For timing transfer via optical
 // Send optical SFDs at 100ms intervals
