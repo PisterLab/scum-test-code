@@ -45,6 +45,10 @@
 //  SCM3B - v2
 //  Add function to send optical SFDs at fixed interval for optical calibration
 
+//  SCM3C - v3
+//  Open-drain for hard reset to prevent SCM damage (that pin can't handle 3.3V)
+//  Add support to 3wb for doing initial frequency calibration after programming
+
 
 // PIN MAPPINGS (Teensy 3.6)
 // ---------------
@@ -57,6 +61,8 @@ const int clkPin = 16;
 const int enablePin = 15;
 const int dataPin = 14;
 const int hReset = 17;
+
+const int sReset = 18;
 
 // Optical bootloader
 const int optical_out = 24;
@@ -75,43 +81,6 @@ const int aPHIb = 38;
 const int aLOAD = 35;
 const int aSCANIN = 34;
 const int aSCANOUT = 36;
-
-// GPIO pins
-const int gpio00 = ;
-const int gpio01 = ;
-const int gpio02 = 4;
-const int gpio03 = 5;
-
-const int gpio04 = 6;
-const int gpio05 = 7;
-const int gpio06 = 8;
-const int gpio07 = 9;
-
-const int gpio08 = 10;
-const int gpio09 = 11;
-const int gpio10 = 12;
-const int gpio11 = 39;
-
-const int gpio12 = 22;
-const int gpio13 = 23;
-const int gpio14 = 2;
-const int gpio15 = 3;
-
-// Sensor ADC
-const int adc_reset_gpi = gpio00;
-const int adc_convert_gpi = gpio01;
-const int adc_pga_amplify_gpi = gpio02;
-const int adc_done = gpio05;
-const int sensoradc_0 = gpio12;
-const int sensoradc_1 = gpio13;
-const int sensoradc_2 = gpio14;
-const int sensoradc_3 = gpio15;
-const int sensoradc_4 = gpio08;
-const int sensoradc_5 = gpio09;
-const int sensoradc_6 = gpio10;
-const int sensoradc_7 = gpio11;
-const int sensoradc_8 = gpio06;
-const int sensoradc_9 = gpio07;
 
 // Clock output
 const int clock_out = 20;
@@ -150,10 +119,14 @@ void setup() {
   pinMode(dataPin, OUTPUT); // DATA
 
   // Setup misc pins
-  pinMode(hReset, OUTPUT);
-  digitalWrite(hReset, HIGH);
+  //pinMode(hReset, OUTPUT);
+  //digitalWrite(hReset, LOW);
+  pinMode(hReset, INPUT);   //Hi-Z
   pinMode(asc_source_select, OUTPUT);
   digitalWrite(asc_source_select, LOW);
+
+  pinMode(sReset, OUTPUT);
+  digitalWrite(sReset, HIGH);
 
   // Setup pins for digital scan chain
   // Leave these high-Z until needed or else will fight GPIO
@@ -162,6 +135,8 @@ void setup() {
   pinMode(dSCANi0o1, INPUT);
   pinMode(dSCANOUT, INPUT);
   pinMode(dSCANIN, INPUT);
+
+
 
   // Setup pins for analog scan chain
   pinMode(aPHI, OUTPUT);
@@ -178,23 +153,6 @@ void setup() {
   pinMode(optical_out, OUTPUT);
   digitalWrite(optical_out, LOW);
 
-  // Setup pins for GPIO
-  pinMode(gpio00, INPUT);
-  pinMode(gpio01, INPUT);
-  pinMode(gpio02, INPUT);
-  pinMode(gpio03, INPUT);
-  pinMode(gpio04, INPUT);
-  pinMode(gpio05, INPUT);
-  pinMode(gpio06, INPUT);
-  pinMode(gpio07, INPUT);
-  pinMode(gpio08, INPUT);
-  pinMode(gpio09, INPUT);
-  pinMode(gpio10, INPUT);
-  pinMode(gpio11, INPUT);
-  pinMode(gpio12, INPUT);
-  pinMode(gpio13, INPUT);
-  pinMode(gpio14, INPUT);
-  pinMode(gpio15, INPUT);
 }
 
 
@@ -260,6 +218,10 @@ void loop() {
       opti_cal();
     }
 
+    else if (inputString == "3wb_cal\n") {
+      cal_3wb();
+    }
+
     else if (inputString == "encode4b5b\n") {
       encode_4b5b();
     }
@@ -299,15 +261,7 @@ void loop() {
     else if (inputString == "clockoff\n") {
       clock_off();
     }
-    else if (inputString == "sensoradcinitialize\n") {
-      sensoradc_initialize();
-    }
-    else if (inputString == "sensoradctrigger\n") {
-      sensoradc_trigger();
-    }
-    else if (inputString == "sensoradcread\n") {
-      sensoradc_read();
-    }
+
     else if (inputString == "togglehardreset\n") {
       togglehardreset();
     }
@@ -318,120 +272,6 @@ void loop() {
   }
 }
 
-void sensoradc_initialize() {
-  /*
-  Outputs:
-    No return value. Sets up the GPIOs on the Teensy side
-    for the GPI-controlled and GPO-read ADC interface.
-  */
-  pinMode(adc_reset_gpi, OUTPUT);
-  pinMode(adc_convert_gpi, OUTPUT);
-  pinMode(adc_pga_amplify_gpi, OUTPUT);
-
-  pinMode(sensoradc_9, INPUT);
-  pinMode(sensoradc_8, INPUT);
-  pinMode(sensoradc_7, INPUT);
-  pinMode(sensoradc_6, INPUT);
-  pinMode(sensoradc_5, INPUT);
-  pinMode(sensoradc_4, INPUT);
-  pinMode(sensoradc_3, INPUT);
-  pinMode(sensoradc_2, INPUT);
-  pinMode(sensoradc_1, INPUT);
-  pinMode(sensoradc_0, INPUT);
-}
-
-void sensoradc_trigger() {
-  /*
-  Outputs:
-    No return value. Controls the FSM for the ADC reading without
-    actually taking the reading.
-  Notes:
-    - sensoradcinitialize should have been run before this started
-    - Assumes the GPIOs have been set appropriately 
-    - Assumes scan has been set appropriately
-    - Assumes SCM has been programmed appropriately
-  */
-  // Reading the ADC settling microseconds and whether or not to bypass
-  // the PGA + the number of cycles
-  int adc_settle_cycles = (int)Serial.read();
-  int pga_bypass = (int)Serial.read();
-  int pga_settle_us = (int)Serial.read();
-
-  Serial.println("Starting ADC conversion");
-  
-  // Put ADC in acquire mode
-  digitalWrite(adc_convert_gpi, LOW);
-
-  // Put PGA in acquire mode
-  digitalWrite(adc_pga_amplify_gpi, HIGH);
-
-  // Reset ADC
-  digitalWrite(adc_reset_gpi, LOW);
-  delayMicroseconds(10);
-  digitalWrite(adc_reset_gpi, HIGH);
-
-  // Wait on the input to the PGA or ADC to settle
-  delayMicroseconds(50);
-
-  // Put PGA in amplify mode
-  if (~pga_bypass) {
-    digitalwrite(adc_pga_amplify_gpi, LOW);
-    delayMicroseconds(pga_settle_us);
-  }
-
-  // Put ADC in convert mode
-  digitalWrite(adc_convert_gpi, HIGH);
-}
-
-void sensoradc_read() {
-  /*
-  Outputs:
-    No return value. Waits on the adc_done signal to go high and then
-    reads the ADC bit outputs from the appropriate GPOs. Prints the final
-    integer value over the serial. 2048 indicates that the conversion took
-    too long.
-  Notes:
-    - sensoradcinitialize should have been run before this started
-    - Assumes the GPIOs have been set appropriately
-    - Assumes scan has been set appropriately
-    - Assumes SCM has been programmed appropriately
-  */
-  // TODO: Set up GPIO for ADC interface
-
-  int timeout_cycles = 100000;
-  int t;
-  bool adc_done = false;
-  int adc_value = 0;
-  
-  // Wait for the done signal
-  while (t < timeout_cycles && !adc_done) {
-    t++;
-  }
-
-  // Timing out spits out 2048
-  if (t >= timeout_cycles) {
-    Serial.println(2048);
-  } 
-  // Otherwise it uses the serial to spit out the ADC 
-  // value read from the GPIOs
-  else {
-    adc_value = adc_value + digitalRead() * 512
-                          + digitalRead() * 256
-                          + digitalRead() * 128
-                          + digitalRead() * 64
-                          + digitalRead() * 32
-                          + digitalRead() * 16
-                          + digitalRead() * 8
-                          + digitalRead() * 4
-                          + digitalRead() * 2
-                          + digitalRead() * 1;
-    Serial.println(adc_value);
-  }
-  // TODO: Put ADC in acquire mode
-  // TODO: Put PGA in acquire mode
-  // TODO: Reset ADC
-
-}
 
 void transfer_sram() {
   Serial.println("Executing SRAM Transfer - SCM3B Rev 2");
@@ -1182,11 +1022,11 @@ void bootload_3wb()  {
   //Serial.println("Executing 3wb Bootload");
 
   // Execute hard reset
-  digitalWrite(hReset, LOW);
+  pinMode(hReset, OUTPUT);  //Drive low
   delayMicroseconds(500);
-  digitalWrite(hReset, HIGH);
-  delay(500);
-  //delayMicroseconds(500);
+  //delay(500);
+  pinMode(hReset, INPUT);   //Back to Hi-Z
+  delayMicroseconds(500);
 
   // Need to send at least 64*1024 bytes to get cortex to reset
   for (int i = 1; i < 65537; i++) {
@@ -1516,31 +1356,41 @@ void clock_off() {
 // Toggle hard reset low then high
 void togglehardreset() {
   pinMode(clock_out, OUTPUT);
-  digitalWrite(hReset, LOW);
+  //digitalWrite(hReset, LOW);
+  pinMode(hReset, OUTPUT);
   delay(10);
     digitalWrite(clock_out, HIGH);
     delayMicroseconds(10);
     digitalWrite(clock_out, LOW);
     delayMicroseconds(10);
-  digitalWrite(hReset, HIGH);
+  //digitalWrite(hReset, HIGH);
+  pinMode(hReset, INPUT); //Back to Hi-Z
 }
 
-// This interrupt rate is too fast
-//// For timing transfer via optical
-//// Toggle the optical transmitter pin at 320kHz for 1s
-//// Should cause interrupts at 100 kHz rate
-//void opti_cal() {
-//  // Output 320kHz clock with 25% duty cycle
-//  analogWriteFrequency(optical_out, 320000);
-//  analogWrite(optical_out, 64);
-//
-//  // Wait 1s
-//  delay(1000);
-//
-//  // Stop
-//  pinMode(optical_out, OUTPUT);
-//  digitalWriteFast(optical_out, LOW);
-//}
+// For timing transfer after 3wb programming
+// Trigger an interrupt at 100ms intervals
+// clk_3wb comes out GPO<8> for debug visibility
+// GPI<8> is connected to EXT_INTERRUPT<1> which is active high
+// So to calibrate, after booting the software should enable this interrupt,
+// set group 3 GPI input to bank 1 and enable GPI<8>
+// When the cal_3wb function is called, it will pulse clk_3wb every 100ms to execute the ISR in software
+// 30 pulses in total will be sent
+void cal_3wb() {
+
+  int jj;
+
+  for(jj=0; jj<30; jj++){
+  
+    digitalWriteFast(clkPin,HIGH);
+    delayMicroseconds(1); //Pulse stays high long enough to trigger interrupt (at least one HCLK cycle)
+    digitalWriteFast(clkPin,LOW);
+
+    // These values adjusted by measuring interrupt rate on scope
+    delay(99);
+    delayMicroseconds(995);
+ 
+  }
+}
 
 // For timing transfer via optical
 // Send optical SFDs at 100ms intervals
