@@ -15,7 +15,8 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		teensy_port: String. Name of the COM port that the Teensy
 			is connected to.
 		uart_port: String. Name of the COM port that the UART 
-			is connected to.
+			is connected to. If None, does not attempt to connect
+			to SCM via UART.
 		file_binary: String. Path to the binary file to 
 			feed to Teensy to program SCM. This binary file shold be
 			compiled using whatever software is meant to end up 
@@ -108,48 +109,36 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 
 	    # Display confirmation message from Teensy
 		print(teensy_ser.readline())
+		teensy_ser.write(b'opti_cal\n');
 	elif boot_mode == '3wb':
 	    # Execute 3-wire bus bootloader on Teensy
 		teensy_ser.write(b'boot3wb\n')
 
 	    # Display confirmation message from Teensy
 		print(teensy_ser.readline())
+		teensy_ser.write(b'3wb_cal\n')
 	else:
 		raise ValueError("Boot mode '{}' invalid.".format(boot_mode))
 
-	teensy_ser.write(b'opti_cal\n');
 	teensy_ser.close()
 
 	# Open UART connection to SCM
-	uart_ser = serial.Serial(
-		port=uart_port,
-		baudrate=19200,
-		parity=serial.PARITY_NONE,
-		stopbits=serial.STOPBITS_ONE,
-		bytesize=serial.EIGHTBITS,
-		timeout=.5)
+	if uart_ser != None:
+		uart_ser = serial.Serial(
+			port=uart_port,
+			baudrate=19200,
+			parity=serial.PARITY_NONE,
+			stopbits=serial.STOPBITS_ONE,
+			bytesize=serial.EIGHTBITS,
+			timeout=.5)
 
-	# After programming, several lines are sent from SCM over UART
-	print(uart_ser.readline())
-	print(uart_ser.readline())
-	print(uart_ser.readline())
-	print(uart_ser.readline())
-	print(uart_ser.readline())
-	# uart_ser.flushOutput()
+		# After programming, several lines are sent from SCM over UART
+		print(uart_ser.readline())
+		print(uart_ser.readline())
+		print(uart_ser.readline())
+		print(uart_ser.readline())
+		print(uart_ser.readline())
+
+		uart_ser.close()
 
 	return
-
-if __name__ == "__main__":
-	programmer_port = "COM15"
-	scm_port = "COM30"
-
-	### Testing programming the cortex ###
-	if False:
-		program_cortex_specs = dict(teensy_port=programmer_port,
-									uart_port=scm_port,
-									file_binary="../code.bin",
-									boot_mode="optical",
-									skip_reset=False,
-									insert_CRC=True,
-									pad_random_payload=False,)
-		program_cortex(**program_cortex_specs)
