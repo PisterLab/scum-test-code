@@ -123,7 +123,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 	teensy_ser.close()
 
 	# Open UART connection to SCM
-	if uart_ser != None:
+	if uart_port != None:
 		uart_ser = serial.Serial(
 			port=uart_port,
 			baudrate=19200,
