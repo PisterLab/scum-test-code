@@ -1319,7 +1319,7 @@ void clock_off() {
 // Toggle hard reset low then high
 void togglehardreset() {
   pinMode(clock_out, OUTPUT);
-  pinmode(hReset, OUTPUT)
+  pinMode(hReset, OUTPUT);
   delay(10);
     digitalWrite(clock_out, HIGH);
     delayMicroseconds(10);
