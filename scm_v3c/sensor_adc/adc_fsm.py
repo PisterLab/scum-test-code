@@ -57,7 +57,11 @@ def read_uart(uart_ser):
 		out some of the intermediate excess that gets sent over UART.
 	"""
 	print(uart_ser.readline())
-	adc_out_str = uart_ser.readline().decode('utf-8').replace('\n', '')
+	adc_out_raw = uart_ser.readline()
+	if adc_out_raw.decode('utf-8') == '':
+		return 2048
+	else:
+		adc_out_str = adc_out_raw.decode('utf-8').replace('\n', '')
 	return int(adc_out_str)
 
 def read_gpo(teensy_ser):

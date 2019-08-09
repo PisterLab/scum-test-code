@@ -79,7 +79,7 @@ def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iteration
 
 		adc_outs.append(adc_out)
 	
-	uart_ser.close()
+	ser.close()
 
 	return adc_outs
 
@@ -321,15 +321,15 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 
 
 if __name__ == "__main__":
-	programmer_port = "COM15"
-	scm_port = "COM30"
+	programmer_port = "COM14"
+	scm_port = "COM26"
 
 	### Testing programming the cortex ###
 	if False:
 		program_cortex_specs = dict(teensy_port=programmer_port,
 									uart_port=scm_port,
 									file_binary="../code.bin",
-									boot_mode="3wb",
+									boot_mode="optical",
 									skip_reset=False,
 									insert_CRC=True,
 									pad_random_payload=False,)
@@ -337,18 +337,9 @@ if __name__ == "__main__":
 
 	### Programming the Cortex and then attempting to ###
 	### run a spot check with the ADC.				  ###
-	if False:
-		# program_cortex_specs = dict(teensy_port=programmer_port,
-		# 							uart_port=scm_port,
-		# 							file_binary="../code.bin",
-		# 							boot_mode="optical",
-		# 							skip_reset=False,
-		# 							insert_CRC=False,
-		# 							pad_random_payload=False,)
-		# program_cortex(**program_cortex_specs)
-
+	if True:
 		test_adc_spot_specs = dict(
-			uart_port=scm_port,
+			port=scm_port,
 			iterations=10)
 		adc_out = test_adc_spot(**test_adc_spot_specs)
 		print(adc_out)
@@ -358,39 +349,30 @@ if __name__ == "__main__":
 		fname = './data/spot_check.csv'
 		write_adc_data(adc_out_dict, fname)
 
-	### Programming the cortex and running many iterations on a large ###
+	### Running many iterations on a large ###
 	### sweep. ###
 	if False:
-		# program_cortex_specs = dict(teensy_port=programmer_port,
-		# 							uart_port=scm_port,
-		# 							file_binary="../code.bin",
-		# 							boot_mode="optical",
-		# 							skip_reset=False,
-		# 							insert_CRC=False,
-		# 							pad_random_payload=False,)
-		# program_cortex(**program_cortex_specs)
-
 		test_adc_psu_specs = dict(vin_vec=np.arange(0, 0.9, 0.5e-3),
 								port=scm_port,
 								control_mode='uart',
 								read_mode='uart',
 								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-								iterations=10,
+								iterations=100,
 								gpio_settings=dict())
 		adc_outs = test_adc_psu(**test_adc_psu_specs)
 
 		ts = time.gmtime()
 		datetime = time.strftime("%Y%m%d_%H%M%S",ts)
-		write_adc_data(adc_outs, 'psu_{}'.format(datetime))
+		write_adc_data(adc_outs, './data/psu_{}'.format(datetime))
 
 	### Reading in data from a file and plotting appropriately ###
-	if True:
-		fname = "./data/psu_20190805_013208_q8.csv"
+	if False:
+		fname = "./psu_20190809_032357.csv"
 
 		plot_adc_data_specs = dict(adc_outs=read_adc_data(fname),
 								plot_inl=False,
 								plot_ideal=True,
-								vdd=1.2,
+								vdd=0.8,
 								num_bits=10)
 		plot_adc_data(**plot_adc_data_specs)
 

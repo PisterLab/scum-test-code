@@ -94,7 +94,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		teensy_ser.write(b'configopt\n')
 		teensy_ser.write(b'80\n')
 		teensy_ser.write(b'80\n')
-		teensy_ser.write(b'8\n')
+		teensy_ser.write(b'3\n')
 		teensy_ser.write(b'80\n')
 		
 	    # Encode the payload into 4B5B for optical transmission
@@ -115,6 +115,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		teensy_ser.write(b'boot3wb\n')
 
 	    # Display confirmation message from Teensy
+		print(teensy_ser.readline())
 		print(teensy_ser.readline())
 		teensy_ser.write(b'3wb_cal\n')
 	else:
