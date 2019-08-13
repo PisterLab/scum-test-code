@@ -40,6 +40,10 @@ def trigger_gpi(teensy_ser, adc_settle_cycles, pga_bypass, pga_settle_us):
 
 		sensoradcinitialize should have run on the Teensy at some point 
 		before running this function.
+
+		Note that this is just an alternative to using on-chip GPIO loopback.
+
+		Untested.
 	"""
 	teensy_ser.write(b'sensoradctrigger\n')
 	teensy_ser.write(adc_settle_cycles)
@@ -79,6 +83,8 @@ def read_gpo(teensy_ser):
 
 		sensoradcinitialize should have run on the Teensy at some point 
 		before running this function.
+
+		Untested.
 	"""
 	print(teensy_ser.readline())
 	teensy_ser.write(b'sensoradcread\n')
