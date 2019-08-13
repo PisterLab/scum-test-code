@@ -34,7 +34,6 @@ unsigned int expected_RX_arrival = 25000;		// must be > 30ms
 unsigned int ack_turnaround_time = 96;	//192 us
 
 
-
 // Computes 32-bit crc from a starting address over 'length' dwords
 unsigned int crc32c(unsigned char *message, unsigned int length) {
 	int i, j;
