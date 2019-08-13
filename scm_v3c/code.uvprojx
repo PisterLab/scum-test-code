@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>Target 1</TargetName>
+      <TargetName>SCM_3C</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
@@ -380,17 +380,12 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>Source Group 1</GroupName>
+          <GroupName>Baseline</GroupName>
           <Files>
             <File>
-              <FileName>adc_config.c</FileName>
+              <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\sensor_adc\adc_config.c</FilePath>
-            </File>
-            <File>
-              <FileName>adc_config.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\sensor_adc\adc_config.h</FilePath>
+              <FilePath>main.c</FilePath>
             </File>
             <File>
               <FileName>cm0dsasm.s</FileName>
@@ -403,11 +398,6 @@
               <FilePath>Int_Handlers.h</FilePath>
             </File>
             <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>main.c</FilePath>
-            </File>
-            <File>
               <FileName>Memory_Map.h</FileName>
               <FileType>5</FileType>
               <FilePath>Memory_Map.h</FilePath>
@@ -416,11 +406,6 @@
               <FileName>retarget.c</FileName>
               <FileType>1</FileType>
               <FilePath>retarget.c</FilePath>
-            </File>
-            <File>
-              <FileName>rf_global_vars.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>rf_global_vars.h</FilePath>
             </File>
             <File>
               <FileName>scm3C_hardware_interface.c</FileName>
@@ -442,15 +427,55 @@
               <FileType>5</FileType>
               <FilePath>.\scm3_hardware_interface.h</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Sensor_ADC</GroupName>
+          <Files>
             <File>
-              <FileName>scum_radio_bsp.c</FileName>
+              <FileName>adc_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\sensor_adc\adc_config.h</FilePath>
+            </File>
+            <File>
+              <FileName>adc_config.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\scum_radio_bsp.c</FilePath>
+              <FilePath>.\sensor_adc\adc_config.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Radio</GroupName>
+          <Files>
+            <File>
+              <FileName>rf_global_vars.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>rf_global_vars.h</FilePath>
             </File>
             <File>
               <FileName>scum_radio_bsp.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\scum_radio_bsp.h</FilePath>
+            </File>
+            <File>
+              <FileName>scum_radio_bsp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\scum_radio_bsp.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Testbench</GroupName>
+          <Files>
+            <File>
+              <FileName>test_code.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\test_code.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_code.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\test_code.h</FilePath>
             </File>
           </Files>
         </Group>
