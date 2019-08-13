@@ -67,11 +67,15 @@ extern unsigned short current_RF_channel;
 
 extern unsigned short do_debug_print;
 
-// Sensor ADC memory
+// Sensor ADC
 short adc_outs[5];	// Modify the size of the array to the number
 						// of readings you'd like
 unsigned int adc_outs_idx = 0;
 size_t adc_outs_size = sizeof(adc_outs)/sizeof(short);
+unsigned int adc_triggered;
+unsigned int ADC_DATA_VALID;
+unsigned int adc_data;
+
 
 void UART_ISR(){	
 	static char i=0;
@@ -104,7 +108,7 @@ void UART_ISR(){
 		}	else {
 			printf("Input exceeds maximum packet size\n");
 		}
-	} else { //If waiting for a command
+		} else { //If waiting for a command
 		// Copies string from UART to send_packet
 		if ( (buff[3]=='c') && (buff[2]=='p') && (buff[1]=='y') && (buff[0]==' ') ) {
 			waiting_for_end_of_copy = 1;
@@ -113,7 +117,7 @@ void UART_ISR(){
 		  RFCONTROLLER_REG__CONTROL = 0x1;
 			printf("TX LOAD\n");
 		// Sends TX_SEND signal to radio controller
-	  } else if ( (buff[3]=='s') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
+	  	} else if ( (buff[3]=='s') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
 		  RFCONTROLLER_REG__CONTROL = 0x2;
 		  printf("TX SEND\n");
 		// Sends RX_START signal to radio controller
@@ -122,7 +126,7 @@ void UART_ISR(){
 	    DMA_REG__RF_RX_ADDR = &recv_packet[0];
 		  RFCONTROLLER_REG__CONTROL = 0x4;
 		// Sends RX_STOP signal to radio controller
-	  } else if ( (buff[3]=='e') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
+	  	} else if ( (buff[3]=='e') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
 			RFCONTROLLER_REG__CONTROL = 0x8;
 			printf("RX STOP\n");
 		// Sends RF_RESET signal to radio controller
@@ -137,11 +141,16 @@ void UART_ISR(){
 			printf("power=%d, reset=%d, %d\n",ANALOG_CFG_REG__10,ANALOG_CFG_REG__4,doing_initial_packet_search);
 		
 		// Initiates an ADC conversion
-	  } else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='c') && (buff[0]=='\n') ) {
+	  	} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='c') && (buff[0]=='\n') ) {
 		  ADC_REG__START = 0x1;
 		  printf("Starting ADC conversion\n");
+		// Initiate an ADC conversion with GPIO loopback control of the FSM
+		} else if ((buff[3]=='m') && (buff[2]=='e') && (buff[1]=='h') && (buff[0]=='\n')) {
+			ADC_REG__START = 0x1;
+			printf("Starting loopback ADC conversion\n");
+		}
 		// Uses the radio timer to send TX_LOAD in 0.5s, TX_SEND in 1s, capture when SFD is sent and capture when packet is sent
-		} else if ( (buff[3]=='a') && (buff[2]=='t') && (buff[1]=='x') && (buff[0]=='\n') ) {
+		else if ( (buff[3]=='a') && (buff[2]=='t') && (buff[1]=='x') && (buff[0]=='\n') ) {
 			unsigned int t = RFTIMER_REG__COUNTER + 0x3D090;
 			RFTIMER_REG__COMPARE0 = t;
 		  RFTIMER_REG__COMPARE1 = t + 0x3D090;
@@ -206,8 +215,15 @@ void UART_ISR(){
 	}
 }
 
-void ADC_ISR() {
-	printf("%d\n", ADC_REG__DATA);	
+
+
+void ADC_base_ISR() {
+	printf("%d\n", ADC_REG__DATA);
+}
+
+void ADC_GPIO_ISR() {
+	adc_data = ADC_REG__DATA;
+	ADC_DATA_VALID = 1;
 }
 
 void ADC_mem_ISR() {
@@ -257,7 +273,11 @@ void ADC_mem_ISR() {
 			}
 		}
 	}
+}
 
+void ADC_ISR() {
+	ADC_GPIO_ISR();
+	// ADC_base_ISR();
 }
 
 
@@ -265,7 +285,6 @@ void RF_ISR() {
 	
 	unsigned int interrupt = RFCONTROLLER_REG__INT;
 	unsigned int error     = RFCONTROLLER_REG__ERROR;
-	int t;
 	
   //if (interrupt & 0x00000001) printf("TX LOAD DONE\n");
 	//if (interrupt & 0x00000002) printf("TX SFD DONE\n");
@@ -681,8 +700,6 @@ void OPTICAL_32_ISR(){
 // This interrupt can also be used to synchronize to the start of an optical data transfer
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
 void OPTICAL_SFD_ISR(){
-	
-	int t;
 	unsigned int rdata_lsb, rdata_msb; 
 	unsigned int count_LC, count_32k, count_2M, count_HFclock, count_IF;
 		

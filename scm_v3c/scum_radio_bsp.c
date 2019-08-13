@@ -150,8 +150,6 @@ void setFrequencyTX(unsigned int channel){
 
 void radio_loadPacket(unsigned int len){
 
-	int i;
-	
 	RFCONTROLLER_REG__TX_DATA_ADDR = &send_packet[0];
 			
 	// Set length field (should include +2 for CRC in length)

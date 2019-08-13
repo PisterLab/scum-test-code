@@ -4,6 +4,7 @@
 #include "../scm3_hardware_interface.h"
 #include "../scm3C_hardware_interface.h"
 
+
 void prog_asc_bit(unsigned int position, unsigned int val){
 	/*
 	Inputs:
@@ -128,14 +129,14 @@ void gpio_loopback_config_adc(void) {
 	unsigned int gpo_mask = get_GPO_enables();
 	unsigned int gpi_mask = get_GPI_enables();
 	
-	gpo_mask |= 0x07FF;
-	gpi_mask |= 0x07FF;
+	gpo_mask |= 0xE000;
+	gpi_mask |= 0xE000;
 	
 	GPO_enables(gpo_mask);
 	GPI_enables(gpi_mask);
 
-	GPO_control(6,6,6,6);
-	GPI_control(0,0,0,0);
+	GPO_control(6,9,9,9);
+	GPI_control(3,0,0,0);
 }
 
 void gpio_config_adc(unsigned int gpi_control, unsigned int gpo_read) {

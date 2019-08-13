@@ -1206,9 +1206,9 @@ void initialize_mote(){
 	init_ldo_control();
 
 	// Set LDO reference voltages
-	// set_VDDD_LDO_voltage(0);
+	set_VDDD_LDO_voltage(0);
 	//set_AUX_LDO_voltage(0);
-	set_ALWAYSON_LDO_voltage(0);
+	// set_ALWAYSON_LDO_voltage(0);
 		
 	// Select banks for GPIO inputs
 	// GPI_control(0,0,0,0);
@@ -1280,25 +1280,20 @@ void initialize_mote(){
 
 	// SENSOR ADC INITIALIZATION
 	if (1) {
-		unsigned int sel_reset 			= 0;
-		unsigned int sel_convert 		= 0;
-		unsigned int sel_pga_amplify 	= 0;
+		unsigned int sel_reset 			= 1;
+		unsigned int sel_convert 		= 1;
+		unsigned int sel_pga_amplify 	= 1;
 		unsigned int pga_gain[8] 		= {0,0,0,0, 0,0,0,0};
 		unsigned int adc_settle[8] 		= {1,1,1,1, 1,1,1,1};
-		unsigned int bgr_tune[7] 		= {0,0,0, 0,0,0,1};
+		unsigned int bgr_tune[7] 		= {0,0,0, 0,1,1,0};
 		unsigned int constgm_tune[8] 	= {1,1,1,1, 1,1,1,1};
 		unsigned int vbatDiv4_en 		= 1;
 		unsigned int ldo_en 			= 1;
 		unsigned int input_mux_sel[2] 	= {1,0};
 		unsigned int pga_byp 			= 1;
 
-		// Set all GPIOs as outputs
-		GPI_enables(0x0000);	
-		GPO_enables(0xFFFF);
-
-		// Select banks for GPI/O
-		GPI_control(0,0,0,0);
-		GPO_control(0,0,0,0);
+		// Set GPIOs for loopback
+		gpio_loopback_config_adc();
 		
 		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
 						pga_gain, adc_settle, 
