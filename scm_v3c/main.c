@@ -9,8 +9,8 @@
 #include "Memory_map.h"
 #include "Int_Handlers.h"
 #include "rf_global_vars.h"
-#include "scm3C_hardware_interface.c"
-#include "scm3_hardware_interface.c"
+#include "scm3C_hardware_interface.h"
+#include "scm3_hardware_interface.h"
 #include "bucket_o_functions.h"
 #include <math.h>
 #include "scum_radio_bsp.h"

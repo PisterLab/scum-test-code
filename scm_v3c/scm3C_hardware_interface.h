@@ -7,7 +7,7 @@ void radio_init_rx_ZCC(void);
 void radio_init_tx(void);
 void radio_init_divider(unsigned int div_value);
 void radio_disable_all(void);
-void GPO_control(unsigned char row1, unsigned char row2, unsigned char row3, unsigned char row4)
+void GPO_control(unsigned char row1, unsigned char row2, unsigned char row3, unsigned char row4);
 void GPI_control(char row1, char row2, char row3, char row4);
 unsigned int read_IF_estimate(void);
 unsigned int read_LQI(void);

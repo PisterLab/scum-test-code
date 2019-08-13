@@ -1,10 +1,10 @@
-// #include "Memory_Map.h"
-// #include "rf_global_vars.h"
-// #include <stdio.h>
-// #include "scm3C_hardware_interface.h"
-// #include "scm3_hardware_interface.h"
-// #include "scum_radio_bsp.h"
-// #include "bucket_o_functions.h"
+#include "Memory_Map.h"
+#include "rf_global_vars.h"
+#include <stdio.h>
+#include "scm3C_hardware_interface.h"
+#include "scm3_hardware_interface.h"
+#include "scum_radio_bsp.h"
+#include "bucket_o_functions.h"
 
 extern char send_packet[127];
 extern char recv_packet[130];
