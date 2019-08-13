@@ -92,9 +92,6 @@ int main(void) {
 	optical_cal_finished = 0;
 
 	printf("Cal complete\n");
-	
-	test_get_asc_bit();
-	test_get_GPIO_enables();
 
 	while(1) {
 		for(t=0; t<10000; t++);

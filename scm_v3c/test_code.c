@@ -16,13 +16,19 @@ void test_get_asc_bit(void) {
 		set_asc_bit(i);
 		ASC_bit = get_asc_bit(i);
 		if (ASC_bit != 1) {
-			printf("Incorrect at index %d", i);
+			printf("Incorrect at index %d \n", i);
+		}
+		else {
+			printf("ok %d \n", i);
 		}
 
 		clear_asc_bit(i);
 		ASC_bit = get_asc_bit(i);
 		if (ASC_bit != 0) {
-			printf("Incorrect at index %d", i);
+			printf("Incorrect at index %d \n", i);
+		}
+		else {
+			printf("ok %d \n", i);
 		}
 	}
 }
@@ -40,17 +46,23 @@ void test_get_GPIO_enables(void) {
 
 	for(i=0; i<0xFFFF; i++) {
 		GPI_enables(i);
-		GPO_enables(~i);
+		GPO_enables(i);
 
 		gpi_mask = get_GPI_enables();
 		gpo_mask = get_GPO_enables();
 
 		if (gpi_mask != i) {
-			printf("GPI should be %X, got %X", i, gpi_mask);
+			printf("GPI should be %X, got %X\n", i, gpi_mask);
+		}
+		else {
+			printf("ok %X \n", gpi_mask);
 		}
 
-		if (gpo_mask != ~i) {
-			printf("GPO should be %X, got %X", ~i, gpo_mask);
+		if (gpo_mask != i) {
+			printf("GPO should be %X, got %X\n", i, gpo_mask);
+		}
+		else {
+			printf("ok %X \n", gpo_mask);
 		}
 	}
 

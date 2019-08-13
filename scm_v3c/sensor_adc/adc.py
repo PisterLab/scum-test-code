@@ -16,6 +16,7 @@ from data_handling import *
 from cortex import *
 from adc_fsm import *
 
+
 def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iterations=1,
 		gpio_settings=dict()):
 	"""
@@ -321,11 +322,11 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 
 
 if __name__ == "__main__":
-	programmer_port = "COM14"
-	scm_port = "COM26"
+	programmer_port = "COM15"
+	scm_port = "COM30"
 
 	### Testing programming the cortex ###
-	if False:
+	if True:
 		program_cortex_specs = dict(teensy_port=programmer_port,
 									uart_port=scm_port,
 									file_binary="../code.bin",
@@ -337,7 +338,7 @@ if __name__ == "__main__":
 
 	### Programming the Cortex and then attempting to ###
 	### run a spot check with the ADC.				  ###
-	if True:
+	if False:
 		test_adc_spot_specs = dict(
 			port=scm_port,
 			iterations=10)

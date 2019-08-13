@@ -242,8 +242,6 @@ unsigned int get_asc_bit(unsigned int position) {
 	Outputs:
 		The bit (the LSB of unsigned int form) at the particular
 		position in the analog scan chain.
-	Note:
-		Untested!
 	*/
 	unsigned int word_index = position >> 5;
 	unsigned int ASC_word_rev = reverse(ASC[word_index]);

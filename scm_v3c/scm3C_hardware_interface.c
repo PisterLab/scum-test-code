@@ -147,7 +147,6 @@ void GPO_enables(unsigned int mask){
 	unsigned int j;
 	
 	for (j = 0; j <= 15; j++) { 
-	
 		if((mask >> j) & 0x1)
 			clear_asc_bit(asc_locations[j]);
 		else	
@@ -181,8 +180,6 @@ unsigned int get_GPI_enables(void) {
 	Outputs:
 		Returns the mask for the GPI enables in unsigned
 		int form. Note that this is intended to be 2 bytes long.
-	Notes;
-		Untested.
 	*/
 	unsigned int gpi_enables = 0x0000;
 	// LSB -> MSB
@@ -202,15 +199,13 @@ unsigned int get_GPO_enables(void) {
 	Outputs:
 		Returns the mask for the GPO enables in unsigned int form.
 		Note that this is intended to be 2 bytes long.
-	Notes:
-		Untested.
 	*/
-	unsigned int gpo_enables;
+	unsigned int gpo_enables = 0x0000;
 	// LSB -> MSB
 	unsigned short asc_locations[16] = {1131,1133,1135,1137,1140,1142,1144,1146,1115,1117,1119,1121,1124,1126,1128,1130};
 	int i;
 	for (i=0; i<16; i++) {
-		gpo_enables |= (get_asc_bit(asc_locations[i] << i));
+		gpo_enables |= ((0x1-get_asc_bit(asc_locations[i])) << i);
 	}
 	return gpo_enables;
 }
@@ -1205,9 +1200,9 @@ void initialize_mote(){
 	init_ldo_control();
 
 	// Set LDO reference voltages
-	set_VDDD_LDO_voltage(0);
+	// set_VDDD_LDO_voltage(0);
 	//set_AUX_LDO_voltage(0);
-	// set_ALWAYSON_LDO_voltage(0);
+	set_ALWAYSON_LDO_voltage(0);
 		
 	// Select banks for GPIO inputs
 	// GPI_control(0,0,0,0);
@@ -1278,15 +1273,15 @@ void initialize_mote(){
 	radio_init_divider(2000);
 
 	// SENSOR ADC INITIALIZATION
-	if (1) {
+	if (0) {
 		unsigned int sel_reset 			= 1;
 		unsigned int sel_convert 		= 1;
 		unsigned int sel_pga_amplify 	= 1;
 		unsigned int pga_gain[8] 		= {0,0,0,0, 0,0,0,0};
 		unsigned int adc_settle[8] 		= {1,1,1,1, 1,1,1,1};
-		unsigned int bgr_tune[7] 		= {0,0,0, 0,1,1,0};
+		unsigned int bgr_tune[7] 		= {0,0,0, 0,0,0,1};
 		unsigned int constgm_tune[8] 	= {1,1,1,1, 1,1,1,1};
-		unsigned int vbatDiv4_en 		= 1;
+		unsigned int vbatDiv4_en 		= 0;
 		unsigned int ldo_en 			= 1;
 		unsigned int input_mux_sel[2] 	= {1,0};
 		unsigned int pga_byp 			= 1;
