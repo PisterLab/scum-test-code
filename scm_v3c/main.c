@@ -15,6 +15,7 @@
 #include <math.h>
 #include "scum_radio_bsp.h"
 #include "test_code.h"
+#include "./sensor_adc/adc_test.h"
 
 extern unsigned int current_lfsr;
 
@@ -88,10 +89,11 @@ int main(void) {
 	ISER = 0x0800;
 	
 	// Wait for optical cal to finish
-	while(optical_cal_finished == 0);
-	optical_cal_finished = 0;
+	// while(optical_cal_finished == 0);
+	// optical_cal_finished = 0;
 
-	printf("Cal complete\n");
+	// printf("Cal complete\n");
+
 
 	while(1) {
 		for(t=0; t<10000; t++);

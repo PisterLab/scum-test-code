@@ -4,6 +4,12 @@
 #include "../scm3_hardware_interface.h"
 #include "../scm3C_hardware_interface.h"
 
+/*
+2019.
+This file contains the C functions to configure scan for various
+ADC tests. This is _only_ for functions which configure SCM
+to run ADC tests; don't put any actual test code in here!
+*/
 
 void prog_asc_bit(unsigned int position, unsigned int val){
 	/*
@@ -15,7 +21,6 @@ void prog_asc_bit(unsigned int position, unsigned int val){
 		No return value. Sets the value in the ASC with the proper 
 		masking, etc. given the input boolean value.
 	*/
-	// unsigned int index = position >> 5;
 	if (val != 0) {
 		set_asc_bit(position);
 	}

@@ -51,6 +51,19 @@ def trigger_gpi(teensy_ser, adc_settle_cycles, pga_bypass, pga_settle_us):
 	teensy_ser.write(pga_settle_us)
 	return
 
+def trigger_gpio_loopback(uart_ser):
+	"""
+	Inputs:
+		uart_ser: The serial connection (type Serial) associated with the UART
+			serial connection. This is _not_ a string!
+	Outputs: 
+		No return value. Triggers potentially multiple ADC conversions via UART.
+		Assumes that GPIO loopback is being used to control the ADC.
+	"""
+	uart_ser.write(b'meh\n')
+	return
+
+
 def read_uart(uart_ser):
 	"""
 	Inputs:

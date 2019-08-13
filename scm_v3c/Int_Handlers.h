@@ -5,6 +5,7 @@
 #include "scm3_hardware_interface.h"
 #include "scum_radio_bsp.h"
 #include "bucket_o_functions.h"
+#include "sensor_adc/adc_test.h"
 
 extern char send_packet[127];
 extern char recv_packet[130];
@@ -72,10 +73,14 @@ short adc_outs[5];	// Modify the size of the array to the number
 						// of readings you'd like
 unsigned int adc_outs_idx = 0;
 size_t adc_outs_size = sizeof(adc_outs)/sizeof(short);
-unsigned int adc_triggered;
-unsigned int ADC_DATA_VALID;
-unsigned int adc_data;
+unsigned int ADC_DATA_VALID = 0;
 
+// Sensor ADC loopback
+unsigned int num_samples = 10;
+unsigned int cycles_reset = 100;
+unsigned int cycles_to_start = 100;
+unsigned int cycles_pga = 100;
+unsigned int cycles_after = 50;
 
 void UART_ISR(){	
 	static char i=0;
@@ -146,8 +151,10 @@ void UART_ISR(){
 		  printf("Starting ADC conversion\n");
 		// Initiate an ADC conversion with GPIO loopback control of the FSM
 		} else if ((buff[3]=='m') && (buff[2]=='e') && (buff[1]=='h') && (buff[0]=='\n')) {
-			ADC_REG__START = 0x1;
 			printf("Starting loopback ADC conversion\n");
+			gpio_loopback_control_adc(num_samples, cycles_reset,
+								cycles_to_start, cycles_pga,
+								cycles_after);
 		}
 		// Uses the radio timer to send TX_LOAD in 0.5s, TX_SEND in 1s, capture when SFD is sent and capture when packet is sent
 		else if ( (buff[3]=='a') && (buff[2]=='t') && (buff[1]=='x') && (buff[0]=='\n') ) {
@@ -216,14 +223,12 @@ void UART_ISR(){
 }
 
 
-
 void ADC_base_ISR() {
-	printf("%d\n", ADC_REG__DATA);
-}
-
-void ADC_GPIO_ISR() {
-	adc_data = ADC_REG__DATA;
+	/*
+	Starter ISR for when the ADC triggers.
+	*/
 	ADC_DATA_VALID = 1;
+	printf("%d\n", ADC_REG__DATA);
 }
 
 void ADC_mem_ISR() {
@@ -234,6 +239,8 @@ void ADC_mem_ISR() {
 
 	When taking readings, also printf's the ADC value held in 
 	ADC_REG__DATA
+
+	Untested.
 	*/
 
 	// Avoid overstepping the bounds of the array
@@ -276,8 +283,7 @@ void ADC_mem_ISR() {
 }
 
 void ADC_ISR() {
-	ADC_GPIO_ISR();
-	// ADC_base_ISR();
+	ADC_base_ISR();
 }
 
 
