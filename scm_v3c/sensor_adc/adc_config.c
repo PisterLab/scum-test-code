@@ -134,8 +134,8 @@ void gpio_loopback_config_adc(void) {
 	unsigned int gpo_mask = get_GPO_enables();
 	unsigned int gpi_mask = get_GPI_enables();
 	
-	gpo_mask |= 0xE000;
-	gpi_mask |= 0xE000;
+	gpo_mask |= 0x0027;
+	gpi_mask |= 0x0007;
 	
 	GPO_enables(gpo_mask);
 	GPI_enables(gpi_mask);

@@ -160,7 +160,8 @@ def test_adc_psu(
 		psu.write("SOURCE2:VOLTAGE:OFFSET {}".format(vin))
 		for i in range(iterations):
 			if control_mode == 'uart':
-				trigger_uart(ser)
+				# trigger_uart(ser)
+				trigger_gpio_loopback(ser)
 			elif control_mode == 'gpio':
 				adc_settle_cycles = gpio_settings['adc_settle_cycles']
 				pga_bypass = gpio_settings['pga_bypass']
@@ -188,6 +189,39 @@ def test_adc_psu(
 	psu.close()
 	
 	return adc_outs
+
+def test_adc_spot_loopback(port="COM16", iterations=1):
+	"""
+	Inputs:
+		port: String. Name of the COM port that the UART or the reading Teensy
+			is connected to.
+	Outputs:
+		Returns an ordered collection of ADC output codes where the 
+		ith element corresponds to the ith reading. Note that this assumes 
+		that SCM has already been programmed.
+	"""
+	adc_outs = []
+
+	ser = serial.Serial(
+		port=port,
+		baudrate=19200,
+		parity=serial.PARITY_NONE,
+		stopbits=serial.STOPBITS_ONE,
+		bytesize=serial.EIGHTBITS,
+		timeout=.5)
+
+	trigger_gpio_loopback(ser)
+	for i in range(iterations):
+		print(ser.readline())
+		print(ser.readline())
+		print(ser.readline())
+		print(ser.readline())
+		# adc_out = read_uart(ser)
+		# print(adc_out)
+		# adc_outs.append(adc_out)
+
+	return adc_outs
+
 
 def test_adc_dnl(vin_min, vin_max, num_bits, 
 		port="COM18", control_mode='uart', read_mode='uart',
@@ -323,7 +357,7 @@ def test_adc_inl_endpoint(vin_min, vin_max, num_bits,
 
 if __name__ == "__main__":
 	programmer_port = "COM15"
-	scm_port = "COM30"
+	scm_port = "COM24"
 
 	### Testing programming the cortex ###
 	if True:
@@ -336,12 +370,21 @@ if __name__ == "__main__":
 									pad_random_payload=False,)
 		program_cortex(**program_cortex_specs)
 
-	### Programming the Cortex and then attempting to ###
-	### run a spot check with the ADC.				  ###
+	### Running a spot check with the ADC using the 	 ###
+	### UART to trigger the software-driven FSM triggers ###
+	if True:
+		test_adc_spot_loopback_specs = dict(
+			port=scm_port,
+			iterations=10)
+
+		test_adc_spot_loopback(**test_adc_spot_loopback_specs)
+
+	### Running a spot check with the ADC using the UART ###
+	### to trigger a single reading. 					 ###
 	if False:
 		test_adc_spot_specs = dict(
 			port=scm_port,
-			iterations=10)
+			iterations=50)
 		adc_out = test_adc_spot(**test_adc_spot_specs)
 		print(adc_out)
 		adc_out_dict = dict()

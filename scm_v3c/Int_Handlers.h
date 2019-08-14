@@ -76,11 +76,11 @@ size_t adc_outs_size = sizeof(adc_outs)/sizeof(short);
 unsigned int ADC_DATA_VALID = 0;
 
 // Sensor ADC loopback
-unsigned int num_samples = 10;
-unsigned int cycles_reset = 100;
-unsigned int cycles_to_start = 100;
-unsigned int cycles_pga = 100;
-unsigned int cycles_after = 50;
+unsigned int num_samples = 1000;
+unsigned int cycles_reset = 10;
+unsigned int cycles_to_start = 10;
+unsigned int cycles_pga = 10;
+unsigned int cycles_after = 5000;
 
 void UART_ISR(){	
 	static char i=0;
