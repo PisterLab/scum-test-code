@@ -372,7 +372,7 @@ if __name__ == "__main__":
 
 	### Running a spot check with the ADC using the 	 ###
 	### UART to trigger the software-driven FSM triggers ###
-	if True:
+	if False:
 		test_adc_spot_loopback_specs = dict(
 			port=scm_port,
 			iterations=10)
@@ -395,13 +395,13 @@ if __name__ == "__main__":
 
 	### Running many iterations on a large ###
 	### sweep. ###
-	if False:
-		test_adc_psu_specs = dict(vin_vec=np.arange(0, 0.9, 0.5e-3),
+	if True:
+		test_adc_psu_specs = dict(vin_vec=np.arange(0, 1.0, 0.1e-3),
 								port=scm_port,
 								control_mode='uart',
 								read_mode='uart',
 								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
-								iterations=100,
+								iterations=50,
 								gpio_settings=dict())
 		adc_outs = test_adc_psu(**test_adc_psu_specs)
 
