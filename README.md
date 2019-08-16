@@ -14,4 +14,4 @@
     * Arduino IDE (`arduino-1.8.9-windows.zip` known to work)
     * Teensyduino (`TeensyduinoInstall.exe` known to work)
 * connect both Teensy+SCuM board to computer, creates a COM port for each
-* run `scum-test-code\scm_v3c\3wb.py`
+* run `scum-test-code\scm_v3c\bootload.py`

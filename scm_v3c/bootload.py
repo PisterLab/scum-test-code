@@ -137,3 +137,16 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		uart_ser.close()
 
 	return
+
+if __name__ == "__main__":
+	programmer_port = "COM15"
+	scm_port = None
+
+	program_cortex_specs = dict(teensy_port=programmer_port,
+									uart_port=scm_port,
+									file_binary="./code.bin",
+									boot_mode="optical",
+									skip_reset=False,
+									insert_CRC=True,
+									pad_random_payload=False,)
+	program_cortex(**program_cortex_specs)
