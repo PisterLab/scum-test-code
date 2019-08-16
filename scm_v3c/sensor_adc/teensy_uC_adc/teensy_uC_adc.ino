@@ -1112,6 +1112,7 @@ void bootload_3wb()  {
 
   // Execute hard reset
   pinMode(hReset, OUTPUT);
+  digitalWrite(hReset, LOW);
   delayMicroseconds(500);
   pinMode(hReset, INPUT);
   delayMicroseconds(500);
