@@ -68,19 +68,15 @@ extern unsigned short current_RF_channel;
 
 extern unsigned short do_debug_print;
 
-// Sensor ADC
-short adc_outs[5];	// Modify the size of the array to the number
-						// of readings you'd like
-unsigned int adc_outs_idx = 0;
-size_t adc_outs_size = sizeof(adc_outs)/sizeof(short);
+// Sensor ADC: General
 unsigned int ADC_DATA_VALID = 0;
+unsigned int ADC_CONTINUOUS = 0;
+unsigned int ADC_STOP = 0;
 
-// Sensor ADC loopback
-unsigned int num_samples = 1000;
+// Sensor ADC: Loopback-specific
 unsigned int cycles_reset = 10;
 unsigned int cycles_to_start = 10;
 unsigned int cycles_pga = 10;
-unsigned int cycles_after = 5000;
 
 void UART_ISR(){	
 	static char i=0;
@@ -145,16 +141,40 @@ void UART_ISR(){
 		
 			printf("power=%d, reset=%d, %d\n",ANALOG_CFG_REG__10,ANALOG_CFG_REG__4,doing_initial_packet_search);
 		
-		// Initiates an ADC conversion
-	  	} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='c') && (buff[0]=='\n') ) {
-		  ADC_REG__START = 0x1;
-		  printf("Starting ADC conversion\n");
-		// Initiate an ADC conversion with GPIO loopback control of the FSM
-		} else if ((buff[3]=='m') && (buff[2]=='e') && (buff[1]=='h') && (buff[0]=='\n')) {
-			printf("Starting loopback ADC conversion\n");
-			gpio_loopback_control_adc(num_samples, cycles_reset,
-								cycles_to_start, cycles_pga,
-								cycles_after);
+		// Initiate a single on-chip FSM-driven ADC conversion
+	  	} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='1') && (buff[0]=='\n') ) {
+		 	printf("Starting on-chip FSM ADC conversion\n");
+		 	ADC_DATA_VALID = 0;
+		 	onchip_control_adc_shot();
+		// Initiate a single ADC conversion with loopback control of the ADC
+		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='2') && (buff[0]=='\n') ) {
+		 	printf("Starting loopback-controlled ADC conversion\n");
+		 	ADC_DATA_VALID = 0;
+		 	loopback_control_adc_shot(cycles_reset, cycles_to_start, cycles_pga);
+		// Initiate a single ADC conversion with external GPIO control of the ADC
+		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='3') && (buff[0]=='\n') ) {
+			printf("Starting externally-driven GPIO ADC conversion");
+			ADC_DATA_VALID = 0;
+			// TODO
+		// Initiate continuous on-chip FSM-driven ADC conversions
+		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='4') && (buff[0]=='\n') ) {
+			printf("Starting continuous on-chip FSM ADC conversions\n");
+			ADC_DATA_VALID = 0;
+			onchip_control_adc_continuous();
+		// Initiate continuous loopback-controlled ADC conversions 
+		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='5') && (buff[0]=='\n') ) {
+			printf("Starting continuous loopback-controlled ADC conversions\n");
+			ADC_DATA_VALID = 0;
+			loopback_control_adc_continuous(cycles_reset, cycles_to_start, cycles_pga);
+		// Initiate continuous external GPIO-controlled ADC conversions
+		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='6') && (buff[0]=='\n') ) {
+			printf("Starting continuous externally-criven GPIO ADC conversions\n");
+			ADC_DATA_VALID = 0;
+			// TODO
+		// Halt a continuous ADC run, otherwise does nothing
+		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='0') && (buff[0]=='\n') ) {
+			printf("Halting continuous ADC run\n");
+			halt_adc_continuous();
 		}
 		// Uses the radio timer to send TX_LOAD in 0.5s, TX_SEND in 1s, capture when SFD is sent and capture when packet is sent
 		else if ( (buff[3]=='a') && (buff[2]=='t') && (buff[1]=='x') && (buff[0]=='\n') ) {
@@ -222,68 +242,9 @@ void UART_ISR(){
 	}
 }
 
-
-void ADC_base_ISR() {
-	/*
-	Starter ISR for when the ADC triggers.
-	*/
+void ADC_ISR() {
 	ADC_DATA_VALID = 1;
 	printf("%d\n", ADC_REG__DATA);
-}
-
-void ADC_mem_ISR() {
-	/*
-	Writes the ADC value to memory. If the memory for ADC values is 
-	filled, it starts bit-banging GPIO1 as the clock and GPIO2 as the 
-	bit value.
-
-	When taking readings, also printf's the ADC value held in 
-	ADC_REG__DATA
-
-	Untested.
-	*/
-
-	// Avoid overstepping the bounds of the array
-	if (adc_outs_idx < adc_outs_size) {
-		// Store the value in memory
-		adc_outs[adc_outs_idx] = (short)ADC_REG__DATA;
-		
-		// Increment the location memory
-		adc_outs_idx++;
-
-		// Write the value over UART
-		printf("%d\n", ADC_REG__DATA);
-	}
-	else {
-		// If you've filled up, start bit-banging the clock and GPIO
-		int i;
-		int j;
-		for (adc_outs_idx=0; adc_outs_idx<adc_outs_size; adc_outs_idx++) {
-			// Read the ADC data out MSB first
-			for (i=0; i<10; i++) {
-				short gpio_val = (adc_outs[adc_outs_idx] >> (9-i)) & 1;
-				if (gpio_val) {
-					GPIO_REG__OUTPUT |= 0x6;
-				}
-				else {
-					GPIO_REG__OUTPUT |= 0x2;
-				}
-
-				// Wait a wee bit
-				for (j=0; j<5; j++) {}
-
-				// Set the clock low
-				GPIO_REG__OUTPUT &= ~(0x2);
-
-				// Wait a wee bit longer
-				for (j=0; j<5; j++) {}
-			}
-		}
-	}
-}
-
-void ADC_ISR() {
-	ADC_base_ISR();
 }
 
 

@@ -14,19 +14,16 @@ to run ADC tests; don't put any actual test code in here!
 void prog_asc_bit(unsigned int position, unsigned int val){
 	/*
 	Inputs:
-		position: Unsigned integer. The position in the ASC to change.
+		position: Unsigned integer. The position in the ASC to change, e.g.
+			setting scan bit 10 to 1 should be prog_asc_bit(10,1)
 		val: Unsigned integer. Nonzero if the value should be set to 1, 
 			zero if it should be set to 0.
 	Outputs:
 		No return value. Sets the value in the ASC with the proper 
-		masking, etc. given the input boolean value.
+		masking, etc. given the input 'val'.
 	*/
-	if (val != 0) {
-		set_asc_bit(position);
-	}
-	else {
-		clear_asc_bit(position);
-	}
+	if (val != 0) {set_asc_bit(position);}
+	else {clear_asc_bit(position);}
 }
 
 
@@ -127,9 +124,7 @@ void gpio_loopback_config_adc(void) {
 	Outputs:
 		No return value. Enables I/O buffers for the GPIOs and sets the 
 		appropriate banks for the GPIOs. Does not disable any buffers 
-		from their initial setting.
-
-		Untested.
+		from their initial setting; enable only.
 	*/
 	unsigned int gpo_mask = get_GPO_enables();
 	unsigned int gpi_mask = get_GPI_enables();
@@ -144,7 +139,7 @@ void gpio_loopback_config_adc(void) {
 	GPI_control(3,0,0,0);
 }
 
-void gpio_config_adc(unsigned int gpi_control, unsigned int gpo_read) {
+void gpio_onchip_config_adc(unsigned int gpi_control, unsigned int gpo_read) {
 	/*
 	Inputs:
 		gpi_control: 0 or 1. True = control the FSM via GPI

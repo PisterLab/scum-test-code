@@ -21,6 +21,10 @@ scan settings are set appropriately (see adc_config.c)
 #define GPIO_REG__ADC_RESET		0x0001
 
 extern unsigned int ADC_DATA_VALID;
+extern unsigned int ADC_CONTINUOUS;	// 0 if a continuous run is not occurring. Otherwise, 
+									// a continuous run is occurring.
+extern unsigned int ADC_STOP;		// 0 if a continuous run is not being stopped. Otherwise,
+									// used to stop continuous ADC conversions.
 
 void reset_adc(unsigned int cycles_low) {
 	/*
@@ -33,10 +37,10 @@ void reset_adc(unsigned int cycles_low) {
 	int i;
 	GPIO_REG__OUTPUT &= (~GPIO_REG__ADC_CONVERT);
 	GPIO_REG__OUTPUT |= GPIO_REG__PGA_AMPLIFY;
-	printf("About to pull reset low...%X\n",GPIO_REG__OUTPUT);
+
 	// Pull reset low
 	GPIO_REG__OUTPUT &= (~GPIO_REG__ADC_RESET);
-	printf("Reset low %X\n", GPIO_REG__OUTPUT);
+
 	// Wait a bit
 	for (i=0; i<cycles_low; i++) {}
 
@@ -44,66 +48,116 @@ void reset_adc(unsigned int cycles_low) {
 	GPIO_REG__OUTPUT |= GPIO_REG__ADC_RESET;
 }
 
-void gpio_loopback_control_adc(unsigned int num_samples, unsigned int cycles_reset,
-							unsigned int cycles_to_start, unsigned int cycles_pga,
-							unsigned int cycles_after) {
+void onchip_control_adc_shot(void) {
 	/*
 	Inputs:
-		num_samples: Integer. Number of readings you'd like to get from the ADC.
+		No inputs.
+	Outputs:
+		No return value. Triggers a single ADC reading where the 
+		ADC is controlled by the on-chip FSM.
+	*/
+	ADC_REG__START = 0x1;
+}
+
+void loopback_control_adc_shot(unsigned int cycles_reset,
+							unsigned int cycles_to_start, unsigned int cycles_pga){
+	/*
+	Inputs:
 		cycles_reset: Number of cycles to keep the resetb pulled low.
 		cycles_to_start: Number of cycles after resetting until continuing with the
 			rest of the FSM.
 		cycles_pga: Number of cycles for the PGA to settle.
-		cycles_after: Number of cycles to wait after each conversion for various other
-			processes to finish (if necessary).
 	Outputs:
 		No return value. Uses the Cortex and GPIO loopback to progress the ADC
 		FSM and printf's the value read from the ADC output register.
 	Notes:
 		This assumes that the GPIO settings have already been established. See
-		adc_config/gpio_loopback_config_adc(). This reads from the ADC data register,
+		adc_config/gpio_loopback_config_adc(). This printf's from the ADC data register,
 		not the GPOs.
 	*/
-	unsigned int count_samples;
 	unsigned int count_cycles;
+	ADC_REG__START = 0x1;
 
-	// for (count_samples=0; count_samples<num_samples; count_samples++) {
-	while (1) {
-		// It should have already gone off the first time, but this is for subsequent 
-		// conversions
-		// printf("Starting\n");
-		ADC_REG__START = 0x1;
+	// Unset the convert + amplify signals + reset the ADC
+	reset_adc(cycles_reset);
 
-		// printf("Resetting ADC...%X\n", GPIO_REG__OUTPUT);
-		// Unset the convert + amplify signals
-		// Reset the ADC
-		reset_adc(cycles_reset);
-		// printf("ADC reset %X\n", GPIO_REG__OUTPUT);
+	// Wait some time for any potentiometric sensors to converge
+	for (count_cycles=0; count_cycles<cycles_to_start; count_cycles++) {}
 
-		ADC_DATA_VALID = 0;
+	// Set the PGA to amplify mode and wait for it to settle
+	GPIO_REG__OUTPUT &= ~GPIO_REG__PGA_AMPLIFY;
+	for(count_cycles=0; count_cycles<cycles_pga; count_cycles++) {}
 
-		// Wait some time for any potentiometric sensors to converge
-		// printf("Waiting some cycles to start...\n");
-		for (count_cycles=0; count_cycles<cycles_to_start; count_cycles++) {}
+	// Set the ADC to convert and wait for the thing to finish
+	// The ISR will print out the ADC reading value
+	GPIO_REG__OUTPUT |= GPIO_REG__ADC_CONVERT;
 
-
-		// Set the PGA to amplify mode and wait for it to settle
-		GPIO_REG__OUTPUT &= ~GPIO_REG__PGA_AMPLIFY;
-		// printf("Waiting some cycles for the PGA to settle %X\n",GPIO_REG__OUTPUT);
-		for(count_cycles=0; count_cycles<cycles_pga; count_cycles++) {}
-
-		// Set the ADC to convert and wait for the thing to finish
-		// The ISR will print out the ADC reading value
-		GPIO_REG__OUTPUT |= GPIO_REG__ADC_CONVERT;
-		// printf("Waiting on the ADC data to be valid %X\n", GPIO_REG__OUTPUT);
-
-		for (count_cycles=0; count_cycles<1000; count_cycles++) {}
-		printf("%d\n",ADC_REG__DATA);
-		// while (~ADC_DATA_VALID) {}
-		
-	}
-
-	// Wait some time for other processes to finish
-	for (count_cycles=0; count_cycles<cycles_after; count_cycles++) {}
+	while (~ADC_DATA_VALID) {}
 }
 
+void onchip_control_adc_continuous(void) {
+	/*
+	Inputs:
+		No inputs.
+	Outputs:
+		No return value. Repeatedly triggers ADC readings where the ADC is 
+		controlled by the on-chip FSM. Halts when ADC_STOP is nonzero.
+	Notes:
+		Untested.
+	*/
+	// Flagging that nonstop conversions have started
+	ADC_CONTINUOUS = 1;
+
+	// Keep going until the flag is raised
+	while (~ADC_STOP) {
+		ADC_DATA_VALID = 0;
+		onchip_control_adc_shot();
+		while (~ADC_DATA_VALID) {};
+	}
+
+	// Reset start and stop flags 
+	ADC_STOP = 0;
+	ADC_CONTINUOUS = 0;
+}
+
+void loopback_control_adc_continuous(unsigned int cycles_reset,
+							unsigned int cycles_to_start, unsigned int cycles_pga) {
+	/*
+	Inputs:
+		cycles_reset: Number of cycles to keep the resetb pulled low.
+		cycles_to_start: Number of cycles after resetting until continuing with the
+			rest of the FSM.
+		cycles_pga: Number of cycles for the PGA to settle.
+	Outputs:
+		No return value. Uses the Cortex and GPIO loopback to progress the ADC
+		FSM and printf's the value read from the ADC output register.
+	Notes:
+		This assumes that the GPIO settings have already been established. See
+		adc_config/gpio_loopback_config_adc(). This printf's from the ADC data register,
+		not the GPOs.
+	Notes:
+		Untested.
+	*/
+	ADC_CONTINUOUS = 1;
+	while (~ADC_STOP) {
+		ADC_DATA_VALID = 0;
+		loopback_control_adc_shot(cycles_reset, cycles_to_start, cycles_pga);
+	}
+	ADC_STOP = 0;
+	ADC_CONTINUOUS = 0;
+}
+
+void halt_adc_continuous(void) {
+	/*
+	Inputs:
+		No inputs.
+	Outputs:
+		No return value. If a continuous ADC run has been started, halt it.
+		Otherwise, do nothing.
+	Notes:
+		Untested.
+	*/
+	if (ADC_CONTINUOUS) {ADC_STOP = 1;}
+	ADC_DATA_VALID = 0;
+	return;
+}

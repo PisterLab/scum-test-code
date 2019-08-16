@@ -6,4 +6,4 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	unsigned int vbatDiv4_en, unsigned int ldo_en,
 	unsigned int input_mux_sel[], unsigned int pga_byp);
 void gpio_loopback_config_adc(void);
-void gpio_config_adc(unsigned int gpi_control, unsigned int gpo_read);
+void gpio_onchip_config_adc(unsigned int gpi_control, unsigned int gpo_read);
