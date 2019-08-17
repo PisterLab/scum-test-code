@@ -124,7 +124,8 @@ void gpio_loopback_config_adc(void) {
 	Outputs:
 		No return value. Enables I/O buffers for the GPIOs and sets the 
 		appropriate banks for the GPIOs. Does not disable any buffers 
-		from their initial setting; enable only.
+		from their initial setting. note that this _does_ overwrite any
+		bank settings.
 	*/
 	unsigned int gpo_mask = get_GPO_enables();
 	unsigned int gpi_mask = get_GPI_enables();
@@ -137,6 +138,25 @@ void gpio_loopback_config_adc(void) {
 
 	GPO_control(6,9,9,9);
 	GPI_control(3,0,0,0);
+}
+
+void gpio_read_config_adc(void) {
+	/*
+	Inputs:
+		No inputs.
+	Outputs:
+		No return value. Enables the relevant GPIO buffers
+		and sets the banks appropritaely to have the sensor ADC output
+		come from the GPOs. Does not disable any buffers from their 
+		initial setting. Note that this does overwrite any
+		bank settings.
+	*/
+	unsigned int gpo_mask = get_GPO_enables();
+	gpo_mask |= 0xFFC0;
+
+	GPO_enables(gpo_mask);
+
+	GPO_control(6,9,9,9);
 }
 
 void gpio_onchip_config_adc(unsigned int gpi_control, unsigned int gpo_read) {

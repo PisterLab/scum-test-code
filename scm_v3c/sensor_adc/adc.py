@@ -76,6 +76,17 @@ def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iteration
 		adc_out = read_func(ser)
 		adc_outs.append(adc_out)
 	
+		# TODO: atm we're soft resetting, but this shouldn't 
+		# be necessary.
+		ser.write(b'sft\n')
+		print(ser.readline())
+		print(ser.readline())
+		print(ser.readline())
+		print(ser.readline())
+		print(ser.readline())
+		print(ser.readline())
+
+		
 	# Due diligence
 	ser.close()
 
@@ -182,29 +193,29 @@ def test_adc_psu(
 
 if __name__ == "__main__":
 	programmer_port = "COM15"
-	scm_port = "COM24"
+	scm_port = "COM23"
+
 	control_mode = 'loopback'
 	read_mode = 'uart'
 
-	### Testing programming the cortex ###
-	if False:
+	### Program the cortex ###
+	if True:
 		program_cortex_specs = dict(teensy_port=programmer_port,
 									uart_port=scm_port,
 									file_binary="../code.bin",
 									boot_mode="optical",
 									skip_reset=False,
 									insert_CRC=True,
-									pad_random_payload=False,)
+									pad_random_payload=False)
 		program_cortex(**program_cortex_specs)
 
-	### Running a spot check with the ADC using the UART ###
-	### to trigger a single reading. 					 ###
-	if False:
+	### Running a spot check with the ADC ###
+	if True:
 		test_adc_spot_specs = dict(
 			port=scm_port,
 			control_mode=control_mode,
 			read_mode=read_mode,
-			iterations=50)
+			iterations=3)
 		adc_out = test_adc_spot(**test_adc_spot_specs)
 		print(adc_out)
 		adc_out_dict = dict()

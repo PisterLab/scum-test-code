@@ -72,7 +72,6 @@ def read_uart(uart_ser):
 		return 2048
 	else:
 		adc_out_str = adc_out_raw.decode('utf-8').replace('\n', '')
-
 	try:
 		adc_out = int(adc_out_str)
 	except ValueError:

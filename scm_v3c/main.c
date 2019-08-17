@@ -49,7 +49,8 @@ unsigned int cal_iteration = 0;
 unsigned int run_test_flag = 0;
 unsigned int num_packets_to_test = 1;
 
-unsigned short optical_cal_iteration = 0, optical_cal_finished = 0;
+unsigned short optical_cal_iteration = 0;
+unsigned short optical_cal_finished = 0;
 
 unsigned short doing_initial_packet_search;
 unsigned short current_RF_channel;
@@ -63,9 +64,8 @@ int main(void) {
 	int t;
 	unsigned int calc_crc;
 	
-	printf("Initializing...");
-		
 	// Set up mote configuration
+	printf("Initializing...");
 	initialize_mote();
 	
 	// Check CRC
@@ -89,10 +89,13 @@ int main(void) {
 	ISER = 0x0800;
 	
 	// Wait for optical cal to finish
-	// while(optical_cal_finished == 0);
-	// optical_cal_finished = 0;
+	while(optical_cal_finished == 0) {}
+	optical_cal_finished = 0;
+	// for (t=0; t<1000; t++) {
+		// printf("%d\n",optical_cal_finished);
+	// }
 
-	// printf("Cal complete\n");
+	printf("Cal complete\n");
 
 
 	while(1) {

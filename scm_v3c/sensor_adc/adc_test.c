@@ -20,10 +20,10 @@ scan settings are set appropriately (see adc_config.c)
 #define GPIO_REG__ADC_CONVERT	0x0002
 #define GPIO_REG__ADC_RESET		0x0001
 
-extern unsigned int ADC_DATA_VALID;
-extern unsigned int ADC_CONTINUOUS;	// 0 if a continuous run is not occurring. Otherwise, 
+unsigned short ADC_DATA_VALID;
+unsigned short ADC_CONTINUOUS = 0;	// 0 if a continuous run is not occurring. Otherwise, 
 									// a continuous run is occurring.
-extern unsigned int ADC_STOP;		// 0 if a continuous run is not being stopped. Otherwise,
+unsigned short ADC_STOP = 0;		// 0 if a continuous run is not being stopped. Otherwise,
 									// used to stop continuous ADC conversions.
 
 void reset_adc(unsigned int cycles_low) {
@@ -76,10 +76,13 @@ void loopback_control_adc_shot(unsigned int cycles_reset,
 		not the GPOs.
 	*/
 	unsigned int count_cycles;
-	ADC_REG__START = 0x1;
+	int i;
 
 	// Unset the convert + amplify signals + reset the ADC
 	reset_adc(cycles_reset);
+
+	ADC_DATA_VALID = 0;
+	ADC_REG__START = 0x1;
 
 	// Wait some time for any potentiometric sensors to converge
 	for (count_cycles=0; count_cycles<cycles_to_start; count_cycles++) {}
@@ -91,8 +94,6 @@ void loopback_control_adc_shot(unsigned int cycles_reset,
 	// Set the ADC to convert and wait for the thing to finish
 	// The ISR will print out the ADC reading value
 	GPIO_REG__OUTPUT |= GPIO_REG__ADC_CONVERT;
-
-	while (~ADC_DATA_VALID) {}
 }
 
 void onchip_control_adc_continuous(void) {
@@ -103,7 +104,9 @@ void onchip_control_adc_continuous(void) {
 		No return value. Repeatedly triggers ADC readings where the ADC is 
 		controlled by the on-chip FSM. Halts when ADC_STOP is nonzero.
 	Notes:
-		Untested.
+		Untested. Known issue where including the loop for while(~ADC_DATA_VALID)
+		prevents the ADC ISR from executing. Removing it and replacing it 
+		with a counter loop allows the interrupt to occur normally.
 	*/
 	// Flagging that nonstop conversions have started
 	ADC_CONTINUOUS = 1;

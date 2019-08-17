@@ -201,7 +201,7 @@
 	
 
 // Interrupt set enable reg		
-#define ISER														*(unsigned int*)(0x00000000)
+#define ISER														*(unsigned int*)(0xE000E100)
 // Interrupt clear enable reg		
 #define ICER														*(unsigned int*)(0x00000000)
 // Interrupt clear pending reg		
