@@ -1289,6 +1289,11 @@ void initialize_mote(){
 		// Set GPIOs for loopback
 		gpio_loopback_config_adc();
 		
+		// GPO_enables(0x0000);
+		// GPI_enables(0xFFFF);
+		// GPO_control(6,6,6,6);
+		// GPI_control(0,0,0,0);
+
 		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
 						pga_gain, adc_settle, 
 						bgr_tune, constgm_tune,

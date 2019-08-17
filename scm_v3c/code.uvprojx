@@ -476,18 +476,6 @@
         </Group>
         <Group>
           <GroupName>Testbench</GroupName>
-          <Files>
-            <File>
-              <FileName>test_code.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\test_code.c</FilePath>
-            </File>
-            <File>
-              <FileName>test_code.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\test_code.h</FilePath>
-            </File>
-          </Files>
         </Group>
       </Groups>
     </Target>

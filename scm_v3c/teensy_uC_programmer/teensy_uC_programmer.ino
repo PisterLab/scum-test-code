@@ -1396,7 +1396,7 @@ void cal_3wb() {
 // Send optical SFDs at 100ms intervals
 void opti_cal() {
 
-    for (int ii = 0; ii < 30; ii++) {
+    for (int ii = 0; ii < 50; ii++) {
     
   #define NOP1 "nop\n\t"
   
