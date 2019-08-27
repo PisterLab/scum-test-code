@@ -140,10 +140,10 @@ void UART_ISR() {
 			printf("status register is 0x%x\n", status);	
 		
 			printf("power=%d, reset=%d, %d\n",ANALOG_CFG_REG__10,ANALOG_CFG_REG__4,doing_initial_packet_search);
-		
-		// Initiate a single on-chip FSM-driven ADC conversion
+		// Trigger a soft reset
 	  	} else if ( (buff[3]=='s') && (buff[2]=='f') && (buff[1]=='t') && (buff[0]=='\n') ) {
 	  		*(unsigned int*)(0xE000ED0C) = 0x05FA0004;
+		// Initiate a single on-chip FSM-driven ADC conversion
 	  	} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='1') && (buff[0]=='\n') ) {
 		 	printf("Starting on-chip FSM ADC conversion\n");
 		 	ADC_DATA_VALID = 0;
@@ -153,8 +153,6 @@ void UART_ISR() {
 		 	printf("Starting loopback-controlled ADC conversion\n");
 		 	ADC_DATA_VALID = 0;
 		 	loopback_control_adc_shot(cycles_reset, cycles_to_start, cycles_pga);
-		 	// for(t=0; t<1000; t++) {}
-		 	// *(unsigned int*)(0xE000ED0C) = 0x05FA0004;
 		// Initiate a single ADC conversion with external GPIO control of the ADC
 		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='3') && (buff[0]=='\n') ) {
 			printf("Starting externally-driven GPIO ADC conversion");

@@ -117,15 +117,43 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	prog_asc_bit(1088, pga_byp);
 }
 
-void gpio_loopback_config_adc(void) {
+
+void onchip_fix_control_config_adc(void) {
+	/*
+	Inputs:
+		No inputs.
+	Outputs:
+		No return value. Sets adc_reset to be controlled via GPIO loopback.
+		All other controlling signals come from the on-chip FSM. Enables 
+		I/O buffers for the GPIOs and sets the appropriate banks for the 
+		GPIOs. Does not disable any buffers. Note that this _does_ overwrite
+		any bank settings.
+	Notes:
+		Untested.
+	*/
+	unsigned int gpo_mask = get_GPO_enables();
+	unsigned int gpi_mask = get_GPI_enables();
+
+	gpo_mask |= 0x0027;
+	gpi_mask |= 0x0001;
+
+	GPO_enables(gpo_mask);
+	GPI_enables(gpi_mask);
+
+	GPO_control(6,9,9,9);
+	GPI_control(3,0,0,0);
+}
+
+
+void loopback_control_config_adc(void) {
 	/*
 	Inputs:
 		No inputs.
 	Outputs:
 		No return value. Enables I/O buffers for the GPIOs and sets the 
-		appropriate banks for the GPIOs. Does not disable any buffers 
-		from their initial setting. note that this _does_ overwrite any
-		bank settings.
+		appropriate banks for the GPIOs for GPIO loopback control of the 
+		ADC. Does not disable any buffers. 
+		Note that this _does_ overwrite any bank settings.
 	*/
 	unsigned int gpo_mask = get_GPO_enables();
 	unsigned int gpi_mask = get_GPI_enables();
@@ -150,6 +178,8 @@ void gpio_read_config_adc(void) {
 		come from the GPOs. Does not disable any buffers from their 
 		initial setting. Note that this does overwrite any
 		bank settings.
+	Notes:
+		Untested.
 	*/
 	unsigned int gpo_mask = get_GPO_enables();
 	gpo_mask |= 0xFFC0;

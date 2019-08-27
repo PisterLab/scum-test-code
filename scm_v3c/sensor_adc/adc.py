@@ -14,6 +14,7 @@ import time
 import random
 from data_handling import *
 from adc_fsm import *
+from pprint import pprint
 
 import sys
 sys.path.append('..')
@@ -183,6 +184,15 @@ def test_adc_psu(
 			adc_outs[vin].append(adc_out)
 			print("Vin={}V/Iteration {} -- {}".format(vin, i, adc_outs[vin][i]))
 
+			# TODO: atm we're soft resetting, but this shouldn't 
+			# be necessary.
+			ser.write(b'sft\n')
+			print(ser.readline())
+			print(ser.readline())
+			print(ser.readline())
+			print(ser.readline())
+			print(ser.readline())
+			print(ser.readline())
 	# Due diligence for closing things out
 	ser.close()
 	psu.write("SOURCE2:VOLTAGE:OFFSET 0")
@@ -210,7 +220,7 @@ if __name__ == "__main__":
 		program_cortex(**program_cortex_specs)
 
 	### Running a spot check with the ADC ###
-	if True:
+	if False:
 		test_adc_spot_specs = dict(
 			port=scm_port,
 			control_mode=control_mode,
@@ -242,23 +252,23 @@ if __name__ == "__main__":
 
 	### Reading in data from a file and plotting appropriately ###
 	if False:
-		fname = "./psu_20190809_032357.csv"
+		fname = "./data/psu_20190819_173425.csv"
 
 		plot_adc_data_specs = dict(adc_outs=read_adc_data(fname),
 								plot_inl=False,
 								plot_ideal=True,
-								vdd=0.8,
+								vdd=1.2,
 								num_bits=10)
 		plot_adc_data(**plot_adc_data_specs)
 
+	### Calculating and printing out DNL/INL ###
 	if False:
-		file_noise = './data/psu_run_noise.csv'
-		adc_noise = read_adc_data(file_noise)
+		fname = "./data/psu_20190819_173425_cropped.csv"
+		vlsb_ideal = 1.2/2**10
+		adc_data = read_adc_data(fname)
 
-		for vin in adc_noise.keys():
-			plt.figure()
-			plt.hist(adc_noise[vin], bins=100)
-			plt.title("Vin={} V".format(vin))
-			plt.xlabel("Code")
-			plt.ylabel("Occurrences")
-			plt.show()
+		slope, intercept = calc_adc_inl_straightline(adc_data, vlsb_ideal)
+		dnls = calc_adc_dnl(adc_data, vlsb_ideal)
+		# pprint(["{0:.2f}".format(dnl) for dnl in dnls])
+		print("Slope: {} codes/V\nIntercept: {} codes".format(slope, intercept))
+		print("Max DNL: {0:.2f}".format(max(dnls)))

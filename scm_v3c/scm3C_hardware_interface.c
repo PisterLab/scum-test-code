@@ -1273,7 +1273,7 @@ void initialize_mote(){
 	radio_init_divider(2000);
 
 	// SENSOR ADC INITIALIZATION
-	if (1) {
+	if (0) {
 		unsigned int sel_reset 			= 1;
 		unsigned int sel_convert 		= 1;
 		unsigned int sel_pga_amplify 	= 1;

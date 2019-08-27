@@ -96,7 +96,7 @@ int main(void) {
 		printf("Cal complete\n");
 	}
 
-	test_get_GPI_control();
+	// test_get_GPI_control();
 
 
 	while(1) {

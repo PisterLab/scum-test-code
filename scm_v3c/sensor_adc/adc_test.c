@@ -55,8 +55,35 @@ void onchip_control_adc_shot(void) {
 	Outputs:
 		No return value. Triggers a single ADC reading where the 
 		ADC is controlled by the on-chip FSM.
+	Notes:
+		In hardware, the reset is functionally tied directly to
+		the Cortex M0's soft reset. It is guaranteed that the
+		comparator will suffer from serious hysteresis and have 
+		problems with the FSM.
 	*/
 	ADC_REG__START = 0x1;
+}
+
+void onchip_fix_control_adc_shot(unsigned int cycles_reset) {
+	/*
+	Inputs:
+		No inputs.
+	Outputs:
+		No return value. Triggers a single ADC reading where the ADC
+		reset is controlled via GPIO loopback and all other signals are 
+		conrolled via on-chip FSM.
+	Notes:
+		Untested.
+	*/
+	// Trigger a standard ADC reading
+	int i;
+	ADC_DATA_VALID = 0;
+	ADC_REG__START = 0x1;
+
+	// Pull reset low, wait, then pull reset high
+	GPIO_REG__OUTPUT &= (~GPIO_REG__ADC_RESET);
+	for (i=0; i<cycles_reset; i++) {}
+	GPIO_REG__OUTPUT |= GPIO_REG__ADC_RESET;
 }
 
 void loopback_control_adc_shot(unsigned int cycles_reset,
@@ -76,7 +103,6 @@ void loopback_control_adc_shot(unsigned int cycles_reset,
 		not the GPOs.
 	*/
 	unsigned int count_cycles;
-	int i;
 
 	// Unset the convert + amplify signals + reset the ADC
 	reset_adc(cycles_reset);
@@ -94,6 +120,14 @@ void loopback_control_adc_shot(unsigned int cycles_reset,
 	// Set the ADC to convert and wait for the thing to finish
 	// The ISR will print out the ADC reading value
 	GPIO_REG__OUTPUT |= GPIO_REG__ADC_CONVERT;
+
+	while (~ADC_DATA_VALID) {
+		for (count_cycles=0;count_cycles<2;count_cycles++) {}
+	}
+
+	// Unset the convert + amplify signals + reset the ADC
+	reset_adc(cycles_reset);
+
 }
 
 void onchip_control_adc_continuous(void) {
