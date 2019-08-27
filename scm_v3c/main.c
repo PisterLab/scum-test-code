@@ -81,21 +81,22 @@ int main(void) {
 		printf("\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\n");
 		while(1);
 	}
-	printf("Calibrating frequencies...\n");
 	
-	ANALOG_CFG_REG__10 = 0x78;
-	
-	// Enable optical SFD interrupt for optical calibration
-	ISER = 0x0800;
-	
-	// Wait for optical cal to finish
-	while(optical_cal_finished == 0) {}
-	optical_cal_finished = 0;
-	// for (t=0; t<1000; t++) {
-		// printf("%d\n",optical_cal_finished);
-	// }
+	if (0) {
+		printf("Calibrating frequencies...\n");
+		
+		ANALOG_CFG_REG__10 = 0x78;
+		// Enable optical SFD interrupt for optical calibration
+		ISER = 0x0800;
+		
+		// Wait for optical cal to finish
+		while(optical_cal_finished == 0) {}
+		optical_cal_finished = 0;
 
-	printf("Cal complete\n");
+		printf("Cal complete\n");
+	}
+
+	test_get_GPI_control();
 
 
 	while(1) {

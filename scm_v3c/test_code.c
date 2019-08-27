@@ -67,5 +67,95 @@ void test_get_GPIO_enables(void) {
 	}
 
 	return;
+}
 
+void test_get_GPO_control(void) {
+	unsigned char gpo_bank;
+	unsigned char i;
+	for(i=0; i<16; i++) {
+		// GPO control row 1
+		GPO_control(i,0,0,0);
+		gpo_bank = get_GPO_control(0);
+		if (gpo_bank != i) {
+			printf("GPO row 0 should be %X, got %X\n", (i&0xFF), (gpo_bank&0xFFFF));
+		}
+		else {
+			printf("ok %X\n", (gpo_bank&0xFFFF));
+		}
+
+		// GPO control row 2
+		GPO_control(0,i,0,0);
+		gpo_bank = get_GPO_control(1);
+		if (gpo_bank != i) {
+			printf("GPO row 1 should be %X, got %X\n", (i&0xFF), (gpo_bank&0xFFFF));
+		}
+		else {
+			printf("ok %X\n", (gpo_bank&0xFFFF));
+		}
+
+		// GPO control row 3
+		GPO_control(0,0,i,0);
+		gpo_bank = get_GPO_control(2);
+		if (gpo_bank != i) {
+			printf("GPO row 2 should be %X, got %X\n", (i&0xFF), (gpo_bank&0xFFFF));
+		}
+		else {
+			printf("ok %X\n", (gpo_bank&0xFFFF));
+		}
+
+		// GPO control row 4
+		GPO_control(0,0,0,i);
+		gpo_bank = get_GPO_control(3);
+		if (gpo_bank != i) {
+			printf("GPO row 3 should be %X, got %X\n", (i&0xFF), (gpo_bank&0xFFFF));
+		}
+		else {
+			printf("ok %X\n", (gpo_bank&0xFFFF));
+		}
+	}
+}
+
+void test_get_GPI_control(void) {
+	unsigned char gpi_bank;
+	unsigned char i;
+	for(i=0; i<4; i++) {
+		// GPI control row 1
+		GPI_control(i,0,0,0);
+		gpi_bank = get_GPI_control(0);
+		if (gpi_bank != i) {
+			printf("GPI row 0 should be %X, got %X\n", (i&0xFF), (gpi_bank&0xFF));
+		}
+		else {
+			printf("ok %X\n",(gpi_bank&0xFF));
+		}
+		// GPI control row 2
+		GPI_control(0,i,0,0);
+		gpi_bank = get_GPI_control(1);
+
+		if (gpi_bank != i) {
+			printf("GPI row 1 should be %X, got %X\n", (i&0xFF), (gpi_bank&0xFF));
+		}
+		else {
+			printf("ok %X\n",(gpi_bank&0xFF));
+		}
+		// GPI control row 2
+		GPI_control(0,0,i,0);
+		gpi_bank = get_GPI_control(2);
+
+		if (gpi_bank != i) {
+			printf("GPI row 2 should be %X, got %X\n", (i&0xFF), (gpi_bank&0xFF));
+		}
+		else {
+			printf("ok %X\n",(gpi_bank&0xFF));
+		}
+		// GPI control row 3
+		GPI_control(0,0,0,i);
+		gpi_bank = get_GPI_control(3);
+		if (gpi_bank != i) {
+			printf("GPI row 3 should be %X, got %X\n", (i&0xFF), (gpi_bank&0xFF));
+		}
+		else {
+			printf("ok %X\n",(gpi_bank&0xFF));
+		}
+	}
 }
