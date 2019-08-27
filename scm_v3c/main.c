@@ -77,7 +77,7 @@ int main(void) {
 	if(calc_crc == crc_value){
 		printf("CRC OK\n");
 	}
-	else{
+	else {
 		printf("\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\n");
 		while(1);
 	}
@@ -96,7 +96,7 @@ int main(void) {
 		printf("Cal complete\n");
 	}
 
-	// test_get_GPI_control();
+	
 
 
 	while(1) {
