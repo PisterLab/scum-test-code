@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Memory_Map.h"
-#include "scm3_hardware_interface.h"
-#include "scm3C_hardware_interface.h"
+#include "../Memory_Map.h"
+#include "../scm3_hardware_interface.h"
+#include "../scm3C_hardware_interface.h"
 
 void test_get_asc_bit(void) {
 	/*

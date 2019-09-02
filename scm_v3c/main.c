@@ -14,8 +14,9 @@
 #include "bucket_o_functions.h"
 #include <math.h>
 #include "scum_radio_bsp.h"
-#include "test_code.h"
+#include "./software_flex/test_code.h"
 #include "./sensor_adc/adc_test.h"
+#include "./hardware_flex/hardware_flex.h"
 
 extern unsigned int current_lfsr;
 

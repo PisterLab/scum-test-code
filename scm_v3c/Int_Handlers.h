@@ -6,6 +6,7 @@
 #include "scum_radio_bsp.h"
 #include "bucket_o_functions.h"
 #include "sensor_adc/adc_test.h"
+#include "hardware_flex/hardware_flex.h"
 
 extern char send_packet[127];
 extern char recv_packet[130];
