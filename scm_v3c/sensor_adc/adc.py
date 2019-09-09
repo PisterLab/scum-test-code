@@ -209,7 +209,7 @@ if __name__ == "__main__":
 	read_mode = 'uart'
 
 	### Program the cortex ###
-	if True:
+	if False:
 		program_cortex_specs = dict(teensy_port=programmer_port,
 									uart_port=scm_port,
 									file_binary="../code.bin",
@@ -251,8 +251,8 @@ if __name__ == "__main__":
 		write_adc_data(adc_outs, './data/psu_{}'.format(datetime))
 
 	### Reading in data from a file and plotting appropriately ###
-	if False:
-		fname = "./data/psu_20190819_173425.csv"
+	if True:
+		fname = "./data/psu_20190819_173425_cropped.csv"
 
 		plot_adc_data_specs = dict(adc_outs=read_adc_data(fname),
 								plot_inl=False,

@@ -110,8 +110,11 @@ void UART_ISR() {
 			printf("Input exceeds maximum packet size\n");
 		}
 	} else { //If waiting for a command
+		// zzz: Used for small demo code
+		if ( (buff[3]=='z') && (buff[2]=='z') && (buff[1]=='z') && (buff[0]=='\n') ) {
+			printf("Change me!\n");
 		// Copies string from UART to send_packet
-		if ( (buff[3]=='c') && (buff[2]=='p') && (buff[1]=='y') && (buff[0]==' ') ) {
+		} else if ( (buff[3]=='c') && (buff[2]=='p') && (buff[1]=='y') && (buff[0]==' ') ) {
 			waiting_for_end_of_copy = 1;
 		// Sends TX_LOAD signal to radio controller
 		} else if ( (buff[3]=='l') && (buff[2]=='o') && (buff[1]=='d') && (buff[0]=='\n') ) {
