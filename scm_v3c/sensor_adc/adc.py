@@ -6,19 +6,19 @@ processing and data reading/writing/plotting, please see data_handling.py. This 
 that you're working strictly through the Cortex and that outputs will be read from the
 UART.
 """
-import numpy as np
-import scipy as sp
-import serial
-import visa
-import time
-import random
-from data_handling import *
-from adc_fsm import *
-from pprint import pprint
+# import numpy as np
+# import scipy as sp
+# import serial
+# import visa
+# import time
+# import random
+# from data_handling import *
+# from adc_fsm import *
+# from pprint import pprint
 
-import sys
-sys.path.append('..')
-from bootload import *
+# import sys
+# sys.path.append('..')
+# from bootload import *
 
 def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iterations=1,
 		gpio_settings=dict()):

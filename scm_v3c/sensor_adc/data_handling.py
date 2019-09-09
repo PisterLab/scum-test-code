@@ -5,10 +5,10 @@ and performing various calculations on ADC data. It does not contain any code to
 actually run tests on the ADC. For that, see adc_*.py. This is 
 strictly for information post-processing.
 """
-import csv
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy import stats
+# import csv
+# import matplotlib.pyplot as plt
+# import numpy as np
+# from scipy import stats
 
 def write_adc_data(adc_outs, file_out):
 	"""
