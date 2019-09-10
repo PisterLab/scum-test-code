@@ -19,7 +19,6 @@ Each function in `hardware_flex.c` comes in groups of 2 or more. In other words,
 		* Mention associated functions (e.g. `_init`, `_main`) and their order of operation (the init should be run before the main, etc.)
 		* If a function has not been tested, indicate so.
 		* Any known bugs or necessary preconditions (e.g. UART communication is necessary for this to work)
-* 
 
 ### Function Suffixes
 * `_init`: Any code to be run in `../scm3C_hardware_interface.c/initialize_mote()`.
