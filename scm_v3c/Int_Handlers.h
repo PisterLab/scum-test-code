@@ -4,8 +4,6 @@
 #include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"
 #include "scum_radio_bsp.h"
-#include "bucket_o_functions.h"
-#include "sensor_adc/adc_test.h"
 
 extern char send_packet[127];
 extern char recv_packet[130];
@@ -68,17 +66,18 @@ extern unsigned short current_RF_channel;
 
 extern unsigned short do_debug_print;
 
-// Sensor ADC: General
-extern unsigned short ADC_DATA_VALID;
-extern unsigned short ADC_CONTINUOUS;
-extern unsigned short ADC_STOP;
+// loop variables for building LC monotonic
+extern unsigned int count_LC_glob;
+extern unsigned int count_32k_glob;
 
-// Sensor ADC: Loopback-specific
-unsigned int cycles_reset = 1000;
-unsigned int cycles_to_start = 1000;
-unsigned int cycles_pga = 1000;
+extern unsigned int previous_count_LC; // stores the count in the previous iteration for comparison purposes
+extern unsigned int mon_build_complete; // signals when the LC monotomic function has been built (mid version)
+extern unsigned int mon_build_complete_coarse; //signals when the LC monotonic function has been built (coarse version)
+extern unsigned int pass; // a state variable used to regulate LC monotonic iteration and observation
+extern unsigned int mid0; // eventually, the correct mid0 value for LC_monotonic
+extern unsigned int coarse0; // eventually, the correct coarse0 value for LC_monotonic
 
-void UART_ISR() {	
+void UART_ISR(){	
 	static char i=0;
 	static char buff[4] = {0x0, 0x0, 0x0, 0x0};
 	static char waiting_for_end_of_copy = 0;
@@ -86,7 +85,7 @@ void UART_ISR() {
 	int t;
 	
 	inChar = UART_REG__RX_DATA;
-  	buff[3] = buff[2];
+  buff[3] = buff[2];
 	buff[2] = buff[1];
 	buff[1] = buff[0];
 	buff[0] = inChar;
@@ -94,34 +93,31 @@ void UART_ISR() {
 	// If we are still waiting for the end of a load command
 	if (waiting_for_end_of_copy) {
 		if (inChar=='\n'){
-			int j=0;
-			printf("copying string of size %u to send_packet: ", i);
-			for (j=0; j < i; j++) {
-				printf("%c",send_packet[j]);
-			}
-			printf("\n");
-			RFCONTROLLER_REG__TX_PACK_LEN = i;
-			i = 0;
-			waiting_for_end_of_copy = 0;
+				int j=0;
+				printf("copying string of size %u to send_packet: ", i);
+				for (j=0; j < i; j++) {
+					printf("%c",send_packet[j]);
+				}
+				printf("\n");
+				RFCONTROLLER_REG__TX_PACK_LEN = i;
+				i = 0;
+				waiting_for_end_of_copy = 0;
 		} else if (i < 127) {		
 			send_packet[i] = inChar;			
 			i++;
-		} else {
+		}	else {
 			printf("Input exceeds maximum packet size\n");
 		}
 	} else { //If waiting for a command
-		// zzz: Used for small demo code
-		if ( (buff[3]=='z') && (buff[2]=='z') && (buff[1]=='z') && (buff[0]=='\n') ) {
-			printf("Change me!\n");
 		// Copies string from UART to send_packet
-		} else if ( (buff[3]=='c') && (buff[2]=='p') && (buff[1]=='y') && (buff[0]==' ') ) {
+		if ( (buff[3]=='c') && (buff[2]=='p') && (buff[1]=='y') && (buff[0]==' ') ) {
 			waiting_for_end_of_copy = 1;
 		// Sends TX_LOAD signal to radio controller
 		} else if ( (buff[3]=='l') && (buff[2]=='o') && (buff[1]=='d') && (buff[0]=='\n') ) {
 		  RFCONTROLLER_REG__CONTROL = 0x1;
 			printf("TX LOAD\n");
 		// Sends TX_SEND signal to radio controller
-	  	} else if ( (buff[3]=='s') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
+	  } else if ( (buff[3]=='s') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
 		  RFCONTROLLER_REG__CONTROL = 0x2;
 		  printf("TX SEND\n");
 		// Sends RX_START signal to radio controller
@@ -130,7 +126,7 @@ void UART_ISR() {
 	    DMA_REG__RF_RX_ADDR = &recv_packet[0];
 		  RFCONTROLLER_REG__CONTROL = 0x4;
 		// Sends RX_STOP signal to radio controller
-	  	} else if ( (buff[3]=='e') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
+	  } else if ( (buff[3]=='e') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
 			RFCONTROLLER_REG__CONTROL = 0x8;
 			printf("RX STOP\n");
 		// Sends RF_RESET signal to radio controller
@@ -140,46 +136,14 @@ void UART_ISR() {
 		// Returns the status register of the radio controller
 		} else if ( (buff[3]=='s') && (buff[2]=='t') && (buff[1]=='a') && (buff[0]=='\n') ) {
 		  int status = RFCONTROLLER_REG__STATUS;
-			printf("status register is 0x%x\n", status);	
+			printf("status register is 0x%x\n", status);
 		
 			printf("power=%d, reset=%d, %d\n",ANALOG_CFG_REG__10,ANALOG_CFG_REG__4,doing_initial_packet_search);
-		// Trigger a soft reset
-	  	} else if ( (buff[3]=='s') && (buff[2]=='f') && (buff[1]=='t') && (buff[0]=='\n') ) {
-	  		*(unsigned int*)(0xE000ED0C) = 0x05FA0004;
-		// Initiate a single on-chip FSM-driven ADC conversion
-	  	} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='1') && (buff[0]=='\n') ) {
-		 	printf("Starting on-chip FSM ADC conversion\n");
-		 	ADC_DATA_VALID = 0;
-		 	onchip_control_adc_shot();
-		// Initiate a single ADC conversion with loopback control of the ADC
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='2') && (buff[0]=='\n') ) {
-		 	printf("Starting loopback-controlled ADC conversion\n");
-		 	ADC_DATA_VALID = 0;
-		 	loopback_control_adc_shot(cycles_reset, cycles_to_start, cycles_pga);
-		// Initiate a single ADC conversion with external GPIO control of the ADC
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='3') && (buff[0]=='\n') ) {
-			printf("Starting externally-driven GPIO ADC conversion");
-			ADC_DATA_VALID = 0;
-			// TODO
-		// Initiate continuous on-chip FSM-driven ADC conversions
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='4') && (buff[0]=='\n') ) {
-			printf("Starting continuous on-chip FSM ADC conversions\n");
-			ADC_DATA_VALID = 0;
-			onchip_control_adc_continuous();
-		// Initiate continuous loopback-controlled ADC conversions 
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='5') && (buff[0]=='\n') ) {
-			printf("Starting continuous loopback-controlled ADC conversions\n");
-			ADC_DATA_VALID = 0;
-			loopback_control_adc_continuous(cycles_reset, cycles_to_start, cycles_pga);
-		// Initiate continuous external GPIO-controlled ADC conversions
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='6') && (buff[0]=='\n') ) {
-			printf("Starting continuous externally-criven GPIO ADC conversions\n");
-			ADC_DATA_VALID = 0;
-			// TODO
-		// Halt a continuous ADC run, otherwise does nothing
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='0') && (buff[0]=='\n') ) {
-			printf("Halting continuous ADC run\n");
-			halt_adc_continuous();
+		
+		// Initiates an ADC conversion
+	  } else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='c') && (buff[0]=='\n') ) {
+		  ADC_REG__START = 0x1;
+		  printf("starting ADC conversion\n");
 		// Uses the radio timer to send TX_LOAD in 0.5s, TX_SEND in 1s, capture when SFD is sent and capture when packet is sent
 		} else if ( (buff[3]=='a') && (buff[2]=='t') && (buff[1]=='x') && (buff[0]=='\n') ) {
 			unsigned int t = RFTIMER_REG__COUNTER + 0x3D090;
@@ -215,7 +179,9 @@ void UART_ISR() {
 			//	ASC_FPGA[t] = 0;	
 			//}
 	
-			for(t=0;t<=38;t++) {ASC[t] = 0;}
+			for(t=0;t<=38;t++){
+				ASC[t] = 0;	
+			}
 			
 			// Program analog scan chain
 			analog_scan_chain_write(&ASC[0]);
@@ -231,24 +197,28 @@ void UART_ISR() {
 			
 			rftimer_disable_interrupts();
 			
-		// Debug pring
+			
 		} else if ( (buff[3]=='x') && (buff[2]=='x') && (buff[1]=='2') && (buff[0]=='\n') ) {
+
 			do_debug_print = 1;
+					
+		
 		// Unknown command
-		} else if (inChar=='\n'){printf("unknown command\n");}
+		} else if (inChar=='\n'){	
+			printf("unknown command\n");		
+		}
 	}
 }
 
 void ADC_ISR() {
-	ADC_DATA_VALID = 1;
-	// printf("%d\n", (ADC_DATA_VALID&0xFFFF));
-	printf("%d\n", ADC_REG__DATA);
+	printf("Conversion complete: 0x%x\n", ADC_REG__DATA);
 }
 
-
 void RF_ISR() {
+	
 	unsigned int interrupt = RFCONTROLLER_REG__INT;
 	unsigned int error     = RFCONTROLLER_REG__ERROR;
+	int t;
 	
   //if (interrupt & 0x00000001) printf("TX LOAD DONE\n");
 	//if (interrupt & 0x00000002) printf("TX SFD DONE\n");
@@ -493,20 +463,14 @@ void RFTIMER_ISR() {
 	
   
 	unsigned int interrupt = RFTIMER_REG__INT;
+	unsigned int count_LC, count_2M, count_adc, count_32k;
+
 	
 	if (interrupt & 0x00000001){ //printf("COMPARE0 MATCH\n");
 				
-		GPIO_REG__OUTPUT = 0x0;
-		
-		// Setup for reception, followed by tranmitting an ack
-		setFrequencyRX(current_RF_channel);
-
-		// Enable RX watchdog
-		RFTIMER_REG__COMPARE3_CONTROL = 0x3;
-		
-		// Disable TX interrupts (turn them on only if RX is successful)
-		RFTIMER_REG__COMPARE4_CONTROL = 0x0;
-		RFTIMER_REG__COMPARE5_CONTROL = 0x0;
+		read_counters_3B(&count_2M,&count_LC,&count_adc,&count_32k);
+		count_32k_glob = count_32k;
+		count_LC_glob = count_LC;
 		
 	}
 	if (interrupt & 0x00000002){// printf("COMPARE1 MATCH\n");
@@ -636,6 +600,8 @@ void RAWCHIPS_STARTVAL_ISR() {
 	chips[chip_index] = rdata_lsb + (rdata_msb << 16);
 	chip_index++;
 
+	//printf("x2\n");
+
 }
 
 
@@ -643,7 +609,7 @@ void RAWCHIPS_STARTVAL_ISR() {
 // Do not recommend trying to do any CPU intensive actions while trying to receive optical data
 // ex, printf will mess up the received data values
 void OPTICAL_32_ISR(){
-	// printf("Optical 32-bit interrupt triggered\n");
+	//printf("Optical 32-bit interrupt triggered\n");
 	
 	//unsigned int LSBs, MSBs, optical_shiftreg;
 	//int t;
@@ -662,8 +628,11 @@ void OPTICAL_32_ISR(){
 // This interrupt can also be used to synchronize to the start of an optical data transfer
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
 void OPTICAL_SFD_ISR(){
+	
+	int t;
 	unsigned int rdata_lsb, rdata_msb; 
 	unsigned int count_LC, count_32k, count_2M, count_HFclock, count_IF;
+	
 	// Disable all counters
 	ANALOG_CFG_REG__0 = 0x007F;
 	
@@ -696,13 +665,14 @@ void OPTICAL_SFD_ISR(){
 	count_IF = rdata_lsb + (rdata_msb << 16);
 	
 	// Reset all counters
-	ANALOG_CFG_REG__0 = 0x0000;		
+	ANALOG_CFG_REG__0 = 0x0000;
 	
 	// Enable all counters
-	ANALOG_CFG_REG__0 = 0x3FFF;	
+	ANALOG_CFG_REG__0 = 0x3FFF;
+	
 		
-	// Don't make updates on the first two executions of this ISR
-	if(optical_cal_iteration > 2){
+	// Don't make updates on the first three executions of this ISR - something is messed up with the first few counts
+	if(optical_cal_iteration > 3){
 		
 		// Do correction on HF CLOCK
 		// Fine DAC step size is about 6000 counts
@@ -710,11 +680,71 @@ void OPTICAL_SFD_ISR(){
 		if(count_HFclock > 2003000) HF_CLOCK_fine++;
 		set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
 		
-		// Do correction on LC
-		if(count_LC > (LC_target + 30)) LC_code -= 1;
-		if(count_LC < (LC_target - 30))	LC_code += 1;
-		LC_monotonic(LC_code);
-			
+		// Do a sweep of the LC
+		//if(optical_cal_iteration/coarse0 == 0) mid0 = 22;
+		//if(optical_cal_iteration/coarse0 == 1) mid0 = 22;
+		//if(optical_cal_iteration/coarse0 == 2) mid0 = 23;
+		//if(optical_cal_iteration/coarse0 == 3) mid0 = 23;
+		//if(optical_cal_iteration/coarse0 == 4) mid0 = 23;
+		//if(optical_cal_iteration/coarse0 == 5) mid0 = 23;
+		//if(optical_cal_iteration/coarse0 == 6) mid0 = 24;
+		//if(optical_cal_iteration/coarse0 == 7) mid0 = 25;
+		//LC_monotonic(LC_code,mid0,coarse0,24);
+		//LC_code +=1;
+		
+		LC_monotonic(LC_code,23,137,24);
+		LC_code += 1;
+		
+		if (mon_build_complete == 0) {
+			if (pass == 1) {
+				LC_monotonic(5*mid0-1,mid0,2000,30);
+				pass = 2;
+			}
+			else if (pass == 2) {
+				LC_monotonic(5*mid0,mid0,2000,30);
+				previous_count_LC = count_LC;
+				pass = 3;
+			}
+			else if (pass == 3) {
+				if ((int)(count_LC - previous_count_LC)<8) {
+					mid0--; pass = 1;
+				}
+				if ((int)(count_LC - previous_count_LC)>13) {
+					mid0++; pass = 1;
+				}
+				if (((int)(count_LC-previous_count_LC)>=8)&&((int)(count_LC-previous_count_LC)<=13)) {
+					mon_build_complete = 1;
+				}
+			}
+		}
+		
+		if (mon_build_complete_coarse == 0) {
+			printf("%d",coarse0);
+			if (pass == 1) {
+				LC_monotonic(coarse0-1, mid0, coarse0, 27);
+				pass = 2;
+			}
+			else if (pass == 2) {
+				LC_monotonic(coarse0, mid0, coarse0, 27);
+				previous_count_LC = count_LC;
+				pass = 3;
+			}
+			else if (pass == 3) {
+				printf("%d, %d, %d\n", count_LC, previous_count_LC, coarse0);
+				if ((int)(count_LC - previous_count_LC)<9) {
+					coarse0--;
+					pass = 1;
+				}
+				if ((int)(count_LC - previous_count_LC)>12) {
+					coarse0++;
+					pass = 1;
+				}
+				if (((int)(count_LC-previous_count_LC)>=8)&&((int)(count_LC-previous_count_LC)<=12)) {
+					mon_build_complete_coarse = 1;
+				}
+			}
+		}
+				
 		// Do correction on 2M RC
 		// Coarse step ~1100 counts, fine ~150 counts, superfine ~25
 		// Too fast
@@ -734,15 +764,22 @@ void OPTICAL_SFD_ISR(){
 		if(count_IF < (1600000-1400))	IF_fine -= 1;
 		set_IF_clock_frequency(IF_coarse, IF_fine, 0);
 		
+		// Ensure cortex control of LO
+		clear_asc_bit(964);
+	
+		// Ensure cortex control of divider
+		clear_asc_bit(1081);
+
 		analog_scan_chain_write(&ASC[0]);
-		analog_scan_chain_load();	
+		analog_scan_chain_load();
 	}
 	
 	// Debugging output
-	// printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
+	//printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine);
+	//printf("countLC: %d, previous countLC: %d, mid0: %d, pass: %d\n",count_LC, previous_count_LC, mid0, pass);
+	printf("%d\n", count_LC);
 	 
-	//printf("%d\n",count_LC);
-	if(optical_cal_iteration == 25){
+	if(optical_cal_iteration == 5){
 		// Disable this ISR
 		ICER = 0x0800;
 		optical_cal_iteration = 0;
@@ -774,8 +811,8 @@ void OPTICAL_SFD_ISR(){
 		//radio_disable_all();
 		
 		// Halt all counters
-		ANALOG_CFG_REG__0 = 0x0000;	
-	
+		ANALOG_CFG_REG__0 = 0x0000;
+		
 	}
 }
 	

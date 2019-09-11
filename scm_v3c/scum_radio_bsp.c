@@ -2,7 +2,6 @@
 #include "Memory_Map.h"
 #include "scm3_hardware_interface.h"
 #include "scm3C_hardware_interface.h"
-#include "bucket_o_functions.h"
 
 extern unsigned int ASC[38];
 //extern unsigned int ASC_FPGA[38];
@@ -48,7 +47,7 @@ extern signed int SFD_timestamp;
 void setFrequencyRX(unsigned int channel){
 	
 	// Set LO code for RX channel
-	LC_monotonic(RX_channel_codes[channel-11]);
+	LC_monotonic(RX_channel_codes[channel-11],21,150,1);
 	
 	//printf("chan code = %d\n", RX_channel_codes[channel-11]);
 	
@@ -74,7 +73,7 @@ void setFrequencyRX(unsigned int channel){
 	//analog_scan_chain_load_3B_fromFPGA();
 
 	// Set LO code for TX ack
-	LC_monotonic(TX_channel_codes[channel-11]);
+	LC_monotonic(TX_channel_codes[channel-11],21,150,1);
 	
 	// Set GPIOs back
 	GPO_control(0,10,8,10);
@@ -102,7 +101,7 @@ void setFrequencyRX(unsigned int channel){
 void setFrequencyTX(unsigned int channel){
 
 	// Set LO code for TX channel
-	LC_monotonic(TX_channel_codes[channel-11]);
+	LC_monotonic(TX_channel_codes[channel-11],21,150,1);
 
 	// Turn polyphase off for TX
 	clear_asc_bit(971);
@@ -122,7 +121,7 @@ void setFrequencyTX(unsigned int channel){
 	//analog_scan_chain_load_3B_fromFPGA();
 
 	// Set LO code for RX ack
-	LC_monotonic(RX_channel_codes[channel-11]);
+	LC_monotonic(RX_channel_codes[channel-11],21,150,1);
 	
 	// On FPGA, have to use the chip's GPIO outputs for radio signals
 	// Note that can't reprogram while the RX is active
@@ -150,6 +149,8 @@ void setFrequencyTX(unsigned int channel){
 
 void radio_loadPacket(unsigned int len){
 
+	int i;
+	
 	RFCONTROLLER_REG__TX_DATA_ADDR = &send_packet[0];
 			
 	// Set length field (should include +2 for CRC in length)

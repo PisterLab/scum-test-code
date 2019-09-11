@@ -11,11 +11,8 @@
 #include "rf_global_vars.h"
 #include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"
-#include "bucket_o_functions.h"
 #include <math.h>
 #include "scum_radio_bsp.h"
-#include "test_code.h"
-#include "./sensor_adc/adc_test.h"
 
 extern unsigned int current_lfsr;
 
@@ -27,9 +24,9 @@ extern unsigned int ASC[38];
 #define code_length       (*((unsigned int *) 0x0000FFF8))
 
 // Target LC freq = 2.405G
-// Divide ratio is currently 480
+// Divide ratio is currently 480*2
 unsigned int LC_target = 501042; 
-unsigned int LC_code = 975;
+unsigned int LC_code = 5;
 
 // HF_CLOCK tuning settings
 unsigned int HF_CLOCK_fine = 17;
@@ -49,23 +46,51 @@ unsigned int cal_iteration = 0;
 unsigned int run_test_flag = 0;
 unsigned int num_packets_to_test = 1;
 
-unsigned short optical_cal_iteration = 0;
-unsigned short optical_cal_finished = 0;
+unsigned short optical_cal_iteration = 0, optical_cal_finished = 0;
 
 unsigned short doing_initial_packet_search;
 unsigned short current_RF_channel;
 unsigned short do_debug_print = 0;
+
+// loop variables for building LC monotonic
+unsigned int count_LC_glob;
+unsigned int count_32k_glob;
+
+unsigned int previous_count_LC; // stores the count in the previous iteration for comparison purposes
+unsigned int mon_build_complete; // signals when the LC monotomic function has been built (mid0 code only)
+unsigned int mon_build_complete_coarse; // signals when the LC monotonic function has been built (coarse0 code only)
+unsigned int pass; // 
+unsigned int mid0; // correct mid0 value
+unsigned int coarse0;
+
 
 //////////////////////////////////////////////////////////////////
 // Main Function
 //////////////////////////////////////////////////////////////////
 
 int main(void) {
-	int t;
+	int t,t2;
+	int i1, i2, i3;
+	int sweep_loop;
+	int count_valid;
+
 	unsigned int calc_crc;
+
+	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
 	
-	// Set up mote configuration
+	unsigned char packetBLE[16];
+	unsigned char *byte_addr = &packetBLE[0];
+	
+	unsigned char spi_out;
+	unsigned char spi_in;
+	
+	unsigned int x_accel;
+	unsigned int y_accel;
+	unsigned int z_accel;
+	
 	printf("Initializing...");
+		
+	// Set up mote configuration
 	initialize_mote();
 	
 	// Check CRC
@@ -77,29 +102,94 @@ int main(void) {
 	if(calc_crc == crc_value){
 		printf("CRC OK\n");
 	}
-	else {
+	else{
 		printf("\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\n");
 		while(1);
 	}
 	
-	if (0) {
-		printf("Calibrating frequencies...\n");
-		
-		ANALOG_CFG_REG__10 = 0x78;
-		// Enable optical SFD interrupt for optical calibration
-		ISER = 0x0800;
-		
-		// Wait for optical cal to finish
-		while(optical_cal_finished == 0) {}
-		optical_cal_finished = 0;
-
-		printf("Cal complete\n");
-	}
-
+	//printf("done\n");
+	printf("Calibrating frequencies...\n");
 	
+	// Memory-mapped LDO control
+	// ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
+	// For MUX signals, '1' = FSM control, '0' = memory mapped control
+	// For EN signals, '1' = turn on LDO
+	ANALOG_CFG_REG__10 = 0x78;
+	
+	// Enable optical SFD interrupt for optical calibration
+	ISER = 0x0800;
+	
+	// Wait for optical cal to finish
+	
+	// Set up initial variables for monotonic building
+	mon_build_complete = 1; mon_build_complete_coarse = 1; pass = 1; mid0 = 23; coarse0 = 142;
+	while(optical_cal_finished == 0);
+	optical_cal_finished = 0;
+	// FINISHED WITH OPTICAL CALIBRATION
 
-
-	while(1) {
-		for(t=0; t<10000; t++);
+	printf("Cal complete\n");
+	
+	//gen_test_ble_packet(packetBLE);
+	//for (i1=0; i1 < 16; byte_addr++, i1++) {
+  // 	printf("%X ",*byte_addr);
+	//}
+	//printf("\n");
+	
+	//for(t=0; t<71276; t++);
+	//write_imu_register(0x06,0x80); // reset the IMU
+	//for(t=0; t<100000; t++);
+	//write_imu_register(0x06,0x00);
+	
+	//x_accel = 0; y_accel = 0; z_accel = 0;
+		
+while(1) {
+	
+	//spi_out = read_imu_register(0x00);
+	
+	//spi_chip_select();
+	//spi_write(0x80);
+	//spi_out = spi_read();
+	//spi_chip_deselect();
+	//test_imu_life();
+	
+	//write_imu_register(0x06,0x80);
+	//write_imu_register(0x06,0x00);
+	//spi_out = read_imu_register(0x31)
+	
+	//x_accel = read_acc_x();
+	//y_accel = read_acc_y();
+	//z_accel = read_acc_z();
+	
+	//printf("%d, %d, %d\n", x_accel, y_accel, z_accel);
+		
+	//printf("%X\n",read_imu_register(0x57));
+	//printf("%X\n",read_imu_register(0x58));
+	
+	//write_imu_register(0x07,0x00);
+	
+	//printf("%X\n",read_acc_z());
+		
+	for(t=0; t<71276; t++);
+	
+	// Disable all counters
+	ANALOG_CFG_REG__0 = 0x007F;
+	
+	// Read LC_div counter (via counter4)
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
+	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
+	count_LC = rdata_lsb + (rdata_msb << 16);
+	
+//	printf("%d \n",count_LC);
+	
+	load_tx_arb_fifo(packetBLE);
+	transmit_tx_arb_fifo();
+	
+	// Reset all counters
+	ANALOG_CFG_REG__0 = 0x0000;		
+	
+	// Enable all counters
+	ANALOG_CFG_REG__0 = 0x3FFF;
+	
+	
 	}
 }
