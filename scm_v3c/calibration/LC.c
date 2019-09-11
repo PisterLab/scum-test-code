@@ -18,11 +18,14 @@ void test_LC_sweep(unsigned char PA_on, unsigned int iterations) {
 	int fine;
 
 	unsigned int code;			// The combined code fed into the tuning DAC
-	unsigned int counter_out;	// The output of the counter
-	unsigned int freq;			// The frequency calculated from the counter and
-								// divide ratio
+	unsigned int counter_out;	// The output of the counter. The frequency 
+								// will be calculated off-chip for this.
 
 	unsigned int i;
+
+	// Sending the number of iterations over UART to SCM
+	// in conjunction with what test_LC_sweep() expects
+	printf("%d",iterations);
 
 	// Iterating through coarse and mid while fine is all 1 or all 0
 	for (coarse=0; coarse<32; coarse++){
@@ -33,11 +36,11 @@ void test_LC_sweep(unsigned char PA_on, unsigned int iterations) {
 
 				// Measure the frequency with the divider on
 				code = fine&0x1F + ((mid&0x1F) << 5) + ((coarse&0x1F) << 10);
-				// TODO: Calculate the frequency based on the count
-				// counter_out = ;
-				// freq = ;
+				
+				// TODO: Where to get the counter output?
+				counter_out = 
 				for (i=0; i<iterations; i++) {
-					printf("%X:%d\n", code, freq);
+					printf("%X:%d\n", code, counter_out);
 				}
 			}
 		}
