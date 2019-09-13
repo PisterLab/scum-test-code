@@ -12,8 +12,8 @@ import serial
 import visa
 import time
 import random
-from data_handling import *
-from adc_fsm import *
+# from data_handling import *
+# from adc_fsm import *
 from pprint import pprint
 
 import sys
