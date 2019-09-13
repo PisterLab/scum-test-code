@@ -63,12 +63,12 @@ def demo_gpio_control(uart_port):
 
 
 if __name__ == "__main__":
-	programmer_port = "COM14"
-	scm_port = "COM13"
-#								file_binary="./ALLGPIOToggle.bin",
+	programmer_port = "COM15"
+	scm_port = "COM23"
+
 	# Programs SCM
 	program_cortex_specs = dict(teensy_port=programmer_port,
-								uart_port=None,
+								uart_port=scm_port,
 								file_binary="./code.bin",
 								boot_mode="optical",
 								skip_reset=False,
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 	program_cortex(**program_cortex_specs)
 
-	if False:
+	if True:
 		demo_hello_world(uart_port=scm_port)
 
 	if False:

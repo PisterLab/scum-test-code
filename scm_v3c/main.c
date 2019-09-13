@@ -16,6 +16,8 @@
 #include "scum_radio_bsp.h"
 #include "test_code.h"
 #include "./sensor_adc/adc_test.h"
+#include "zappy2.h"
+
 
 extern unsigned int current_lfsr;
 
@@ -63,7 +65,7 @@ unsigned short do_debug_print = 0;
 int main(void) {
 	int t;
 	unsigned int calc_crc;
-	
+	char out_string[10];
 	// Set up mote configuration
 	printf("Initializing...");
 	initialize_mote();
@@ -95,11 +97,33 @@ int main(void) {
 
 		printf("Cal complete\n");
 	}
-
 	
-
-
-	while(1) {
-		for(t=0; t<10000; t++);
+	printf("%x\n",get_GPO_enables());
+	printf("%x\n",get_GPI_enables());
+	
+	//GPIO9_interrupt_disable();
+	GPIO3_interrupt_enable();
+	while(1)
+	{
+		
+		//printf("GPO enables: %x\n",get_GPO_enables());
+		//printf("GPI enables: %x\n",get_GPI_enables());
+		for(t=0;t<100000000;t++);
 	}
+	
+//	GPIO_REG__INPUT=0x0000;
+//	GPIO_REG__OUTPUT=0x0000;
+//	sprintf(out_string, "%d", GPIO_REG__INPUT);
+//	printf("out_string = %s", out_string);
+//	while(1)
+//	//if (~(GPIO_REG__INPUT^0x0000))// all the values should be zero since the GPIs are disabled except for 
+//	{
+//	 for(t=0;t<10000;t++);
+//		if(GPIO_REG__INPUT!=0xFF1F)
+//		{
+//			printf("made it mama\n");
+//		}
+	//}
+
+
 }

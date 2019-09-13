@@ -173,6 +173,7 @@ void GPI_enables(unsigned int mask){
 	}
 }
 
+
 unsigned int get_GPI_enables(void) {
 	/*
 	Inputs:
@@ -1205,14 +1206,15 @@ void initialize_mote(){
 	set_ALWAYSON_LDO_voltage(0);
 		
 	// Select banks for GPIO inputs
-	// GPI_control(0,0,0,0);
+	GPI_control(1,1,1,2);// this setups up GPIO loopback with 3 and 1 setups the Interrupts
 	
 	// // Select banks for GPIO outputs
-	// // GPO_control(6,5,6,0);
+	GPO_control(6,6,6,6);
 	
 	// // Set all GPIOs as outputs
-	// GPI_enables(0x0000);	
-	// GPO_enables(0xFFFF);
+	GPI_enables(0xFFFF);// Shutting off all GPIOs that are not being used to prevent leakage	
+	//GPIO7=Sets sensor but needs to be turned off, GPIO6=CLK, GPIO5= D1, GPIO4=D2, 
+	GPO_enables(0x0000);
 
 
 	// Set initial coarse/fine on HF_CLOCK

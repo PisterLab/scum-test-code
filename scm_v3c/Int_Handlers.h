@@ -6,7 +6,7 @@
 #include "scum_radio_bsp.h"
 #include "bucket_o_functions.h"
 #include "sensor_adc/adc_test.h"
-
+#include "zappy2.h"
 extern char send_packet[127];
 extern char recv_packet[130];
 
@@ -789,6 +789,9 @@ void INTERRUPT_GPIO8_ISR(){
 }
 void INTERRUPT_GPIO9_ISR(){
 	printf("External Interrupt GPIO9 triggered\n");
+	//sara_start(10);
+	GPIO9_interrupt_disable();
+	
 }
 void INTERRUPT_GPIO10_ISR(){
 	printf("External Interrupt GPIO10 triggered\n");
