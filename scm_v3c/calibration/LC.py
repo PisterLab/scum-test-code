@@ -34,14 +34,15 @@ def cal_LC(scm_port="COM13", board_ID=None, T=300):
 	# There are 5 coarse and 5 mid bits. Fine tuning is locally monotonic 
 	# (and roughly linear), but any time a coarse and/or mid bit changes, 
 	# there is a skip.
-	for i in 1024:
+	# for i in 1024:
 
 	ser.close()
 
 	return
 
 
-def test_LC_sweep(uart_port, num_codes=2048):
+
+def test_LC_sweep_uart(uart_port, num_codes=2048):
 	"""
 	Inputs:
 		uart_port: String. Name of the COM port that SCM UART is connected to.
@@ -95,7 +96,7 @@ def test_LC_sweep(uart_port, num_codes=2048):
 			code = LC_reading[0]
 			counter_out = LC_reading[1]
 
-			
+
 
 			if code in LC_outs.keys():
 				LC_outs[code] = LC_outs[code] + [freq]

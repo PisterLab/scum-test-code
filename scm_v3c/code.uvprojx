@@ -472,21 +472,21 @@
               <FileType>1</FileType>
               <FilePath>.\scum_radio_bsp.c</FilePath>
             </File>
+            <File>
+              <FileName>LC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\calibration\LC.c</FilePath>
+            </File>
+            <File>
+              <FileName>LC.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\calibration\LC.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Testbench</GroupName>
           <Files>
-            <File>
-              <FileName>test_code.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\test_code.c</FilePath>
-            </File>
-            <File>
-              <FileName>test_code.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\test_code.h</FilePath>
-            </File>
             <File>
               <FileName>hardware_flex.c</FileName>
               <FileType>1</FileType>
