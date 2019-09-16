@@ -7,6 +7,7 @@
 #include "bucket_o_functions.h"
 #include "sensor_adc/adc_test.h"
 #include "hardware_flex/hardware_flex.h"
+#include "calibration/LC.h"
 
 extern char send_packet[127];
 extern char recv_packet[130];
@@ -113,7 +114,9 @@ void UART_ISR() {
 	} else { //If waiting for a command
 		// zzz: Used for small demo code
 		if ( (buff[3]=='z') && (buff[2]=='z') && (buff[1]=='z') && (buff[0]=='\n') ) {
-			printf("Change me!\n");
+			// Sweep the LC code ad nauseum and transmit 
+			// {coarse, mid, fine} in bytes 0, 1, and 2 respectively
+			test_LC_sweep_tx();
 		// Copies string from UART to send_packet
 		} else if ( (buff[3]=='c') && (buff[2]=='p') && (buff[1]=='y') && (buff[0]==' ') ) {
 			waiting_for_end_of_copy = 1;
