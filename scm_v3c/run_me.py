@@ -22,6 +22,7 @@ if __name__ == "__main__":
 
 		program_cortex(**program_cortex_specs)
 
+
 	# Send zzz over UART to SCM
 	if False:
 		ser = serial.Serial(
@@ -33,6 +34,7 @@ if __name__ == "__main__":
 			timeout=.5)
 		ser.write(b'zzz\n')
 		ser.close()
+
 
 	# LC sweep and measure (preliminary measurements for figuring out
 	# how to calibrate)
@@ -46,7 +48,9 @@ if __name__ == "__main__":
 
 		write_LC_data(LC_outs, file_out)
 
-	if True:
+
+	# Plotting ADC data
+	if False:
 		fname = "./sensor_adc/data/psu_20190819_173425_cropped.csv"
 
 		plot_adc_data_specs = dict(adc_outs=read_adc_data(fname),
@@ -56,6 +60,8 @@ if __name__ == "__main__":
 								num_bits=10)
 		plot_adc_data(**plot_adc_data_specs)
 
+
+	# Calculating and plotting ADC DNL
 	if True:
 		fname = "./sensor_adc/data/psu_20190819_173425_cropped.csv"
 		calc_adc_dnl_endpoint_specs = dict(adc_outs=read_adc_data(fname))
@@ -70,6 +76,7 @@ if __name__ == "__main__":
 		plt.title("Peak Positive DNL: {0}\nPeak Negative DNL: {1}".format(max(DNLs_cleaned), min(DNLs_cleaned)))
 		plt.show()
 
+	# Calculating and plotting ADC INL
 	if True:
 		fname = "./sensor_adc/data/psu_20190819_173425_cropped.csv"
 		calc_adc_inl_endpoint_specs = dict(adc_outs=read_adc_data(fname))
