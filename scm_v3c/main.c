@@ -17,6 +17,7 @@
 #include "./software_flex/test_code.h"
 #include "./sensor_adc/adc_test.h"
 #include "./hardware_flex/hardware_flex.h"
+#include "./calibration/LC.h"
 
 extern unsigned int current_lfsr;
 
@@ -83,7 +84,8 @@ int main(void) {
 		while(1);
 	}
 	
-	if (0) {
+	// Calibrate frequencies via optical SFD
+	if (1) {
 		printf("Calibrating frequencies...\n");
 		
 		ANALOG_CFG_REG__10 = 0x78;
@@ -96,8 +98,6 @@ int main(void) {
 
 		printf("Cal complete\n");
 	}
-
-	
 
 
 	while(1) {
