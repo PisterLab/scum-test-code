@@ -121,9 +121,9 @@ void loopback_control_adc_shot(unsigned int cycles_reset,
 	// The ISR will print out the ADC reading value
 	GPIO_REG__OUTPUT |= GPIO_REG__ADC_CONVERT;
 
-	while (~ADC_DATA_VALID) {
-		for (count_cycles=0;count_cycles<2;count_cycles++) {}
-	}
+	// while (~ADC_DATA_VALID) {
+	// 	for (count_cycles=0;count_cycles<2;count_cycles++) {}
+	// }
 
 	// Unset the convert + amplify signals + reset the ADC
 	reset_adc(cycles_reset);

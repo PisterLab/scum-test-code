@@ -1273,12 +1273,12 @@ void initialize_mote(){
 	radio_init_divider(2000);
 
 	// SENSOR ADC INITIALIZATION
-	if (0) {
+	if (1) {
 		unsigned int sel_reset 			= 1;
 		unsigned int sel_convert 		= 1;
 		unsigned int sel_pga_amplify 	= 1;
 		unsigned int pga_gain[8] 		= {0,0,0,0, 0,0,0,0};
-		unsigned int adc_settle[8] 		= {1,1,1,1, 1,1,1,1};
+		unsigned int adc_settle[8] 		= {0,0,0,0, 0,0,0,0};
 		unsigned int bgr_tune[7] 		= {0,0,0, 0,0,0,1};
 		unsigned int constgm_tune[8] 	= {1,1,1,1, 1,1,1,1};
 		unsigned int vbatDiv4_en 		= 0;
@@ -1287,7 +1287,7 @@ void initialize_mote(){
 		unsigned int pga_byp 			= 1;
 
 		// Set GPIOs for loopback
-		gpio_loopback_config_adc();
+		loopback_control_config_adc();
 		
 		// GPO_enables(0x0000);
 		// GPI_enables(0xFFFF);

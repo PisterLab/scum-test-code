@@ -6,19 +6,19 @@ processing and data reading/writing/plotting, please see data_handling.py. This 
 that you're working strictly through the Cortex and that outputs will be read from the
 UART.
 """
-import numpy as np
-import scipy as sp
+# import numpy as np
+# import scipy as sp
 import serial
 import visa
-import time
-import random
+# import time
+# import random
 # from data_handling import *
-# from adc_fsm import *
-from pprint import pprint
+from sensor_adc.adc_fsm import *
+# from pprint import pprint
 
-import sys
-sys.path.append('..')
-from bootload import *
+# import sys
+# sys.path.append('..')
+# from bootload import *
 
 def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iterations=1,
 		gpio_settings=dict()):
@@ -79,13 +79,13 @@ def test_adc_spot(port="COM16", control_mode='uart', read_mode='uart', iteration
 	
 		# TODO: atm we're soft resetting, but this shouldn't 
 		# be necessary.
-		ser.write(b'sft\n')
-		print(ser.readline())
-		print(ser.readline())
-		print(ser.readline())
-		print(ser.readline())
-		print(ser.readline())
-		print(ser.readline())
+		# ser.write(b'sft\n')
+		# print(ser.readline())
+		# print(ser.readline())
+		# print(ser.readline())
+		# print(ser.readline())
+		# print(ser.readline())
+		# print(ser.readline())
 
 		
 	# Due diligence
@@ -186,13 +186,13 @@ def test_adc_psu(
 
 			# TODO: atm we're soft resetting, but this shouldn't 
 			# be necessary.
-			ser.write(b'sft\n')
-			print(ser.readline())
-			print(ser.readline())
-			print(ser.readline())
-			print(ser.readline())
-			print(ser.readline())
-			print(ser.readline())
+			# ser.write(b'sft\n')
+			# print(ser.readline())
+			# print(ser.readline())
+			# print(ser.readline())
+			# print(ser.readline())
+			# print(ser.readline())
+			# print(ser.readline())
 	# Due diligence for closing things out
 	ser.close()
 	psu.write("SOURCE2:VOLTAGE:OFFSET 0")

@@ -1,17 +1,26 @@
-from calibration.LC import *
-from calibration.data_handling import *
-from sensor_adc.adc import *
-from sensor_adc.data_handling import *
-from bootload import *
+import numpy as np
+import scipy as sp
+import serial
+import visa
+import time
+import random
 import matplotlib.pyplot as plt
 import csv
 
+# from calibration.LC import *
+# from calibration.data_handling import *
+from sensor_adc.adc import *
+from sensor_adc.adc_fsm import *
+from sensor_adc.data_handling import *
+from bootload import *
+
+
 if __name__ == "__main__":
-	programmer_port = "COM13"
-	scm_port = "COM23"
+	programmer_port = "COM22"
+	scm_port = "COM29"
 
 	# Program SCM
-	if False:
+	if True:
 		program_cortex_specs = dict(teensy_port=programmer_port,
 								uart_port=scm_port,
 								file_binary="./code.bin",
@@ -58,7 +67,7 @@ if __name__ == "__main__":
 	read_mode = 'uart'
 
 	### Running a spot check with the ADC ###
-	if True:
+	if False:
 		test_adc_spot_specs = dict(
 			port=scm_port,
 			control_mode=control_mode,
@@ -66,16 +75,11 @@ if __name__ == "__main__":
 			iterations=3)
 		adc_out = test_adc_spot(**test_adc_spot_specs)
 		print(adc_out)
-		adc_out_dict = dict()
-		adc_out_dict[0.0] = adc_out
-
-		fname = './data/spot_check.csv'
-		write_adc_data(adc_out_dict, fname)
 
 	### Running many iterations on a large ###
 	### sweep. ###
 	if False:
-		test_adc_psu_specs = dict(vin_vec=np.arange(0, 1.2, 0.1e-3),
+		test_adc_psu_specs = dict(vin_vec=np.arange(0, 1.2, .2e-3),
 								port=scm_port,
 								control_mode=control_mode,
 								read_mode=read_mode,
@@ -86,7 +90,7 @@ if __name__ == "__main__":
 
 		ts = time.gmtime()
 		datetime = time.strftime("%Y%m%d_%H%M%S",ts)
-		write_adc_data(adc_outs, './data/psu_{}'.format(datetime))
+		write_adc_data(adc_outs, './sensor_adc/data/psu_{}.csv'.format(datetime))
 
 	# Plotting ADC data
 	if False:
@@ -101,7 +105,7 @@ if __name__ == "__main__":
 
 
 	# Calculating and plotting ADC DNL
-	if True:
+	if False:
 		fname = "./sensor_adc/data/psu_20190819_173425_cropped.csv"
 		calc_adc_dnl_endpoint_specs = dict(adc_outs=read_adc_data(fname))
 
@@ -116,7 +120,7 @@ if __name__ == "__main__":
 		plt.show()
 
 	# Calculating and plotting ADC INL
-	if True:
+	if False:
 		fname = "./sensor_adc/data/psu_20190819_173425_cropped.csv"
 		calc_adc_inl_endpoint_specs = dict(adc_outs=read_adc_data(fname))
 
