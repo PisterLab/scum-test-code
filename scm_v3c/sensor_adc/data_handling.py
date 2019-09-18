@@ -5,10 +5,10 @@ and performing various calculations on ADC data. It does not contain any code to
 actually run tests on the ADC. For that, see adc_*.py. This is 
 strictly for information post-processing.
 """
-# import csv
-# import matplotlib.pyplot as plt
-# import numpy as np
-# from scipy import stats
+import csv
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
 
 def write_adc_data(adc_outs, file_out):
 	"""
@@ -64,39 +64,49 @@ def read_adc_data(file_in):
 			adc_outs[vin] = codes
 	return adc_outs
 
-def calc_adc_dnl(adc_outs, vlsb_ideal):
+def calc_adc_dnl_endpoint(adc_outs):
 	"""
 	Inputs: 
 		adc_outs: A dictionary of ADC codes where the key is the vin,
 			and the value is a list of measured codes (more than one
 			measurement can be taken).
-		vlsb_ideal: The nominal voltage associated with a single LSB.
 	Outputs:
-		Returns a collection of DNLs for each nominal LSB. The length
-		should be 2**(num_bits)-1
+		Returns a collection of endpoint DNLs for each nominal LSB.
 	"""
-	# Averaging over all the iterations to get an average of what the ADC
-	# returns.
-	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
-					in adc_outs.items()}
+	all_codes = []
+	for vin,code_list in adc_outs.items():
+		all_codes = all_codes + list([int(x) for x in code_list])
 
-	vin_prev = min(adc_outs_avg.keys())
-	code_prev = adc_outs_avg[vin_prev]
-	DNLs = []
+	all_codes = set(all_codes)
 
-	# Calculate the DNL for every step
-	for vin in sorted(adc_outs_avg.keys()):
-		code = adc_outs_avg[vin]
-		if code > code_prev:
-			DNL_val = (vin-vin_prev)/vlsb_ideal - 1
-			DNLs.append(DNL_val)
-			vin_prev = vin
-			# If a code is skipped, make the one it skipped functionally
-			# zero width.
-			if code > code_prev + 1:
-				DNLs.append(0)
-			code_prev = code
-	return DNLs
+	data_hist = [0]*(max(all_codes)+1)
+	for vin,code_list in adc_outs.items():
+		for code in code_list:
+			data_hist[int(code)] = data_hist[int(code)] + 1
+
+	Wavg = np.average(data_hist[1:len(data_hist)-1])
+	DNL = [W/Wavg-1 for W in data_hist]
+
+	DNL[0] = float('nan')
+	DNL[-1] = float('nan')
+
+	return DNL
+
+def calc_adc_inl_endpoint(adc_outs):
+	"""
+	Inputs: 
+		adc_outs: A dictionary of ADC codes where the key is the vin,
+			and the value is a list of measured codes (more than one
+			measurement can be taken).
+	Outputs:
+		Returns a collection of endpoint INLs taken from the minimum
+		input voltage up to the maximum input voltage.
+	"""
+	DNL = calc_adc_dnl_endpoint(adc_outs)
+	INL = [float('nan')] + [sum(DNL[1:i]) for i in range(1, len(DNL))]
+	# INL_cleaned = [x for x in INL if not np.isnan(x)]
+
+	return INL
 
 def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
 	"""
@@ -121,35 +131,7 @@ def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
 
 	return slope, intercept
 
-def calc_adc_inl_endpoint(adc_outs, vlsb_ideal):
-	"""
-	Inputs: 
-		adc_outs: A dictionary of ADC codes where the key is the vin,
-			and the value is a list of measured codes (more than one
-			measurement can be taken).
-		vlsb_ideal: The nominal voltage associated with a single LSB.
-	Outputs:
-		Returns a collection of endpoint INLs taken from the minimum
-		input voltage up to the maximum input voltage.
-	"""
-	# Averaging over all the iterations to get an average of what the ADC
-	# returns.
-	adc_outs_avg = {vin:round(np.average(codes)) for (vin,codes) \
-					in adc_outs.items()}
 
-	vin_min = min(adc_outs_avg.keys())
-	code_low = adc_outs_avg[vin_min]
-	INLs = []
-
-	# Calculate the endpoint INL for every step
-	for vin,code in adc_outs_avg.items():
-		if code == code_low:
-			continue
-		code_diff = code - code_low
-		INL_val = (vin-vin_min)/vlsb_ideal - code_diff
-		INLs.append(INLs)
-
-	return INLs
 
 
 def plot_adc_data(adc_outs, plot_inl=False, plot_ideal=False, vdd=1.2, num_bits=10):
