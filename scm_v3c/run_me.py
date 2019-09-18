@@ -9,7 +9,7 @@ import csv
 if __name__ == "__main__":
 	programmer_port = "COM13"
 	scm_port = "COM23"
-	
+
 	# Program SCM
 	if False:
 		program_cortex_specs = dict(teensy_port=programmer_port,
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 	# Send zzz over UART to SCM
 	if False:
 		ser = serial.Serial(
-			port=scm_port_port,
+			port=scm_port,
 			baudrate=19200,
 			parity=serial.PARITY_NONE,
 			stopbits=serial.STOPBITS_ONE,
@@ -35,6 +35,9 @@ if __name__ == "__main__":
 		ser.write(b'zzz\n')
 		ser.close()
 
+	######################
+	### LC CALIBRATION ###
+	######################
 
 	# LC sweep and measure (preliminary measurements for figuring out
 	# how to calibrate)
@@ -48,6 +51,42 @@ if __name__ == "__main__":
 
 		write_LC_data(LC_outs, file_out)
 
+	##################
+	### SENSOR ADC ###
+	##################
+	control_mode = 'loopback'
+	read_mode = 'uart'
+
+	### Running a spot check with the ADC ###
+	if True:
+		test_adc_spot_specs = dict(
+			port=scm_port,
+			control_mode=control_mode,
+			read_mode=read_mode,
+			iterations=3)
+		adc_out = test_adc_spot(**test_adc_spot_specs)
+		print(adc_out)
+		adc_out_dict = dict()
+		adc_out_dict[0.0] = adc_out
+
+		fname = './data/spot_check.csv'
+		write_adc_data(adc_out_dict, fname)
+
+	### Running many iterations on a large ###
+	### sweep. ###
+	if False:
+		test_adc_psu_specs = dict(vin_vec=np.arange(0, 1.2, 0.1e-3),
+								port=scm_port,
+								control_mode=control_mode,
+								read_mode=read_mode,
+								psu_name='USB0::0x0957::0x2C07::MY57801384::0::INSTR',
+								iterations=20,
+								gpio_settings=dict())
+		adc_outs = test_adc_psu(**test_adc_psu_specs)
+
+		ts = time.gmtime()
+		datetime = time.strftime("%Y%m%d_%H%M%S",ts)
+		write_adc_data(adc_outs, './data/psu_{}'.format(datetime))
 
 	# Plotting ADC data
 	if False:
