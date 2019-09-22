@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "Memory_Map.h"
-#include "scm3_hardware_interface.h"
 #include "scm3C_hardware_interface.h"
+#include "scm3_hardware_interface.h"
 #include "scum_radio_bsp.h"
 
 extern unsigned int ASC[38];

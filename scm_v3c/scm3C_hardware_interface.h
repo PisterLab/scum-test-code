@@ -43,6 +43,13 @@ void build_TX_channel_table(unsigned int channel_11_LC_code,unsigned int count_L
 void build_channel_table(unsigned int channel_11_LC_code);
 unsigned int estimate_temperature_2M_32k(void);
 
+void set_LC_current(unsigned int current);
+void set_PA_supply(unsigned int code);
+void set_LO_supply(unsigned int code, unsigned char panic);
+void set_DIV_supply(unsigned int code, unsigned char panic);
+void prescaler(int code);
+void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+
 void find_mid_divs(int mid0);
 
 void radio_init_tx_BLE(void);
