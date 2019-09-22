@@ -13,18 +13,10 @@ import sys
 
 # Parameters
 # ---------------------------------------------------------------------
-#com_port = '/dev/cu.usbmodem3954801';
-#com_port = '/dev/cu.usbmodem4943141';
-#com_port = '/dev/cu.usbmodem4002061';
-#com_port = '/dev/cu.usbmodem4702721';
-#com_port = '/dev/cu.usbmodem3950511';
-#com_port = '/dev/cu.usbmodem40722401'
-#com_port = '/dev/cu.usbmodem4402551';
-#com_port = '/dev/cu.usbmodem4703921'
-#com_port = '/dev/cu.usbmodem40020101'
-com_port = '/dev/cu.usbmodem40954501'
+com_port = '/dev/cu.usbmodem40722401' # programmer labeled 'Fil number 4' seems to work very nicely with boards #14 and #Q7 of 9
+com_port = '/dev/cu.usbmodem40954501' # programmer labeled 'Fil number 11' works well with the SARA boards
 
-binFilePath = "/Users/Filip/Dropbox/Documents/Summer_2018/vmware_share/scm_v3c_154_TSCH_Demo/code.bin"
+binFilePath = "/Users/Filip/Dropbox/scum/scum-test-code/scm_v3c/code.bin"
 
 # 1 = use optical program mode
 # 0 = use wired 3-wire bus mode
