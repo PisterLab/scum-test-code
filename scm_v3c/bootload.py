@@ -156,8 +156,8 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 	return
 
 if __name__ == "__main__":
-	programmer_port = "COM15"
-	scm_port = None
+	programmer_port = "/dev/cu.usbmodem40722401"
+	scm_port = "/dev/cu.usbserial-DN051NRR"
 
 	program_cortex_specs = dict(teensy_port=programmer_port,
 									uart_port=scm_port,
