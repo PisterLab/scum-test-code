@@ -302,7 +302,7 @@ unsigned int sync_pulse_width_compensate(unsigned int pulse_width){
 	static unsigned int sync_count = 0;
 	
 	//if it's a sync pulse, add to average pulse width
-	if(pulse_width > 585 && pulse_width < 1450){
+	if(pulse_width > 585 && pulse_width < 700){
 		sync_widths[sync_count%60] = pulse_width;
 		sync_count++;
 	}
