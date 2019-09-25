@@ -1,0 +1,844 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000 00000800 
+                       Stack_Size
+                               EQU              0x0800      ; 4KB of STACK
+    2 00000000         
+    3 00000000                 AREA             STACK, NOINIT, READWRITE, ALIGN
+=4
+    4 00000000         Stack_Mem
+                               SPACE            Stack_Size
+    5 00000800         __initial_sp
+    6 00000800         
+    7 00000800         
+    8 00000800 00000400 
+                       Heap_Size
+                               EQU              0x0400      ; 2KB of HEAP
+    9 00000800         
+   10 00000800                 AREA             HEAP, NOINIT, READWRITE, ALIGN=
+4
+   11 00000000         __heap_base
+   12 00000000         Heap_Mem
+                               SPACE            Heap_Size
+   13 00000400         __heap_limit
+   14 00000400         
+   15 00000400         
+   16 00000400         ; Vector Table Mapped to Address 0 at Reset
+   17 00000400         
+   18 00000400                 PRESERVE8
+   19 00000400                 THUMB
+   20 00000400         
+   21 00000400                 AREA             RESET, DATA, READONLY
+   22 00000000                 EXPORT           __Vectors
+   23 00000000         
+   24 00000000 00000000 
+                       __Vectors
+                               DCD              __initial_sp
+   25 00000004 00000000        DCD              Reset_Handler
+   26 00000008 00000000        DCD              0
+   27 0000000C 00000000        DCD              0
+   28 00000010 00000000        DCD              0
+   29 00000014 00000000        DCD              0
+   30 00000018 00000000        DCD              0
+   31 0000001C 00000000        DCD              0
+   32 00000020 00000000        DCD              0
+   33 00000024 00000000        DCD              0
+   34 00000028 00000000        DCD              0
+   35 0000002C 00000000        DCD              0
+   36 00000030 00000000        DCD              0
+   37 00000034 00000000        DCD              0
+   38 00000038 00000000        DCD              0
+   39 0000003C 00000000        DCD              0
+   40 00000040         
+   41 00000040         ; External Interrupts
+   42 00000040         
+   43 00000040 00000000        DCD              UART_Handler
+   44 00000044 00000000        DCD              interrupt_gpio3_activehigh_debo
+unced
+   45 00000048 00000000        DCD              optical_irq_in
+   46 0000004C 00000000        DCD              ADC_Handler
+   47 00000050 00000000        DCD              0
+   48 00000054 00000000        DCD              0
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   49 00000058 00000000        DCD              RF_Handler
+   50 0000005C 00000000        DCD              RFTIMER_Handler
+   51 00000060 00000000        DCD              interrupt_rawchips_startval
+   52 00000064 00000000        DCD              interrupt_rawchips_32
+   53 00000068 00000000        DCD              0
+   54 0000006C 00000000        DCD              optical_sfd_interrupt
+   55 00000070 00000000        DCD              interrupt_gpio8_activehigh
+   56 00000074 00000000        DCD              interrupt_gpio9_activelow
+   57 00000078 00000000        DCD              interrupt_gpio10_activelow
+   58 0000007C 00000000        DCD              0
+   59 00000080         
+   60 00000080                 AREA             |.text|, CODE, READONLY
+   61 00000000         ;Interrupt Handlers
+   62 00000000         Reset_Handler
+                               PROC
+   63 00000000                 GLOBAL           Reset_Handler
+   64 00000000                 ENTRY
+   65 00000000         
+   66 00000000 4941            LDR              R1, =0xE000E100 ;Interrupt Set 
+                                                            Enable Register
+   67 00000002 4842            LDR              R0, =0x0000 ;<- REMEMBER TO ENA
+                                                            BLE THE INTERRUPTS!
+                                                            !
+   68 00000004 6008            STR              R0, [R1]
+   69 00000006         
+   70 00000006         ;IP wake up just to solve interrupts
+   71 00000006         ; LDR r0, =0xE000ED10; System Control Register address
+   72 00000006         ; LDR r1, [r0]
+   73 00000006         ; MOVS r2, #0x6
+   74 00000006         ; ORRS r1, r2; Set SLEEPONEXIT bit
+   75 00000006         ; STR r1, [r0]
+   76 00000006         
+   77 00000006                 IMPORT           __main
+   78 00000006 4842            LDR              R0, =__main
+   79 00000008 4700            BX               R0          ;Branch to __main
+   80 0000000A                 ENDP
+   81 0000000A         
+   82 0000000A         
+   83 0000000A         UART_Handler
+                               PROC
+   84 0000000A                 EXPORT           UART_Handler
+   85 0000000A                 IMPORT           UART_ISR
+   86 0000000A         
+   87 0000000A B501            PUSH             {R0,LR}
+   88 0000000C         
+   89 0000000C 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+   90 0000000E F380 8810       MSR              PRIMASK, R0 ;   
+   91 00000012         
+   92 00000012 F7FF FFFE       BL               UART_ISR
+   93 00000016         
+   94 00000016         
+   95 00000016 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+   96 00000018 F380 8810       MSR              PRIMASK, R0
+   97 0000001C         
+   98 0000001C BD01            POP              {R0,PC}
+   99 0000001E                 ENDP
+  100 0000001E         
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+  101 0000001E         ADC_Handler
+                               PROC
+  102 0000001E                 EXPORT           ADC_Handler
+  103 0000001E                 IMPORT           ADC_ISR
+  104 0000001E         
+  105 0000001E B501            PUSH             {R0,LR}
+  106 00000020         
+  107 00000020 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  108 00000022 F380 8810       MSR              PRIMASK, R0 ; 
+  109 00000026         ;STR  R0,[R1] 
+  110 00000026         
+  111 00000026 F7FF FFFE       BL               ADC_ISR
+  112 0000002A         
+  113 0000002A 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  114 0000002C F380 8810       MSR              PRIMASK, R0
+  115 00000030         
+  116 00000030 BD01            POP              {R0,PC}
+  117 00000032         
+  118 00000032                 ENDP
+  119 00000032         
+  120 00000032         RF_Handler
+                               PROC
+  121 00000032                 EXPORT           RF_Handler
+  122 00000032                 IMPORT           RF_ISR
+  123 00000032         
+  124 00000032 B501            PUSH             {R0,LR}
+  125 00000034         
+  126 00000034 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  127 00000036 F380 8810       MSR              PRIMASK, R0 ; 
+  128 0000003A         ;STR  R0,[R1] 
+  129 0000003A         
+  130 0000003A F7FF FFFE       BL               RF_ISR
+  131 0000003E         
+  132 0000003E 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  133 00000040 F380 8810       MSR              PRIMASK, R0
+  134 00000044         
+  135 00000044 BD01            POP              {R0,PC}
+  136 00000046         
+  137 00000046                 ENDP
+  138 00000046         
+  139 00000046         RFTIMER_Handler
+                               PROC
+  140 00000046                 EXPORT           RFTIMER_Handler
+  141 00000046                 IMPORT           RFTIMER_ISR
+  142 00000046         
+  143 00000046 B501            PUSH             {R0,LR}
+  144 00000048         
+  145 00000048 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  146 0000004A F380 8810       MSR              PRIMASK, R0 ; 
+  147 0000004E         ;STR  R0,[R1] 
+  148 0000004E         
+  149 0000004E F7FF FFFE       BL               RFTIMER_ISR
+  150 00000052         
+  151 00000052 2000            MOVS             R0, #0      ;ENABLE all interru
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+                                                            pts
+  152 00000054 F380 8810       MSR              PRIMASK, R0
+  153 00000058         
+  154 00000058 BD01            POP              {R0,PC}
+  155 0000005A         
+  156 0000005A                 ENDP
+  157 0000005A         
+  158 0000005A         ; -----------------------------
+  159 0000005A         ; BEGIN EXTERNAL INTERRUPT ISRS
+  160 0000005A         ; -----------------------------
+  161 0000005A         interrupt_gpio3_activehigh_debounced
+                               PROC
+  162 0000005A                 EXPORT           interrupt_gpio3_activehigh_debo
+unced
+  163 0000005A                 IMPORT           INTERRUPT_GPIO3_ISR
+  164 0000005A         
+  165 0000005A B501            PUSH             {R0,LR}
+  166 0000005C         
+  167 0000005C 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  168 0000005E F380 8810       MSR              PRIMASK, R0 ; 
+  169 00000062         ;STR  R0,[R1] 
+  170 00000062         
+  171 00000062 F7FF FFFE       BL               INTERRUPT_GPIO3_ISR
+  172 00000066         
+  173 00000066 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  174 00000068 F380 8810       MSR              PRIMASK, R0
+  175 0000006C         
+  176 0000006C BD01            POP              {R0,PC}
+  177 0000006E         
+  178 0000006E                 ENDP
+  179 0000006E         
+  180 0000006E         interrupt_gpio8_activehigh
+                               PROC
+  181 0000006E                 EXPORT           interrupt_gpio8_activehigh
+  182 0000006E                 IMPORT           INTERRUPT_GPIO8_ISR
+  183 0000006E         
+  184 0000006E B501            PUSH             {R0,LR}
+  185 00000070         
+  186 00000070 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  187 00000072 F380 8810       MSR              PRIMASK, R0 ; 
+  188 00000076         ;STR  R0,[R1] 
+  189 00000076         
+  190 00000076 F7FF FFFE       BL               INTERRUPT_GPIO8_ISR
+  191 0000007A         
+  192 0000007A 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  193 0000007C F380 8810       MSR              PRIMASK, R0
+  194 00000080         
+  195 00000080 BD01            POP              {R0,PC}
+  196 00000082         
+  197 00000082                 ENDP
+  198 00000082         
+  199 00000082         interrupt_gpio9_activelow
+                               PROC
+  200 00000082                 EXPORT           interrupt_gpio9_activelow
+  201 00000082                 IMPORT           INTERRUPT_GPIO9_ISR
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  202 00000082         
+  203 00000082 B501            PUSH             {R0,LR}
+  204 00000084         
+  205 00000084 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  206 00000086 F380 8810       MSR              PRIMASK, R0 ; 
+  207 0000008A         ;STR  R0,[R1] 
+  208 0000008A         
+  209 0000008A F7FF FFFE       BL               INTERRUPT_GPIO9_ISR
+  210 0000008E         
+  211 0000008E 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  212 00000090 F380 8810       MSR              PRIMASK, R0
+  213 00000094         
+  214 00000094 BD01            POP              {R0,PC}
+  215 00000096         
+  216 00000096                 ENDP
+  217 00000096         
+  218 00000096         interrupt_gpio10_activelow
+                               PROC
+  219 00000096                 EXPORT           interrupt_gpio10_activelow
+  220 00000096                 IMPORT           INTERRUPT_GPIO10_ISR
+  221 00000096         
+  222 00000096 B501            PUSH             {R0,LR}
+  223 00000098         
+  224 00000098 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  225 0000009A F380 8810       MSR              PRIMASK, R0 ; 
+  226 0000009E         ;STR  R0,[R1] 
+  227 0000009E         
+  228 0000009E F7FF FFFE       BL               INTERRUPT_GPIO10_ISR
+  229 000000A2         
+  230 000000A2 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  231 000000A4 F380 8810       MSR              PRIMASK, R0
+  232 000000A8         
+  233 000000A8 BD01            POP              {R0,PC}
+  234 000000AA         
+  235 000000AA                 ENDP
+  236 000000AA         ; ---------------------------
+  237 000000AA         ; END EXTERNAL INTERRUPT ISRS
+  238 000000AA         ; ---------------------------
+  239 000000AA         
+  240 000000AA         
+  241 000000AA         interrupt_rawchips_startval
+                               PROC
+  242 000000AA                 EXPORT           interrupt_rawchips_startval
+  243 000000AA                 IMPORT           RAWCHIPS_STARTVAL_ISR
+  244 000000AA         
+  245 000000AA B501            PUSH             {R0,LR}
+  246 000000AC         
+  247 000000AC 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  248 000000AE F380 8810       MSR              PRIMASK, R0 ; 
+  249 000000B2         ;STR  R0,[R1] 
+  250 000000B2         
+  251 000000B2 F7FF FFFE       BL               RAWCHIPS_STARTVAL_ISR
+  252 000000B6         
+  253 000000B6 2000            MOVS             R0, #0      ;ENABLE all interru
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+                                                            pts
+  254 000000B8 F380 8810       MSR              PRIMASK, R0
+  255 000000BC         
+  256 000000BC BD01            POP              {R0,PC}
+  257 000000BE         
+  258 000000BE                 ENDP
+  259 000000BE         
+  260 000000BE         interrupt_rawchips_32
+                               PROC
+  261 000000BE                 EXPORT           interrupt_rawchips_32
+  262 000000BE                 IMPORT           RAWCHIPS_32_ISR
+  263 000000BE         
+  264 000000BE B501            PUSH             {R0,LR}
+  265 000000C0         
+  266 000000C0 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  267 000000C2 F380 8810       MSR              PRIMASK, R0 ; 
+  268 000000C6         ;STR  R0,[R1] 
+  269 000000C6         
+  270 000000C6 F7FF FFFE       BL               RAWCHIPS_32_ISR
+  271 000000CA         
+  272 000000CA 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  273 000000CC F380 8810       MSR              PRIMASK, R0
+  274 000000D0         
+  275 000000D0 BD01            POP              {R0,PC}
+  276 000000D2         
+  277 000000D2                 ENDP
+  278 000000D2         
+  279 000000D2         
+  280 000000D2         optical_irq_in
+                               PROC
+  281 000000D2                 EXPORT           optical_irq_in
+  282 000000D2                 IMPORT           OPTICAL_32_ISR
+  283 000000D2         
+  284 000000D2 B501            PUSH             {R0,LR}
+  285 000000D4         
+  286 000000D4 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  287 000000D6 F380 8810       MSR              PRIMASK, R0 ; 
+  288 000000DA         ;STR  R0,[R1] 
+  289 000000DA         
+  290 000000DA F7FF FFFE       BL               OPTICAL_32_ISR
+  291 000000DE         
+  292 000000DE 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  293 000000E0 F380 8810       MSR              PRIMASK, R0
+  294 000000E4         
+  295 000000E4 BD01            POP              {R0,PC}
+  296 000000E6         
+  297 000000E6                 ENDP
+  298 000000E6         
+  299 000000E6         
+  300 000000E6         optical_sfd_interrupt
+                               PROC
+  301 000000E6                 EXPORT           optical_sfd_interrupt
+  302 000000E6                 IMPORT           OPTICAL_SFD_ISR
+  303 000000E6         
+  304 000000E6 B501            PUSH             {R0,LR}
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+  305 000000E8         
+  306 000000E8 2001            MOVS             R0, #1      ;   ;MASK all inter
+                                                            rupts
+  307 000000EA F380 8810       MSR              PRIMASK, R0 ; 
+  308 000000EE         ;STR  R0,[R1] 
+  309 000000EE         
+  310 000000EE F7FF FFFE       BL               OPTICAL_SFD_ISR
+  311 000000F2         
+  312 000000F2 2000            MOVS             R0, #0      ;ENABLE all interru
+                                                            pts
+  313 000000F4 F380 8810       MSR              PRIMASK, R0
+  314 000000F8         
+  315 000000F8 BD01            POP              {R0,PC}
+  316 000000FA         
+  317 000000FA                 ENDP
+  318 000000FA         
+  319 000000FA 00 00           ALIGN            4
+  320 000000FC         
+  321 000000FC         ; User Initial Stack & Heap
+  322 000000FC                 IF               :DEF:__MICROLIB
+  327 000000FC                 IMPORT           __use_two_region_memory
+  328 000000FC                 EXPORT           __user_initial_stackheap
+  329 000000FC         __user_initial_stackheap
+  330 000000FC         
+  331 000000FC 4805            LDR              R0, =  Heap_Mem
+  332 000000FE 4906            LDR              R1, =(Stack_Mem + Stack_Size)
+  333 00000100 4A06            LDR              R2, = (Heap_Mem +  Heap_Size)
+  334 00000102 4B07            LDR              R3, = Stack_Mem
+  335 00000104 4770            BX               LR
+  336 00000106         
+  337 00000106 00 00           ALIGN
+  338 00000108         
+  339 00000108                 ENDIF
+  340 00000108         
+  341 00000108         
+  342 00000108                 END
+              E000E100 
+              00000000 
+              00000000 
+              00000000 
+              00000800 
+              00000400 
+              00000000 
+Command Line: --16 --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interwork
+ --depend=.\cm0dsasm.d -o.\cm0dsasm.o -I"C:\Research\Box Sync\Group\VAPR\SCM\sc
+um-test-code\scm_v3c_lighthouse_rx_1lighthouse_timestamps_v3\RTE\_Target_1" -IC
+:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\C
+MSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\Include --predefine="
+__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 522" --predefine="ARMCM0 SET
+A 1" --list=.\cm0dsasm.lst cm0dsasm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+STACK 00000000
+
+Symbol: STACK
+   Definitions
+      At line 3 in file cm0dsasm.s
+   Uses
+      None
+Comment: STACK unused
+Stack_Mem 00000000
+
+Symbol: Stack_Mem
+   Definitions
+      At line 4 in file cm0dsasm.s
+   Uses
+      At line 332 in file cm0dsasm.s
+      At line 334 in file cm0dsasm.s
+
+__initial_sp 00000800
+
+Symbol: __initial_sp
+   Definitions
+      At line 5 in file cm0dsasm.s
+   Uses
+      At line 24 in file cm0dsasm.s
+Comment: __initial_sp used once
+3 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+HEAP 00000000
+
+Symbol: HEAP
+   Definitions
+      At line 10 in file cm0dsasm.s
+   Uses
+      None
+Comment: HEAP unused
+Heap_Mem 00000000
+
+Symbol: Heap_Mem
+   Definitions
+      At line 12 in file cm0dsasm.s
+   Uses
+      At line 331 in file cm0dsasm.s
+      At line 333 in file cm0dsasm.s
+
+__heap_base 00000000
+
+Symbol: __heap_base
+   Definitions
+      At line 11 in file cm0dsasm.s
+   Uses
+      None
+Comment: __heap_base unused
+__heap_limit 00000400
+
+Symbol: __heap_limit
+   Definitions
+      At line 13 in file cm0dsasm.s
+   Uses
+      None
+Comment: __heap_limit unused
+4 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+RESET 00000000
+
+Symbol: RESET
+   Definitions
+      At line 21 in file cm0dsasm.s
+   Uses
+      None
+Comment: RESET unused
+__Vectors 00000000
+
+Symbol: __Vectors
+   Definitions
+      At line 24 in file cm0dsasm.s
+   Uses
+      At line 22 in file cm0dsasm.s
+Comment: __Vectors used once
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 60 in file cm0dsasm.s
+   Uses
+      None
+Comment: .text unused
+ADC_Handler 0000001E
+
+Symbol: ADC_Handler
+   Definitions
+      At line 101 in file cm0dsasm.s
+   Uses
+      At line 46 in file cm0dsasm.s
+      At line 102 in file cm0dsasm.s
+
+RFTIMER_Handler 00000046
+
+Symbol: RFTIMER_Handler
+   Definitions
+      At line 139 in file cm0dsasm.s
+   Uses
+      At line 50 in file cm0dsasm.s
+      At line 140 in file cm0dsasm.s
+
+RF_Handler 00000032
+
+Symbol: RF_Handler
+   Definitions
+      At line 120 in file cm0dsasm.s
+   Uses
+      At line 49 in file cm0dsasm.s
+      At line 121 in file cm0dsasm.s
+
+Reset_Handler 00000000
+
+Symbol: Reset_Handler
+   Definitions
+      At line 62 in file cm0dsasm.s
+   Uses
+      At line 25 in file cm0dsasm.s
+      At line 63 in file cm0dsasm.s
+
+UART_Handler 0000000A
+
+Symbol: UART_Handler
+   Definitions
+      At line 83 in file cm0dsasm.s
+   Uses
+      At line 43 in file cm0dsasm.s
+      At line 84 in file cm0dsasm.s
+
+__user_initial_stackheap 000000FC
+
+Symbol: __user_initial_stackheap
+   Definitions
+      At line 329 in file cm0dsasm.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 328 in file cm0dsasm.s
+Comment: __user_initial_stackheap used once
+interrupt_gpio10_activelow 00000096
+
+Symbol: interrupt_gpio10_activelow
+   Definitions
+      At line 218 in file cm0dsasm.s
+   Uses
+      At line 57 in file cm0dsasm.s
+      At line 219 in file cm0dsasm.s
+
+interrupt_gpio3_activehigh_debounced 0000005A
+
+Symbol: interrupt_gpio3_activehigh_debounced
+   Definitions
+      At line 161 in file cm0dsasm.s
+   Uses
+      At line 44 in file cm0dsasm.s
+      At line 162 in file cm0dsasm.s
+
+interrupt_gpio8_activehigh 0000006E
+
+Symbol: interrupt_gpio8_activehigh
+   Definitions
+      At line 180 in file cm0dsasm.s
+   Uses
+      At line 55 in file cm0dsasm.s
+      At line 181 in file cm0dsasm.s
+
+interrupt_gpio9_activelow 00000082
+
+Symbol: interrupt_gpio9_activelow
+   Definitions
+      At line 199 in file cm0dsasm.s
+   Uses
+      At line 56 in file cm0dsasm.s
+      At line 200 in file cm0dsasm.s
+
+interrupt_rawchips_32 000000BE
+
+Symbol: interrupt_rawchips_32
+   Definitions
+      At line 260 in file cm0dsasm.s
+   Uses
+      At line 52 in file cm0dsasm.s
+      At line 261 in file cm0dsasm.s
+
+interrupt_rawchips_startval 000000AA
+
+Symbol: interrupt_rawchips_startval
+   Definitions
+      At line 241 in file cm0dsasm.s
+   Uses
+      At line 51 in file cm0dsasm.s
+      At line 242 in file cm0dsasm.s
+
+optical_irq_in 000000D2
+
+Symbol: optical_irq_in
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 280 in file cm0dsasm.s
+   Uses
+      At line 45 in file cm0dsasm.s
+      At line 281 in file cm0dsasm.s
+
+optical_sfd_interrupt 000000E6
+
+Symbol: optical_sfd_interrupt
+   Definitions
+      At line 300 in file cm0dsasm.s
+   Uses
+      At line 54 in file cm0dsasm.s
+      At line 301 in file cm0dsasm.s
+
+15 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+Heap_Size 00000400
+
+Symbol: Heap_Size
+   Definitions
+      At line 8 in file cm0dsasm.s
+   Uses
+      At line 12 in file cm0dsasm.s
+      At line 333 in file cm0dsasm.s
+
+Stack_Size 00000800
+
+Symbol: Stack_Size
+   Definitions
+      At line 1 in file cm0dsasm.s
+   Uses
+      At line 4 in file cm0dsasm.s
+      At line 332 in file cm0dsasm.s
+
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+ADC_ISR 00000000
+
+Symbol: ADC_ISR
+   Definitions
+      At line 103 in file cm0dsasm.s
+   Uses
+      At line 111 in file cm0dsasm.s
+Comment: ADC_ISR used once
+INTERRUPT_GPIO10_ISR 00000000
+
+Symbol: INTERRUPT_GPIO10_ISR
+   Definitions
+      At line 220 in file cm0dsasm.s
+   Uses
+      At line 228 in file cm0dsasm.s
+Comment: INTERRUPT_GPIO10_ISR used once
+INTERRUPT_GPIO3_ISR 00000000
+
+Symbol: INTERRUPT_GPIO3_ISR
+   Definitions
+      At line 163 in file cm0dsasm.s
+   Uses
+      At line 171 in file cm0dsasm.s
+Comment: INTERRUPT_GPIO3_ISR used once
+INTERRUPT_GPIO8_ISR 00000000
+
+Symbol: INTERRUPT_GPIO8_ISR
+   Definitions
+      At line 182 in file cm0dsasm.s
+   Uses
+      At line 190 in file cm0dsasm.s
+Comment: INTERRUPT_GPIO8_ISR used once
+INTERRUPT_GPIO9_ISR 00000000
+
+Symbol: INTERRUPT_GPIO9_ISR
+   Definitions
+      At line 201 in file cm0dsasm.s
+   Uses
+      At line 209 in file cm0dsasm.s
+Comment: INTERRUPT_GPIO9_ISR used once
+OPTICAL_32_ISR 00000000
+
+Symbol: OPTICAL_32_ISR
+   Definitions
+      At line 282 in file cm0dsasm.s
+   Uses
+      At line 290 in file cm0dsasm.s
+Comment: OPTICAL_32_ISR used once
+OPTICAL_SFD_ISR 00000000
+
+Symbol: OPTICAL_SFD_ISR
+   Definitions
+      At line 302 in file cm0dsasm.s
+   Uses
+      At line 310 in file cm0dsasm.s
+Comment: OPTICAL_SFD_ISR used once
+RAWCHIPS_32_ISR 00000000
+
+Symbol: RAWCHIPS_32_ISR
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+External symbols
+
+   Definitions
+      At line 262 in file cm0dsasm.s
+   Uses
+      At line 270 in file cm0dsasm.s
+Comment: RAWCHIPS_32_ISR used once
+RAWCHIPS_STARTVAL_ISR 00000000
+
+Symbol: RAWCHIPS_STARTVAL_ISR
+   Definitions
+      At line 243 in file cm0dsasm.s
+   Uses
+      At line 251 in file cm0dsasm.s
+Comment: RAWCHIPS_STARTVAL_ISR used once
+RFTIMER_ISR 00000000
+
+Symbol: RFTIMER_ISR
+   Definitions
+      At line 141 in file cm0dsasm.s
+   Uses
+      At line 149 in file cm0dsasm.s
+Comment: RFTIMER_ISR used once
+RF_ISR 00000000
+
+Symbol: RF_ISR
+   Definitions
+      At line 122 in file cm0dsasm.s
+   Uses
+      At line 130 in file cm0dsasm.s
+Comment: RF_ISR used once
+UART_ISR 00000000
+
+Symbol: UART_ISR
+   Definitions
+      At line 85 in file cm0dsasm.s
+   Uses
+      At line 92 in file cm0dsasm.s
+Comment: UART_ISR used once
+__main 00000000
+
+Symbol: __main
+   Definitions
+      At line 77 in file cm0dsasm.s
+   Uses
+      At line 78 in file cm0dsasm.s
+Comment: __main used once
+__use_two_region_memory 00000000
+
+Symbol: __use_two_region_memory
+   Definitions
+      At line 327 in file cm0dsasm.s
+   Uses
+      None
+Comment: __use_two_region_memory unused
+14 symbols
+377 symbols in table
