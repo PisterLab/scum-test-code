@@ -55,7 +55,7 @@ main.c(513): warning:  #188-D: enumerated type mixed with another type
 main.c(514): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width >= 898 && pulse_width < 978) pulse_type = 4; // Elevation sync, data=1
 main.c(515): warning:  #188-D: enumerated type mixed with another type
-  			if(pulse_width < 500 && pulse_width >50) pulse_type = 5; // Laser sweep
+  			if(pulse_width < 585 && pulse_width >50) pulse_type = 5; // Laser sweep
 main.c(516): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width >= 978 && pulse_width < 108) pulse_type = 6; //Azimuth sync, skip = 1
 main.c(517): warning:  #188-D: enumerated type mixed with another type
@@ -77,7 +77,7 @@ main.c(327): warning:  #177-D: variable "count_2M" was declared but never refere
 main.c: 23 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14076 RO-data=328 RW-data=348 ZI-data=24372  
+Program Size: Code=14068 RO-data=328 RW-data=348 ZI-data=24372  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt

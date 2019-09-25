@@ -493,7 +493,7 @@ int main(void) {
 			//printf("Pulse type: %d\n",(int)pulse_type);
 			
 			//**compensate sync pulse widths
-			sync_pulse_width_compensate(pulse_width);
+			//sync_pulse_width_compensate(pulse_width);
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
 			//update_state(pulse_type,timestamp_rise);
 			
@@ -512,7 +512,7 @@ int main(void) {
 			if(pulse_width >= 689 && pulse_width < 769) pulse_type = 2; // Elevation sync, data=0
 			if(pulse_width >= 793 && pulse_width < 873) pulse_type = 3; // Azimuth sync, data=1
 			if(pulse_width >= 898 && pulse_width < 978) pulse_type = 4; // Elevation sync, data=1
-			if(pulse_width < 500 && pulse_width >50) pulse_type = 5; // Laser sweep
+			if(pulse_width < 585 && pulse_width >50) pulse_type = 5; // Laser sweep
 			if(pulse_width >= 978 && pulse_width < 108) pulse_type = 6; //Azimuth sync, skip = 1
 			if(pulse_width >=108 && pulse_width < 120) pulse_type = 7; //elevation sync, skip = 1how d
 			

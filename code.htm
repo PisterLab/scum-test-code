@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Wed Sep 25 16:39:24 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Wed Sep 25 16:44:27 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -287,20 +287,17 @@ Global Symbols
 <LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 </UL>
 
-<P><STRONG><a name="[50]"></a>sync_pulse_width_compensate</STRONG> (Thumb, 86 bytes, Stack size 0 bytes, main.o(.text))
+<P><STRONG><a name="[50]"></a>sync_pulse_width_compensate</STRONG> (Thumb, 86 bytes, Stack size 0 bytes, main.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
 <LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-</UL>
 
-<P><STRONG><a name="[28]"></a>main</STRONG> (Thumb, 624 bytes, Stack size 0 bytes, main.o(.text))
+<P><STRONG><a name="[28]"></a>main</STRONG> (Thumb, 614 bytes, Stack size 0 bytes, main.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[3f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_rfOff
 <LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote
 <LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;crc32c
 <LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
-<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sync_pulse_width_compensate
 </UL>
 <BR>[Called By]<UL><LI><a href="#[27]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_entry_main
 </UL>
@@ -828,7 +825,7 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_memset_w
 </UL>
 
-<P><STRONG><a name="[51]"></a>__aeabi_uidivmod</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, aeabi_sdiv.o(.text))
+<P><STRONG><a name="[51]"></a>__aeabi_uidivmod</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, aeabi_sdiv.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;estimate_temperature_2M_32k
 <LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_TX_channel_table
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_RX_channel_table
