@@ -3,40 +3,94 @@
 <pre>
 <h1>µVision Build Log</h1>
 <h2>Tool Versions:</h2>
-IDE-Version: µVision V5.22.0.0
+IDE-Version: µVision V5.20.0.0
 Copyright (C) 2016 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: X X, X, LIC=----
+License Information: pister-lab pister-lab, UC Berkeley BSAC, LIC=QF82Z-JNNRF-PCMJ8-38TBS-IHFE8-0U8FN
  
 Tool Versions:
-Toolchain:       MDK-Lite  Version: 5.22
+Toolchain:       MDK-ARM Plus  Version: 5.20
 Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
-C Compiler:      Armcc.exe V5.06 update 4 (build 422)
-Assembler:       Armasm.exe V5.06 update 4 (build 422)
-Linker/Locator:  ArmLink.exe V5.06 update 4 (build 422)
-Library Manager: ArmAr.exe V5.06 update 4 (build 422)
-Hex Converter:   FromElf.exe V5.06 update 4 (build 422)
-CPU DLL:         SARMCM3.DLL V5.22
-Dialog DLL:      DARMCM1.DLL V1.15.0.0
-Target DLL:      UL2CM3.DLL V1.159.0.0
-Dialog DLL:      TARMCM1.DLL V1.11.0.0
+C Compiler:      Armcc.exe V5.06 update 2 (build 183)
+Assembler:       Armasm.exe V5.06 update 2 (build 183)
+Linker/Locator:  ArmLink.exe V5.06 update 2 (build 183)
+Library Manager: ArmAr.exe V5.06 update 2 (build 183)
+Hex Converter:   FromElf.exe V5.06 update 2 (build 183)
+CPU DLL:         SARMCM3.DLL V5.20
+Dialog DLL:      DARMCM1.DLL V1.14.0.0
+Target DLL:      UL2CM3.DLL V1.157.18.0
+Dialog DLL:      TARMCM1.DLL V1.10.0.0
  
 <h2>Project:</h2>
-C:\Research\Box Sync\Group\VAPR\SCM\scum-test-code\scm_v3c_lighthouse_rx_1lighthouse_timestamps_v3\code.uvprojx
-Project File Date:  07/22/2019
+C:\Users\pister-lab4\Documents\Brian\scum-test-code\code.uvprojx
+Project File Date:  09/25/2019
 
 <h2>Output:</h2>
-*** Using Compiler 'V5.06 update 4 (build 422)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+*** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
+compiling main.c...
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+Int_Handlers.h(212): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+Int_Handlers.h(590): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+main.c(149): warning:  #187-D: use of "=" where "==" may have been intended
+  			if(pulse_type = LASER) {
+main.c(101): warning:  #550-D: variable "azimuth_a_sync" was set but never used
+  	static unsigned int azimuth_a_sync;
+main.c(102): warning:  #550-D: variable "azimuth_b_sync" was set but never used
+  	static unsigned int azimuth_b_sync;
+main.c(107): warning:  #550-D: variable "elevation_a_sync" was set but never used
+  	static unsigned int elevation_a_sync;
+main.c(108): warning:  #550-D: variable "elevation_b_sync" was set but never used
+  	static unsigned int elevation_b_sync;
+main.c(483): warning:  #188-D: enumerated type mixed with another type
+  			pulse_type = 0; // re-init to zero
+main.c(484): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width < 665 && pulse_width > 585) pulse_type = 1; // Azimuth sync, data=0
+main.c(485): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >= 689 && pulse_width < 769) pulse_type = 2; // Elevation sync, data=0
+main.c(486): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >= 793 && pulse_width < 873) pulse_type = 3; // Azimuth sync, data=1
+main.c(487): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >= 898 && pulse_width < 978) pulse_type = 4; // Elevation sync, data=1
+main.c(488): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width < 300) pulse_type = 5; // Laser sweep
+main.c(489): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >= 978 && pulse_width < 108) pulse_type = 6; //Azimuth sync, skip = 1
+main.c(490): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >=108 && pulse_width < 120) pulse_type = 7; //elevation sync, skip = 1how d
+main.c(301): warning:  #177-D: variable "t" was declared but never referenced
+  	int t,t2;
+main.c(301): warning:  #177-D: variable "t2" was declared but never referenced
+  	int t,t2;
+main.c(304): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(304): warning:  #177-D: variable "rdata_msb" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(304): warning:  #177-D: variable "count_LC" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(304): warning:  #177-D: variable "count_32k" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(304): warning:  #177-D: variable "count_2M" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c: 24 warnings, 0 errors
+linking...
+.\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
+Program Size: Code=13968 RO-data=328 RW-data=344 ZI-data=24136  
+Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 0 Warning(s).
+".\code.axf" - 0 Error(s), 25 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
-  C:\Research\Box Sync\Group\VAPR\SCM\scum-test-code\scm_v3c_lighthouse_rx_1lighthouse_timestamps_v3\RTE\_Target_1
-  C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0\Device\ARM\ARMCM0\Include
+  C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>

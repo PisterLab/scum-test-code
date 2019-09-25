@@ -70,12 +70,12 @@ unsigned int azimuth_t1_data[1000], elevation_t1_data[1000], azimuth_t2_data[100
 
 unsigned int pulse_width_data[1000];
 
-typedef enum pulse_type_t{AZ,AZ_SKIP,EL,EL_SKIP,LASER};
+typedef enum pulse_type_t{AZ,AZ_SKIP,EL,EL_SKIP,LASER} pulse_type_t;
 
 pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_fall){
-
-	pulse_width = timestamp_fall - timestamp_rise
-	pulse_type_t pulse_type;
+  pulse_type_t pulse_type;
+	pulse_width = timestamp_fall - timestamp_rise;
+	
 
 	// Identify what kind of pulse this was
 
@@ -96,7 +96,7 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 
 //keeps track of the current state and will print out pulse train information when it's done.
 void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
-	static int state = 0;
+	
 	static unsigned int azimuth_unknown_sync; 
 	static unsigned int azimuth_a_sync;
 	static unsigned int azimuth_b_sync;
@@ -110,6 +110,8 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 	static unsigned int elevation_a_laser;
 	static unsigned int elevation_b_laser;	
 
+	static int state = 0;
+	
 	int nextstate;
 	// FSM which searches for the four pulse sequence
 			// An output will only be printed if four pulses are found and the sync pulse widths
@@ -455,7 +457,7 @@ int main(void) {
 				
 		// Detect falling edge
 		else if(last_gpio == 1 && current_gpio == 0){
-			
+			pulse_type_t pulse_type;
 			// Save when this event happened
 			timestamp_fall = RFTIMER_REG__COUNTER;
 			
@@ -464,7 +466,7 @@ int main(void) {
 			pulse_width = timestamp_fall - timestamp_rise;
 				
 			//*** 1. classify pulse based on fall and rise time *** 
-			pulse_type_t pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
+			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
 			printf("Pulse type: %d\n",(int)pulse_type);
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
 			update_state(pulse_type,timestamp_rise);

@@ -1,4 +1,4 @@
-Component: ARM Compiler 5.06 update 4 (build 422) Tool: armlink [4d35d2]
+Component: ARM Compiler 5.06 update 2 (build 183) Tool: armlink [4d35b7]
 
 ==============================================================================
 
@@ -223,90 +223,90 @@ Image Symbol Table
 
     RESET                                    0x00000000   Section      128  cm0dsasm.o(RESET)
     ../clib/../cmprslib/zerorunl2.c          0x00000000   Number         0  __dczerorl2.o ABSOLUTE
-    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit1.o ABSOLUTE
-    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit2.o ABSOLUTE
-    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardshut.o ABSOLUTE
     ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit3.o ABSOLUTE
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit2.o ABSOLUTE
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit1.o ABSOLUTE
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardshut.o ABSOLUTE
     ../clib/angel/handlers.s                 0x00000000   Number         0  __scatter_zi.o ABSOLUTE
-    ../clib/angel/kernel.s                   0x00000000   Number         0  rtexit.o ABSOLUTE
     ../clib/angel/kernel.s                   0x00000000   Number         0  __rtentry4.o ABSOLUTE
     ../clib/angel/kernel.s                   0x00000000   Number         0  __rtentry2.o ABSOLUTE
     ../clib/angel/kernel.s                   0x00000000   Number         0  __rtentry.o ABSOLUTE
     ../clib/angel/kernel.s                   0x00000000   Number         0  rtexit2.o ABSOLUTE
-    ../clib/angel/rt.s                       0x00000000   Number         0  aeabi_idiv0_sigfpe.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  rtexit.o ABSOLUTE
     ../clib/angel/rt.s                       0x00000000   Number         0  aeabi_idiv0.o ABSOLUTE
     ../clib/angel/rt.s                       0x00000000   Number         0  rt_div0.o ABSOLUTE
     ../clib/angel/rt.s                       0x00000000   Number         0  rt_raise.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  aeabi_idiv0_sigfpe.o ABSOLUTE
     ../clib/angel/scatterp.s                 0x00000000   Number         0  __scatter.o ABSOLUTE
     ../clib/angel/startup.s                  0x00000000   Number         0  __main.o ABSOLUTE
-    ../clib/angel/sys.s                      0x00000000   Number         0  indicate_semi.o ABSOLUTE
-    ../clib/angel/sys.s                      0x00000000   Number         0  sys_stackheap_outer.o ABSOLUTE
     ../clib/angel/sys.s                      0x00000000   Number         0  use_no_semi.o ABSOLUTE
-    ../clib/angel/sys.s                      0x00000000   Number         0  libspace.o ABSOLUTE
+    ../clib/angel/sys.s                      0x00000000   Number         0  sys_stackheap_outer.o ABSOLUTE
     ../clib/angel/sys.s                      0x00000000   Number         0  use_no_semi_2.o ABSOLUTE
+    ../clib/angel/sys.s                      0x00000000   Number         0  indicate_semi.o ABSOLUTE
+    ../clib/angel/sys.s                      0x00000000   Number         0  libspace.o ABSOLUTE
     ../clib/angel/sys.s                      0x00000000   Number         0  tempstk.o ABSOLUTE
     ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_command.o ABSOLUTE
-    ../clib/armsys.c                         0x00000000   Number         0  _get_argv_nomalloc.o ABSOLUTE
-    ../clib/armsys.c                         0x00000000   Number         0  no_argv.o ABSOLUTE
     ../clib/armsys.c                         0x00000000   Number         0  argv_veneer.o ABSOLUTE
+    ../clib/armsys.c                         0x00000000   Number         0  no_argv.o ABSOLUTE
+    ../clib/armsys.c                         0x00000000   Number         0  _get_argv_nomalloc.o ABSOLUTE
     ../clib/division.c                       0x00000000   Number         0  rtudiv10.o ABSOLUTE
-    ../clib/division.s                       0x00000000   Number         0  aeabi_sdiv.o ABSOLUTE
     ../clib/division.s                       0x00000000   Number         0  aeabi_sdiv_div0.o ABSOLUTE
+    ../clib/division.s                       0x00000000   Number         0  aeabi_sdiv.o ABSOLUTE
     ../clib/heapalloc.c                      0x00000000   Number         0  hrguard.o ABSOLUTE
     ../clib/heapaux.c                        0x00000000   Number         0  heapauxi.o ABSOLUTE
     ../clib/libinit.s                        0x00000000   Number         0  libinit.o ABSOLUTE
-    ../clib/libinit.s                        0x00000000   Number         0  libshutdown.o ABSOLUTE
     ../clib/libinit.s                        0x00000000   Number         0  libinit2.o ABSOLUTE
+    ../clib/libinit.s                        0x00000000   Number         0  libshutdown.o ABSOLUTE
     ../clib/libinit.s                        0x00000000   Number         0  libshutdown2.o ABSOLUTE
     ../clib/memcpset.c                       0x00000000   Number         0  rt_memclr.o ABSOLUTE
     ../clib/memcpset.c                       0x00000000   Number         0  rt_memcpy.o ABSOLUTE
     ../clib/memcpset.c                       0x00000000   Number         0  rt_memcpy.o ABSOLUTE
+    ../clib/printf.c                         0x00000000   Number         0  _printf_char_common.o ABSOLUTE
+    ../clib/printf.c                         0x00000000   Number         0  _printf_intcommon.o ABSOLUTE
+    ../clib/printf.c                         0x00000000   Number         0  _printf_char_file.o ABSOLUTE
+    ../clib/printf.c                         0x00000000   Number         0  _printf_char.o ABSOLUTE
+    ../clib/printf.c                         0x00000000   Number         0  _printf_str.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  __2printf.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  noretval__2printf.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  __printf.o ABSOLUTE
-    ../clib/printf.c                         0x00000000   Number         0  _printf_str.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  _printf_dec.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  _printf_hex_ll.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  _printf_hex_int.o ABSOLUTE
-    ../clib/printf.c                         0x00000000   Number         0  __printf_wp.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  _printf_hex_int_ll.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  _printf_hex_ptr.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  _printf_hex_int_ptr.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  _printf_hex_ll_ptr.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  _printf_hex_int_ll_ptr.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  __printf_flags.o ABSOLUTE
-    ../clib/printf.c                         0x00000000   Number         0  __printf_ss.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  __printf_flags_ss.o ABSOLUTE
+    ../clib/printf.c                         0x00000000   Number         0  __printf_wp.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  __printf_flags_wp.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  __printf_ss_wp.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  __printf_flags_ss_wp.o ABSOLUTE
+    ../clib/printf.c                         0x00000000   Number         0  __printf_ss.o ABSOLUTE
     ../clib/printf.c                         0x00000000   Number         0  __printf_nopercent.o ABSOLUTE
-    ../clib/printf.c                         0x00000000   Number         0  _printf_intcommon.o ABSOLUTE
-    ../clib/printf.c                         0x00000000   Number         0  _printf_char_common.o ABSOLUTE
-    ../clib/printf.c                         0x00000000   Number         0  _printf_char.o ABSOLUTE
-    ../clib/printf.c                         0x00000000   Number         0  _printf_char_file.o ABSOLUTE
+    ../clib/printf_percent.s                 0x00000000   Number         0  _printf_percent_end.o ABSOLUTE
+    ../clib/printf_percent.s                 0x00000000   Number         0  _printf_c.o ABSOLUTE
     ../clib/printf_percent.s                 0x00000000   Number         0  _printf_x.o ABSOLUTE
     ../clib/printf_percent.s                 0x00000000   Number         0  _printf_d.o ABSOLUTE
     ../clib/printf_percent.s                 0x00000000   Number         0  _printf_u.o ABSOLUTE
     ../clib/printf_percent.s                 0x00000000   Number         0  _printf_percent.o ABSOLUTE
-    ../clib/printf_percent.s                 0x00000000   Number         0  _printf_percent_end.o ABSOLUTE
-    ../clib/printf_percent.s                 0x00000000   Number         0  _printf_c.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_general.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_outer.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_abrt_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_rtred_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_general.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  __raise.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_formal.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_stak_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_formal.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_pvfn_inner.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_outer.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_rtred_inner.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_cppl_inner.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_exit.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_segv_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_exit.o ABSOLUTE
     ../clib/signal.c                         0x00000000   Number         0  defsig_other.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_abrt_inner.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_inner.o ABSOLUTE
-    ../clib/signal.c                         0x00000000   Number         0  __raise.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_outer.o ABSOLUTE
     ../clib/signal.s                         0x00000000   Number         0  defsig.o ABSOLUTE
     ../clib/stdlib.c                         0x00000000   Number         0  exit.o ABSOLUTE
     ../fplib/cfplib/fpinit.c                 0x00000000   Number         0  fpinit.o ABSOLUTE
@@ -370,53 +370,63 @@ Image Symbol Table
     .emb_text                                0x00000134   Section       56  rt_memcpy.o(.emb_text)
     .text                                    0x0000016c   Section      292  cm0dsasm.o(.text)
     .text                                    0x00000290   Section        0  main.o(.text)
-    .text                                    0x0000147c   Section        0  retarget.o(.text)
-    .text                                    0x000014dc   Section        0  scm3c_hardware_interface.o(.text)
-    .text                                    0x00002a24   Section        0  scm3_hardware_interface.o(.text)
-    .text                                    0x00002c94   Section        0  scum_radio_bsp.o(.text)
-    .text                                    0x00002f68   Section        2  use_no_semi_2.o(.text)
-    .text                                    0x00002f6c   Section        0  noretval__2printf.o(.text)
-    .text                                    0x00002f88   Section        0  __printf.o(.text)
-    .text                                    0x00002ff4   Section        0  _printf_str.o(.text)
-    .text                                    0x00003048   Section        0  _printf_dec.o(.text)
-    .text                                    0x000030b4   Section        0  _printf_hex_int.o(.text)
-    .text                                    0x0000310c   Section        0  rt_memclr.o(.text)
-    .text                                    0x0000314c   Section      346  aeabi_sdiv.o(.text)
-    .text                                    0x000032a6   Section        0  heapauxi.o(.text)
-    .text                                    0x000032ac   Section        2  use_no_semi.o(.text)
-    .text                                    0x000032ae   Section        0  _printf_intcommon.o(.text)
-    .text                                    0x0000335e   Section        0  _printf_char.o(.text)
-    .text                                    0x0000338c   Section        0  _printf_char_file.o(.text)
-    .text                                    0x000033b4   Section        0  rtudiv10.o(.text)
-    .text                                    0x000033dc   Section        0  _printf_char_common.o(.text)
-    _printf_input_char                       0x000033dd   Thumb Code    10  _printf_char_common.o(.text)
-    .text                                    0x0000340c   Section       62  sys_stackheap_outer.o(.text)
-    .text                                    0x0000344a   Section        0  exit.o(.text)
-    .text                                    0x0000345c   Section        8  libspace.o(.text)
-    .text                                    0x00003464   Section        0  __dczerorl2.o(.text)
-    i.__ARM_common_switch8                   0x000034ba   Section        0  main.o(i.__ARM_common_switch8)
-    .constdata                               0x000034d8   Section      128  scm3c_hardware_interface.o(.constdata)
-    .constdata                               0x00003558   Section       40  _printf_hex_int.o(.constdata)
-    uc_hextab                                0x00003558   Data          20  _printf_hex_int.o(.constdata)
-    lc_hextab                                0x0000356c   Data          20  _printf_hex_int.o(.constdata)
-    .data                                    0x20000000   Section      190  main.o(.data)
+    .text                                    0x000016b4   Section        0  retarget.o(.text)
+    .text                                    0x00001714   Section        0  scm3c_hardware_interface.o(.text)
+    .text                                    0x00002c5c   Section        0  scm3_hardware_interface.o(.text)
+    .text                                    0x00002ecc   Section        0  scum_radio_bsp.o(.text)
+    .text                                    0x000031a0   Section        2  use_no_semi_2.o(.text)
+    .text                                    0x000031a4   Section        0  noretval__2printf.o(.text)
+    .text                                    0x000031c0   Section        0  __printf.o(.text)
+    .text                                    0x0000322c   Section        0  _printf_str.o(.text)
+    .text                                    0x00003280   Section        0  _printf_dec.o(.text)
+    .text                                    0x000032ec   Section        0  _printf_hex_int.o(.text)
+    .text                                    0x00003344   Section        0  rt_memclr.o(.text)
+    .text                                    0x00003384   Section      346  aeabi_sdiv.o(.text)
+    .text                                    0x000034de   Section        0  heapauxi.o(.text)
+    .text                                    0x000034e4   Section        2  use_no_semi.o(.text)
+    .text                                    0x000034e6   Section        0  _printf_intcommon.o(.text)
+    .text                                    0x00003596   Section        0  _printf_char.o(.text)
+    .text                                    0x000035c4   Section        0  _printf_char_file.o(.text)
+    .text                                    0x000035ec   Section        0  rtudiv10.o(.text)
+    .text                                    0x00003614   Section        0  _printf_char_common.o(.text)
+    _printf_input_char                       0x00003615   Thumb Code    10  _printf_char_common.o(.text)
+    .text                                    0x00003644   Section       62  sys_stackheap_outer.o(.text)
+    .text                                    0x00003682   Section        0  exit.o(.text)
+    .text                                    0x00003694   Section        8  libspace.o(.text)
+    .text                                    0x0000369c   Section        0  __dczerorl2.o(.text)
+    i.__ARM_common_switch8                   0x000036f2   Section        0  main.o(i.__ARM_common_switch8)
+    .constdata                               0x00003710   Section      128  scm3c_hardware_interface.o(.constdata)
+    .constdata                               0x00003790   Section       40  _printf_hex_int.o(.constdata)
+    uc_hextab                                0x00003790   Data          20  _printf_hex_int.o(.constdata)
+    lc_hextab                                0x000037a4   Data          20  _printf_hex_int.o(.constdata)
+    .data                                    0x20000000   Section      232  main.o(.data)
     i                                        0x200000b8   Data           1  main.o(.data)
     buff                                     0x200000b9   Data           4  main.o(.data)
     waiting_for_end_of_copy                  0x200000bd   Data           1  main.o(.data)
-    .data                                    0x200000c0   Section        8  retarget.o(.data)
-    .data                                    0x200000c8   Section       20  scm3c_hardware_interface.o(.data)
-    .data                                    0x200000dc   Section       24  scm3_hardware_interface.o(.data)
-    .data                                    0x200000f4   Section       60  scum_radio_bsp.o(.data)
-    .bss                                     0x20000130   Section    20660  main.o(.bss)
-    .bss                                     0x200051e4   Section      128  scm3c_hardware_interface.o(.bss)
-    .bss                                     0x20005264   Section      152  scm3_hardware_interface.o(.bss)
-    .bss                                     0x200052fc   Section       22  scum_radio_bsp.o(.bss)
-    .bss                                     0x20005314   Section       96  libspace.o(.bss)
-    HEAP                                     0x20005380   Section     1024  cm0dsasm.o(HEAP)
-    Heap_Mem                                 0x20005380   Data        1024  cm0dsasm.o(HEAP)
-    STACK                                    0x20005780   Section     2048  cm0dsasm.o(STACK)
-    Stack_Mem                                0x20005780   Data        2048  cm0dsasm.o(STACK)
-    __initial_sp                             0x20005f80   Data           0  cm0dsasm.o(STACK)
+    azimuth_unknown_sync                     0x200000c0   Data           4  main.o(.data)
+    azimuth_a_sync                           0x200000c4   Data           4  main.o(.data)
+    azimuth_b_sync                           0x200000c8   Data           4  main.o(.data)
+    azimuth_a_laser                          0x200000cc   Data           4  main.o(.data)
+    azimuth_b_laser                          0x200000d0   Data           4  main.o(.data)
+    elevation_a_sync                         0x200000d4   Data           4  main.o(.data)
+    elevation_b_sync                         0x200000d8   Data           4  main.o(.data)
+    elevation_a_laser                        0x200000dc   Data           4  main.o(.data)
+    elevation_b_laser                        0x200000e0   Data           4  main.o(.data)
+    state                                    0x200000e4   Data           4  main.o(.data)
+    .data                                    0x200000e8   Section        8  retarget.o(.data)
+    .data                                    0x200000f0   Section       20  scm3c_hardware_interface.o(.data)
+    .data                                    0x20000104   Section       24  scm3_hardware_interface.o(.data)
+    .data                                    0x2000011c   Section       60  scum_radio_bsp.o(.data)
+    .bss                                     0x20000158   Section    20660  main.o(.bss)
+    .bss                                     0x2000520c   Section      128  scm3c_hardware_interface.o(.bss)
+    .bss                                     0x2000528c   Section      152  scm3_hardware_interface.o(.bss)
+    .bss                                     0x20005324   Section       22  scum_radio_bsp.o(.bss)
+    .bss                                     0x2000533c   Section       96  libspace.o(.bss)
+    HEAP                                     0x200053a0   Section     1024  cm0dsasm.o(HEAP)
+    Heap_Mem                                 0x200053a0   Data        1024  cm0dsasm.o(HEAP)
+    STACK                                    0x200057a0   Section     2048  cm0dsasm.o(STACK)
+    Stack_Mem                                0x200057a0   Data        2048  cm0dsasm.o(STACK)
+    __initial_sp                             0x20005fa0   Data           0  cm0dsasm.o(STACK)
 
     Global Symbols
 
@@ -539,133 +549,135 @@ Image Symbol Table
     INTERRUPT_GPIO8_ISR                      0x00000f8d   Thumb Code    10  main.o(.text)
     INTERRUPT_GPIO9_ISR                      0x00000f97   Thumb Code    10  main.o(.text)
     INTERRUPT_GPIO10_ISR                     0x00000fa1   Thumb Code    10  main.o(.text)
-    main                                     0x00000fab   Thumb Code  1180  main.o(.text)
-    uart_out                                 0x0000147d   Thumb Code     8  retarget.o(.text)
-    fputc                                    0x00001485   Thumb Code    14  retarget.o(.text)
-    uart_in                                  0x00001493   Thumb Code    18  retarget.o(.text)
-    fgetc                                    0x000014a5   Thumb Code    10  retarget.o(.text)
-    ferror                                   0x000014af   Thumb Code     6  retarget.o(.text)
-    _ttywrch                                 0x000014b5   Thumb Code    14  retarget.o(.text)
-    _sys_exit                                0x000014c3   Thumb Code    10  retarget.o(.text)
-    reverse                                  0x000014dd   Thumb Code    78  scm3c_hardware_interface.o(.text)
-    crc32c                                   0x0000152b   Thumb Code    68  scm3c_hardware_interface.o(.text)
-    flipChar                                 0x0000156f   Thumb Code    48  scm3c_hardware_interface.o(.text)
-    GPO_control                              0x0000159f   Thumb Code   174  scm3c_hardware_interface.o(.text)
-    GPI_control                              0x0000164d   Thumb Code   186  scm3c_hardware_interface.o(.text)
-    GPO_enables                              0x00001707   Thumb Code    64  scm3c_hardware_interface.o(.text)
-    GPI_enables                              0x00001747   Thumb Code    66  scm3c_hardware_interface.o(.text)
-    init_ldo_control                         0x00001789   Thumb Code   142  scm3c_hardware_interface.o(.text)
-    sram_test                                0x00001817   Thumb Code   558  scm3c_hardware_interface.o(.text)
-    set_IF_LDO_voltage                       0x00001a45   Thumb Code    50  scm3c_hardware_interface.o(.text)
-    set_VDDD_LDO_voltage                     0x00001a77   Thumb Code    86  scm3c_hardware_interface.o(.text)
-    set_AUX_LDO_voltage                      0x00001acd   Thumb Code    94  scm3c_hardware_interface.o(.text)
-    set_ALWAYSON_LDO_voltage                 0x00001b2b   Thumb Code   102  scm3c_hardware_interface.o(.text)
-    set_zcc_demod_threshold                  0x00001b91   Thumb Code    46  scm3c_hardware_interface.o(.text)
-    set_IF_ZCC_clkdiv                        0x00001bbf   Thumb Code    46  scm3c_hardware_interface.o(.text)
-    set_IF_ZCC_early                         0x00001bed   Thumb Code    46  scm3c_hardware_interface.o(.text)
-    set_IF_stg3gm_ASC                        0x00001c1b   Thumb Code    78  scm3c_hardware_interface.o(.text)
-    set_IF_comparator_trim_I                 0x00001c69   Thumb Code    96  scm3c_hardware_interface.o(.text)
-    set_IF_comparator_trim_Q                 0x00001cc9   Thumb Code    96  scm3c_hardware_interface.o(.text)
-    set_IF_gain_ASC                          0x00001d29   Thumb Code   314  scm3c_hardware_interface.o(.text)
-    radio_init_rx_MF                         0x00001e63   Thumb Code   282  scm3c_hardware_interface.o(.text)
-    radio_init_rx_ZCC                        0x00001f7d   Thumb Code   182  scm3c_hardware_interface.o(.text)
-    set_LO_supply                            0x00002033   Thumb Code    32  scm3c_hardware_interface.o(.text)
-    set_PA_supply                            0x00002053   Thumb Code    30  scm3c_hardware_interface.o(.text)
-    set_LC_current                           0x00002071   Thumb Code    50  scm3c_hardware_interface.o(.text)
-    radio_init_tx                            0x000020a3   Thumb Code    60  scm3c_hardware_interface.o(.text)
-    divProgram                               0x000020df   Thumb Code    62  scm3c_hardware_interface.o(.text)
-    prescaler                                0x0000211d   Thumb Code   574  scm3c_hardware_interface.o(.text)
-    set_DIV_supply                           0x0000235b   Thumb Code    34  scm3c_hardware_interface.o(.text)
-    radio_init_divider                       0x0000237d   Thumb Code    32  scm3c_hardware_interface.o(.text)
-    read_counters_3B                         0x0000239d   Thumb Code    66  scm3c_hardware_interface.o(.text)
-    radio_enable_PA                          0x000023df   Thumb Code     8  scm3c_hardware_interface.o(.text)
-    radio_enable_LO                          0x000023e7   Thumb Code     8  scm3c_hardware_interface.o(.text)
-    radio_enable_RX                          0x000023ef   Thumb Code    16  scm3c_hardware_interface.o(.text)
-    radio_disable_all                        0x000023ff   Thumb Code     8  scm3c_hardware_interface.o(.text)
-    read_IF_estimate                         0x00002407   Thumb Code    28  scm3c_hardware_interface.o(.text)
-    read_LQI                                 0x00002423   Thumb Code     6  scm3c_hardware_interface.o(.text)
-    read_RSSI                                0x00002429   Thumb Code    10  scm3c_hardware_interface.o(.text)
-    set_IF_clock_frequency                   0x00002433   Thumb Code   116  scm3c_hardware_interface.o(.text)
-    set_sys_clk_secondary_freq               0x000024a7   Thumb Code   166  scm3c_hardware_interface.o(.text)
-    initialize_mote                          0x0000254d   Thumb Code   200  scm3c_hardware_interface.o(.text)
-    LC_FREQCHANGE                            0x00002615   Thumb Code   102  scm3c_hardware_interface.o(.text)
-    LC_monotonic                             0x0000267b   Thumb Code   184  scm3c_hardware_interface.o(.text)
-    build_RX_channel_table                   0x00002733   Thumb Code   206  scm3c_hardware_interface.o(.text)
-    build_TX_channel_table                   0x00002801   Thumb Code   212  scm3c_hardware_interface.o(.text)
-    build_channel_table                      0x000028d5   Thumb Code    74  scm3c_hardware_interface.o(.text)
-    estimate_temperature_2M_32k              0x0000291f   Thumb Code    70  scm3c_hardware_interface.o(.text)
-    disable_polyphase_ASC                    0x00002965   Thumb Code    16  scm3c_hardware_interface.o(.text)
-    enable_polyphase_ASC                     0x00002975   Thumb Code    16  scm3c_hardware_interface.o(.text)
-    disable_div_power_ASC                    0x00002985   Thumb Code    16  scm3c_hardware_interface.o(.text)
-    enable_div_power_ASC                     0x00002995   Thumb Code    16  scm3c_hardware_interface.o(.text)
-    ext_clk_ble_ASC                          0x000029a5   Thumb Code    20  scm3c_hardware_interface.o(.text)
-    int_clk_ble_ASC                          0x000029b9   Thumb Code    20  scm3c_hardware_interface.o(.text)
-    enable_1mhz_ble_ASC                      0x000029cd   Thumb Code    20  scm3c_hardware_interface.o(.text)
-    disable_1mhz_ble_ASC                     0x000029e1   Thumb Code    20  scm3c_hardware_interface.o(.text)
-    flip_lsb8                                0x00002a25   Thumb Code    68  scm3_hardware_interface.o(.text)
-    analog_scan_chain_write                  0x00002a69   Thumb Code    94  scm3_hardware_interface.o(.text)
-    analog_scan_chain_load                   0x00002ac7   Thumb Code    12  scm3_hardware_interface.o(.text)
-    set_2M_RC_frequency                      0x00002ad3   Thumb Code   140  scm3_hardware_interface.o(.text)
-    initialize_2M_DAC                        0x00002b5f   Thumb Code    24  scm3_hardware_interface.o(.text)
-    read_counters                            0x00002b77   Thumb Code    66  scm3_hardware_interface.o(.text)
-    update_PN31_byte                         0x00002bb9   Thumb Code    36  scm3_hardware_interface.o(.text)
-    TX_load_PN_data                          0x00002bdd   Thumb Code    32  scm3_hardware_interface.o(.text)
-    TX_load_counter_data                     0x00002bfd   Thumb Code    34  scm3_hardware_interface.o(.text)
-    set_asc_bit                              0x00002c1f   Thumb Code    34  scm3_hardware_interface.o(.text)
-    clear_asc_bit                            0x00002c41   Thumb Code    34  scm3_hardware_interface.o(.text)
-    setFrequencyRX                           0x00002c95   Thumb Code    20  scum_radio_bsp.o(.text)
-    setFrequencyTX                           0x00002ca9   Thumb Code    20  scum_radio_bsp.o(.text)
-    radio_loadPacket                         0x00002cbd   Thumb Code    18  scum_radio_bsp.o(.text)
-    radio_txEnable                           0x00002ccf   Thumb Code    14  scum_radio_bsp.o(.text)
-    radio_txNow                              0x00002cdd   Thumb Code     8  scum_radio_bsp.o(.text)
-    radio_rxEnable                           0x00002ce5   Thumb Code    28  scum_radio_bsp.o(.text)
-    radio_rxNow                              0x00002d01   Thumb Code    22  scum_radio_bsp.o(.text)
-    radio_rfOff                              0x00002d17   Thumb Code    20  scum_radio_bsp.o(.text)
-    radio_frequency_housekeeping             0x00002d2b   Thumb Code   432  scum_radio_bsp.o(.text)
-    radio_enable_interrupts                  0x00002edb   Thumb Code    18  scum_radio_bsp.o(.text)
-    radio_disable_interrupts                 0x00002eed   Thumb Code    10  scum_radio_bsp.o(.text)
-    rftimer_enable_interrupts                0x00002ef7   Thumb Code     8  scum_radio_bsp.o(.text)
-    rftimer_disable_interrupts               0x00002eff   Thumb Code    10  scum_radio_bsp.o(.text)
-    __use_no_semihosting                     0x00002f69   Thumb Code     2  use_no_semi_2.o(.text)
-    __2printf                                0x00002f6d   Thumb Code    22  noretval__2printf.o(.text)
-    __printf                                 0x00002f89   Thumb Code   108  __printf.o(.text)
-    _printf_str                              0x00002ff5   Thumb Code    82  _printf_str.o(.text)
-    _printf_int_dec                          0x00003049   Thumb Code    90  _printf_dec.o(.text)
-    _printf_int_hex                          0x000030b5   Thumb Code    84  _printf_hex_int.o(.text)
-    _printf_longlong_hex                     0x000030b5   Thumb Code     0  _printf_hex_int.o(.text)
-    _memset_w                                0x0000310d   Thumb Code    26  rt_memclr.o(.text)
-    _memset                                  0x00003127   Thumb Code    30  rt_memclr.o(.text)
-    __aeabi_memclr                           0x00003145   Thumb Code     4  rt_memclr.o(.text)
-    __rt_memclr                              0x00003145   Thumb Code     0  rt_memclr.o(.text)
-    __aeabi_memclr4                          0x00003149   Thumb Code     0  rt_memclr.o(.text)
-    __aeabi_memclr8                          0x00003149   Thumb Code     0  rt_memclr.o(.text)
-    __rt_memclr_w                            0x00003149   Thumb Code     4  rt_memclr.o(.text)
-    __aeabi_uidiv                            0x0000314d   Thumb Code     0  aeabi_sdiv.o(.text)
-    __aeabi_uidivmod                         0x0000314d   Thumb Code    20  aeabi_sdiv.o(.text)
-    __aeabi_idiv                             0x00003161   Thumb Code     0  aeabi_sdiv.o(.text)
-    __aeabi_idivmod                          0x00003161   Thumb Code   326  aeabi_sdiv.o(.text)
-    __use_two_region_memory                  0x000032a7   Thumb Code     2  heapauxi.o(.text)
-    __rt_heap_escrow$2region                 0x000032a9   Thumb Code     2  heapauxi.o(.text)
-    __rt_heap_expand$2region                 0x000032ab   Thumb Code     2  heapauxi.o(.text)
-    __I$use$semihosting                      0x000032ad   Thumb Code     0  use_no_semi.o(.text)
-    __use_no_semihosting_swi                 0x000032ad   Thumb Code     2  use_no_semi.o(.text)
-    _printf_int_common                       0x000032af   Thumb Code   176  _printf_intcommon.o(.text)
-    _printf_cs_common                        0x0000335f   Thumb Code    22  _printf_char.o(.text)
-    _printf_char                             0x00003375   Thumb Code    16  _printf_char.o(.text)
-    _printf_string                           0x00003385   Thumb Code     8  _printf_char.o(.text)
-    _printf_char_file                        0x0000338d   Thumb Code    34  _printf_char_file.o(.text)
-    __rt_udiv10                              0x000033b5   Thumb Code    40  rtudiv10.o(.text)
-    _printf_char_common                      0x000033e7   Thumb Code    32  _printf_char_common.o(.text)
-    __user_setup_stackheap                   0x0000340d   Thumb Code    62  sys_stackheap_outer.o(.text)
-    exit                                     0x0000344b   Thumb Code    16  exit.o(.text)
-    __user_libspace                          0x0000345d   Thumb Code     8  libspace.o(.text)
-    __user_perproc_libspace                  0x0000345d   Thumb Code     0  libspace.o(.text)
-    __user_perthread_libspace                0x0000345d   Thumb Code     0  libspace.o(.text)
-    __decompress                             0x00003465   Thumb Code     0  __dczerorl2.o(.text)
-    __decompress1                            0x00003465   Thumb Code    86  __dczerorl2.o(.text)
-    __ARM_common_switch8                     0x000034bb   Thumb Code    28  main.o(i.__ARM_common_switch8)
-    Region$$Table$$Base                      0x00003580   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x000035a0   Number         0  anon$$obj.o(Region$$Table)
+    classify_pulse                           0x00000fab   Thumb Code   204  main.o(.text)
+    update_state                             0x00001077   Thumb Code   280  main.o(.text)
+    main                                     0x0000118f   Thumb Code  1108  main.o(.text)
+    uart_out                                 0x000016b5   Thumb Code     8  retarget.o(.text)
+    fputc                                    0x000016bd   Thumb Code    14  retarget.o(.text)
+    uart_in                                  0x000016cb   Thumb Code    18  retarget.o(.text)
+    fgetc                                    0x000016dd   Thumb Code    10  retarget.o(.text)
+    ferror                                   0x000016e7   Thumb Code     6  retarget.o(.text)
+    _ttywrch                                 0x000016ed   Thumb Code    14  retarget.o(.text)
+    _sys_exit                                0x000016fb   Thumb Code    10  retarget.o(.text)
+    reverse                                  0x00001715   Thumb Code    78  scm3c_hardware_interface.o(.text)
+    crc32c                                   0x00001763   Thumb Code    68  scm3c_hardware_interface.o(.text)
+    flipChar                                 0x000017a7   Thumb Code    48  scm3c_hardware_interface.o(.text)
+    GPO_control                              0x000017d7   Thumb Code   174  scm3c_hardware_interface.o(.text)
+    GPI_control                              0x00001885   Thumb Code   186  scm3c_hardware_interface.o(.text)
+    GPO_enables                              0x0000193f   Thumb Code    64  scm3c_hardware_interface.o(.text)
+    GPI_enables                              0x0000197f   Thumb Code    66  scm3c_hardware_interface.o(.text)
+    init_ldo_control                         0x000019c1   Thumb Code   142  scm3c_hardware_interface.o(.text)
+    sram_test                                0x00001a4f   Thumb Code   558  scm3c_hardware_interface.o(.text)
+    set_IF_LDO_voltage                       0x00001c7d   Thumb Code    50  scm3c_hardware_interface.o(.text)
+    set_VDDD_LDO_voltage                     0x00001caf   Thumb Code    86  scm3c_hardware_interface.o(.text)
+    set_AUX_LDO_voltage                      0x00001d05   Thumb Code    94  scm3c_hardware_interface.o(.text)
+    set_ALWAYSON_LDO_voltage                 0x00001d63   Thumb Code   102  scm3c_hardware_interface.o(.text)
+    set_zcc_demod_threshold                  0x00001dc9   Thumb Code    46  scm3c_hardware_interface.o(.text)
+    set_IF_ZCC_clkdiv                        0x00001df7   Thumb Code    46  scm3c_hardware_interface.o(.text)
+    set_IF_ZCC_early                         0x00001e25   Thumb Code    46  scm3c_hardware_interface.o(.text)
+    set_IF_stg3gm_ASC                        0x00001e53   Thumb Code    78  scm3c_hardware_interface.o(.text)
+    set_IF_comparator_trim_I                 0x00001ea1   Thumb Code    96  scm3c_hardware_interface.o(.text)
+    set_IF_comparator_trim_Q                 0x00001f01   Thumb Code    96  scm3c_hardware_interface.o(.text)
+    set_IF_gain_ASC                          0x00001f61   Thumb Code   314  scm3c_hardware_interface.o(.text)
+    radio_init_rx_MF                         0x0000209b   Thumb Code   282  scm3c_hardware_interface.o(.text)
+    radio_init_rx_ZCC                        0x000021b5   Thumb Code   182  scm3c_hardware_interface.o(.text)
+    set_LO_supply                            0x0000226b   Thumb Code    32  scm3c_hardware_interface.o(.text)
+    set_PA_supply                            0x0000228b   Thumb Code    30  scm3c_hardware_interface.o(.text)
+    set_LC_current                           0x000022a9   Thumb Code    50  scm3c_hardware_interface.o(.text)
+    radio_init_tx                            0x000022db   Thumb Code    60  scm3c_hardware_interface.o(.text)
+    divProgram                               0x00002317   Thumb Code    62  scm3c_hardware_interface.o(.text)
+    prescaler                                0x00002355   Thumb Code   574  scm3c_hardware_interface.o(.text)
+    set_DIV_supply                           0x00002593   Thumb Code    34  scm3c_hardware_interface.o(.text)
+    radio_init_divider                       0x000025b5   Thumb Code    32  scm3c_hardware_interface.o(.text)
+    read_counters_3B                         0x000025d5   Thumb Code    66  scm3c_hardware_interface.o(.text)
+    radio_enable_PA                          0x00002617   Thumb Code     8  scm3c_hardware_interface.o(.text)
+    radio_enable_LO                          0x0000261f   Thumb Code     8  scm3c_hardware_interface.o(.text)
+    radio_enable_RX                          0x00002627   Thumb Code    16  scm3c_hardware_interface.o(.text)
+    radio_disable_all                        0x00002637   Thumb Code     8  scm3c_hardware_interface.o(.text)
+    read_IF_estimate                         0x0000263f   Thumb Code    28  scm3c_hardware_interface.o(.text)
+    read_LQI                                 0x0000265b   Thumb Code     6  scm3c_hardware_interface.o(.text)
+    read_RSSI                                0x00002661   Thumb Code    10  scm3c_hardware_interface.o(.text)
+    set_IF_clock_frequency                   0x0000266b   Thumb Code   116  scm3c_hardware_interface.o(.text)
+    set_sys_clk_secondary_freq               0x000026df   Thumb Code   166  scm3c_hardware_interface.o(.text)
+    initialize_mote                          0x00002785   Thumb Code   200  scm3c_hardware_interface.o(.text)
+    LC_FREQCHANGE                            0x0000284d   Thumb Code   102  scm3c_hardware_interface.o(.text)
+    LC_monotonic                             0x000028b3   Thumb Code   184  scm3c_hardware_interface.o(.text)
+    build_RX_channel_table                   0x0000296b   Thumb Code   206  scm3c_hardware_interface.o(.text)
+    build_TX_channel_table                   0x00002a39   Thumb Code   212  scm3c_hardware_interface.o(.text)
+    build_channel_table                      0x00002b0d   Thumb Code    74  scm3c_hardware_interface.o(.text)
+    estimate_temperature_2M_32k              0x00002b57   Thumb Code    70  scm3c_hardware_interface.o(.text)
+    disable_polyphase_ASC                    0x00002b9d   Thumb Code    16  scm3c_hardware_interface.o(.text)
+    enable_polyphase_ASC                     0x00002bad   Thumb Code    16  scm3c_hardware_interface.o(.text)
+    disable_div_power_ASC                    0x00002bbd   Thumb Code    16  scm3c_hardware_interface.o(.text)
+    enable_div_power_ASC                     0x00002bcd   Thumb Code    16  scm3c_hardware_interface.o(.text)
+    ext_clk_ble_ASC                          0x00002bdd   Thumb Code    20  scm3c_hardware_interface.o(.text)
+    int_clk_ble_ASC                          0x00002bf1   Thumb Code    20  scm3c_hardware_interface.o(.text)
+    enable_1mhz_ble_ASC                      0x00002c05   Thumb Code    20  scm3c_hardware_interface.o(.text)
+    disable_1mhz_ble_ASC                     0x00002c19   Thumb Code    20  scm3c_hardware_interface.o(.text)
+    flip_lsb8                                0x00002c5d   Thumb Code    68  scm3_hardware_interface.o(.text)
+    analog_scan_chain_write                  0x00002ca1   Thumb Code    94  scm3_hardware_interface.o(.text)
+    analog_scan_chain_load                   0x00002cff   Thumb Code    12  scm3_hardware_interface.o(.text)
+    set_2M_RC_frequency                      0x00002d0b   Thumb Code   140  scm3_hardware_interface.o(.text)
+    initialize_2M_DAC                        0x00002d97   Thumb Code    24  scm3_hardware_interface.o(.text)
+    read_counters                            0x00002daf   Thumb Code    66  scm3_hardware_interface.o(.text)
+    update_PN31_byte                         0x00002df1   Thumb Code    36  scm3_hardware_interface.o(.text)
+    TX_load_PN_data                          0x00002e15   Thumb Code    32  scm3_hardware_interface.o(.text)
+    TX_load_counter_data                     0x00002e35   Thumb Code    34  scm3_hardware_interface.o(.text)
+    set_asc_bit                              0x00002e57   Thumb Code    34  scm3_hardware_interface.o(.text)
+    clear_asc_bit                            0x00002e79   Thumb Code    34  scm3_hardware_interface.o(.text)
+    setFrequencyRX                           0x00002ecd   Thumb Code    20  scum_radio_bsp.o(.text)
+    setFrequencyTX                           0x00002ee1   Thumb Code    20  scum_radio_bsp.o(.text)
+    radio_loadPacket                         0x00002ef5   Thumb Code    18  scum_radio_bsp.o(.text)
+    radio_txEnable                           0x00002f07   Thumb Code    14  scum_radio_bsp.o(.text)
+    radio_txNow                              0x00002f15   Thumb Code     8  scum_radio_bsp.o(.text)
+    radio_rxEnable                           0x00002f1d   Thumb Code    28  scum_radio_bsp.o(.text)
+    radio_rxNow                              0x00002f39   Thumb Code    22  scum_radio_bsp.o(.text)
+    radio_rfOff                              0x00002f4f   Thumb Code    20  scum_radio_bsp.o(.text)
+    radio_frequency_housekeeping             0x00002f63   Thumb Code   432  scum_radio_bsp.o(.text)
+    radio_enable_interrupts                  0x00003113   Thumb Code    18  scum_radio_bsp.o(.text)
+    radio_disable_interrupts                 0x00003125   Thumb Code    10  scum_radio_bsp.o(.text)
+    rftimer_enable_interrupts                0x0000312f   Thumb Code     8  scum_radio_bsp.o(.text)
+    rftimer_disable_interrupts               0x00003137   Thumb Code    10  scum_radio_bsp.o(.text)
+    __use_no_semihosting                     0x000031a1   Thumb Code     2  use_no_semi_2.o(.text)
+    __2printf                                0x000031a5   Thumb Code    22  noretval__2printf.o(.text)
+    __printf                                 0x000031c1   Thumb Code   108  __printf.o(.text)
+    _printf_str                              0x0000322d   Thumb Code    82  _printf_str.o(.text)
+    _printf_int_dec                          0x00003281   Thumb Code    90  _printf_dec.o(.text)
+    _printf_int_hex                          0x000032ed   Thumb Code    84  _printf_hex_int.o(.text)
+    _printf_longlong_hex                     0x000032ed   Thumb Code     0  _printf_hex_int.o(.text)
+    _memset_w                                0x00003345   Thumb Code    26  rt_memclr.o(.text)
+    _memset                                  0x0000335f   Thumb Code    30  rt_memclr.o(.text)
+    __aeabi_memclr                           0x0000337d   Thumb Code     4  rt_memclr.o(.text)
+    __rt_memclr                              0x0000337d   Thumb Code     0  rt_memclr.o(.text)
+    __aeabi_memclr4                          0x00003381   Thumb Code     0  rt_memclr.o(.text)
+    __aeabi_memclr8                          0x00003381   Thumb Code     0  rt_memclr.o(.text)
+    __rt_memclr_w                            0x00003381   Thumb Code     4  rt_memclr.o(.text)
+    __aeabi_uidiv                            0x00003385   Thumb Code     0  aeabi_sdiv.o(.text)
+    __aeabi_uidivmod                         0x00003385   Thumb Code    20  aeabi_sdiv.o(.text)
+    __aeabi_idiv                             0x00003399   Thumb Code     0  aeabi_sdiv.o(.text)
+    __aeabi_idivmod                          0x00003399   Thumb Code   326  aeabi_sdiv.o(.text)
+    __use_two_region_memory                  0x000034df   Thumb Code     2  heapauxi.o(.text)
+    __rt_heap_escrow$2region                 0x000034e1   Thumb Code     2  heapauxi.o(.text)
+    __rt_heap_expand$2region                 0x000034e3   Thumb Code     2  heapauxi.o(.text)
+    __I$use$semihosting                      0x000034e5   Thumb Code     0  use_no_semi.o(.text)
+    __use_no_semihosting_swi                 0x000034e5   Thumb Code     2  use_no_semi.o(.text)
+    _printf_int_common                       0x000034e7   Thumb Code   176  _printf_intcommon.o(.text)
+    _printf_cs_common                        0x00003597   Thumb Code    22  _printf_char.o(.text)
+    _printf_char                             0x000035ad   Thumb Code    16  _printf_char.o(.text)
+    _printf_string                           0x000035bd   Thumb Code     8  _printf_char.o(.text)
+    _printf_char_file                        0x000035c5   Thumb Code    34  _printf_char_file.o(.text)
+    __rt_udiv10                              0x000035ed   Thumb Code    40  rtudiv10.o(.text)
+    _printf_char_common                      0x0000361f   Thumb Code    32  _printf_char_common.o(.text)
+    __user_setup_stackheap                   0x00003645   Thumb Code    62  sys_stackheap_outer.o(.text)
+    exit                                     0x00003683   Thumb Code    16  exit.o(.text)
+    __user_libspace                          0x00003695   Thumb Code     8  libspace.o(.text)
+    __user_perproc_libspace                  0x00003695   Thumb Code     0  libspace.o(.text)
+    __user_perthread_libspace                0x00003695   Thumb Code     0  libspace.o(.text)
+    __decompress                             0x0000369d   Thumb Code     0  __dczerorl2.o(.text)
+    __decompress1                            0x0000369d   Thumb Code    86  __dczerorl2.o(.text)
+    __ARM_common_switch8                     0x000036f3   Thumb Code    28  main.o(i.__ARM_common_switch8)
+    Region$$Table$$Base                      0x000037b8   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x000037d8   Number         0  anon$$obj.o(Region$$Table)
     chip_index                               0x20000000   Data           4  main.o(.data)
     raw_chips                                0x20000004   Data           4  main.o(.data)
     jj                                       0x20000008   Data           4  main.o(.data)
@@ -718,33 +730,33 @@ Image Symbol Table
     elevation_t2                             0x200000b0   Data           4  main.o(.data)
     num_data_points                          0x200000b4   Data           2  main.o(.data)
     target_num_data_points                   0x200000b6   Data           2  main.o(.data)
-    __stdout                                 0x200000c0   Data           4  retarget.o(.data)
-    __stdin                                  0x200000c4   Data           4  retarget.o(.data)
-    packet_interval                          0x200000c8   Data           4  scm3c_hardware_interface.o(.data)
-    guard_time                               0x200000cc   Data           4  scm3c_hardware_interface.o(.data)
-    radio_startup_time                       0x200000d0   Data           4  scm3c_hardware_interface.o(.data)
-    expected_RX_arrival                      0x200000d4   Data           4  scm3c_hardware_interface.o(.data)
-    ack_turnaround_time                      0x200000d8   Data           4  scm3c_hardware_interface.o(.data)
-    current_lfsr                             0x200000dc   Data           4  scm3_hardware_interface.o(.data)
-    dac_2M_settings                          0x200000e0   Data          20  scm3_hardware_interface.o(.data)
-    FIR_coeff                                0x200000f4   Data          11  scum_radio_bsp.o(.data)
-    IF_estimate_history                      0x20000100   Data          44  scum_radio_bsp.o(.data)
-    frequency_update_rate                    0x2000012c   Data           2  scum_radio_bsp.o(.data)
-    frequency_update_cooldown_timer          0x2000012e   Data           2  scum_radio_bsp.o(.data)
-    send_packet                              0x20000130   Data         127  main.o(.bss)
-    recv_packet                              0x200001b0   Data         130  main.o(.bss)
-    chips                                    0x20000234   Data         400  main.o(.bss)
-    azimuth_t1_data                          0x200003c4   Data        4000  main.o(.bss)
-    elevation_t1_data                        0x20001364   Data        4000  main.o(.bss)
-    azimuth_t2_data                          0x20002304   Data        4000  main.o(.bss)
-    elevation_t2_data                        0x200032a4   Data        4000  main.o(.bss)
-    pulse_width_data                         0x20004244   Data        4000  main.o(.bss)
-    RX_channel_codes                         0x200051e4   Data          64  scm3c_hardware_interface.o(.bss)
-    TX_channel_codes                         0x20005224   Data          64  scm3c_hardware_interface.o(.bss)
-    ASC                                      0x20005264   Data         152  scm3_hardware_interface.o(.bss)
-    cdr_tau_history                          0x200052fc   Data          22  scum_radio_bsp.o(.bss)
-    __libspace_start                         0x20005314   Data          96  libspace.o(.bss)
-    __temporary_stack_top$libspace           0x20005374   Data           0  libspace.o(.bss)
+    __stdout                                 0x200000e8   Data           4  retarget.o(.data)
+    __stdin                                  0x200000ec   Data           4  retarget.o(.data)
+    packet_interval                          0x200000f0   Data           4  scm3c_hardware_interface.o(.data)
+    guard_time                               0x200000f4   Data           4  scm3c_hardware_interface.o(.data)
+    radio_startup_time                       0x200000f8   Data           4  scm3c_hardware_interface.o(.data)
+    expected_RX_arrival                      0x200000fc   Data           4  scm3c_hardware_interface.o(.data)
+    ack_turnaround_time                      0x20000100   Data           4  scm3c_hardware_interface.o(.data)
+    current_lfsr                             0x20000104   Data           4  scm3_hardware_interface.o(.data)
+    dac_2M_settings                          0x20000108   Data          20  scm3_hardware_interface.o(.data)
+    FIR_coeff                                0x2000011c   Data          11  scum_radio_bsp.o(.data)
+    IF_estimate_history                      0x20000128   Data          44  scum_radio_bsp.o(.data)
+    frequency_update_rate                    0x20000154   Data           2  scum_radio_bsp.o(.data)
+    frequency_update_cooldown_timer          0x20000156   Data           2  scum_radio_bsp.o(.data)
+    send_packet                              0x20000158   Data         127  main.o(.bss)
+    recv_packet                              0x200001d8   Data         130  main.o(.bss)
+    chips                                    0x2000025c   Data         400  main.o(.bss)
+    azimuth_t1_data                          0x200003ec   Data        4000  main.o(.bss)
+    elevation_t1_data                        0x2000138c   Data        4000  main.o(.bss)
+    azimuth_t2_data                          0x2000232c   Data        4000  main.o(.bss)
+    elevation_t2_data                        0x200032cc   Data        4000  main.o(.bss)
+    pulse_width_data                         0x2000426c   Data        4000  main.o(.bss)
+    RX_channel_codes                         0x2000520c   Data          64  scm3c_hardware_interface.o(.bss)
+    TX_channel_codes                         0x2000524c   Data          64  scm3c_hardware_interface.o(.bss)
+    ASC                                      0x2000528c   Data         152  scm3_hardware_interface.o(.bss)
+    cdr_tau_history                          0x20005324   Data          22  scum_radio_bsp.o(.bss)
+    __libspace_start                         0x2000533c   Data          96  libspace.o(.bss)
+    __temporary_stack_top$libspace           0x2000539c   Data           0  libspace.o(.bss)
 
 
 
@@ -754,9 +766,9 @@ Memory Map of the image
 
   Image entry point : Not specified.
 
-  Load Region LR_IROM1 (Base: 0x00000000, Size: 0x000036d0, Max: 0x00010000, ABSOLUTE, COMPRESSED[0x000035f0])
+  Load Region LR_IROM1 (Base: 0x00000000, Size: 0x00003930, Max: 0x00010000, ABSOLUTE, COMPRESSED[0x00003828])
 
-    Execution Region ER_IROM1 (Base: 0x00000000, Size: 0x000035a0, Max: 0x00010000, ABSOLUTE)
+    Execution Region ER_IROM1 (Base: 0x00000000, Size: 0x000037d8, Max: 0x00010000, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
@@ -813,59 +825,58 @@ Memory Map of the image
     0x0000012e   0x00000006   Code   RO          160    .ARM.Collect$$rtexit$$00000004  c_p.l(rtexit2.o)
     0x00000134   0x00000038   Code   RO           61    .emb_text           c_p.l(rt_memcpy.o)
     0x0000016c   0x00000124   Code   RO            4  * .text               cm0dsasm.o
-    0x00000290   0x000011ec   Code   RO            5    .text               main.o
-    0x0000147c   0x00000060   Code   RO           10    .text               retarget.o
-    0x000014dc   0x00001548   Code   RO           12    .text               scm3c_hardware_interface.o
-    0x00002a24   0x00000270   Code   RO           16    .text               scm3_hardware_interface.o
-    0x00002c94   0x000002d4   Code   RO           19    .text               scum_radio_bsp.o
-    0x00002f68   0x00000002   Code   RO           24    .text               c_p.l(use_no_semi_2.o)
-    0x00002f6a   0x00000002   PAD
-    0x00002f6c   0x0000001c   Code   RO           26    .text               c_p.l(noretval__2printf.o)
-    0x00002f88   0x0000006c   Code   RO           27    .text               c_p.l(__printf.o)
-    0x00002ff4   0x00000052   Code   RO           28    .text               c_p.l(_printf_str.o)
-    0x00003046   0x00000002   PAD
-    0x00003048   0x0000006c   Code   RO           29    .text               c_p.l(_printf_dec.o)
-    0x000030b4   0x00000058   Code   RO           32    .text               c_p.l(_printf_hex_int.o)
-    0x0000310c   0x00000040   Code   RO           63    .text               c_p.l(rt_memclr.o)
-    0x0000314c   0x0000015a   Code   RO           64    .text               c_p.l(aeabi_sdiv.o)
-    0x000032a6   0x00000006   Code   RO           66    .text               c_p.l(heapauxi.o)
-    0x000032ac   0x00000002   Code   RO           68    .text               c_p.l(use_no_semi.o)
-    0x000032ae   0x000000b0   Code   RO           72    .text               c_p.l(_printf_intcommon.o)
-    0x0000335e   0x0000002e   Code   RO           73    .text               c_p.l(_printf_char.o)
-    0x0000338c   0x00000028   Code   RO           74    .text               c_p.l(_printf_char_file.o)
-    0x000033b4   0x00000028   Code   RO           76    .text               c_p.l(rtudiv10.o)
-    0x000033dc   0x00000030   Code   RO           93    .text               c_p.l(_printf_char_common.o)
-    0x0000340c   0x0000003e   Code   RO           94    .text               c_p.l(sys_stackheap_outer.o)
-    0x0000344a   0x00000010   Code   RO           97    .text               c_p.l(exit.o)
-    0x0000345a   0x00000002   PAD
-    0x0000345c   0x00000008   Code   RO          104    .text               c_p.l(libspace.o)
-    0x00003464   0x00000056   Code   RO          204    .text               c_p.l(__dczerorl2.o)
-    0x000034ba   0x0000001c   Code   RO            9    i.__ARM_common_switch8  main.o
-    0x000034d6   0x00000002   PAD
-    0x000034d8   0x00000080   Data   RO           14    .constdata          scm3c_hardware_interface.o
-    0x00003558   0x00000028   Data   RO           33    .constdata          c_p.l(_printf_hex_int.o)
-    0x00003580   0x00000020   Data   RO          202    Region$$Table       anon$$obj.o
+    0x00000290   0x00001424   Code   RO            5    .text               main.o
+    0x000016b4   0x00000060   Code   RO           10    .text               retarget.o
+    0x00001714   0x00001548   Code   RO           12    .text               scm3c_hardware_interface.o
+    0x00002c5c   0x00000270   Code   RO           16    .text               scm3_hardware_interface.o
+    0x00002ecc   0x000002d4   Code   RO           19    .text               scum_radio_bsp.o
+    0x000031a0   0x00000002   Code   RO           24    .text               c_p.l(use_no_semi_2.o)
+    0x000031a2   0x00000002   PAD
+    0x000031a4   0x0000001c   Code   RO           26    .text               c_p.l(noretval__2printf.o)
+    0x000031c0   0x0000006c   Code   RO           27    .text               c_p.l(__printf.o)
+    0x0000322c   0x00000052   Code   RO           28    .text               c_p.l(_printf_str.o)
+    0x0000327e   0x00000002   PAD
+    0x00003280   0x0000006c   Code   RO           29    .text               c_p.l(_printf_dec.o)
+    0x000032ec   0x00000058   Code   RO           32    .text               c_p.l(_printf_hex_int.o)
+    0x00003344   0x00000040   Code   RO           63    .text               c_p.l(rt_memclr.o)
+    0x00003384   0x0000015a   Code   RO           64    .text               c_p.l(aeabi_sdiv.o)
+    0x000034de   0x00000006   Code   RO           66    .text               c_p.l(heapauxi.o)
+    0x000034e4   0x00000002   Code   RO           68    .text               c_p.l(use_no_semi.o)
+    0x000034e6   0x000000b0   Code   RO           72    .text               c_p.l(_printf_intcommon.o)
+    0x00003596   0x0000002e   Code   RO           73    .text               c_p.l(_printf_char.o)
+    0x000035c4   0x00000028   Code   RO           74    .text               c_p.l(_printf_char_file.o)
+    0x000035ec   0x00000028   Code   RO           76    .text               c_p.l(rtudiv10.o)
+    0x00003614   0x00000030   Code   RO           93    .text               c_p.l(_printf_char_common.o)
+    0x00003644   0x0000003e   Code   RO           94    .text               c_p.l(sys_stackheap_outer.o)
+    0x00003682   0x00000010   Code   RO           97    .text               c_p.l(exit.o)
+    0x00003692   0x00000002   PAD
+    0x00003694   0x00000008   Code   RO          104    .text               c_p.l(libspace.o)
+    0x0000369c   0x00000056   Code   RO          204    .text               c_p.l(__dczerorl2.o)
+    0x000036f2   0x0000001c   Code   RO            9    i.__ARM_common_switch8  main.o
+    0x0000370e   0x00000002   PAD
+    0x00003710   0x00000080   Data   RO           14    .constdata          scm3c_hardware_interface.o
+    0x00003790   0x00000028   Data   RO           33    .constdata          c_p.l(_printf_hex_int.o)
+    0x000037b8   0x00000020   Data   RO          202    Region$$Table       anon$$obj.o
 
 
-    Execution Region RW_IRAM1 (Base: 0x20000000, Size: 0x00005f80, Max: 0x00010000, ABSOLUTE, COMPRESSED[0x00000050])
+    Execution Region RW_IRAM1 (Base: 0x20000000, Size: 0x00005fa0, Max: 0x00010000, ABSOLUTE, COMPRESSED[0x00000050])
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000000   0x000000be   Data   RW            7    .data               main.o
-    0x200000be   0x00000002   PAD
-    0x200000c0   0x00000008   Data   RW           11    .data               retarget.o
-    0x200000c8   0x00000014   Data   RW           15    .data               scm3c_hardware_interface.o
-    0x200000dc   0x00000018   Data   RW           18    .data               scm3_hardware_interface.o
-    0x200000f4   0x0000003c   Data   RW           21    .data               scum_radio_bsp.o
-    0x20000130   0x000050b4   Zero   RW            6    .bss                main.o
-    0x200051e4   0x00000080   Zero   RW           13    .bss                scm3c_hardware_interface.o
-    0x20005264   0x00000098   Zero   RW           17    .bss                scm3_hardware_interface.o
-    0x200052fc   0x00000016   Zero   RW           20    .bss                scum_radio_bsp.o
-    0x20005312   0x00000002   PAD
-    0x20005314   0x00000060   Zero   RW          105    .bss                c_p.l(libspace.o)
-    0x20005374   0x0000000c   PAD
-    0x20005380   0x00000400   Zero   RW            2    HEAP                cm0dsasm.o
-    0x20005780   0x00000800   Zero   RW            1    STACK               cm0dsasm.o
+    0x20000000   0x000000e8   Data   RW            7    .data               main.o
+    0x200000e8   0x00000008   Data   RW           11    .data               retarget.o
+    0x200000f0   0x00000014   Data   RW           15    .data               scm3c_hardware_interface.o
+    0x20000104   0x00000018   Data   RW           18    .data               scm3_hardware_interface.o
+    0x2000011c   0x0000003c   Data   RW           21    .data               scum_radio_bsp.o
+    0x20000158   0x000050b4   Zero   RW            6    .bss                main.o
+    0x2000520c   0x00000080   Zero   RW           13    .bss                scm3c_hardware_interface.o
+    0x2000528c   0x00000098   Zero   RW           17    .bss                scm3_hardware_interface.o
+    0x20005324   0x00000016   Zero   RW           20    .bss                scum_radio_bsp.o
+    0x2000533a   0x00000002   PAD
+    0x2000533c   0x00000060   Zero   RW          105    .bss                c_p.l(libspace.o)
+    0x2000539c   0x00000004   PAD
+    0x200053a0   0x00000400   Zero   RW            2    HEAP                cm0dsasm.o
+    0x200057a0   0x00000800   Zero   RW            1    STACK               cm0dsasm.o
 
 
 ==============================================================================
@@ -876,16 +887,16 @@ Image component sizes
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
        292         32        128          0       3072          0   cm0dsasm.o
-      4616       1500          0        190      20660          0   main.o
+      5184       1588          0        232      20660          0   main.o
         96         16          0          8          0          0   retarget.o
        624         50          0         24        152          0   scm3_hardware_interface.o
       5448        606        128         20        128          0   scm3c_hardware_interface.o
        724         96          0         60         22          0   scum_radio_bsp.o
 
     ----------------------------------------------------------------------
-     11802       2300        288        304      24036          0   Object Totals
+     12370       2388        288        344      24036          0   Object Totals
          0          0         32          0          0          0   (incl. Generated)
-         2          0          0          2          2          0   (incl. Padding)
+         2          0          0          0          2          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -931,8 +942,8 @@ Image component sizes
          2          0          0          0          0          0   use_no_semi_2.o
 
     ----------------------------------------------------------------------
-      1598         52         40          0        108          0   Library Totals
-         6          0          0          0         12          0   (incl. Padding)
+      1598         52         40          0        100          0   Library Totals
+         6          0          0          0          4          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -941,7 +952,7 @@ Image component sizes
       1592         52         40          0         96          0   c_p.l
 
     ----------------------------------------------------------------------
-      1598         52         40          0        108          0   Library Totals
+      1598         52         40          0        100          0   Library Totals
 
     ----------------------------------------------------------------------
 
@@ -950,15 +961,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     13400       2352        328        304      24144          0   Grand Totals
-     13400       2352        328         80      24144          0   ELF Image Totals (compressed)
-     13400       2352        328         80          0          0   ROM Totals
+     13968       2440        328        344      24136          0   Grand Totals
+     13968       2440        328         80      24136          0   ELF Image Totals (compressed)
+     13968       2440        328         80          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                13728 (  13.41kB)
-    Total RW  Size (RW Data + ZI Data)             24448 (  23.88kB)
-    Total ROM Size (Code + RO Data + RW Data)      13808 (  13.48kB)
+    Total RO  Size (Code + RO Data)                14296 (  13.96kB)
+    Total RW  Size (RW Data + ZI Data)             24480 (  23.91kB)
+    Total ROM Size (Code + RO Data + RW Data)      14376 (  14.04kB)
 
 ==============================================================================
 
