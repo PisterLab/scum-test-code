@@ -79,15 +79,15 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 
 	// Identify what kind of pulse this was
 
-	if(pulse_width < 300) pulse_type = LASER; // Laser sweep (THIS NEEDS TUNING)
+	if(pulse_width < 300 && pulse_width > 50) pulse_type = LASER; // Laser sweep (THIS NEEDS TUNING)
 	if(pulse_width < 665 && pulse_width > 585) pulse_type = AZ; // Azimuth sync, data=0, skip = 0
 	if(pulse_width >= 689 && pulse_width < 769) pulse_type = EL; // Elevation sync, data=0, skip = 0
 	if(pulse_width >= 793 && pulse_width < 873) pulse_type = AZ; // Azimuth sync, data=1, skip = 0
 	if(pulse_width >= 898 && pulse_width < 978) pulse_type = EL; // Elevation sync, data=1, skip = 0
-	if(pulse_width >= 978 && pulse_width < 108) pulse_type = AZ_SKIP; //Azimuth sync, data=0, skip = 1
-	if(pulse_width >= 108 && pulse_width < 120) pulse_type = EL_SKIP; //elevation sync, data=0, skip = 1
-	if(pulse_width >= 120 && pulse_width < 130) pulse_type = AZ_SKIP; //Azimuth sync, data=1, skip = 1
-	if(pulse_width >= 130 && pulse_width < 140) pulse_type = EL_SKIP; //Elevation sync, data=1, skip = 1
+	if(pulse_width >= 978 && pulse_width < 1080) pulse_type = AZ_SKIP; //Azimuth sync, data=0, skip = 1
+	if(pulse_width >= 1080 && pulse_width < 1200) pulse_type = EL_SKIP; //elevation sync, data=0, skip = 1
+	if(pulse_width >= 1200 && pulse_width < 1300) pulse_type = AZ_SKIP; //Azimuth sync, data=1, skip = 1
+	if(pulse_width >= 1300 && pulse_width < 1400) pulse_type = EL_SKIP; //Elevation sync, data=1, skip = 1
 
 	
 
@@ -146,7 +146,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 		
 		// Azimuth laser sweep from lighthouse A
 		case 2: {
-			if(pulse_type = LASER) {
+			if(pulse_type == LASER) {
 				azimuth_a_laser = timestamp_rise;
 				nextstate = 3;
 			}
@@ -293,6 +293,29 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 
 }
 
+unsigned int sync_pulse_width_compensate(unsigned int pulse_width){
+	static unsigned int sync_widths[60];
+	unsigned int avg; //average sync pulse width in 10 MHz ticks
+	int i;
+	unsigned int sum = 0;
+	
+	static unsigned int sync_count = 0;
+	
+	//if it's a sync pulse, add to average pulse width
+	if(pulse_width > 585 && pulse_width < 1450){
+		sync_widths[sync_count%60] = pulse_width;
+		sync_count++;
+	}
+	
+	for(i = 0; i < 60; i++){
+		sum+=sync_widths[i];
+	}
+	
+	avg = sum/60;
+	
+	printf("avg: %d\n",avg);
+	return 	avg;
+}
 //////////////////////////////////////////////////////////////////
 // Main Function
 //////////////////////////////////////////////////////////////////
@@ -466,10 +489,14 @@ int main(void) {
 			pulse_width = timestamp_fall - timestamp_rise;
 				
 			//*** 1. classify pulse based on fall and rise time *** 
-			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
-			printf("Pulse type: %d\n",(int)pulse_type);
+			//pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
+			//printf("Pulse type: %d\n",(int)pulse_type);
+			
+			//**compensate sync pulse widths
+			sync_pulse_width_compensate(pulse_width);
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
-			update_state(pulse_type,timestamp_rise);
+			//update_state(pulse_type,timestamp_rise);
+			
 			// Need to determine what kind of pulse this was
 			// Laser sweep pulses will have widths of only a few us
 			// Sync pulses have a width corresponding to
@@ -485,7 +512,7 @@ int main(void) {
 			if(pulse_width >= 689 && pulse_width < 769) pulse_type = 2; // Elevation sync, data=0
 			if(pulse_width >= 793 && pulse_width < 873) pulse_type = 3; // Azimuth sync, data=1
 			if(pulse_width >= 898 && pulse_width < 978) pulse_type = 4; // Elevation sync, data=1
-			if(pulse_width < 300) pulse_type = 5; // Laser sweep
+			if(pulse_width < 500 && pulse_width >50) pulse_type = 5; // Laser sweep
 			if(pulse_width >= 978 && pulse_width < 108) pulse_type = 6; //Azimuth sync, skip = 1
 			if(pulse_width >=108 && pulse_width < 120) pulse_type = 7; //elevation sync, skip = 1how d
 			
