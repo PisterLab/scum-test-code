@@ -70,12 +70,12 @@ unsigned int azimuth_t1_data[1000], elevation_t1_data[1000], azimuth_t2_data[100
 
 unsigned int pulse_width_data[1000];
 
-typedef enum pulse_type_t{AZ,AZ_SKIP,EL,EL_SKIP,LASER} pulse_type_t;
+typedef enum pulse_type_t{AZ=0,AZ_SKIP=1,EL=2,EL_SKIP=3,LASER=4,INVALID = 5} pulse_type_t;
 
 pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_fall){
   pulse_type_t pulse_type;
 	pulse_width = timestamp_fall - timestamp_rise;
-	
+	pulse_type = INVALID;
 
 	// Identify what kind of pulse this was
 
@@ -113,6 +113,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 	static int state = 0;
 	
 	int nextstate;
+	
+	if(pulse_type == INVALID){
+		return;
+	}
 	// FSM which searches for the four pulse sequence
 			// An output will only be printed if four pulses are found and the sync pulse widths
 			// are within the bounds listed above.
@@ -122,7 +126,9 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 		case 0: {
 			if(pulse_type == AZ){
 				azimuth_unknown_sync = timestamp_rise;
+				
 				nextstate = 1;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -137,9 +143,11 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				azimuth_a_sync = azimuth_unknown_sync;
 				
 				nextstate = 2;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
+			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}
@@ -149,6 +157,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			if(pulse_type == LASER) {
 				azimuth_a_laser = timestamp_rise;
 				nextstate = 3;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -161,6 +170,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			if(pulse_type == EL) {
 				elevation_a_sync = timestamp_rise;
 				nextstate = 4;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -172,6 +182,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 		case 4:{
 			if(pulse_type == EL_SKIP) {
 				nextstate = 5;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -183,6 +194,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			if(pulse_type == LASER) {
 				elevation_a_laser = timestamp_rise;
 				nextstate = 6;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -196,6 +208,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 		case 6:{
 			if(pulse_type == AZ_SKIP) {
 				nextstate = 7;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -208,6 +221,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			if(pulse_type == AZ) {
 				azimuth_b_sync = timestamp_rise;
 				nextstate = 8;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -220,6 +234,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			if(pulse_type == LASER) {
 				azimuth_b_laser = timestamp_rise;
 				nextstate = 9;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -231,6 +246,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 		case 9:{
 			if(pulse_type == EL_SKIP) {
 				nextstate = 10;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -243,6 +259,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			if(pulse_type == EL) {
 				elevation_b_sync = timestamp_rise;
 				nextstate = 11;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -255,6 +272,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			if(pulse_type == LASER) {
 				elevation_b_laser = timestamp_rise;
 				nextstate = 12;
+				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -288,7 +306,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			break;
 		}
 	}
-	printf("state: %d\n",state);
+	
 	state = nextstate;
 
 }
