@@ -1155,7 +1155,7 @@
         0x000010fc:    48764622    "FvH    LDMDAMI  r6,{r1,r5,r9,r10,lr}^ ; ?  
         0x00001100:    a0786801    .hx.    RSBSGE   r6,r8,r1,LSL #16
         0x00001104:    f930f002    ..0.    RFEDB    r0! ; ?  
-        0x00001108:    2400e000    ...$    STRCS    lr,[r0],#-0
+        0x00001108:    2400e006    ...$    STRCS    lr,[r0],#-6
         0x0000110c:    4872462a    *FrH    LDMDAMI  r2,{r1,r3,r5,r9,r10,lr}^ ; ?  
         0x00001110:    a07c6801    .h|.    RSBSGE   r6,r12,r1,LSL #16
         0x00001114:    f928f002    ..(.    DCI      0xf928f002 ; ? Undefined
@@ -1165,7 +1165,7 @@
         0x00001124:    486c4622    "FlH    STMDAMI  r12,{r1,r5,r9,r10,lr}^ ; ?  
         0x00001128:    a06e6801    .hn.    RSBGE    r6,lr,r1,LSL #16
         0x0000112c:    f91cf002    ....    RFEDB    r12 ; ?  
-        0x00001130:    2400e000    ...$    STRCS    lr,[r0],#-0
+        0x00001130:    2400e006    ...$    STRCS    lr,[r0],#-6
         0x00001134:    4868462a    *FhH    STMDAMI  r8,{r1,r3,r5,r9,r10,lr}^ ; ?  
         0x00001138:    a0726801    .hr.    RSBSGE   r6,r2,r1,LSL #16
         0x0000113c:    f914f002    ....    RFEDB    r4 ; ?  
@@ -1174,7 +1174,7 @@
         0x00001148:    48634622    "FcH    STMDAMI  r3,{r1,r5,r9,r10,lr}^ ; ?  
         0x0000114c:    a0656801    .he.    RSBGE    r6,r5,r1,LSL #16
         0x00001150:    f90af002    ....    DCI      0xf90af002 ; ? Undefined
-        0x00001154:    2400e000    ...$    STRCS    lr,[r0],#-0
+        0x00001154:    2400e006    ...$    STRCS    lr,[r0],#-6
         0x00001158:    485f462a    *F_H    LDMDAMI  pc,{r1,r3,r5,r9,r10,lr}^ ; ?  
         0x0000115c:    a0696801    .hi.    RSBGE    r6,r9,r1,LSL #16
         0x00001160:    f902f002    ....    DCI      0xf902f002 ; ? Undefined
@@ -1184,7 +1184,7 @@
         0x00001170:    48594622    "FYH    LDMDAMI  r9,{r1,r5,r9,r10,lr}^
         0x00001174:    a05b6801    .h[.    SUBSGE   r6,r11,r1,LSL #16
         0x00001178:    f8f6f002    ....    DCI      0xf8f6f002 ; ? Undefined
-        0x0000117c:    2400e000    ...$    STRCS    lr,[r0],#-0
+        0x0000117c:    2400e006    ...$    STRCS    lr,[r0],#-6
         0x00001180:    4855462a    *FUH    LDMDAMI  r5,{r1,r3,r5,r9,r10,lr}^
         0x00001184:    a05f6801    .h_.    SUBSGE   r6,pc,r1,LSL #16
         0x00001188:    f8eef002    ....    SRSIA    sp!,#2 ; ?  
@@ -1298,7 +1298,7 @@
         0x00001338:    46222407    .$"F    STRTMI   r2,[r2],-r7,LSL #8 ; ?  
         0x0000133c:    680148f9    .H.h    STMDAVS  r1,{r0,r3-r7,r11,lr}
         0x00001340:    f00248f9    .H..    DCI      0xf00248f9 ; ? Undefined
-        0x00001344:    e000f811    ....    AND      pc,r0,r1,LSL r8 ; ?  
+        0x00001344:    e007f811    ....    AND      pc,r7,r1,LSL r8 ; ?  
         0x00001348:    462a2400    .$*F    STRTMI   r2,[r10],-r0,LSL #8
         0x0000134c:    680148f5    .H.h    STMDAVS  r1,{r0,r2,r4-r7,r11,lr}
         0x00001350:    302048f5    .H 0    STRDCC   r4,r5,[r0],-r5 ; ?  
@@ -1309,7 +1309,7 @@
         0x00001364:    48ef4622    "F.H    STMMI    pc,{r1,r5,r9,r10,lr}^ ; ?  
         0x00001368:    48ef6801    .h.H    STMMI    pc,{r0,r11,sp,lr}^ ; ?  
         0x0000136c:    fffcf001    ....    DCI      0xfffcf001 ; ? Undefined
-        0x00001370:    2400e000    ...$    STRCS    lr,[r0],#-0
+        0x00001370:    2400e007    ...$    STRCS    lr,[r0],#-7
         0x00001374:    48eb462a    *F.H    STMMI    r11,{r1,r3,r5,r9,r10,lr}^ ; ?  
         0x00001378:    48eb6801    .h.H    STMMI    r11,{r0,r11,sp,lr}^ ; ?  
         0x0000137c:    f0013020     0..    DCI      0xf0013020 ; ? Undefined
@@ -1336,7 +1336,7 @@
         0x000013d0:    48d44622    "F.H    LDMMI    r4,{r1,r5,r9,r10,lr}^
         0x000013d4:    48d46801    .h.H    LDMMI    r4,{r0,r11,sp,lr}^
         0x000013d8:    ffc6f001    ....    DCI      0xffc6f001 ; ? Undefined
-        0x000013dc:    2400e000    ...$    STRCS    lr,[r0],#-0
+        0x000013dc:    2400e007    ...$    STRCS    lr,[r0],#-7
         0x000013e0:    48d0462a    *F.H    LDMMI    r0,{r1,r3,r5,r9,r10,lr}^
         0x000013e4:    48d06801    .h.H    LDMMI    r0,{r0,r11,sp,lr}^
         0x000013e8:    f0013020     0..    DCI      0xf0013020 ; ? Undefined
@@ -1346,7 +1346,7 @@
         0x000013f8:    4622240c    .$"F    STRTMI   r2,[r2],-r12,LSL #8 ; ?  
         0x000013fc:    680148c9    .H.h    STMDAVS  r1,{r0,r3,r6,r7,r11,lr}
         0x00001400:    f00148c9    .H..    DCI      0xf00148c9 ; ? Undefined
-        0x00001404:    e000ffb1    ....    STRH     pc,[r0],-r1 ; ?  
+        0x00001404:    e007ffb1    ....    STRH     pc,[r7],-r1 ; ?  
         0x00001408:    462a2400    .$*F    STRTMI   r2,[r10],-r0,LSL #8
         0x0000140c:    680148c5    .H.h    STMDAVS  r1,{r0,r2,r6,r7,r11,lr}
         0x00001410:    302048c5    .H 0    EORCC    r4,r0,r5,ASR #17

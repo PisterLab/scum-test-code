@@ -159,10 +159,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 3;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
 				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}
 		
@@ -173,10 +173,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 4;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
 				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}	
 
@@ -186,10 +186,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 5;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
 				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}	
 		// Look for elevation laser pulse
@@ -199,10 +199,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 6;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
 			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}	
 		
@@ -214,10 +214,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 7;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
 			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}	
 	
@@ -228,10 +228,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 8;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
 			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}	
 
@@ -255,9 +255,9 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 10;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
-			
+			}
 			break;
 		}	
 
@@ -268,10 +268,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 11;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
 			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}	
 
@@ -282,10 +282,10 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 12;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else{
 				nextstate = 0;
 			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}	
 
@@ -309,9 +309,9 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			
 			// Found an invalid pulse, start over
-			else
+			else{
 				nextstate = 0;
-			
+			}
 			break;
 		}
 	}
