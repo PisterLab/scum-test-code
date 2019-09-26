@@ -517,7 +517,7 @@ int main(void) {
 				
 			//*** 1. classify pulse based on fall and rise time *** 
 			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
-			//printf("Pulse type: %d\n",(int)pulse_type);
+			printf("Pulse type: %d\n",(int)pulse_type);
 			
 			//**compensate sync pulse widths
 			//sync_pulse_width_compensate(pulse_width);
