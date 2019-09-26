@@ -44,51 +44,71 @@ main.c(107): warning:  #550-D: variable "elevation_a_sync" was set but never use
   	static unsigned int elevation_a_sync;
 main.c(108): warning:  #550-D: variable "elevation_b_sync" was set but never used
   	static unsigned int elevation_b_sync;
-main.c(537): warning:  #188-D: enumerated type mixed with another type
+main.c(326): warning:  #177-D: variable "curr_lighthouse" was declared but never referenced
+  	static unsigned int curr_lighthouse;
+main.c(328): warning:  #177-D: variable "azimuth_a_sync" was declared but never referenced
+  	static unsigned int azimuth_a_sync;
+main.c(329): warning:  #177-D: variable "azimuth_b_sync" was declared but never referenced
+  	static unsigned int azimuth_b_sync;
+main.c(331): warning:  #177-D: variable "azimuth_a_laser" was declared but never referenced
+  	static unsigned int azimuth_a_laser;
+main.c(332): warning:  #177-D: variable "azimuth_b_laser" was declared but never referenced
+  	static unsigned int azimuth_b_laser;
+main.c(334): warning:  #177-D: variable "state" was declared but never referenced
+  	static unsigned int state = 0;
+main.c(342): warning:  #550-D: variable "azimuth_a_sync" was set but never used
+  	static unsigned int azimuth_a_sync;
+main.c(343): warning:  #550-D: variable "azimuth_b_sync" was set but never used
+  	static unsigned int azimuth_b_sync;
+main.c(348): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
+  	static unsigned int elevation_a_sync;
+main.c(349): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
+  	static unsigned int elevation_b_sync;
+main.c(695): warning:  #188-D: enumerated type mixed with another type
   			pulse_type = 0; // re-init to zero
-main.c(538): warning:  #188-D: enumerated type mixed with another type
+main.c(696): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width < 665 && pulse_width > 585) pulse_type = 1; // Azimuth sync, data=0
-main.c(539): warning:  #188-D: enumerated type mixed with another type
+main.c(697): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width >= 689 && pulse_width < 769) pulse_type = 2; // Elevation sync, data=0
-main.c(540): warning:  #188-D: enumerated type mixed with another type
+main.c(698): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width >= 793 && pulse_width < 873) pulse_type = 3; // Azimuth sync, data=1
-main.c(541): warning:  #188-D: enumerated type mixed with another type
+main.c(699): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width >= 898 && pulse_width < 978) pulse_type = 4; // Elevation sync, data=1
-main.c(542): warning:  #188-D: enumerated type mixed with another type
+main.c(700): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width < 585 && pulse_width >50) pulse_type = 5; // Laser sweep
-main.c(543): warning:  #188-D: enumerated type mixed with another type
+main.c(701): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width >= 978 && pulse_width < 108) pulse_type = 6; //Azimuth sync, skip = 1
-main.c(544): warning:  #188-D: enumerated type mixed with another type
+main.c(702): warning:  #188-D: enumerated type mixed with another type
   			if(pulse_width >=108 && pulse_width < 120) pulse_type = 7; //elevation sync, skip = 1how d
-main.c(351): warning:  #177-D: variable "t" was declared but never referenced
+main.c(509): warning:  #177-D: variable "t" was declared but never referenced
   	int t,t2;
-main.c(351): warning:  #177-D: variable "t2" was declared but never referenced
+main.c(509): warning:  #177-D: variable "t2" was declared but never referenced
   	int t,t2;
-main.c(354): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
+main.c(512): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(354): warning:  #177-D: variable "rdata_msb" was declared but never referenced
+main.c(512): warning:  #177-D: variable "rdata_msb" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(354): warning:  #177-D: variable "count_LC" was declared but never referenced
+main.c(512): warning:  #177-D: variable "count_LC" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(354): warning:  #177-D: variable "count_32k" was declared but never referenced
+main.c(512): warning:  #177-D: variable "count_32k" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(354): warning:  #177-D: variable "count_2M" was declared but never referenced
+main.c(512): warning:  #177-D: variable "count_2M" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c: 23 warnings, 0 errors
+main.c: 33 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14452 RO-data=328 RW-data=348 ZI-data=24372  
+Program Size: Code=14808 RO-data=328 RW-data=412 ZI-data=24372  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 24 Warning(s).
+".\code.axf" - 0 Error(s), 34 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>
