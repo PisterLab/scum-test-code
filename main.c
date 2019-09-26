@@ -161,6 +161,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}
@@ -174,6 +175,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}	
@@ -186,6 +188,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}	
@@ -198,6 +201,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}	
@@ -212,6 +216,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}	
@@ -225,6 +230,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}	
@@ -238,6 +244,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}	
@@ -263,6 +270,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}	
@@ -276,6 +284,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
+			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}	
