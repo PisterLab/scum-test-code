@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Thu Sep 26 15:36:43 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Thu Sep 26 15:39:12 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -284,7 +284,7 @@ Global Symbols
 
 <P><STRONG><a name="[28]"></a>main</STRONG> (Thumb, 1194 bytes, Stack size 0 bytes, main.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[3f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_rfOff
 <LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote
 <LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;crc32c
@@ -752,16 +752,16 @@ Global Symbols
 <LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 </UL>
 
-<P><STRONG><a name="[83]"></a>update_state_elevation</STRONG> (Thumb, 236 bytes, Stack size 0 bytes, lighthouse.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
-</UL>
-
-<P><STRONG><a name="[51]"></a>update_state_azimuth</STRONG> (Thumb, 490 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<P><STRONG><a name="[51]"></a>update_state_elevation</STRONG> (Thumb, 236 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 </UL>
 <BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[83]"></a>update_state_azimuth</STRONG> (Thumb, 490 bytes, Stack size 0 bytes, lighthouse.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
+<LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 </UL>
 
 <P><STRONG><a name="[84]"></a>sync_pulse_width_compensate</STRONG> (Thumb, 86 bytes, Stack size 0 bytes, lighthouse.o(.text), UNUSED)
@@ -773,11 +773,11 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_file
 </UL>
 <BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sync_pulse_width_compensate
-<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
 <LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sram_test
 <LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_exit
-<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_ISR
 <LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RF_ISR
@@ -919,9 +919,9 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[52]"></a>__ARM_common_switch8</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, main.o(i.__ARM_common_switch8))
-<BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
 <LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
-<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 <P>

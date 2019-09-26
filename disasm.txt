@@ -1131,7 +1131,7 @@
         0x0000109c:    4604ff69    i..F    STRMI    pc,[r4],-r9,ROR #30
         0x000010a0:    680148c2    .H.h    STMDAVS  r1,{r1,r6,r7,r11,lr}
         0x000010a4:    f0024620     F..    DCI      0xf0024620 ; ? Undefined
-        0x000010a8:    2400f92c    ,..$    STRCS    pc,[r0],#-0x92c
+        0x000010a8:    2400f8b6    ...$    STRCS    pc,[r0],#-0x8b6
         0x000010ac:    680048c1    .H.h    STMDAVS  r0,{r0,r6,r7,r11,lr}
         0x000010b0:    39804961    aI.9    STMIBCC  r0,{r0,r5,r6,r8,r11,lr}
         0x000010b4:    d2064288    .B..    ANDLE    r4,r6,#0x88, 4 ; #0x80000008

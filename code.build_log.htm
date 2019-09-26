@@ -27,32 +27,6 @@ Project File Date:  09/25/2019
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
-compiling lighthouse.c...
-lighthouse.c(40): warning:  #550-D: variable "azimuth_a_sync" was set but never used
-  	static unsigned int azimuth_a_sync;
-lighthouse.c(41): warning:  #550-D: variable "azimuth_b_sync" was set but never used
-  	static unsigned int azimuth_b_sync;
-lighthouse.c(46): warning:  #550-D: variable "elevation_a_sync" was set but never used
-  	static unsigned int elevation_a_sync;
-lighthouse.c(47): warning:  #550-D: variable "elevation_b_sync" was set but never used
-  	static unsigned int elevation_b_sync;
-lighthouse.c(265): warning:  #177-D: variable "curr_lighthouse" was declared but never referenced
-  	static unsigned int curr_lighthouse;
-lighthouse.c(267): warning:  #177-D: variable "azimuth_a_sync" was declared but never referenced
-  	static unsigned int azimuth_a_sync;
-lighthouse.c(268): warning:  #177-D: variable "azimuth_b_sync" was declared but never referenced
-  	static unsigned int azimuth_b_sync;
-lighthouse.c(270): warning:  #177-D: variable "azimuth_a_laser" was declared but never referenced
-  	static unsigned int azimuth_a_laser;
-lighthouse.c(271): warning:  #177-D: variable "azimuth_b_laser" was declared but never referenced
-  	static unsigned int azimuth_b_laser;
-lighthouse.c(273): warning:  #177-D: variable "state" was declared but never referenced
-  	static unsigned int state = 0;
-lighthouse.c(423): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
-  	static unsigned int elevation_a_sync;
-lighthouse.c(424): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
-  	static unsigned int elevation_b_sync;
-lighthouse.c: 12 warnings, 0 errors
 compiling main.c...
 scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
   void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
@@ -99,14 +73,14 @@ Program Size: Code=15020 RO-data=328 RW-data=436 ZI-data=24380
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 32 Warning(s).
+".\code.axf" - 0 Error(s), 20 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:02
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>
