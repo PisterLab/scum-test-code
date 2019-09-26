@@ -36,9 +36,8 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 //keeps track of the current state and will print out pulse train information when it's done.
 void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 	
-	enum state_type{AZIMUTH = 0, ELEVATION = 1};
 	
-	static enum state_type state = AZIMUTH;
+	static enum state_type{AZIMUTH = 0, ELEVATION = 1} state = AZIMUTH;
 	
 	enum state_type nextstate;
 	
@@ -77,11 +76,6 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			break;
 		}
-		
-
-		
-
-
 	}
 	
 	state = nextstate;
