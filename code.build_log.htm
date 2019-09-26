@@ -27,24 +27,6 @@ Project File Date:  09/25/2019
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
-compiling lighthouse.c...
-lighthouse.c(94): warning:  #177-D: variable "curr_lighthouse" was declared but never referenced
-  	static unsigned int curr_lighthouse;
-lighthouse.c(96): warning:  #177-D: variable "azimuth_a_sync" was declared but never referenced
-  	static unsigned int azimuth_a_sync;
-lighthouse.c(97): warning:  #177-D: variable "azimuth_b_sync" was declared but never referenced
-  	static unsigned int azimuth_b_sync;
-lighthouse.c(99): warning:  #177-D: variable "azimuth_a_laser" was declared but never referenced
-  	static unsigned int azimuth_a_laser;
-lighthouse.c(100): warning:  #177-D: variable "azimuth_b_laser" was declared but never referenced
-  	static unsigned int azimuth_b_laser;
-lighthouse.c(102): warning:  #177-D: variable "state" was declared but never referenced
-  	static unsigned int state = 0;
-lighthouse.c(252): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
-  	static unsigned int elevation_a_sync;
-lighthouse.c(253): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
-  	static unsigned int elevation_b_sync;
-lighthouse.c: 8 warnings, 0 errors
 compiling main.c...
 scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
   void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
@@ -87,11 +69,11 @@ main.c(85): warning:  #177-D: variable "count_2M" was declared but never referen
 main.c: 19 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14544 RO-data=328 RW-data=400 ZI-data=24384  
+Program Size: Code=14540 RO-data=328 RW-data=400 ZI-data=24384  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 28 Warning(s).
+".\code.axf" - 0 Error(s), 20 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE

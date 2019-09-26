@@ -253,9 +253,9 @@ int main(void) {
 			//**compensate sync pulse widths
 			//sync_pulse_width_compensate(pulse_width);
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
-			//update_state(pulse_type,timestamp_rise);
-			update_state_azimuth(pulse_type,timestamp_rise);
-			update_state_elevation(pulse_type,timestamp_rise);
+			update_state(pulse_type,timestamp_rise);
+			//update_state_azimuth(pulse_type,timestamp_rise);
+			//update_state_elevation(pulse_type,timestamp_rise);
 			
 			// Need to determine what kind of pulse this was
 			// Laser sweep pulses will have widths of only a few us
