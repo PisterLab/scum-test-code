@@ -369,11 +369,12 @@ void update_state_short(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				if(pulse_type == AZ){
 					azimuth_unknown_sync = timestamp_rise;
 					nextstate = 1;
+					printf("state transition: %d to %d\n",state,nextstate);
 				}
 				else{
 					//go to azimuth b state
 					nextstate = 2;
-					//printf("state transition: %d to %d\n",state,nextstate);
+					printf("state transition: %d to %d\n",state,nextstate);
 				}
 			}
 			else
@@ -389,7 +390,7 @@ void update_state_short(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				//lighthouse A sweep pulse
 				azimuth_a_sync = timestamp_rise;
 				
-				nextstate = 0;
+				nextstate = 3;
 				printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
