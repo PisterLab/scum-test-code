@@ -272,10 +272,146 @@ void azimuth_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 	
 	static unsigned int state = 0;
 	
+	
+	
+}
+
+void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise){
+		static unsigned int elevation_a_sync;
+	static unsigned int elevation_b_sync;
+
+	static unsigned int elevation_a_laser;
+	static unsigned int elevation_b_laser;	
+	
+	static unsigned int elevation_unknown_sync;
+	
+	static int state = 0;
+	
+	int nextstate;
+	
+	if(pulse_type == INVALID){
+		return;
+	}
+			switch(state)
+	{
+		// Search for an azimuth sync pulse, we don't know if it's A or B yet
+		case 0: {
+			if(pulse_type == EL || pulse_type == EL_SKIP){
+				if(pulse_type == EL){
+					elevation_unknown_sync = timestamp_rise;
+					nextstate = 1;
+					//printf("state transition: %d to %d\n",state,nextstate);
+				}
+				else{
+					//go to elevation b state
+					nextstate = 2;
+					//printf("state transition: %d to %d\n",state,nextstate);
+				}
+			}
+			else
+				nextstate = 0;
+			
+			break;
+		}
+		
+		// Waiting for another consecutive elevation skip sync from B, this should be a skip sync pulse 
+		case 1: {
+			if(pulse_type == EL_SKIP) {
+				
+				//lighthouse A sweep pulse
+				elevation_a_sync = timestamp_rise;
+				
+				nextstate = 3;
+				//printf("state transition: %d to %d\n",state,nextstate);
+			}
+			else
+				nextstate = 0;
+			//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+			
+			break;
+		}
+		
+		// Azimuth B sync state 
+		case 2: {
+			if(pulse_type == EL) {
+				//the last pulse was an azimuth sync from lighthouse B
+				elevation_b_sync = elevation_unknown_sync;
+				//go to azimuth b laser detect
+				nextstate = 4;
+				//printf("state transition: %d to %d\n",state,nextstate);
+			}
+			else{
+				nextstate = 0;
+				//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+			}
+			break;
+		}
+	
+		// Azimuth A laser sweep
+		case 3: {
+			if(pulse_type == LASER) {
+				//lighthouse a laser
+				elevation_a_laser = timestamp_rise;
+				//go to azimuth b laser detect
+				nextstate = 0;
+				printf("Successful elevation A: %d, %d\n",elevation_a_sync,elevation_a_laser);
+			}
+			else{
+				nextstate = 0;
+				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+			}
+			break;
+		}
+		
+		// Azimuth B laser sweep
+		case 4: {
+			if(pulse_type == LASER) {
+				//lighthouse b laser
+				elevation_b_laser = timestamp_rise;
+				//go to azimuth b laser detect
+				nextstate = 0;
+				printf("Successful elevation B: %d, %d\n",elevation_b_sync,elevation_b_laser);
+			}
+			else{
+				nextstate = 0;
+				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+			}
+			break;
+		}		
+
+		// If make it to state 12, then have seen sync-skip-sweep-sync-skip-sweep-skip-sync-sweep-skip-sync-sweep
+		// Want to make sure that we then see another azimuth sync pulse before printing
+		// This should ensure we only see the correct elevation sweep pulse and eliminate glitch printouts
+		case 10:{
+			
+			// Found another azimuth A sync pulse
+			if(pulse_type == AZ || pulse_type) {
+					
+				// Have found all four valid pulses; output data over UART					
+				printf("a-%X-%X\n", elevation_a_laser, elevation_b_laser);  
+				printf("e-%X-%X\n", elevation_a_laser,elevation_b_laser);
+				
+				// Reset variables
+
+				// Proceed to looking for azimuth sweep pulse
+				elevation_a_sync = timestamp_rise;
+				nextstate = 1;
+			}
+			
+			// Found an invalid pulse, start over
+			else{
+				nextstate = 0;
+			}
+			break;
+		}
+	}
+	
+	state = nextstate;
+
 }
 
 //keeps track of the current state and will print out pulse train information when it's done.
-void update_state_short(pulse_type_t pulse_type, unsigned int timestamp_rise){
+void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 	
 	static unsigned int azimuth_unknown_sync; 
 	static unsigned int azimuth_a_sync;
@@ -378,7 +514,7 @@ void update_state_short(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				azimuth_b_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("Successful azimuth A=B: %d, %d\n",azimuth_b_sync,azimuth_b_laser);
+				printf("Successful azimuth B: %d, %d\n",azimuth_b_sync,azimuth_b_laser);
 			}
 			else{
 				nextstate = 0;

@@ -48,27 +48,65 @@ lighthouse.c(271): warning:  #177-D: variable "azimuth_b_laser" was declared but
   	static unsigned int azimuth_b_laser;
 lighthouse.c(273): warning:  #177-D: variable "state" was declared but never referenced
   	static unsigned int state = 0;
-lighthouse.c(287): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
+lighthouse.c(423): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
   	static unsigned int elevation_a_sync;
-lighthouse.c(288): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
+lighthouse.c(424): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
   	static unsigned int elevation_b_sync;
-lighthouse.c(443): warning:  #1-D: last line of file ends without a newline
-  }
-lighthouse.c: 13 warnings, 0 errors
+lighthouse.c: 12 warnings, 0 errors
+compiling main.c...
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+Int_Handlers.h(212): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+Int_Handlers.h(590): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+main.c(268): warning:  #188-D: enumerated type mixed with another type
+  			pulse_type = 0; // re-init to zero
+main.c(269): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width < 665 && pulse_width > 585) pulse_type = 1; // Azimuth sync, data=0
+main.c(270): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >= 689 && pulse_width < 769) pulse_type = 2; // Elevation sync, data=0
+main.c(271): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >= 793 && pulse_width < 873) pulse_type = 3; // Azimuth sync, data=1
+main.c(272): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >= 898 && pulse_width < 978) pulse_type = 4; // Elevation sync, data=1
+main.c(273): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width < 585 && pulse_width >50) pulse_type = 5; // Laser sweep
+main.c(274): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >= 978 && pulse_width < 108) pulse_type = 6; //Azimuth sync, skip = 1
+main.c(275): warning:  #188-D: enumerated type mixed with another type
+  			if(pulse_width >=108 && pulse_width < 120) pulse_type = 7; //elevation sync, skip = 1how d
+main.c(82): warning:  #177-D: variable "t" was declared but never referenced
+  	int t,t2;
+main.c(82): warning:  #177-D: variable "t2" was declared but never referenced
+  	int t,t2;
+main.c(85): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(85): warning:  #177-D: variable "rdata_msb" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(85): warning:  #177-D: variable "count_LC" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(85): warning:  #177-D: variable "count_32k" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(85): warning:  #177-D: variable "count_2M" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c: 19 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14672 RO-data=328 RW-data=412 ZI-data=24372  
+Program Size: Code=15020 RO-data=328 RW-data=436 ZI-data=24380  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 14 Warning(s).
+".\code.axf" - 0 Error(s), 32 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>
