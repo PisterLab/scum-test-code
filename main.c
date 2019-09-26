@@ -128,7 +128,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				azimuth_unknown_sync = timestamp_rise;
 				
 				nextstate = 1;
-				printf("state transition: %d to %d\n",state,nextstate);
+				//printf("state transition: %d to %d\n",state,nextstate);
 			}
 			else
 				nextstate = 0;
@@ -147,7 +147,7 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			}
 			else
 				nextstate = 0;
-			printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+			//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			
 			break;
 		}
