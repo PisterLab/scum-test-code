@@ -489,13 +489,13 @@ int main(void) {
 			pulse_width = timestamp_fall - timestamp_rise;
 				
 			//*** 1. classify pulse based on fall and rise time *** 
-			//pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
+			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
 			//printf("Pulse type: %d\n",(int)pulse_type);
 			
 			//**compensate sync pulse widths
 			//sync_pulse_width_compensate(pulse_width);
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
-			//update_state(pulse_type,timestamp_rise);
+			update_state(pulse_type,timestamp_rise);
 			
 			// Need to determine what kind of pulse this was
 			// Laser sweep pulses will have widths of only a few us
