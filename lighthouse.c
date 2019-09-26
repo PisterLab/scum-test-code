@@ -82,22 +82,6 @@ void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
 
 }
 
-//used for procesing azimuth subsection of pulse train
-void azimuth_state(pulse_type_t pulse_type, unsigned int timestamp_rise){
-	
-	static unsigned int curr_lighthouse;
-	
-	static unsigned int azimuth_a_sync;
-	static unsigned int azimuth_b_sync;
-
-	static unsigned int azimuth_a_laser;
-	static unsigned int azimuth_b_laser;
-	
-	static unsigned int state = 0;
-	
-	
-	
-}
 
 void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise){
 		static unsigned int elevation_a_sync;
@@ -111,6 +95,11 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 	static int state = 0;
 	
 	int nextstate;
+	
+	//TODO: keep track of last delta time measurement for filtering
+	static unsigned int last_delta_a;
+	static unsigned int last_delta_b;
+	
 	
 	if(pulse_type == INVALID){
 		return;
@@ -177,56 +166,31 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 				elevation_a_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("Successful elevation A: %d, %d\n",elevation_a_sync,elevation_a_laser);
+				printf("el A: %d, %d\n",elevation_a_sync,elevation_a_laser);
 			}
 			else{
 				nextstate = 0;
-				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+				//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			}
 			break;
 		}
 		
-		// Azimuth B laser sweep
+		// elevation B laser sweep
 		case 4: {
 			if(pulse_type == LASER) {
 				//lighthouse b laser
 				elevation_b_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("Successful elevation B: %d, %d\n",elevation_b_sync,elevation_b_laser);
+				printf("el B: %d, %d\n",elevation_b_sync,elevation_b_laser);
 			}
 			else{
 				nextstate = 0;
-				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+				//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			}
 			break;
 		}		
 
-		// If make it to state 12, then have seen sync-skip-sweep-sync-skip-sweep-skip-sync-sweep-skip-sync-sweep
-		// Want to make sure that we then see another azimuth sync pulse before printing
-		// This should ensure we only see the correct elevation sweep pulse and eliminate glitch printouts
-		case 10:{
-			
-			// Found another azimuth A sync pulse
-			if(pulse_type == AZ || pulse_type) {
-					
-				// Have found all four valid pulses; output data over UART					
-				printf("a-%X-%X\n", elevation_a_laser, elevation_b_laser);  
-				printf("e-%X-%X\n", elevation_a_laser,elevation_b_laser);
-				
-				// Reset variables
-
-				// Proceed to looking for azimuth sweep pulse
-				elevation_a_sync = timestamp_rise;
-				nextstate = 1;
-			}
-			
-			// Found an invalid pulse, start over
-			else{
-				nextstate = 0;
-			}
-			break;
-		}
 	}
 	
 	state = nextstate;
@@ -252,6 +216,10 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 	static int state = 0;
 	
 	int nextstate;
+	
+	//TODO: keep track of last delta time measurement for filtering
+	static unsigned int last_delta_a;
+	static unsigned int last_delta_b;
 	
 	if(pulse_type == INVALID){
 		return;
@@ -321,11 +289,11 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				azimuth_a_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("Successful azimuth A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
+				printf("az A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
 			}
 			else{
 				nextstate = 0;
-				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+				//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			}
 			break;
 		}
@@ -337,40 +305,14 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				azimuth_b_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("Successful azimuth B: %d, %d\n",azimuth_b_sync,azimuth_b_laser);
+				printf("az B: %d, %d\n",azimuth_b_sync,azimuth_b_laser);
 			}
 			else{
 				nextstate = 0;
-				printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+				//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
 			}
 			break;
 		}		
-
-		// If make it to state 12, then have seen sync-skip-sweep-sync-skip-sweep-skip-sync-sweep-skip-sync-sweep
-		// Want to make sure that we then see another azimuth sync pulse before printing
-		// This should ensure we only see the correct elevation sweep pulse and eliminate glitch printouts
-		case 10:{
-			
-			// Found another azimuth A sync pulse
-			if(pulse_type == AZ || pulse_type) {
-					
-				// Have found all four valid pulses; output data over UART					
-				printf("a-%X-%X\n", azimuth_a_laser, azimuth_b_laser);  
-				printf("e-%X-%X\n", elevation_a_laser,elevation_b_laser);
-				
-				// Reset variables
-
-				// Proceed to looking for azimuth sweep pulse
-				azimuth_a_sync = timestamp_rise;
-				nextstate = 1;
-			}
-			
-			// Found an invalid pulse, start over
-			else{
-				nextstate = 0;
-			}
-			break;
-		}
 	}
 	
 	state = nextstate;
