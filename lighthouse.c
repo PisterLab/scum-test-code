@@ -286,7 +286,11 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				azimuth_a_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("az A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
+				//filter out pulses that have changed by more than 10 degrees (4630 ticks)
+				if(last_delta_a > 0 && abs(((int)(azimuth_a_laser-azimuth_a_sync))-(int)last_delta_a)<4630){
+					printf("az A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
+				}
+				last_delta_a = azimuth_a_sync-azimuth_a_laser;
 			}
 			else{
 				nextstate = 0;
@@ -302,7 +306,12 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				azimuth_b_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("az B: %d, %d, %d\n",azimuth_b_sync,azimuth_b_laser,azimuth_b_laser-azimuth_b_sync );
+				
+				//filter out pulses that have changed by more than 10 degrees (4630 ticks)
+				if(last_delta_b > 0 && abs(((int)(azimuth_b_laser-azimuth_b_sync))-(int)last_delta_b)<4630){
+					printf("az B: %d, %d, %d\n",azimuth_b_sync,azimuth_b_laser,azimuth_b_laser-azimuth_b_sync );
+				}
+				last_delta_b = azimuth_b_laser-azimuth_b_sync;
 			}
 			else{
 				nextstate = 0;
