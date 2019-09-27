@@ -45,44 +45,20 @@ lighthouse.c(221): warning:  #177-D: variable "last_delta_a" was declared but ne
 lighthouse.c(222): warning:  #177-D: variable "last_delta_b" was declared but never referenced
   	static unsigned int last_delta_b;
 lighthouse.c: 8 warnings, 0 errors
-compiling main.c...
-scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
-  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
-Int_Handlers.h(212): warning:  #177-D: variable "t" was declared but never referenced
-  	int t;
-Int_Handlers.h(590): warning:  #177-D: variable "t" was declared but never referenced
-  	int t;
-scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
-  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
-main.c(82): warning:  #177-D: variable "t" was declared but never referenced
-  	int t,t2;
-main.c(82): warning:  #177-D: variable "t2" was declared but never referenced
-  	int t,t2;
-main.c(85): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
-  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(85): warning:  #177-D: variable "rdata_msb" was declared but never referenced
-  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(85): warning:  #177-D: variable "count_LC" was declared but never referenced
-  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(85): warning:  #177-D: variable "count_32k" was declared but never referenced
-  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(85): warning:  #177-D: variable "count_2M" was declared but never referenced
-  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c: 11 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=13804 RO-data=328 RW-data=392 ZI-data=24376  
+Program Size: Code=13820 RO-data=328 RW-data=392 ZI-data=24376  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 20 Warning(s).
+".\code.axf" - 0 Error(s), 9 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>

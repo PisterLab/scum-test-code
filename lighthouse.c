@@ -305,7 +305,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				azimuth_b_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("az B: %d, %d\n",azimuth_b_sync,azimuth_b_laser);
+				printf("az B: %d, %d, %d\n",azimuth_b_sync,azimuth_b_laser,azimuth_b_laser-azimuth_b_sync );
 			}
 			else{
 				nextstate = 0;
