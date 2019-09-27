@@ -31,8 +31,8 @@
     Program header entries: 1
     Section header entries: 7
 
-    Program header offset: 18296 (0x00004778)
-    Section header offset: 18328 (0x00004798)
+    Program header offset: 18416 (0x000047f0)
+    Section header offset: 18448 (0x00004810)
 
     Section header string table index: 6
 
@@ -44,8 +44,8 @@
     File Offset   : 52 (0x34)
     Virtual Addr  : 0x00000000
     Physical Addr : 0x00000000
-    Size in file  : 14332 bytes (0x37fc)
-    Size in memory: 39016 bytes (0x9868)
+    Size in file  : 14452 bytes (0x3874)
+    Size in memory: 39136 bytes (0x98e0)
     Flags         : PF_X + PF_W + PF_R (0x7)
     Alignment     : 16
 
@@ -59,7 +59,7 @@
     Flags       : SHF_ALLOC + SHF_EXECINSTR (0x00000006)
     Addr        : 0x00000000
     File Offset : 52 (0x34)
-    Size        : 14248 bytes (0x37a8)
+    Size        : 14368 bytes (0x3820)
     Link        : SHN_UNDEF
     Info        : 0
     Alignment   : 4
@@ -112,8 +112,8 @@
         0x000000b0:    1afbd000    ....    BNE      0xffef40b8 ; 0xffef40b8
         0x000000b4:    46ab46a2    .F.F    STRTMI   r4,[r11],r2,LSR #13
         0x000000b8:    47184333    3C.G    DCI      0x47184333 ; ? Undefined
-        0x000000bc:    000036cc    .6..    ANDEQ    r3,r0,r12,ASR #13
-        0x000000c0:    000036ec    .6..    ANDEQ    r3,r0,r12,ROR #13
+        0x000000bc:    00003744    D7..    ANDEQ    r3,r0,r4,ASR #14
+        0x000000c0:    00003764    d7..    ANDEQ    r3,r0,r4,ROR #14
         0x000000c4:    24002300    .#.$    STRCS    r2,[r0],#-0x300
         0x000000c8:    26002500    .%.&    STRCS    r2,[r0],-r0,LSL #10
         0x000000cc:    d3013a10    .:..    MOVLE    r3,#0x1a10
@@ -123,22 +123,22 @@
         0x000000dc:    4770600b    .`pG    LDRBMI   r6,[r0,-r11]!
         0x000000e0:    2964b510    ..d)    STMDBCS  r4,{r4,r8,r10,r12,sp,pc}^ ; ?  
         0x000000e4:    f003d102    ....    DCI      0xf003d102 ; ? Undefined
-        0x000000e8:    bd10f8b3    ....    LDCLT    p8,c15,[r0,#-0x2cc]
+        0x000000e8:    bd10f8ef    ....    LDCLT    p8,c15,[r0,#-0x3bc]
         0x000000ec:    d1022975    u)..    HLTLE    #0x2295 ; ?  
-        0x000000f0:    f8aef003    ....    DCI      0xf8aef003 ; ? Undefined
+        0x000000f0:    f8eaf003    ....    SRSIA    sp!,#3 ; ?  
         0x000000f4:    2978bd10    ..x)    LDMDBCS  r8!,{r4,r8,r10-sp,pc}^ ; ?  
         0x000000f8:    f003d102    ....    DCI      0xf003d102 ; ? Undefined
-        0x000000fc:    bd10f8df    ....    LDCLT    p8,c15,[r0,#-0x37c]
+        0x000000fc:    bd10f91b    ....    LDCLT    p9,c15,[r0,#-0x6c]
         0x00000100:    d1022963    c)..    DCI      0xd1022963 ; ? Undefined
-        0x00000104:    fa3af003    ..:.    BLX      0xebc118 ; 0xebc118
+        0x00000104:    fa76f003    ..v.    BLX      0x1dbc118 ; 0x1dbc118
         0x00000108:    2000bd10    ...     ANDCS    r11,r0,r0,LSL sp
         0x0000010c:    b51fbd10    ....    LDRLT    r11,[pc,#-3344] ; [0xfffffffffffff404]
         0x00000110:    b510bd1f    ....    LDRLT    r11,[r0,#-0xd1f]
         0x00000114:    f003bd10    ....    DCI      0xf003bd10 ; ? Undefined
-        0x00000118:    4611fa7d    }..F    SSUB16MI pc,r1,sp ; ?  
+        0x00000118:    4611fab9    ...F    DCI      0x4611fab9 ; ? Undefined
         0x0000011c:    fff7f7ff    ....    DCI      0xfff7f7ff ; ? Undefined
         0x00000120:    ff43f000    ..C.    DCI      0xff43f000 ; ? Undefined
-        0x00000124:    fa95f003    ....    BLX      0xfe57c138 ; 0xfe57c138
+        0x00000124:    fad1f003    ....    BLX      0xff47c138 ; 0xff47c138
         0x00000128:    f7ffb403    ....    DCI      0xf7ffb403 ; ? Undefined ; ?  
         0x0000012c:    bc03fff2    ....    DCI      0xbc03fff2 ; ? Undefined
         0x00000130:    f8edf001    ....    SRSIA    sp!,#1 ; ?  
@@ -242,15 +242,15 @@
         0x000002b8:    d11f2c0a    .,..    TSTLE    pc,r10,LSL #24 ; ?  
         0x000002bc:    48ee2600    .&.H    STMMI    lr,{r9,r10,sp}^ ; ?  
         0x000002c0:    a0ee7801    .x..    RSCGE    r7,lr,r1,LSL #16
-        0x000002c4:    ff56f002    ..V.    DCI      0xff56f002 ; ? Undefined
+        0x000002c4:    ff92f002    ....    DCI      0xff92f002 ; ? Undefined
         0x000002c8:    e005bf00    ....    AND      r11,r5,r0,LSL #30
         0x000002cc:    5d8148f6    .H.]    STCPL    p8,c4,[r1,#0x3d8]
         0x000002d0:    f002a0f6    ....    DCI      0xf002a0f6 ; ? Undefined
-        0x000002d4:    1c76ff4f    O.v.    LDCLNE   p15,c15,[r6],#-0x13c
+        0x000002d4:    1c76ff8b    ..v.    LDCLNE   p15,c15,[r6],#-0x22c
         0x000002d8:    780048e7    .H.x    STMDAVC  r0,{r0-r2,r5-r7,r11,lr}
         0x000002dc:    dbf54286    .B..    BLLE     0xffd50cfc ; 0xffd50cfc
         0x000002e0:    f002a0f3    ....    DCI      0xf002a0f3 ; ? Undefined
-        0x000002e4:    48e4ff47    G..H    STMMI    r4,{r0-r2,r6,r8-pc}^ ; ?  
+        0x000002e4:    48e4ff83    ...H    STMMI    r4,{r0,r1,r7-pc}^ ; ?  
         0x000002e8:    21017800    .x.!    MRSCS    r7,APSR ; formerly CPSR ; ?  
         0x000002ec:    60c80789    ...`    SBCVS    r0,r8,r9,LSL #15
         0x000002f0:    49e12000    . .I    STMIBMI  r1,{sp}^ ; ?  
@@ -264,7 +264,7 @@
         0x00000310:    49d91c40    @..I    LDMIBMI  r9,{r6,r10-r12}^
         0x00000314:    e17e7008    .p~.    CMN      lr,r8 ; ?  
         0x00000318:    f002a0e6    ....    DCI      0xf002a0e6 ; ? Undefined
-        0x0000031c:    e17aff2b    +.z.    CMN      r10,r11,LSR #30 ; ?  
+        0x0000031c:    e17aff67    g.z.    CMN      r10,r7,ROR #30 ; ?  
         0x00000320:    78c048d3    .H.x    STMVC    r0,{r0,r1,r4,r6,r7,r11,lr}^
         0x00000324:    d10f2863    c(..    DCI      0xd10f2863 ; ? Undefined
         0x00000328:    788048d1    .H.x    STMVC    r0,{r0,r4,r6,r7,r11,lr}
@@ -285,7 +285,7 @@
         0x00000364:    d106280a    .(..    MRSLE    r2,APSR ; formerly CPSR ; ?  
         0x00000368:    07812001    . ..    STREQ    r2,[r1,r1]
         0x0000036c:    a0da6008    .`..    SBCSGE   r6,r10,r8
-        0x00000370:    ff00f002    ....    DCI      0xff00f002 ; ? Undefined
+        0x00000370:    ff3cf002    ..<.    DCI      0xff3cf002 ; ? Undefined
         0x00000374:    48bee14f    O..H    LDMMI    lr!,{r0-r3,r6,r8,sp-pc} ; ?  
         0x00000378:    287378c0    .xs(    LDMDACS  r3,{r6,r7,r11-lr}^ ; ?  
         0x0000037c:    48bcd112    ...H    LDMMI    r12!,{r1,r4,r8,r12,lr,pc} ; ?  
@@ -297,7 +297,7 @@
         0x00000394:    2002d106    ...     ANDCS    sp,r2,r6,LSL #2
         0x00000398:    60080741    A..`    ANDVS    r0,r8,r1,ASR #14
         0x0000039c:    f002a0d1    ....    DCI      0xf002a0d1 ; ? Undefined
-        0x000003a0:    e138fee9    ..8.    TEQ      r8,r9,ROR #29 ; ?  
+        0x000003a0:    e138ff25    %.8.    TEQ      r8,r5,LSR #30 ; ?  
         0x000003a4:    78c048b2    .H.x    STMVC    r0,{r1,r4,r5,r7,r11,lr}^
         0x000003a8:    d1162872    r(..    TSTLE    r6,r2,ROR r8 ; ?  
         0x000003ac:    788048b0    .H.x    STMVC    r0,{r4,r5,r7,r11,lr}
@@ -307,7 +307,7 @@
         0x000003bc:    780048ac    .H.x    STMDAVC  r0,{r2,r3,r5,r7,r11,lr}
         0x000003c0:    d10a280a    .(..    MRSLE    r2,APSR ; formerly CPSR ; ?  
         0x000003c4:    f002a0ca    ....    DCI      0xf002a0ca ; ? Undefined
-        0x000003c8:    48ccfed5    ...H    STMMI    r12,{r0,r2,r4,r6,r7,r9-pc}^
+        0x000003c8:    48ccff11    ...H    STMMI    r12,{r0,r4,r8-pc}^
         0x000003cc:    06092141    A!..    STREQ    r2,[r9],-r1,ASR #2
         0x000003d0:    20046148    Ha.     ANDCS    r6,r4,r8,ASR #2
         0x000003d4:    60080701    ...`    ANDVS    r0,r8,r1,LSL #14
@@ -322,7 +322,7 @@
         0x000003f8:    2008d106    ...     ANDCS    sp,r8,r6,LSL #2
         0x000003fc:    600806c1    ...`    ANDVS    r0,r8,r1,ASR #13
         0x00000400:    f002a0bf    ....    DCI      0xf002a0bf ; ? Undefined
-        0x00000404:    e106feb7    ....    STRH     pc,[r6,-r7] ; ?  
+        0x00000404:    e106fef3    ....    STRD     pc,r0,[r6,-r3] ; ?  
         0x00000408:    78c04899    .H.x    STMVC    r0,{r0,r3,r4,r7,r11,lr}^
         0x0000040c:    d1122872    r(..    TSTLE    r2,r2,ROR r8 ; ?  
         0x00000410:    78804897    .H.x    STMVC    r0,{r0-r2,r4,r7,r11,lr}
@@ -333,7 +333,7 @@
         0x00000424:    d106280a    .(..    MRSLE    r2,APSR ; formerly CPSR ; ?  
         0x00000428:    06812010    . ..    PKHBTEQ  r2,r1,r0
         0x0000042c:    a0b76008    .`..    ADCSGE   r6,r7,r8
-        0x00000430:    fea0f002    ....    CDP2     p0,#0xa,c15,c0,c2,#0
+        0x00000430:    fedcf002    ....    CDP2     p0,#0xd,c15,c12,c2,#0
         0x00000434:    488ee0ef    ...H    STMMI    lr,{r0-r3,r5-r7,sp-pc}
         0x00000438:    287378c0    .xs(    LDMDACS  r3,{r6,r7,r11-lr}^ ; ?  
         0x0000043c:    488cd11b    ...H    STMMI    r12,{r0,r1,r3,r4,r8,r12,lr,pc}
@@ -345,11 +345,11 @@
         0x00000454:    0740d10f    ..@.    STRBEQ   sp,[r0,-pc,LSL #2] ; ?  
         0x00000458:    46316846    Fh1F    LDRTMI   r6,[r1],-r6,ASR #16
         0x0000045c:    f002a0ae    ....    DCI      0xf002a0ae ; ? Undefined
-        0x00000460:    48b4fe89    ...H    LDMMI    r4!,{r0,r3,r7,r9-pc}
+        0x00000460:    48b4fec5    ...H    LDMMI    r4!,{r0,r2,r6,r7,r9-pc}
         0x00000464:    48b46802    .h.H    LDMMI    r4!,{r1,r11,sp,lr}
         0x00000468:    48b46801    .h.H    LDMMI    r4!,{r0,r11,sp,lr}
         0x0000046c:    a0b48803    ....    ADCSGE   r8,r4,r3,LSL #16
-        0x00000470:    fe80f002    ....    CDP2     p0,#0x8,c15,c0,c2,#0
+        0x00000470:    febcf002    ....    CDP2     p0,#0xb,c15,c12,c2,#0
         0x00000474:    487ee0cf    ..~H    LDMDAMI  lr!,{r0-r3,r6,r7,sp-pc}^ ; ?  
         0x00000478:    286178c0    .xa(    STMDACS  r1,{r6,r7,r11-lr}^ ; ?  
         0x0000047c:    487cd113    ..|H    LDMDAMI  r12!,{r0,r1,r4,r8,r12,lr,pc}^ ; ?  
@@ -361,7 +361,7 @@
         0x00000494:    2001d107    ...     ANDCS    sp,r1,r7,LSL #2
         0x00000498:    07092105    .!..    STREQ    r2,[r9,-r5,LSL #2]
         0x0000049c:    a0ae6008    .`..    ADCGE    r6,lr,r8
-        0x000004a0:    fe68f002    ..h.    CDP2     p0,#0x6,c15,c8,c2,#0
+        0x000004a0:    fea4f002    ....    CDP2     p0,#0xa,c15,c4,c2,#0
         0x000004a4:    4872e0b7    ..rH    LDMDAMI  r2!,{r0-r2,r4,r5,r7,sp-pc}^ ; ?  
         0x000004a8:    286178c0    .xa(    STMDACS  r1,{r6,r7,r11-lr}^ ; ?  
         0x000004ac:    4870d131    1.pH    LDMDAMI  r0!,{r0,r4,r5,r8,r12,lr,pc}^ ; ?  
@@ -379,16 +379,16 @@
         0x000004dc:    61480649    I.Ha    CRC32CWVS r0,r8,r9 ; ?  
         0x000004e0:    69014608    .F.i    STMDBVS  r1,{r3,r9,r10,lr}
         0x000004e4:    f002a0a4    ....    DCI      0xf002a0a4 ; ? Undefined
-        0x000004e8:    2021fe45    E.!     EORCS    pc,r1,r5,ASR #28
+        0x000004e8:    2021fe81    ..!     EORCS    pc,r1,r1,LSL #29
         0x000004ec:    69410640    @.Ai    STMDBVS  r1,{r6,r9,r10}^
         0x000004f0:    f002a0a1    ....    DCI      0xf002a0a1 ; ? Undefined
-        0x000004f4:    2005fe3f    ?..     ANDCS    pc,r5,pc,LSR lr ; ?  
+        0x000004f4:    2005fe7b    {..     ANDCS    pc,r5,r11,ROR lr ; ?  
         0x000004f8:    06492121    !!I.    STRBEQ   r2,[r9],-r1,LSR #2
         0x000004fc:    20096308    .c.     ANDCS    r6,r9,r8,LSL #6
         0x00000500:    499e6348    Hc.I    LDMIBMI  lr,{r3,r6,r8,r9,sp,lr}
         0x00000504:    20116208    .b.     ANDSCS   r6,r1,r8,LSL #4
         0x00000508:    a09d6248    Hb..    ADDSGE   r6,sp,r8,ASR #4
-        0x0000050c:    fe32f002    ..2.    CDP2     p0,#0x3,c15,c2,c2,#0
+        0x0000050c:    fe6ef002    ..n.    CDP2     p0,#0x6,c15,c14,c2,#0
         0x00000510:    4857e081    ..WH    LDMDAMI  r7,{r0,r7,sp-pc}^
         0x00000514:    286178c0    .xa(    STMDACS  r1,{r6,r7,r11-lr}^ ; ?  
         0x00000518:    4855d122    ".UH    LDMDAMI  r5,{r1,r5,r8,r12,lr,pc}^
@@ -408,7 +408,7 @@
         0x00000550:    2141486a    jHA!    DCI      0x2141486a ; ? Undefined
         0x00000554:    61480609    ..Ha    MRSVS    r0,??? ; ? RESERVED ; ?  
         0x00000558:    f002a08c    ....    DCI      0xf002a08c ; ? Undefined
-        0x0000055c:    e05afe0b    ..Z.    SUBS     pc,r10,r11,LSL #28
+        0x0000055c:    e05afe47    G.Z.    SUBS     pc,r10,r7,ASR #28
         0x00000560:    78c04843    CH.x    STMVC    r0,{r0,r1,r6,r11,lr}^
         0x00000564:    d1172872    r(..    TSTLE    r7,r2,ROR r8 ; ?  
         0x00000568:    78804841    AH.x    STMVC    r0,{r0,r6,r11,lr}
@@ -422,7 +422,7 @@
         0x00000588:    497c6348    Hc|I    LDMDBMI  r12,{r3,r6,r8,r9,sp,lr}^ ; ?  
         0x0000058c:    62486208    .bHb    SUBVS    r6,r8,#8, 4 ; #0x80000000
         0x00000590:    f002a081    ....    DCI      0xf002a081 ; ? Undefined
-        0x00000594:    e03efdef    ..>.    EORS     pc,lr,pc,ROR #27
+        0x00000594:    e03efe2b    +.>.    EORS     pc,lr,r11,LSR #28
         0x00000598:    78c04835    5H.x    STMVC    r0,{r0,r2,r4,r5,r11,lr}^
         0x0000059c:    d1212878    x(!.    BKPTLE   #0x1288 ; ?  
         0x000005a0:    78804833    3H.x    STMVC    r0,{r0,r1,r4,r5,r11,lr}
@@ -439,7 +439,7 @@
         0x000005cc:    f972f002    ..r.    DCI      0xf972f002 ; ? Undefined
         0x000005d0:    f99ff002    ....    RFEIB    pc ; ?  
         0x000005d4:    f002a076    v...    DCI      0xf002a076 ; ? Undefined
-        0x000005d8:    f002fdcd    ....    DCI      0xf002fdcd ; ? Undefined
+        0x000005d8:    f002fe09    ....    DCI      0xf002fe09 ; ? Undefined
         0x000005dc:    f002fbad    ....    DCI      0xf002fbad ; ? Undefined
         0x000005e0:    e018fbb4    ....    LDRH     pc,[r8],-r4 ; ?  
         0x000005e4:    78c04822    "H.x    STMVC    r0,{r1,r5,r11,lr}^
@@ -454,10 +454,10 @@
         0x00000608:    e0048008    ....    AND      r8,r4,r8
         0x0000060c:    d1022c0a    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
         0x00000610:    f002a070    p...    DCI      0xf002a070 ; ? Undefined
-        0x00000614:    bd70fdaf    ..p.    LDCLLT   p13,c15,[r0,#-0x2bc]!
+        0x00000614:    bd70fdeb    ..p.    LDCLLT   p13,c15,[r0,#-0x3ac]!
         0x00000618:    4873b510    ..sH    LDMDAMI  r3!,{r4,r8,r10,r12,sp,pc}^
         0x0000061c:    a0736801    .hs.    RSBSGE   r6,r3,r1,LSL #16
-        0x00000620:    fda8f002    ....    STC2     p0,c15,[r8,#8]!
+        0x00000620:    fde4f002    ....    STC2L    p0,c15,[r4,#8]!
         0x00000624:    b5febd10    ....    LDRBLT   r11,[lr,#0xd10]!
         0x00000628:    07802001    . ..    STREQ    r2,[r0,r1]
         0x0000062c:    69c56904    .i.i    STMIBVS  r5,{r2,r8,r11,sp,lr}^
@@ -586,7 +586,7 @@
         0x00000818:    2000001c    ...     ANDCS    r0,r0,r12,LSL r0
         0x0000081c:    20000024    $..     ANDCS    r0,r0,r4,LSR #32
         0x00000820:    f002a0f0    ....    DCI      0xf002a0f0 ; ? Undefined
-        0x00000824:    2008fca7    ...     ANDCS    pc,r8,r7,LSR #25
+        0x00000824:    2008fce3    ...     ANDCS    pc,r8,r3,ROR #25
         0x00000828:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x0000082c:    48f9d02a    *..H    LDMMI    r9!,{r1,r3,r5,r12,lr,pc}^
         0x00000830:    49f96800    .h.I    LDMIBMI  r9,{r11,sp,lr}^ ; ?  
@@ -595,7 +595,7 @@
         0x0000083c:    600849f5    .I.`    STRDVS   r4,r5,[r8],-r5 ; ?  
         0x00000840:    68014608    .F.h    STMDAVS  r1,{r3,r9,r10,lr}
         0x00000844:    f002a0f5    ....    DCI      0xf002a0f5 ; ? Undefined
-        0x00000848:    48f6fc95    ...H    LDMMI    r6!,{r0,r2,r4,r7,r10-pc}^
+        0x00000848:    48f6fcd1    ...H    LDMMI    r6!,{r0,r4,r6,r7,r10-pc}^ ; ?  
         0x0000084c:    21206800    .h !    MSRCS    CPSR_,r0 ; ?  
         0x00000850:    49f44308    .C.I    LDMIBMI  r4,{r3,r8,r9,lr}^ ; ?  
         0x00000854:    46086008    .`.F    STRMI    r6,[r8],-r8
@@ -719,50 +719,50 @@
         0x00000a2c:    40202040    @  @    EORMI    r2,r0,r0,ASR #32
         0x00000a30:    d0022800    .(..    ANDLE    r2,r2,r0,LSL #16
         0x00000a34:    f002a08c    ....    DCI      0xf002a08c ; ? Undefined
-        0x00000a38:    2080fb9d    ...     UMULLCS  pc,r0,sp,r11 ; ?  
+        0x00000a38:    2080fbd9    ...     LDRDCS   pc,r0,[r0],r9 ; ?  
         0x00000a3c:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000a40:    a08dd002    ....    ADDGE    sp,sp,r2
-        0x00000a44:    fb96f002    ....    BLX      0xfe5bca56 ; 0xfe5bca56
+        0x00000a44:    fbd2f002    ....    BLX      0xff4bca56 ; 0xff4bca56
         0x00000a48:    300120ff    . .0    STRDCC   r2,r3,[r1],-pc ; ?  
         0x00000a4c:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000a50:    4883d004    ...H    STMMI    r3,{r2,r12,lr,pc}
         0x00000a54:    a08c6901    .i..    ADDGE    r6,r12,r1,LSL #18
-        0x00000a58:    fb8cf002    ....    BLX      0xfe33ca6a ; 0xfe33ca6a
+        0x00000a58:    fbc8f002    ....    BLX      0xff23ca6a ; 0xff23ca6a
         0x00000a5c:    02402001    . @.    SUBEQ    r2,r0,#1
         0x00000a60:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000a64:    487ed004    ..~H    LDMDAMI  lr!,{r2,r12,lr,pc}^ ; ?  
         0x00000a68:    a08f6941    Ai..    ADDGE    r6,pc,r1,ASR #18
-        0x00000a6c:    fb82f002    ....    BLX      0xfe0bca7e ; 0xfe0bca7e
+        0x00000a6c:    fbbef002    ....    BLX      0xfefbca7e ; 0xfefbca7e
         0x00000a70:    02802001    . ..    ADDEQ    r2,r0,#1
         0x00000a74:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000a78:    4879d004    ..yH    LDMDAMI  r9!,{r2,r12,lr,pc}^
         0x00000a7c:    a0926981    .i..    ADDSGE   r6,r2,r1,LSL #19
-        0x00000a80:    fb78f002    ..x.    BLX      0x1e3ca92 ; 0x1e3ca92
+        0x00000a80:    fbb4f002    ....    BLX      0xfed3ca92 ; 0xfed3ca92
         0x00000a84:    02c02001    . ..    SBCEQ    r2,r0,#1
         0x00000a88:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000a8c:    4874d004    ..tH    LDMDAMI  r4!,{r2,r12,lr,pc}^
         0x00000a90:    a09569c1    .i..    ADDSGE   r6,r5,r1,ASR #19
-        0x00000a94:    fb6ef002    ..n.    BLX      0x1bbcaa6 ; 0x1bbcaa6
+        0x00000a94:    fbaaf002    ....    BLX      0xfeabcaa6 ; 0xfeabcaa6
         0x00000a98:    03002001    . ..    MOVWEQ   r2,#1
         0x00000a9c:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000aa0:    486fd004    ..oH    STMDAMI  pc,{r2,r12,lr,pc}^ ; ?  
         0x00000aa4:    a0986901    .i..    ADDSGE   r6,r8,r1,LSL #18
-        0x00000aa8:    fb64f002    ..d.    BLX      0x193caba ; 0x193caba
+        0x00000aa8:    fba0f002    ....    BLX      0xfe83caba ; 0xfe83caba
         0x00000aac:    03402001    . @.    MOVTEQ   r2,#1
         0x00000ab0:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000ab4:    486ad004    ..jH    STMDAMI  r10,{r2,r12,lr,pc}^ ; ?  
         0x00000ab8:    a09a6941    Ai..    ADDSGE   r6,r10,r1,ASR #18
-        0x00000abc:    fb5af002    ..Z.    BLX      0x16bcace ; 0x16bcace
+        0x00000abc:    fb96f002    ....    BLX      0xfe5bcace ; 0xfe5bcace
         0x00000ac0:    03802001    . ..    ORREQ    r2,r0,#1
         0x00000ac4:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000ac8:    4865d004    ..eH    STMDAMI  r5,{r2,r12,lr,pc}^ ; ?  
         0x00000acc:    a09c6981    .i..    ADDSGE   r6,r12,r1,LSL #19
-        0x00000ad0:    fb50f002    ..P.    BLX      0x143cae2 ; 0x143cae2
+        0x00000ad0:    fb8cf002    ....    BLX      0xfe33cae2 ; 0xfe33cae2
         0x00000ad4:    03c02001    . ..    BICEQ    r2,r0,#1
         0x00000ad8:    28004020     @.(    STMDACS  r0,{r5,lr}
         0x00000adc:    4860d004    ..`H    STMDAMI  r0,{r2,r12,lr,pc}^ ; ?  
         0x00000ae0:    a09e69c1    .i..    ADDSGE   r6,lr,r1,ASR #19
-        0x00000ae4:    fb46f002    ..F.    BLX      0x11bcaf6 ; 0x11bcaf6
+        0x00000ae4:    fb82f002    ....    BLX      0xfe0bcaf6 ; 0xfe0bcaf6
         0x00000ae8:    6344485d    ]HDc    MOVTVS   r4,#0x485d
         0x00000aec:    b570bd10    ..p.    LDRBLT   r11,[r0,#-0xd10]!
         0x00000af0:    680548a1    .H.h    STMDAVS  r5,{r0,r5,r7,r11,lr}
@@ -788,7 +788,7 @@
         0x00000b40:    e0062401    .$..    AND      r2,r6,r1,LSL #8
         0x00000b44:    4a8f00a0    ...J    BMI      0xfe3c0dcc ; 0xfe3c0dcc
         0x00000b48:    a0915811    .X..    ADDSGE   r5,r1,r1,LSL r8
-        0x00000b4c:    fb12f002    ....    BLX      0x4bcb5e ; 0x4bcb5e
+        0x00000b4c:    fb4ef002    ..N.    BLX      0x13bcb5e ; 0x13bcb5e
         0x00000b50:    2c0a1c64    d..,    DCI      0x2c0a1c64 ; ? Undefined
         0x00000b54:    20ffd3f6    ...     LDRSHCS  sp,[pc,#54] ; ?   ; [0xb92] = 0x4b7e
         0x00000b58:    498e3001    .0.I    STMIBMI  lr,{r0,r12,sp}
@@ -1044,7 +1044,7 @@
         0x00000f40:    68006007    .`.h    STMDAVS  r0,{r0-r2,sp,lr}
         0x00000f44:    497c0940    @.|I    LDMDBMI  r12,{r6,r8,r11}^ ; ?  
         0x00000f48:    a07c6008    .`|.    RSBSGE   r6,r12,r8
-        0x00000f4c:    f912f002    ....    RFEDB    r2 ; ?  
+        0x00000f4c:    f94ef002    ..N.    SRSDB    sp,#2 ; ?  
         0x00000f50:    68004866    fH.h    STMDAVS  r0,{r1,r2,r5,r6,r11,lr}
         0x00000f54:    6008497b    {I.`    ANDVS    r4,r8,r11,ROR r9
         0x00000f58:    497c487b    {H|I    LDMDBMI  r12,{r0,r1,r3-r6,r11,lr}^ ; ?  
@@ -1059,31 +1059,31 @@
         0x00000f7c:    b005fcca    ....    ANDLT    pc,r5,r10,ASR #25
         0x00000f80:    b510bdf0    ....    LDRLT    r11,[r0,#-0xdf0]
         0x00000f84:    f002a073    s...    DCI      0xf002a073 ; ? Undefined
-        0x00000f88:    bd10f8f5    ....    LDCLT    p8,c15,[r0,#-0x3d4]
+        0x00000f88:    bd10f931    1...    LDCLT    p9,c15,[r0,#-0xc4]
         0x00000f8c:    a07ab510    ..z.    RSBSGE   r11,r10,r0,LSL r5
-        0x00000f90:    f8f0f002    ....    DCI      0xf8f0f002 ; ? Undefined
+        0x00000f90:    f92cf002    ..,.    DCI      0xf92cf002 ; ? Undefined
         0x00000f94:    b510bd10    ....    LDRLT    r11,[r0,#-0xd10]
         0x00000f98:    f002a080    ....    DCI      0xf002a080 ; ? Undefined
-        0x00000f9c:    bd10f8eb    ....    LDCLT    p8,c15,[r0,#-0x3ac]
+        0x00000f9c:    bd10f927    '...    LDCLT    p9,c15,[r0,#-0x9c]
         0x00000fa0:    a087b510    ....    ADDGE    r11,r7,r0,LSL r5
-        0x00000fa4:    f8e6f002    ....    SRSIA    sp!,#2 ; ?  
+        0x00000fa4:    f922f002    ..".    DCI      0xf922f002 ; ? Undefined
         0x00000fa8:    a08fbd10    ....    ADDGE    r11,pc,r0,LSL sp ; ?  
-        0x00000fac:    f8e2f002    ....    SRSIA    sp!,#2 ; ?  
+        0x00000fac:    f91ef002    ....    RFEDB    lr ; ?  
         0x00000fb0:    f9f2f001    ....    DCI      0xf9f2f001 ; ? Undefined
         0x00000fb4:    f002a090    ....    DCI      0xf002a090 ; ? Undefined
-        0x00000fb8:    a095f8dd    ....    LDRSBGE  pc,[r5],sp ; ?  
-        0x00000fbc:    f8daf002    ....    DCI      0xf8daf002 ; ? Undefined
+        0x00000fb8:    a095f919    ....    ADDSGE   pc,r5,r9,LSL r9 ; ?  
+        0x00000fbc:    f916f002    ....    RFEDB    r6 ; ?  
         0x00000fc0:    6b81489b    .H.k    BLVS     0xfe053234 ; 0xfe053234
         0x00000fc4:    f0002000    . ..    DCI      0xf0002000 ; ? Undefined
         0x00000fc8:    4604f9d6    ...F    DCI      0x4604f9d6 ; ? Undefined
         0x00000fcc:    6bc04898    .H.k    BLVS     0xff013234 ; 0xff013234
         0x00000fd0:    d10342a0    .B..    SMLATBLE r3,r0,r2,r4
         0x00000fd4:    f002a097    ....    DCI      0xf002a097 ; ? Undefined
-        0x00000fd8:    e004f8cd    ....    AND      pc,r4,sp,ASR #17
+        0x00000fd8:    e004f909    ....    AND      pc,r4,r9,LSL #18
         0x00000fdc:    f002a097    ....    DCI      0xf002a097 ; ? Undefined
-        0x00000fe0:    bf00f8c9    ....    SVCLT    #0xf8c9 ; formerly SWI
+        0x00000fe0:    bf00f905    ....    SVCLT    #0xf905 ; formerly SWI
         0x00000fe4:    a0a5e7fe    ....    STRDGE   lr,pc,[r5],lr ; ?  
-        0x00000fe8:    f8c4f002    ....    SRSIA    sp,#2 ; ?  
+        0x00000fe8:    f900f002    ....    DCI      0xf900f002 ; ? Undefined
         0x00000fec:    49362058    X 6I    LDMDBMI  r6!,{r3,r4,r6,sp} ; ?  
         0x00000ff0:    20016008    .`.     ANDCS    r6,r1,r8
         0x00000ff4:    494902c0    ..II    STMDBMI  r9,{r6,r7,r9}^
@@ -1093,7 +1093,7 @@
         0x00001004:    2000d0fb    ...     STRDCS   sp,lr,[r0],-r11 ; ?  
         0x00001008:    80084945    EI..    ANDHI    r4,r8,r5,ASR #18
         0x0000100c:    f002a0a2    ....    DCI      0xf002a0a2 ; ? Undefined
-        0x00001010:    f001f8b1    ....    DCI      0xf001f8b1 ; ? Undefined
+        0x00001010:    f001f8ed    ....    DCI      0xf001f8ed ; ? Undefined
         0x00001014:    4886fda6    ...H    STMMI    r6,{r1,r2,r5,r7,r8,r10-pc}
         0x00001018:    4940303f    ?0@I    STMDBMI  r0,{r0-r5,r12,sp}^
         0x0000101c:    20006008    .`.     ANDCS    r6,r0,r8
@@ -1131,7 +1131,7 @@
         0x0000109c:    4605fe8b    ...F    STRMI    pc,[r5],-r11,LSL #29
         0x000010a0:    68014886    .H.h    STMDAVS  r1,{r1,r2,r7,r11,lr}
         0x000010a4:    f0014628    (F..    DCI      0xf0014628 ; ? Undefined
-        0x000010a8:    bf00ffaa    ....    SVCLT    #0xffaa ; formerly SWI
+        0x000010a8:    bf00ffe2    ....    SVCLT    #0xffe2 ; formerly SWI
         0x000010ac:    0000e7bf    ....    STRHEQ   lr,[r0],-pc ; ?  
         0x000010b0:    20000084    ...     ANDCS    r0,r0,r4,LSL #1
         0x000010b4:    52040000    ...R    ANDPL    r0,r4,#0
@@ -1285,7 +1285,7 @@
         0x00001304:    46204904    .I F    STRTMI   r4,[r0],-r4,LSL #18
         0x00001308:    ffe2f7ff    ....    DCI      0xffe2f7ff ; ? Undefined
         0x0000130c:    a003bd10    ....    ANDGE    r11,r3,r0,LSL sp
-        0x00001310:    ff30f001    ..0.    DCI      0xff30f001 ; ? Undefined
+        0x00001310:    ff6cf001    ..l.    DCI      0xff6cf001 ; ? Undefined
         0x00001314:    e7febf00    ....    LDRB     r11,[lr,r0,LSL #30]!
         0x00001318:    200000c0    ...     ANDCS    r0,r0,r0,ASR #1
         0x0000131c:    5345540a    .TES    MOVTPL   r5,#0x540a
@@ -1503,9 +1503,9 @@
         0x0000166c:    00b89e01    ....    ADCSEQ   r9,r8,r1,LSL #28
         0x00001670:    19829e01    ....    STMIBNE  r2,{r0,r9-r12,pc}
         0x00001674:    a02d4631    1F-.    EORGE    r4,sp,r1,LSR r6
-        0x00001678:    fd7cf001    ..|.    LDC2L    p0,c15,[r12,#-4]!
+        0x00001678:    fdb8f001    ....    LDC2     p0,c15,[r8,#4]!
         0x0000167c:    f001a036    6...    DCI      0xf001a036 ; ? Undefined
-        0x00001680:    2400fd79    y..$    STRCS    pc,[r0],#-0xd79
+        0x00001680:    2400fdb5    ...$    STRCS    pc,[r0],#-0xdb5
         0x00001684:    2500e00c    ...%    STRCS    lr,[r0,#-0xc]
         0x00001688:    00a0e007    ....    ADCEQ    lr,r0,r7
         0x0000168c:    21015830    0X.!    DCI      0x21015830 ; ? Undefined
@@ -1522,7 +1522,7 @@
         0x000016b8:    00a0d009    ....    ADCEQ    sp,r0,r9
         0x000016bc:    462a5833    3X*F    QASXMI   r5,r10,r3 ; ?  
         0x000016c0:    a02b4621    !F+.    EORGE    r4,r11,r1,LSR #12
-        0x000016c4:    fd56f001    ..V.    LDC2L    p0,c15,[r6,#-4]
+        0x000016c4:    fd92f001    ....    LDC2     p0,c15,[r2,#4]
         0x000016c8:    1c409800    ..@.    MCRRNE   p8,#0,r9,r0,c0
         0x000016cc:    00a09000    ....    ADCEQ    r9,r0,r0
         0x000016d0:    21015830    0X.!    DCI      0x21015830 ; ? Undefined
@@ -1544,7 +1544,7 @@
         0x00001710:    33333333    3333    TEQCC    r3,#0xcc000000 ; ?  
         0x00001714:    0f0f0f0f    ....    SVCEQ    #0xf0f0f ; formerly SWI
         0x00001718:    04c11db7    ....    STRBEQ   r1,[r1],#0xdb7 ; ?  
-        0x0000171c:    000036e0    .6..    ANDEQ    r3,r0,r0,ROR #13
+        0x0000171c:    00003758    X7..    ANDEQ    r3,r0,r8,ASR r7
         0x00001720:    000001ff    ....    STRDEQ   r0,r1,[r0],-pc ; ?  
         0x00001724:    52280000    ..(R    EORPL    r0,r8,#0
         0x00001728:    00000392    ....    MULEQ    r0,r2,r3
@@ -1577,7 +1577,7 @@
         0x00001794:    73692065    e is    MSRVC    SPSR_cf,#0x65 ; ?  
         0x00001798:    00582520     %X.    SUBSEQ   r2,r8,r0,LSR #10
         0x0000179c:    f001a0f8    ....    DCI      0xf001a0f8 ; ? Undefined
-        0x000017a0:    9800fce9    ....    STMDALS  r0,{r0,r3,r5-r7,r10-pc}
+        0x000017a0:    9800fd25    %...    STMDALS  r0,{r0,r2,r5,r8,r10-pc}
         0x000017a4:    90001c40    @...    ANDLS    r1,r0,r0,ASR #24
         0x000017a8:    583000a0    ..0X    LDMDAPL  r0!,{r5,r7}
         0x000017ac:    40a92101    .!.@    ADCMI    r2,r9,r1,LSL #2
@@ -1594,7 +1594,7 @@
         0x000017d8:    583300a0    ..3X    LDMDAPL  r3!,{r5,r7}
         0x000017dc:    4621462a    *F!F    STRTMI   r4,[r1],-r10,LSR #12
         0x000017e0:    f001a0f2    ....    DCI      0xf001a0f2 ; ? Undefined
-        0x000017e4:    9800fcc7    ....    STMDALS  r0,{r0-r2,r6,r7,r10-pc}
+        0x000017e4:    9800fd03    ....    STMDALS  r0,{r0,r1,r8,r10-pc}
         0x000017e8:    90001c40    @...    ANDLS    r1,r0,r0,ASR #24
         0x000017ec:    583000a0    ..0X    LDMDAPL  r0!,{r5,r7}
         0x000017f0:    40a92101    .!.@    ADCMI    r2,r9,r1,LSL #2
@@ -1612,7 +1612,7 @@
         0x00001820:    583300a0    ..3X    LDMDAPL  r3!,{r5,r7}
         0x00001824:    4621462a    *F!F    STRTMI   r4,[r1],-r10,LSR #12
         0x00001828:    f001a0eb    ....    DCI      0xf001a0eb ; ? Undefined
-        0x0000182c:    9800fca3    ....    STMDALS  r0,{r0,r1,r5,r7,r10-pc}
+        0x0000182c:    9800fcdf    ....    STMDALS  r0,{r0-r4,r6,r7,r10-pc}
         0x00001830:    90001c40    @...    ANDLS    r1,r0,r0,ASR #24
         0x00001834:    583000a0    ..0X    LDMDAPL  r0!,{r5,r7}
         0x00001838:    40a92101    .!.@    ADCMI    r2,r9,r1,LSL #2
@@ -1629,13 +1629,13 @@
         0x00001864:    583300a0    ..3X    LDMDAPL  r3!,{r5,r7}
         0x00001868:    4621462a    *F!F    STRTMI   r4,[r1],-r10,LSR #12
         0x0000186c:    f001a0e5    ....    DCI      0xf001a0e5 ; ? Undefined
-        0x00001870:    9800fc81    ....    STMDALS  r0,{r0,r7,r10-pc}
+        0x00001870:    9800fcbd    ....    STMDALS  r0,{r0,r2-r5,r7,r10-pc}
         0x00001874:    90001c40    @...    ANDLS    r1,r0,r0,ASR #24
         0x00001878:    2d201c6d    m. -    STCCS    p12,c1,[r0,#-0x1b4]!
         0x0000187c:    1c64dbeb    ..d.    DCI      0x1c64dbeb ; ? Undefined
         0x00001880:    d3e642bc    .B..    MVNLE    r4,#0xbc, 4 ; #0xc000000b ; ?  
         0x00001884:    9900a0ea    ....    STMDBLS  r0,{r1,r3,r5-r7,sp,pc}
-        0x00001888:    fc74f001    ..t.    LDC2L    p0,c15,[r4],#-4
+        0x00001888:    fcb0f001    ....    LDC2     p0,c15,[r0],#4
         0x0000188c:    bdfe9800    ....    LDCLLT   p8,c9,[lr,#0]!
         0x00001890:    4605b570    p..F    DCI      0x4605b570 ; ? Undefined
         0x00001894:    e0112400    .$..    ANDS     r2,r1,r0,LSL #8
@@ -2424,18 +2424,18 @@
         0x000024d0:    90032019    . ..    ANDLS    r2,r3,r9,LSL r0
         0x000024d4:    9002209b    . ..    MULLS    r2,r11,r0 ; ?  
         0x000024d8:    99024628    (F..    STMDBLS  r2,{r3,r5,r9,r10,lr}
-        0x000024dc:    ff44f000    ..D.    DCI      0xff44f000 ; ? Undefined
+        0x000024dc:    ff80f000    ....    DCI      0xff80f000 ; ? Undefined
         0x000024e0:    b2c03013    .0..    SBCLT    r3,r0,#0x13
         0x000024e4:    46289000    ..(F    STRTMI   r9,[r8],-r0
         0x000024e8:    f0009902    ....    DCI      0xf0009902 ; ? Undefined
-        0x000024ec:    460dff3d    =..F    DCI      0x460dff3d ; ? Undefined
+        0x000024ec:    460dff79    y..F    DCI      0x460dff79 ; ? Undefined
         0x000024f0:    99034628    (F..    STMDBLS  r3,{r3,r5,r9,r10,lr}
-        0x000024f4:    ff38f000    ..8.    DCI      0xff38f000 ; ? Undefined
+        0x000024f4:    ff74f000    ..t.    DCI      0xff74f000 ; ? Undefined
         0x000024f8:    18400041    A.@.    STMDANE  r0,{r0,r6}^
         0x000024fc:    b2c019c0    ....    SBCLT    r1,r0,#0xc0, 18 ; #0x300000
         0x00002500:    46289001    ..(F    STRTMI   r9,[r8],-r1
         0x00002504:    f0009903    ....    DCI      0xf0009903 ; ? Undefined
-        0x00002508:    2802ff2f    /..(    STMDACS  r2,{r0-r3,r5,r8-pc}
+        0x00002508:    2802ff6b    k..(    STMDACS  r2,{r0,r1,r3,r5,r6,r8-pc}
         0x0000250c:    e025db27    '.%.    EOR      sp,r5,r7,LSR #22
         0x00002510:    200052bc    .R.     STRHCS   r5,[r0],-r12 ; ?  
         0x00002514:    52180000    ...R    ANDSPL   r0,r8,#0
@@ -2458,7 +2458,7 @@
         0x00002558:    52200000    .. R    EORPL    r0,r0,#0
         0x0000255c:    4628bf00    ..(F    STRTMI   r11,[r8],-r0,LSL #30
         0x00002560:    f0009903    ....    DCI      0xf0009903 ; ? Undefined
-        0x00002564:    1988ff01    ....    STMIBNE  r8,{r0,r8-pc}
+        0x00002564:    1988ff3d    =...    STMIBNE  r8,{r0,r2-r5,r8-pc}
         0x00002568:    2c0fb2c4    ...,    DCI      0x2c0fb2c4 ; ? Undefined
         0x0000256c:    1c64dd00    ..d.    STCLNE   p13,c13,[r4],#-0
         0x00002570:    99014622    "F..    STMDBLS  r1,{r1,r5,r9,r10,lr}
@@ -2467,9 +2467,9 @@
         0x0000257c:    b5f1bdf0    ....    LDRBLT   r11,[r1,#0xdf0]!
         0x00002580:    2400b0a2    ...$    STRCS    r11,[r0],#-0xa2
         0x00002584:    a8122140    @!..    LDMDAGE  r2,{r6,r8,sp}
-        0x00002588:    fee2f000    ....    CDP2     p0,#0xe,c15,c2,c0,#0
+        0x00002588:    ff1ef000    ....    DCI      0xff1ef000 ; ? Undefined
         0x0000258c:    a8012144    D!..    STMDAGE  r1,{r2,r6,r8,sp}
-        0x00002590:    fedef000    ....    CDP2     p0,#0xd,c15,c14,c0,#0
+        0x00002590:    ff1af000    ....    DCI      0xff1af000 ; ? Undefined
         0x00002594:    982249aa    .I".    STMDALS  r2!,{r1,r3,r5,r7,r8,r11,lr}
         0x00002598:    e0526008    .`R.    SUBS     r6,r2,r8
         0x0000259c:    4aa800a1    ...J    BMI      0xfea02828 ; 0xfea02828
@@ -2492,7 +2492,7 @@
         0x000025e0:    9a121889    ....    BLS      0x48880c ; 0x48880c
         0x000025e4:    46084351    QC.F    DCI      0x46084351 ; ? Undefined
         0x000025e8:    f0004999    .I..    DCI      0xf0004999 ; ? Undefined
-        0x000025ec:    1c61feb3    ..a.    STCLNE   p14,c15,[r1],#-0x2cc
+        0x000025ec:    1c61feef    ..a.    STCLNE   p14,c15,[r1],#-0x3bc
         0x000025f0:    aa010089    ....    BGE      0x4281c ; 0x4281c
         0x000025f4:    2c005050    PP.,    DCI      0x2c005050 ; ? Undefined
         0x000025f8:    00a0dd18    ....    ADCEQ    sp,r0,r8,LSL sp
@@ -2520,9 +2520,9 @@
         0x00002650:    460e4605    .F.F    STRMI    r4,[lr],-r5,LSL #12
         0x00002654:    21402400    .$@!    MRSCS    r2,SPSR ; ?  
         0x00002658:    f000a821    !...    DCI      0xf000a821 ; ? Undefined
-        0x0000265c:    2144fe79    y.D!    HVCCS    #0x4fe9 ; ?  
+        0x0000265c:    2144feb5    ..D!    STRHCS   pc,[r4,#-0xe5] ; ?  
         0x00002660:    f000a810    ....    DCI      0xf000a810 ; ? Undefined
-        0x00002664:    2220fe75    u. "    EORCS    pc,r0,#0x750
+        0x00002664:    2220feb1    .. "    EORCS    pc,r0,#0xb10
         0x00002668:    a808497a    zI..    STMDAGE  r8,{r1,r3-r6,r8,r11,lr}
         0x0000266c:    fd62f7fd    ..b.    STC2L    p7,c15,[r2,#-0x3f4]!
         0x00002670:    49782220     "xI    LDMDBMI  r8,{r5,r9,sp}^ ; ?  
@@ -2552,7 +2552,7 @@
         0x000026d0:    00625a99    .Zb.    MLSEQ    r2,r9,r10,r5
         0x000026d4:    5a9aab08    ...Z    BPL      0xfe6ad2fc ; 0xfe6ad2fc
         0x000026d8:    46104372    rC.F    SSUB16MI r4,r0,r2 ; ?  
-        0x000026dc:    fe3af000    ..:.    CDP2     p0,#0x3,c15,c10,c0,#0
+        0x000026dc:    fe76f000    ..v.    CDP2     p0,#0x7,c15,c6,c0,#0
         0x000026e0:    aa1000a1    ....    BGE      0x40296c ; 0x40296c
         0x000026e4:    00a05050    PP..    ADCEQ    r5,r0,r0,ASR r0
         0x000026e8:    5809a921    !..X    STMDAPL  r9,{r0,r5,r8,r11,sp,pc}
@@ -2604,7 +2604,7 @@
         0x000027a0:    19000428    (...    STMDBNE  r0,{r3,r5,r10}
         0x000027a4:    03709000    ..p.    CMNEQ    r0,#0 ; ?  
         0x000027a8:    f0009900    ....    DCI      0xf0009900 ; ? Undefined
-        0x000027ac:    bdf8fdd3    ....    LDCLLT   p13,c15,[r8,#0x34c]!
+        0x000027ac:    bdf8fe0f    ....    LDCLLT   p14,c15,[r8,#0x3c]!
         0x000027b0:    6f80482e    .H.o    SVCVS    #0x80482e ; formerly SWI
         0x000027b4:    05092101    .!..    STREQ    r2,[r9,#-0x101]
         0x000027b8:    492c4388    .C,I    STMDBMI  r12!,{r3,r7-r9,lr}
@@ -2646,7 +2646,7 @@
         0x00002848:    52280000    ..(R    EORPL    r0,r8,#0
         0x0000284c:    522c0000    ..,R    EORPL    r0,r12,#0
         0x00002850:    000003c1    ....    ANDEQ    r0,r0,r1,ASR #7
-        0x00002854:    00003720     7..    ANDEQ    r3,r0,r0,LSR #14
+        0x00002854:    00003798    .7..    MULEQ    r0,r8,r7 ; ?  
         0x00002858:    2000527c    |R.     ANDCS    r5,r0,r12,ROR r2
         0x0000285c:    0000c350    P...    ANDEQ    r12,r0,r0,ASR r3
         0x00002860:    52180000    ...R    ANDSPL   r0,r8,#0
@@ -2865,7 +2865,7 @@
         0x00002bb4:    4b7200d1    ..rK    BLMI     0x1c82f00 ; 0x1c82f00
         0x00002bb8:    4b725f5a    Z_rK    BLMI     0x1c9a928 ; 0x1c9a928
         0x00002bbc:    4610435a    ZC.F    SSAXMI   r4,r0,r10 ; ?  
-        0x00002bc0:    fbd2f000    ....    BLX      0xff4bebca ; 0xff4bebca
+        0x00002bc0:    fc0ef000    ....    DCI      0xfc0ef000 ; ? Undefined
         0x00002bc4:    24099002    ...$    STRCS    r9,[r9],#-2 ; ?  
         0x00002bc8:    0060e007    ..`.    RSBEQ    lr,r0,r7
         0x00002bcc:    5a09496e    nI.Z    BPL      0x25518c ; 0x25518c
@@ -2996,24 +2996,24 @@
         0x00002dc0:    42a1342d    -4.B    ADCMI    r3,r1,#0x2d000000
         0x00002dc4:    2932d202    ..2)    LDMDBCS  r2!,{r1,r9,r12,lr,pc}
         0x00002dc8:    2004d900    ...     ANDCS    sp,r4,r0,LSL #18
-        0x00002dcc:    42a14cc1    .L.B    ADCMI    r4,r1,#0xc100
-        0x00002dd0:    4cc0d204    ...L    STCLMI   p2,c13,[r0],{4}
+        0x00002dcc:    42a14cdd    .L.B    ADCMI    r4,r1,#0xdd00
+        0x00002dd0:    4cdcd204    ...L    LDCLMI   p2,c13,[r12],{4}
         0x00002dd4:    42a13c50    P<.B    ADCMI    r3,r1,#0x50, 24 ; #0x5000
         0x00002dd8:    2000d900    ...     ANDCS    sp,r0,r0,LSL #18
-        0x00002ddc:    34184cbd    .L.4    LDRCC    r4,[r8],#-0xcbd
+        0x00002ddc:    34184cd9    .L.4    LDRCC    r4,[r8],#-0xcd9
         0x00002de0:    d30442a1    .B..    MOVLE    r4,#0x42a1
-        0x00002de4:    34684cbb    .Lh4    STRBTCC  r4,[r8],#-0xcbb
+        0x00002de4:    34684cd7    .Lh4    STRBTCC  r4,[r8],#-0xcd7
         0x00002de8:    d20042a1    .B..    ANDLE    r4,r0,#0x1000000a
-        0x00002dec:    4cb92002    . .L    LDCMI    p0,c2,[r9],#8
+        0x00002dec:    4cd52002    . .L    LDCLMI   p0,c2,[r5],{2}
         0x00002df0:    42a13480    .4.B    ADCMI    r3,r1,#0x80, 8 ; #0x80000000
-        0x00002df4:    4cb7d304    ...L    LDCMI    p3,c13,[r7],#0x10
+        0x00002df4:    4cd3d304    ...L    LDCLMI   p3,c13,[r3],{4}
         0x00002df8:    42a134d0    .4.B    ADCMI    r3,r1,#0xd0, 8 ; #0xd0000000
         0x00002dfc:    2000d200    ...     ANDCS    sp,r0,r0,LSL #4
-        0x00002e00:    34e94cb4    .L.4    STRBTCC  r4,[r9],#0xcb4
+        0x00002e00:    34e94cd0    .L.4    STRBTCC  r4,[r9],#0xcd0
         0x00002e04:    d30342a1    .B..    MOVLE    r4,#0x32a1
-        0x00002e08:    42a14cb3    .L.B    ADCMI    r4,r1,#0xb300
+        0x00002e08:    42a14ccf    .L.B    ADCMI    r4,r1,#0xcf00
         0x00002e0c:    2002d200    ...     ANDCS    sp,r2,r0,LSL #4
-        0x00002e10:    42a14cb1    .L.B    ADCMI    r4,r1,#0xb100
+        0x00002e10:    42a14ccd    .L.B    ADCMI    r4,r1,#0xcd00
         0x00002e14:    2487d304    ...$    STRCS    sp,[r7],#0x304
         0x00002e18:    42a100e4    ...B    ADCMI    r0,r1,#0xe4
         0x00002e1c:    2001d200    ...     ANDCS    sp,r1,r0,LSL #4
@@ -3023,9 +3023,9 @@
         0x00002e2c:    d20042a1    .B..    ANDLE    r4,r0,#0x1000000a
         0x00002e30:    244b2003    . K$    STRBCS   r2,[r11],#-3
         0x00002e34:    42a10124    $..B    ADCMI    r0,r1,#0x24, 2 ; #9
-        0x00002e38:    4ca8d303    ...L    STCMI    p3,c13,[r8],#0xc
+        0x00002e38:    4cc4d303    ...L    STCLMI   p3,c13,[r4],{3}
         0x00002e3c:    d20042a1    .B..    ANDLE    r4,r0,#0x1000000a
-        0x00002e40:    4ca62001    . .L    STCMI    p0,c2,[r6],#4
+        0x00002e40:    4cc22001    . .L    STCLMI   p0,c2,[r2],{1}
         0x00002e44:    d30442a1    .B..    MOVLE    r4,#0x42a1
         0x00002e48:    00e424af    .$..    RSCEQ    r2,r4,pc,LSR #9
         0x00002e4c:    d20042a1    .B..    ANDLE    r4,r0,#0x1000000a
@@ -3033,14 +3033,14 @@
         0x00002e54:    4605b570    p..F    DCI      0x4605b570 ; ? Undefined
         0x00002e58:    2d05460e    .F.-    STCCS    p6,c4,[r5,#-0x38]
         0x00002e5c:    bd70d100    ..p.    LDCLLT   p1,c13,[r0,#-0]!
-        0x00002e60:    6800489f    .H.h    STMDAVS  r0,{r0-r4,r7,r11,lr}
+        0x00002e60:    680048bb    .H.h    STMDAVS  r0,{r0,r1,r3-r5,r7,r11,lr}
         0x00002e64:    f0000003    ....    DCI      0xf0000003 ; ? Undefined
-        0x00002e68:    0405fc2c    ,...    STREQ    pc,[r5],#-0xc2c
+        0x00002e68:    0405fc68    h...    STREQ    pc,[r5],#-0xc68
         0x00002e6c:    4a201812    .. J    BMI      0x808ebc ; 0x808ebc
         0x00002e70:    2d000079    y..-    STCCS    p0,c0,[r0,#-0x1e4]
         0x00002e74:    2d01d001    ...-    STCCS    p0,c13,[r1,#-4]
         0x00002e78:    2d00d107    ...-    STCCS    p1,c13,[r0,#-0x1c]
-        0x00002e7c:    4899d103    ...H    LDMMI    r9,{r0,r1,r8,r12,lr,pc}
+        0x00002e7c:    48b5d103    ...H    LDMMI    r5!,{r0,r1,r8,r12,lr,pc}
         0x00002e80:    24016006    .`.$    STRCS    r6,[r1],#-6
         0x00002e84:    2402e002    ...$    STRCS    lr,[r2],#-2
         0x00002e88:    2400e000    ...$    STRCS    lr,[r0],#-0
@@ -3048,585 +3048,615 @@
         0x00002e90:    2403d101    ...$    STRCS    sp,[r3],#-0x101
         0x00002e94:    2400e000    ...$    STRCS    lr,[r0],#-0
         0x00002e98:    2d00e060    `..-    STCCS    p0,c14,[r0,#-0x180]
-        0x00002e9c:    4892d103    ...H    LDMMI    r2,{r0,r1,r8,r12,lr,pc}
+        0x00002e9c:    48aed103    ...H    STMMI    lr!,{r0,r1,r8,r12,lr,pc} ; ?  
         0x00002ea0:    24046006    .`.$    STRCS    r6,[r4],#-6
         0x00002ea4:    2400e000    ...$    STRCS    lr,[r0],#-0
         0x00002ea8:    2d04e058    X..-    STCCS    p0,c14,[r4,#-0x160]
-        0x00002eac:    488fd125    %..H    STMMI    pc,{r0,r2,r5,r8,r12,lr,pc} ; ?  
+        0x00002eac:    48abd125    %..H    STMMI    r11!,{r0,r2,r5,r8,r12,lr,pc}
         0x00002eb0:    24006006    .`.$    STRCS    r6,[r0],#-6
-        0x00002eb4:    6809498e    .I.h    STMDAVS  r9,{r1-r3,r7,r8,r11,lr}
+        0x00002eb4:    680949aa    .I.h    STMDAVS  r9,{r1,r3,r5,r7,r8,r11,lr}
         0x00002eb8:    d0162900    .)..    ANDSLE   r2,r6,r0,LSL #18
         0x00002ebc:    68094601    .F.h    STMDAVS  r9,{r0,r9,r10,lr}
-        0x00002ec0:    68124a88    .J.h    LDMDAVS  r2,{r3,r7,r9,r11,lr}
-        0x00002ec4:    4a8a1a89    ...J    BMI      0xfe2898f0 ; 0xfe2898f0
+        0x00002ec0:    68124aa4    .J.h    LDMDAVS  r2,{r2,r5,r7,r9,r11,lr}
+        0x00002ec4:    4aa61a89    ...J    BMI      0xfe9898f0 ; 0xfe9898f0
         0x00002ec8:    1a886812    .h..    BNE      0xfe21cf18 ; 0xfe21cf18
         0x00002ecc:    db012800    .(..    BLLE     0x4ced4 ; 0x4ced4
         0x00002ed0:    e0004601    .F..    AND      r4,r0,r1,LSL #12
-        0x00002ed4:    4a874241    AB.J    BMI      0xfe1d37e0 ; 0xfe1d37e0
+        0x00002ed4:    4aa34241    AB.J    BMI      0xfe8d37e0 ; 0xfe8d37e0
         0x00002ed8:    da064291    .B..    BLE      0x193924 ; 0x193924
-        0x00002edc:    68024883    .H.h    STMDAVS  r2,{r0,r1,r7,r11,lr}
-        0x00002ee0:    68014880    .H.h    STMDAVS  r1,{r7,r11,lr}
-        0x00002ee4:    f000a084    ....    DCI      0xf000a084 ; ? Undefined
-        0x00002ee8:    4880f945    E..H    STMMI    r0,{r0,r2,r6,r8,r11-pc}
-        0x00002eec:    497d6800    .h}I    LDMDBMI  sp,{r11,sp,lr}^ ; ?  
+        0x00002edc:    6802489f    .H.h    STMDAVS  r2,{r0-r4,r7,r11,lr}
+        0x00002ee0:    6801489c    .H.h    STMDAVS  r1,{r2-r4,r7,r11,lr}
+        0x00002ee4:    f000a0a0    ....    DCI      0xf000a0a0 ; ? Undefined
+        0x00002ee8:    489cf981    ...H    LDMMI    r12,{r0,r7,r8,r11-pc}
+        0x00002eec:    49996800    .h.I    LDMIBMI  r9,{r11,sp,lr}
         0x00002ef0:    1a406809    .h@.    BNE      0x101cf1c ; 0x101cf1c
-        0x00002ef4:    6008497e    ~I.`    ANDVS    r4,r8,lr,ROR r9
+        0x00002ef4:    6008499a    .I.`    MULVS    r8,r10,r9 ; ?  
         0x00002ef8:    2400e000    ...$    STRCS    lr,[r0],#-0
         0x00002efc:    2d04e02e    ...-    STCCS    p0,c14,[r4,#-0xb8]
-        0x00002f00:    4881d12a    *..H    STMMI    r1,{r1,r3,r5,r8,r12,lr,pc}
+        0x00002f00:    489dd12a    *..H    LDMMI    sp,{r1,r3,r5,r8,r12,lr,pc}
         0x00002f04:    24006006    .`.$    STRCS    r6,[r0],#-6
-        0x00002f08:    68094980    .I.h    STMDAVS  r9,{r7,r8,r11,lr}
+        0x00002f08:    6809499c    .I.h    STMDAVS  r9,{r2-r4,r7,r8,r11,lr}
         0x00002f0c:    d01b2900    .)..    ANDSLE   r2,r11,r0,LSL #18
         0x00002f10:    68094601    .F.h    STMDAVS  r9,{r0,r9,r10,lr}
-        0x00002f14:    68124a74    tJ.h    LDMDAVS  r2,{r2,r4-r6,r9,r11,lr}
-        0x00002f18:    4a7c1a89    ..|J    BMI      0x1f09944 ; 0x1f09944
+        0x00002f14:    68124a90    .J.h    LDMDAVS  r2,{r4,r7,r9,r11,lr}
+        0x00002f18:    4a981a89    ...J    BMI      0xfe609944 ; 0xfe609944
         0x00002f1c:    1a886812    .h..    BNE      0xfe21cf6c ; 0xfe21cf6c
         0x00002f20:    db012800    .(..    BLLE     0x4cf28 ; 0x4cf28
         0x00002f24:    e0004601    .F..    AND      r4,r0,r1,LSL #12
-        0x00002f28:    4a724241    ABrJ    BMI      0x1c93834 ; 0x1c93834
+        0x00002f28:    4a8e4241    AB.J    BMI      0xfe393834 ; 0xfe393834
         0x00002f2c:    da0b4291    .B..    BLE      0x2d3978 ; 0x2d3978
-        0x00002f30:    68004875    uH.h    STMDAVS  r0,{r0,r2,r4-r6,r11,lr}
-        0x00002f34:    6809496c    lI.h    STMDAVS  r9,{r2,r3,r5,r6,r8,r11,lr}
-        0x00002f38:    48731a43    C.sH    LDMDAMI  r3,{r0,r1,r6,r9,r11,r12}^ ; ?  
-        0x00002f3c:    486a6802    .hjH    STMDAMI  r10,{r1,r11,sp,lr}^ ; ?  
-        0x00002f40:    a0736801    .hs.    RSBSGE   r6,r3,r1,LSL #16
-        0x00002f44:    f916f000    ....    RFEDB    r6 ; ?  
-        0x00002f48:    6800486f    oH.h    STMDAVS  r0,{r0-r3,r5,r6,r11,lr}
-        0x00002f4c:    68094966    fI.h    STMDAVS  r9,{r1,r2,r5,r6,r8,r11,lr}
-        0x00002f50:    496e1a40    @.nI    STMDBMI  lr,{r6,r9,r11,r12}^ ; ?  
+        0x00002f30:    68004891    .H.h    STMDAVS  r0,{r0,r4,r7,r11,lr}
+        0x00002f34:    68094988    .I.h    STMDAVS  r9,{r3,r7,r8,r11,lr}
+        0x00002f38:    488f1a43    C..H    STMMI    pc,{r0,r1,r6,r9,r11,r12} ; ?  
+        0x00002f3c:    48866802    .h.H    STMMI    r6,{r1,r11,sp,lr}
+        0x00002f40:    a08f6801    .h..    ADDGE    r6,pc,r1,LSL #16
+        0x00002f44:    f952f000    ..R.    DCI      0xf952f000 ; ? Undefined
+        0x00002f48:    6800488b    .H.h    STMDAVS  r0,{r0,r1,r3,r7,r11,lr}
+        0x00002f4c:    68094982    .I.h    STMDAVS  r9,{r1,r7,r8,r11,lr}
+        0x00002f50:    498a1a40    @..I    STMIBMI  r10,{r6,r9,r11,r12}
         0x00002f54:    e0006008    .`..    AND      r6,r0,r8
         0x00002f58:    bf002400    .$..    SVCLT    #0x2400 ; formerly SWI
-        0x00002f5c:    4860bf00    ..`H    STMDAMI  r0,{r8-sp,pc}^ ; ?  
+        0x00002f5c:    487cbf00    ..|H    LDMDAMI  r12!,{r8-sp,pc}^ ; ?  
         0x00002f60:    bf006004    .`..    SVCLT    #0x6004 ; formerly SWI
         0x00002f64:    b570e77b    {.p.    LDRBLT   lr,[r0,#-0x77b]!
         0x00002f68:    460e4605    .F.F    STRMI    r4,[lr],-r5,LSL #12
         0x00002f6c:    d1002d05    .-..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00002f70:    486cbd70    p.lH    STMDAMI  r12,{r4-r6,r8,r10-sp,pc}^ ; ?  
+        0x00002f70:    4888bd70    p..H    STMMI    r8,{r4-r6,r8,r10-sp,pc}
         0x00002f74:    00036800    .h..    ANDEQ    r6,r3,r0,LSL #16
-        0x00002f78:    fba3f000    ....    BLX      0xfe8fef82 ; 0xfe8fef82
+        0x00002f78:    fbdff000    ....    BLX      0xff7fef82 ; 0xff7fef82
         0x00002f7c:    18120405    ....    LDMDANE  r2,{r0,r2,r10}
-        0x00002f80:    003c2e20     .<.    EORSEQ   r2,r12,r0,LSR #28
+        0x00002f80:    00744a20     Jt.    RSBSEQ   r4,r4,r0,LSR #20
         0x00002f84:    d0012d02    .-..    ANDLE    r2,r1,r2,LSL #26
         0x00002f88:    d1072d03    .-..    MRSLE    r2,APSR ; formerly CPSR ; ?  
         0x00002f8c:    d1032d02    .-..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00002f90:    60064865    eH.`    ANDVS    r4,r6,r5,ROR #16
+        0x00002f90:    60064881    .H.`    ANDVS    r4,r6,r1,LSL #17
         0x00002f94:    e0022401    .$..    AND      r2,r2,r1,LSL #8
         0x00002f98:    e0002402    .$..    AND      r2,r0,r2,LSL #8
-        0x00002f9c:    e0292400    .$).    EOR      r2,r9,r0,LSL #8
+        0x00002f9c:    e0612400    .$a.    RSB      r2,r1,r0,LSL #8
         0x00002fa0:    d1012d03    .-..    MRSLE    r2,APSR ; formerly CPSR ; ?  
         0x00002fa4:    e0002403    .$..    AND      r2,r0,r3,LSL #8
-        0x00002fa8:    e0232400    .$#.    EOR      r2,r3,r0,LSL #8
+        0x00002fa8:    e05b2400    .$[.    SUBS     r2,r11,r0,LSL #8
         0x00002fac:    d1032d02    .-..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00002fb0:    6006485e    ^H.`    ANDVS    r4,r6,lr,ASR r8
+        0x00002fb0:    6006487a    zH.`    ANDVS    r4,r6,r10,ROR r8
         0x00002fb4:    e0002404    .$..    AND      r2,r0,r4,LSL #8
-        0x00002fb8:    e01b2400    .$..    ANDS     r2,r11,r0,LSL #8
-        0x00002fbc:    d1092d04    .-..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00002fc0:    6006485b    [H.`    ANDVS    r4,r6,r11,ASR r8
-        0x00002fc4:    68022400    .$.h    STMDAVS  r2,{r10,sp}
-        0x00002fc8:    68014857    WH.h    STMDAVS  r1,{r0-r2,r4,r6,r11,lr}
-        0x00002fcc:    f000a059    Y...    DCI      0xf000a059 ; ? Undefined
-        0x00002fd0:    e000f8d1    ....    LDRD     pc,r0,[r0],-r1 ; ?  
-        0x00002fd4:    e00d2400    .$..    AND      r2,sp,r0,LSL #8
-        0x00002fd8:    d1092d04    .-..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00002fdc:    60064859    YH.`    ANDVS    r4,r6,r9,ASR r8
-        0x00002fe0:    68022400    .$.h    STMDAVS  r2,{r10,sp}
-        0x00002fe4:    68014851    QH.h    STMDAVS  r1,{r0,r4,r6,r11,lr}
-        0x00002fe8:    f000a057    W...    DCI      0xf000a057 ; ? Undefined
-        0x00002fec:    e000f8c3    ....    AND      pc,r0,r3,ASR #17
-        0x00002ff0:    bf002400    .$..    SVCLT    #0x2400 ; formerly SWI
-        0x00002ff4:    484bbf00    ..KH    STMDAMI  r11,{r8-sp,pc}^
-        0x00002ff8:    bf006004    .`..    SVCLT    #0x6004 ; formerly SWI
-        0x00002ffc:    b570e7b8    ..p.    LDRBLT   lr,[r0,#-0x7b8]!
-        0x00003000:    460e4604    .F.F    STRMI    r4,[lr],-r4,LSL #12
-        0x00003004:    d1002c05    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00003008:    4853bd70    p.SH    LDMDAMI  r3,{r4-r6,r8,r10-sp,pc}^
-        0x0000300c:    28007800    .x.(    STMDACS  r0,{r11-lr}
-        0x00003010:    2801d002    ...(    STMDACS  r1,{r1,r12,lr,pc}
-        0x00003014:    e015d12c    ,...    ANDS     sp,r5,r12,LSR #2
-        0x00003018:    d0032c00    .,..    ANDLE    r2,r3,r0,LSL #24
-        0x0000301c:    d0012c01    .,..    ANDLE    r2,r1,r1,LSL #24
-        0x00003020:    d1052c04    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00003024:    46204631    1F F    QASXMI   r4,r0,r1 ; ?  
-        0x00003028:    ff14f7ff    ....    DCI      0xff14f7ff ; ? Undefined
-        0x0000302c:    e0082500    .%..    AND      r2,r8,r0,LSL #10
-        0x00003030:    d0012c02    .,..    ANDLE    r2,r1,r2,LSL #24
-        0x00003034:    d1042c03    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00003038:    46204631    1F F    QASXMI   r4,r0,r1 ; ?  
-        0x0000303c:    ff93f7ff    ....    DCI      0xff93f7ff ; ? Undefined
-        0x00003040:    e0152501    .%..    ANDS     r2,r5,r1,LSL #10
-        0x00003044:    d0032c02    .,..    ANDLE    r2,r3,r2,LSL #24
-        0x00003048:    d0012c03    .,..    ANDLE    r2,r1,r3,LSL #24
-        0x0000304c:    d1052c04    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00003050:    46204631    1F F    QASXMI   r4,r0,r1 ; ?  
-        0x00003054:    ff87f7ff    ....    DCI      0xff87f7ff ; ? Undefined
-        0x00003058:    e0082501    .%..    AND      r2,r8,r1,LSL #10
-        0x0000305c:    d0012c00    .,..    ANDLE    r2,r1,r0,LSL #24
-        0x00003060:    d1042c01    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
-        0x00003064:    46204631    1F F    QASXMI   r4,r0,r1 ; ?  
-        0x00003068:    fef4f7ff    ....    MRC2     p7,#0x7,APSR_nzcv,c4,c15,#7
-        0x0000306c:    bf002500    .%..    SVCLT    #0x2500 ; formerly SWI
-        0x00003070:    4839bf00    ..9H    LDMDAMI  r9!,{r8-sp,pc} ; ?  
-        0x00003074:    bf007005    .p..    SVCLT    #0x7005 ; formerly SWI
-        0x00003078:    b5f8e7c6    ....    LDRBLT   lr,[r8,#0x7c6]!
-        0x0000307c:    26004604    .F.&    STRCS    r4,[r0],-r4,LSL #12
-        0x00003080:    38504814    .HP8    LDMDACC  r0,{r2,r4,r11,lr}^
-        0x00003084:    d9104284    .B..    LDMDBLE  r0,{r2,r7,r9,lr}
-        0x00003088:    008020af    . ..    ADDEQ    r2,r0,pc,LSR #1
-        0x0000308c:    d20c4284    .B..    ANDLE    r4,r12,#0x84, 4 ; #0x40000008
-        0x00003090:    4832213c    <!2H    LDMDAMI  r2!,{r2-r5,r8,sp} ; ?  
-        0x00003094:    f0006800    .h..    DCI      0xf0006800 ; ? Undefined
-        0x00003098:    0088f95d    ]...    ADDEQ    pc,r8,sp,ASR r9 ; ?  
-        0x0000309c:    500c4930    0I.P    ANDPL    r4,r12,r0,LSR r9
-        0x000030a0:    6800482e    .H.h    STMDAVS  r0,{r1-r3,r5,r11,lr}
-        0x000030a4:    492d1c40    @.-I    PUSHMI   {r6,r10-r12}
-        0x000030a8:    25006008    .`.%    STRCS    r6,[r0,#-8]
-        0x000030ac:    00a8e004    ....    ADCEQ    lr,r8,r4
-        0x000030b0:    5808492b    +I.X    STMDAPL  r8,{r0,r1,r3,r5,r8,r11,lr}
-        0x000030b4:    1c6d1986    ..m.    STCLNE   p9,c1,[sp],#-0x218
-        0x000030b8:    dbf82d3c    <-..    BLLE     0xffe0e5b0 ; 0xffe0e5b0
-        0x000030bc:    4630213c    <!0F    SHASXMI  r2,r0,r12 ; ?  
-        0x000030c0:    f948f000    ..H.    SRSDB    sp,#0 ; ?  
-        0x000030c4:    46394607    .F9F    LDRTMI   r4,[r9],-r7,LSL #12
-        0x000030c8:    f000a026    &...    DCI      0xf000a026 ; ? Undefined
-        0x000030cc:    4638f853    S.8F    SHSAXMI  pc,r8,r3 ; ?  
-        0x000030d0:    0000bdf8    ....    STRDEQ   r11,r12,[r0],-r8 ; ?  
-        0x000030d4:    00000299    ....    MULEQ    r0,r9,r2
-        0x000030d8:    000003d2    ....    LDRDEQ   r0,r1,[r0],-r2 ; ?  
-        0x000030dc:    00000514    ....    ANDEQ    r0,r0,r4,LSL r5
-        0x000030e0:    20000178    x..     ANDCS    r0,r0,r8,ROR r1
-        0x000030e4:    20000158    X..     ANDCS    r0,r0,r8,ASR r1
-        0x000030e8:    2000015c    \..     ANDCS    r0,r0,r12,ASR r1
-        0x000030ec:    20000160    `..     ANDCS    r0,r0,r0,ROR #2
-        0x000030f0:    2000017c    |..     ANDCS    r0,r0,r12,ROR r1
-        0x000030f4:    00001216    ....    ANDEQ    r1,r0,r6,LSL r2
-        0x000030f8:    41207a61    az A    DCI      0x41207a61 ; ? Undefined
-        0x000030fc:    6425203a    : %d    STRTVS   r2,[r5],#-0x3a
-        0x00003100:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
-        0x00003104:    0000000a    ....    ANDEQ    r0,r0,r10
-        0x00003108:    20000164    d..     ANDCS    r0,r0,r4,ROR #2
-        0x0000310c:    20000180    ...     ANDCS    r0,r0,r0,LSL #3
-        0x00003110:    42207a61    az B    EORMI    r7,r0,#0x61000
-        0x00003114:    6425203a    : %d    STRTVS   r2,[r5],#-0x3a
-        0x00003118:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
-        0x0000311c:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
-        0x00003120:    0000000a    ....    ANDEQ    r0,r0,r10
-        0x00003124:    20000148    H..     ANDCS    r0,r0,r8,ASR #2
-        0x00003128:    20000134    4..     ANDCS    r0,r0,r4,LSR r1
-        0x0000312c:    20000138    8..     ANDCS    r0,r0,r8,LSR r1
-        0x00003130:    2000013c    <..     ANDCS    r0,r0,r12,LSR r1
-        0x00003134:    41206c65    el A    DCI      0x41206c65 ; ? Undefined
-        0x00003138:    6425203a    : %d    STRTVS   r2,[r5],#-0x3a
-        0x0000313c:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
-        0x00003140:    0000000a    ....    ANDEQ    r0,r0,r10
-        0x00003144:    20000140    @..     ANDCS    r0,r0,r0,ASR #2
-        0x00003148:    42206c65    el B    EORMI    r6,r0,#0x6500
-        0x0000314c:    6425203a    : %d    STRTVS   r2,[r5],#-0x3a
-        0x00003150:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
-        0x00003154:    0000000a    ....    ANDEQ    r0,r0,r10
-        0x00003158:    20000130    0..     ANDCS    r0,r0,r0,LSR r1
-        0x0000315c:    20000184    ...     ANDCS    r0,r0,r4,LSL #3
-        0x00003160:    2000536c    lS.     ANDCS    r5,r0,r12,ROR #6
-        0x00003164:    3a677661    avg:    BCC      0x19e0af0 ; 0x19e0af0
-        0x00003168:    0a642520     %d.    BEQ      0x190c5f0 ; 0x190c5f0
-        0x0000316c:    00000000    ....    ANDEQ    r0,r0,r0
-        0x00003170:    00004770    pG..    ANDEQ    r4,r0,r0,ROR r7
-        0x00003174:    4905b40f    ...I    STMDBMI  r5,{r0-r3,r10,r12,sp,pc}
-        0x00003178:    aa03b510    ....    BGE      0xf05c0 ; 0xf05c0
-        0x0000317c:    f0009802    ....    DCI      0xf0009802 ; ? Undefined
-        0x00003180:    bc10fa09    ....    DCI      0xbc10fa09 ; ? Undefined
-        0x00003184:    b004bc08    ....    ANDLT    r11,r4,r8,LSL #24
-        0x00003188:    00004718    .G..    ANDEQ    r4,r0,r8,LSL r7
-        0x0000318c:    200000c0    ...     ANDCS    r0,r0,r0,ASR #1
-        0x00003190:    460eb5f8    ...F    DCI      0x460eb5f8 ; ? Undefined
-        0x00003194:    20004604    .F.     ANDCS    r4,r0,r4,LSL #12
-        0x00003198:    46206220     b F    STRTMI   r6,[r0],-r0,LSR #4
-        0x0000319c:    478868e1    .h.G    STRMI    r6,[r8,r1,ROR #17]
-        0x000031a0:    d0292800    .().    EORLE    r2,r9,r0,LSL #16
-        0x000031a4:    d0022825    %(..    ANDLE    r2,r2,r5,LSR #16
-        0x000031a8:    68a16862    bh.h    STMVS    r1!,{r1,r5,r6,r11,sp,lr}
-        0x000031ac:    68e1e020     ..h    STMVS    r1,{r5,sp-pc}^ ; ?  
-        0x000031b0:    27004620     F.'    STRCS    r4,[r0,-r0,LSR #12]
-        0x000031b4:    00054788    .G..    ANDEQ    r4,r5,r8,LSL #15
-        0x000031b8:    4628d01e    ..(F    QADD16MI sp,r8,lr ; ?  
-        0x000031bc:    28193841    A8.(    LDMDACS  r9,{r0,r6,r11-sp}
-        0x000031c0:    2701d802    ...'    STRCS    sp,[r1,-r2,LSL #16]
-        0x000031c4:    352002ff    .. 5    STRCC    r0,[r0,#-0x2ff]! ; ?  
-        0x000031c8:    46204632    2F F    QASXMI   r4,r0,r2 ; ?  
-        0x000031cc:    46296027    '`)F    STRTMI   r6,[r9],-r7,LSR #32
-        0x000031d0:    ff86f7fc    ....    DCI      0xff86f7fc ; ? Undefined
-        0x000031d4:    d0082800    .(..    ANDLE    r2,r8,r0,LSL #16
-        0x000031d8:    d0042801    .(..    ANDLE    r2,r4,r1,LSL #16
-        0x000031dc:    08f61df6    ....    LDMEQ    r6,{r1,r2,r4-r8,r10-r12}^ ; ?  
-        0x000031e0:    360800f6    ...6    DCI      0x360800f6 ; ? Undefined
-        0x000031e4:    1d36e7d9    ..6.    LDCNE    p7,c14,[r6,#-0x364]!
-        0x000031e8:    6862e7d7    ..bh    STMDAVS  r2,{r0-r2,r4,r6-r10,sp-pc}^ ; ?  
-        0x000031ec:    68a14628    (F.h    STMVS    r1!,{r3,r5,r9,r10,lr}
-        0x000031f0:    6a204790    .G j    BVS      0x815038 ; 0x815038
-        0x000031f4:    e7cf1c40    @...    STRB     r1,[pc,r0,ASR #24]
-        0x000031f8:    bdf86a20     j..    DCI      0xbdf86a20 ; ? Undefined
-        0x000031fc:    460cb570    p..F    DCI      0x460cb570 ; ? Undefined
-        0x00003200:    2a014605    .F.*    BCS      0x54a1c ; 0x54a1c
-        0x00003204:    7828d005    ..(x    STMDAVC  r8!,{r0,r2,r12,lr,pc}
-        0x00003208:    d5000680    ....    STRLE    r0,[r0,#-0x680]
-        0x0000320c:    230069ea    .i.#    MOVCS    r6,#0x9ea
-        0x00003210:    2301e002    ...#    MOVCS    lr,#0x1002
-        0x00003214:    1c5be005    ..[.    MRRCNE   p0,#0,lr,r11,c5
-        0x00003218:    d2024293    .B..    ANDLE    r4,r2,#0x30000009
-        0x0000321c:    28005ce0    .\.(    STMDACS  r0,{r5-r7,r10-r12,lr}
-        0x00003220:    69a8d1f9    ...i    STMIBVS  r8!,{r0,r3-r8,r12,lr,pc} ; ?  
-        0x00003224:    1ac018e6    ....    BNE      0xff0095c4 ; 0xff0095c4
-        0x00003228:    6a2861a8    .a(j    BVS      0xa1b8d0 ; 0xa1b8d0
-        0x0000322c:    622818c0    ..(b    EORVS    r1,r8,#0xc0, 16 ; #0xc00000
-        0x00003230:    46c04628    (F.F    STRBMI   r4,[r0],r8,LSR #12
-        0x00003234:    e00446c0    .F..    AND      r4,r4,r0,ASR #13
-        0x00003238:    7820686a    jh x    STMDAVC  r0!,{r1,r3,r5,r6,r11,sp,lr}
-        0x0000323c:    1c6468a9    .hd.    STCLNE   p8,c6,[r4],#-0x2a4
-        0x00003240:    42b44790    .G.B    ADCSMI   r4,r4,#0x90, 14 ; #0x2400000
-        0x00003244:    4628d3f8    ..(F    QSUB8MI  sp,r8,r8 ; ?  
-        0x00003248:    46c046c0    .F.F    STRBMI   r4,[r0],r0,ASR #13
-        0x0000324c:    0000bd70    p...    ANDEQ    r11,r0,r0,ROR sp
-        0x00003250:    2500b5f7    ...%    STRCS    r11,[r0,#-0x5f7]
-        0x00003254:    68102975    u).h    LDMDAVS  r0,{r0,r2,r4-r6,r8,r11,sp}
-        0x00003258:    a6149900    ....    LDRGE    r9,[r4],-r0,LSL #18
-        0x0000325c:    46c0d011    ...F    DCI      0x46c0d011 ; ? Undefined
-        0x00003260:    280046c0    .F.(    STMDACS  r0,{r6,r7,r9,r10,lr}
-        0x00003264:    4240da02    ..@B    SUBMI    sp,r0,#0x2000
-        0x00003268:    e008a611    ....    AND      r10,r8,r1,LSL r6
-        0x0000326c:    68099900    ...h    STMDAVS  r9,{r8,r11,r12,pc}
-        0x00003270:    d501078a    ....    STRLE    r0,[r1,#-0x78a]
-        0x00003274:    e002a60f    ....    AND      r10,r2,pc,LSL #12
-        0x00003278:    d5040749    I...    STRLE    r0,[r4,#-0x749]
-        0x0000327c:    2501a60e    ...%    STRCS    r10,[r1,#-0x60e]
-        0x00003280:    46c0e001    ...F    STRBMI   lr,[r0],r1
-        0x00003284:    9f0046c0    .F..    SVCLS    #0x46c0 ; formerly SWI
-        0x00003288:    37242400    .$$7    STRCC    r2,[r4,-r0,LSL #8]!
-        0x0000328c:    f000e004    ....    DCI      0xf000e004 ; ? Undefined
-        0x00003290:    3130f995    ..01    DCI      0x3130f995 ; ? Undefined
-        0x00003294:    1c645539    9Ud.    STCLNE   p5,c5,[r4],#-0xe4
-        0x00003298:    d1f82800    .(..    MVNSLE   r2,r0,LSL #16 ; ?  
-        0x0000329c:    4632462b    +F2F    LDRTMI   r4,[r2],-r11,LSR #12
-        0x000032a0:    98004621    !F..    STMDALS  r0,{r0,r5,r9,r10,lr}
-        0x000032a4:    f907f000    ....    DCI      0xf907f000 ; ? Undefined
-        0x000032a8:    0000bdfe    ....    STRDEQ   r11,r12,[r0],-lr ; ?  
-        0x000032ac:    00000000    ....    ANDEQ    r0,r0,r0
-        0x000032b0:    0000002d    -...    ANDEQ    r0,r0,sp,LSR #32
-        0x000032b4:    0000002b    +...    ANDEQ    r0,r0,r11,LSR #32
-        0x000032b8:    00000020     ...    ANDEQ    r0,r0,r0,LSR #32
-        0x000032bc:    4604b570    p..F    DCI      0x4604b570 ; ? Undefined
-        0x000032c0:    4621460d    .F!F    STRTMI   r4,[r1],-sp,LSL #12
-        0x000032c4:    46c06810    .h.F    DCI      0x46c06810 ; ? Undefined
-        0x000032c8:    882146c0    .F!.    STMDAHI  r1!,{r6,r7,r9,r10,lr}
-        0x000032cc:    d5020509    ....    STRLE    r0,[r2,#-0x509]
-        0x000032d0:    447a4a0f    .JzD    LDRBTMI  r4,[r10],#-0xa0f
-        0x000032d4:    4a0ee002    ...J    BMI      0x3bb2e4 ; 0x3bb2e4
-        0x000032d8:    320e447a    zD.2    ANDCC    r4,lr,#0x7a000000
-        0x000032dc:    21004623    #F.!    DCI      0x21004623 ; ? Undefined
-        0x000032e0:    e0053324    $3..    AND      r3,r5,r4,LSR #6
-        0x000032e4:    09000706    ....    STMDBEQ  r0,{r1,r2,r8-r10}
-        0x000032e8:    5d960f36    6..]    LDCPL    p15,c0,[r6,#0xd8]
-        0x000032ec:    1c49545e    ^TI.    MCRRNE   p4,#5,r5,r9,c14
-        0x000032f0:    d1f72800    .(..    MVNSLE   r2,r0,LSL #16 ; ?  
-        0x000032f4:    23007820     x.#    MOVWCS   r7,#0x820
-        0x000032f8:    d5050700    ....    STRLE    r0,[r5,#-0x700]
-        0x000032fc:    d0032d70    p-..    ANDLE    r2,r3,r0,ROR sp
-        0x00003300:    d0012900    .)..    ANDLE    r2,r1,r0,LSL #18
-        0x00003304:    32112302    .#.2    ANDSCC   r2,r1,#0x8000000
-        0x00003308:    f0004620     F..    DCI      0xf0004620 ; ? Undefined
-        0x0000330c:    bd70f8d4    ..p.    LDCLLT   p8,c15,[r0,#-0x350]!
-        0x00003310:    0000048a    ....    ANDEQ    r0,r0,r10,LSL #9
-        0x00003314:    c004e001    ....    ANDGT    lr,r4,r1
-        0x00003318:    29041f09    ...)    STMDBCS  r4,{r0,r3,r8-r12}
-        0x0000331c:    078bd2fb    ....    DCI      0x078bd2fb ; ? Undefined
-        0x00003320:    8002d501    ....    ANDHI    sp,r2,r1,LSL #10
-        0x00003324:    07c91c80    ....    STRBEQ   r1,[r9,r0,LSL #25]
-        0x00003328:    7002d000    ...p    ANDVC    sp,r2,r0
-        0x0000332c:    29004770    pG.)    STMDBCS  r0,{r4-r6,r8-r10,lr}
-        0x00003330:    07c3d00b    ....    STRBEQ   sp,[r3,r11]
-        0x00003334:    7002d002    ...p    ANDVC    sp,r2,r2
-        0x00003338:    1e491c40    @.I.    CDPNE    p12,#0x4,c1,c9,c0,#2
-        0x0000333c:    d3042902    .)..    MOVLE    r2,#0x4902
-        0x00003340:    d5020783    ....    STRLE    r0,[r2,#-0x783]
-        0x00003344:    1c808002    ....    STCNE    p0,c8,[r0],{2}
-        0x00003348:    e7e31e89    ....    STRB     r1,[r3,r9,LSL #29]!
-        0x0000334c:    e7ee2200    ."..    STRB     r2,[lr,r0,LSL #4]!
-        0x00003350:    e7df2200    ."..    LDRB     r2,[pc,r0,LSL #4]
-        0x00003354:    09032200    ."..    STMDBEQ  r3,{r9,sp}
-        0x00003358:    d32c428b    .B,.    MSRLE    APSR_nzcvqg,#0xb0000008 ; formerly CPSR_fs ; ?  
-        0x0000335c:    428b0a03    ...B    ADDMI    r0,r11,#0x3000
-        0x00003360:    2300d311    ...#    MOVCS    sp,#0x311
-        0x00003364:    e04e469c    .FN.    UMAAL    r4,lr,r12,r6
-        0x00003368:    430b4603    .F.C    MOVMI    r4,#0xb603
-        0x0000336c:    2200d43c    <.."    ANDCS    sp,r0,#0x3c, 8 ; #0x3c000000
-        0x00003370:    428b0843    C..B    ADDMI    r0,r11,#0x430000
-        0x00003374:    0903d331    1...    STMDBEQ  r3,{r0,r4,r5,r8,r9,r12,lr,pc}
-        0x00003378:    d31c428b    .B..    TSTLE    r12,#0xb0000008 ; ?  
-        0x0000337c:    428b0a03    ...B    ADDMI    r0,r11,#0x3000
-        0x00003380:    4694d301    ...F    LDRMI    sp,[r4],r1,LSL #6
-        0x00003384:    09c3e03f    ?...    STMIBEQ  r3,{r0-r5,sp-pc}^
-        0x00003388:    d301428b    .B..    MOVLE    r4,#0x128b
-        0x0000338c:    1ac001cb    ....    BNE      0xff003ac0 ; 0xff003ac0
-        0x00003390:    09834152    RA..    STMIBEQ  r3,{r1,r4,r6,r8,lr}
-        0x00003394:    d301428b    .B..    MOVLE    r4,#0x128b
-        0x00003398:    1ac0018b    ....    BNE      0xff0039cc ; 0xff0039cc
-        0x0000339c:    09434152    RAC.    STMDBEQ  r3,{r1,r4,r6,r8,lr}^
-        0x000033a0:    d301428b    .B..    MOVLE    r4,#0x128b
-        0x000033a4:    1ac0014b    K...    BNE      0xff0038d8 ; 0xff0038d8
-        0x000033a8:    09034152    RA..    STMDBEQ  r3,{r1,r4,r6,r8,lr}
-        0x000033ac:    d301428b    .B..    MOVLE    r4,#0x128b
-        0x000033b0:    1ac0010b    ....    BNE      0xff0037e4 ; 0xff0037e4
-        0x000033b4:    08c34152    RA..    STMEQ    r3,{r1,r4,r6,r8,lr}^
-        0x000033b8:    d301428b    .B..    MOVLE    r4,#0x128b
-        0x000033bc:    1ac000cb    ....    BNE      0xff0036f0 ; 0xff0036f0
-        0x000033c0:    08834152    RA..    STMEQ    r3,{r1,r4,r6,r8,lr}
-        0x000033c4:    d301428b    .B..    MOVLE    r4,#0x128b
-        0x000033c8:    1ac0008b    ....    BNE      0xff0035fc ; 0xff0035fc
-        0x000033cc:    08434152    RAC.    STMDAEQ  r3,{r1,r4,r6,r8,lr}^
-        0x000033d0:    d301428b    .B..    MOVLE    r4,#0x128b
-        0x000033d4:    1ac0004b    K...    BNE      0xff003508 ; 0xff003508
-        0x000033d8:    1a414152    RAA.    BNE      0x1053928 ; 0x1053928
-        0x000033dc:    4601d200    ...F    STRMI    sp,[r1],-r0,LSL #4
-        0x000033e0:    46104152    RA.F    SSAXMI   r4,r0,r2 ; ?  
-        0x000033e4:    e05d4770    pG].    SUBS     r4,sp,r0,ROR r7
-        0x000033e8:    d0000fca    ....    ANDLE    r0,r0,r10,ASR #31
-        0x000033ec:    10034249    IB..    ANDNE    r4,r3,r9,ASR #4
-        0x000033f0:    4240d300    ..@B    SUBMI    sp,r0,#0, 6 ; #0
-        0x000033f4:    22004053    S@."    ANDCS    r4,r0,#0x53
-        0x000033f8:    0903469c    .F..    STMDBEQ  r3,{r2-r4,r7,r9,r10,lr}
-        0x000033fc:    d32d428b    .B-.    MSRLE    CPSR_csf,#0xb0000008 ; ?  
-        0x00003400:    428b0a03    ...B    ADDMI    r0,r11,#0x3000
-        0x00003404:    22fcd312    ..."    RSCSCS   sp,r12,#0x48000000
-        0x00003408:    ba120189    ....    BLT      0x483a34 ; 0x483a34
-        0x0000340c:    428b0a03    ...B    ADDMI    r0,r11,#0x3000
-        0x00003410:    0189d30c    ....    ORREQ    sp,r9,r12,LSL #6
-        0x00003414:    428b1192    ...B    ADDMI    r1,r11,#0x80000024
-        0x00003418:    0189d308    ....    ORREQ    sp,r9,r8,LSL #6
-        0x0000341c:    428b1192    ...B    ADDMI    r1,r11,#0x80000024
-        0x00003420:    0189d304    ....    ORREQ    sp,r9,r4,LSL #6
-        0x00003424:    1192d03a    :...    ORRSNE   sp,r2,r10,LSR r0
-        0x00003428:    0989e000    ....    STMIBEQ  r9,{sp-pc}
-        0x0000342c:    428b09c3    ...B    ADDMI    r0,r11,#0x30c000
-        0x00003430:    01cbd301    ....    BICEQ    sp,r11,r1,LSL #6
-        0x00003434:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
-        0x00003438:    428b0983    ...B    ADDMI    r0,r11,#0x20c000
-        0x0000343c:    018bd301    ....    ORREQ    sp,r11,r1,LSL #6
-        0x00003440:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
-        0x00003444:    428b0943    C..B    ADDMI    r0,r11,#0x10c000
-        0x00003448:    014bd301    ..K.    MRSEQ    sp,??? ; ? RESERVED ; ?  
-        0x0000344c:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
-        0x00003450:    428b0903    ...B    ADDMI    r0,r11,#0xc000
-        0x00003454:    010bd301    ....    MRSEQ    sp,??? ; ? RESERVED ; ?  
-        0x00003458:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
-        0x0000345c:    428b08c3    ...B    ADDMI    r0,r11,#0xc30000
-        0x00003460:    00cbd301    ....    SBCEQ    sp,r11,r1,LSL #6
-        0x00003464:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
-        0x00003468:    428b0883    ...B    ADDMI    r0,r11,#0x830000
-        0x0000346c:    008bd301    ....    ADDEQ    sp,r11,r1,LSL #6
-        0x00003470:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
-        0x00003474:    0843d2d9    ..C.    STMDAEQ  r3,{r0,r3,r4,r6,r7,r9,r12,lr,pc}^
-        0x00003478:    d301428b    .B..    MOVLE    r4,#0x128b
-        0x0000347c:    1ac0004b    K...    BNE      0xff0035b0 ; 0xff0035b0
-        0x00003480:    1a414152    RAA.    BNE      0x10539d0 ; 0x10539d0
-        0x00003484:    4601d200    ...F    STRMI    sp,[r1],-r0,LSL #4
-        0x00003488:    41524663    cFRA    CMPMI    r2,r3,ROR #12 ; ?  
-        0x0000348c:    4610105b    [..F    SSAXMI   r1,r0,r11 ; ?  
-        0x00003490:    4240d301    ..@B    SUBMI    sp,r0,#0x4000000
-        0x00003494:    d5002b00    .+..    STRLE    r2,[r0,#-0xb00]
-        0x00003498:    47704249    IBpG    LDRBMI   r4,[r0,-r9,ASR #4]!
-        0x0000349c:    105b4663    cF[.    SUBSNE   r4,r11,r3,ROR #12
-        0x000034a0:    4240d300    ..@B    SUBMI    sp,r0,#0, 6 ; #0
-        0x000034a4:    2000b501    ...     ANDCS    r11,r0,r1,LSL #10
-        0x000034a8:    46c046c0    .F.F    STRBMI   r4,[r0],r0,ASR #13
-        0x000034ac:    4770bd02    ..pG    LDRBMI   r11,[r0,-r2,LSL #26]!
-        0x000034b0:    47704770    pGpG    DCI      0x47704770 ; ? Undefined
-        0x000034b4:    b5ff4770    pG..    LDRBLT   r4,[pc,#1904] ; ?   ; [0x3c2c]
-        0x000034b8:    460d4604    .F.F    STRMI    r4,[sp],-r4,LSL #12
-        0x000034bc:    3024b081    ..$0    EORCC    r11,r4,r1,LSL #1
-        0x000034c0:    68219000    ..!h    STMDAVS  r1!,{r12,pc}
-        0x000034c4:    d5040688    ....    STRLE    r0,[r4,#-0x688]
-        0x000034c8:    69e02210    .".i    STMIBVS  r0,{r4,r9,sp}^ ; ?  
-        0x000034cc:    60214391    .C!`    MLAVS    r1,r1,r3,r4
-        0x000034d0:    2001e000    ...     ANDCS    lr,r1,r0
-        0x000034d4:    dd0142a8    .B..    STCLE    p2,c4,[r1,#-0x2a0]
-        0x000034d8:    e0001b47    G...    AND      r1,r0,r7,ASR #22
-        0x000034dc:    98042700    .'..    STMDALS  r4,{r8-r10,sp}
-        0x000034e0:    197a69a1    .iz.    LDMDBNE  r10,{r0,r5,r7,r8,r11,sp,lr}^ ; ?  
-        0x000034e4:    1a081810    ....    BNE      0x20952c ; 0x20952c
-        0x000034e8:    782061a0    .a x    STMDAVC  r0!,{r5,r7,r8,sp,lr}
-        0x000034ec:    d40206c0    ....    STRLE    r0,[r2],#-0x6c0
-        0x000034f0:    46c04620     F.F    STRBMI   r4,[r0],r0,LSR #12
-        0x000034f4:    260046c0    .F.&    STRCS    r4,[r0],-r0,ASR #13
-        0x000034f8:    9803e008    ....    STMDALS  r3,{r3,sp-pc}
-        0x000034fc:    68a16862    bh.h    STMVS    r1!,{r1,r5,r6,r11,sp,lr}
-        0x00003500:    47905d80    .].G    LDRMI    r5,[r0,r0,LSL #27]
-        0x00003504:    1c406a20     j@.    DCI      0x1c406a20 ; ? Undefined
-        0x00003508:    62201c76    v. b    EORVS    r1,r0,#0x7600
-        0x0000350c:    42869804    ...B    ADDMI    r9,r6,#4, 16 ; #0x40000
-        0x00003510:    7820dbf3    .. x    STMDAVC  r0!,{r0,r1,r4-r9,r11,r12,lr,pc}
-        0x00003514:    d50a06c0    ....    STRLE    r0,[r10,#-0x6c0]
-        0x00003518:    46c04620     F.F    STRBMI   r4,[r0],r0,LSR #12
-        0x0000351c:    e00646c0    .F..    AND      r4,r6,r0,ASR #13
-        0x00003520:    68a16862    bh.h    STMVS    r1!,{r1,r5,r6,r11,sp,lr}
-        0x00003524:    47902030    0 .G    DCI      0x47902030 ; ? Undefined
-        0x00003528:    1c406a20     j@.    DCI      0x1c406a20 ; ? Undefined
-        0x0000352c:    46386220     b8F    LDRTMI   r6,[r8],-r0,LSR #4
-        0x00003530:    28001e7f    ...(    STMDACS  r0,{r0-r6,r9-r12}
-        0x00003534:    e007dcf4    ....    STRD     sp,lr,[r7],-r4 ; ?  
-        0x00003538:    68629800    ..bh    STMDAVS  r2,{r11,r12,pc}^ ; ?  
-        0x0000353c:    5d4068a1    .h@]    STCLPL   p8,c6,[r0,#-0x284]
-        0x00003540:    6a204790    .G j    BVS      0x815388 ; 0x815388
-        0x00003544:    62201c40    @. b    EORVS    r1,r0,#0x40, 24 ; #0x4000
-        0x00003548:    1e6d4628    (Fm.    CDPNE    p6,#0x6,c4,c13,c8,#1
-        0x0000354c:    dcf32800    .(..    LDCLLE   p8,c2,[r3],#0
-        0x00003550:    46c04620     F.F    STRBMI   r4,[r0],r0,LSR #12
-        0x00003554:    782046c0    .F x    STMDAVC  r0!,{r6,r7,r9,r10,lr}
-        0x00003558:    d5020600    ....    STRLE    r0,[r2,#-0x600]
-        0x0000355c:    b0052002    . ..    ANDLT    r2,r5,r2
-        0x00003560:    2001bdf0    ...     STRDCS   r11,r12,[r1],-r0 ; ?  
-        0x00003564:    b510e7fb    ....    LDRLT    lr,[r0,#-0x7fb]
-        0x00003568:    2b006943    Ci.+    BLCS     0x1da7c ; 0x1da7c
-        0x0000356c:    46c0d002    ...F    STRBMI   sp,[r0],r2
-        0x00003570:    e00146c0    .F..    AND      r4,r1,r0,ASR #13
-        0x00003574:    fe42f7ff    ..B.    MCR2     p7,#0x2,pc,c2,c15,#7 ; ?  
-        0x00003578:    bd102001    . ..    LDCLT    p0,c2,[r0,#-4]
-        0x0000357c:    46017812    .x.F    DCI      0x46017812 ; ? Undefined
-        0x00003580:    700a3124    $1.p    ANDVC    r3,r10,r4,LSR #2
-        0x00003584:    704a2200    ."Jp    SUBVC    r2,r10,r0,LSL #4
-        0x00003588:    e7ec2201    ."..    STRB     r2,[r12,r1,LSL #4]!
-        0x0000358c:    22006811    .h."    ANDCS    r6,r0,#0x110000
-        0x00003590:    e7e843d2    .C..    UBFX     r4,r2,#7,#9
-        0x00003594:    b5704b08    .Kp.    LDRBLT   r4,[r0,#-0xb08]!
-        0x00003598:    447b460d    .F{D    LDRBTMI  r4,[r11],#-0x60d
-        0x0000359c:    f827f000    ..'.    DCI      0xf827f000 ; ? Undefined
-        0x000035a0:    46284604    .F(F    STRTMI   r4,[r8],-r4,LSL #12
-        0x000035a4:    fea9f7fd    ....    MCR2     p7,#0x5,pc,c9,c13,#7 ; ?  
-        0x000035a8:    d0022800    .(..    ANDLE    r2,r2,r0,LSL #16
-        0x000035ac:    43c02000    . .C    BICMI    r2,r0,#0
-        0x000035b0:    4620bd70    p. F    QSUB16MI r11,r0,r0 ; ?  
-        0x000035b4:    0000bd70    p...    ANDEQ    r11,r0,r0,ROR sp
-        0x000035b8:    ffffdd33    3...    DCI      0xffffdd33 ; ? Undefined
-        0x000035bc:    08804601    .F..    STMEQ    r0,{r0,r9,r10,lr}
-        0x000035c0:    09021a08    ....    STMDBEQ  r2,{r3,r9,r11,r12}
-        0x000035c4:    0a021810    ....    BEQ      0x8960c ; 0x8960c
-        0x000035c8:    0c021810    ....    DCI      0x0c021810 ; ? Undefined
-        0x000035cc:    08c01810    ....    STMEQ    r0,{r4,r11,r12}^
-        0x000035d0:    18120082    ....    LDMDANE  r2,{r1,r7}
-        0x000035d4:    1a890052    R...    BNE      0xfe243724 ; 0xfe243724
-        0x000035d8:    1c40e001    ..@.    MCRRNE   p0,#0,lr,r0,c1
-        0x000035dc:    290a390a    .9.)    STMDBCS  r10,{r1,r3,r8,r11-sp}
-        0x000035e0:    4770d2fb    ..pG    DCI      0x4770d2fb ; ? Undefined
-        0x000035e4:    1c4a6901    .iJ.    MCRRNE   p9,#0,r6,r10,c1
-        0x000035e8:    78086102    .a.x    STMDAVC  r8,{r1,r8,sp,lr}
-        0x000035ec:    b5004770    pG..    STRLT    r4,[r0,#-0x770]
-        0x000035f0:    9102b08f    ....    SMLABBLS r2,pc,r0,r11 ; ?  
-        0x000035f4:    91052100    .!..    MRSLS    r2,APSR ; formerly CPSR ; ?  
-        0x000035f8:    93014905    .I..    MOVLS    r4,#0x1905
-        0x000035fc:    91034479    yD..    HLTLS    #0x3449 ; ?  
-        0x00003600:    90044611    .F..    ANDLS    r4,r4,r1,LSL r6
-        0x00003604:    f7ff4668    hF..    DCI      0xf7ff4668 ; ? Undefined ; ?  
-        0x00003608:    b00ffdc3    ....    ANDLT    pc,pc,r3,ASR #27
-        0x0000360c:    0000bd00    ....    ANDEQ    r11,r0,r0,LSL #26
-        0x00003610:    ffffffe5    ....    DCI      0xffffffe5 ; ? Undefined
-        0x00003614:    f0004675    uF..    DCI      0xf0004675 ; ? Undefined
-        0x00003618:    46aef825    %..F    STRTMI   pc,[lr],r5,LSR #16
-        0x0000361c:    46690005    ..iF    STRBTMI  r0,[r9],-r5
-        0x00003620:    08c04653    SF..    STMEQ    r0,{r0,r1,r4,r6,r9,r10,lr}^
-        0x00003624:    468500c0    ...F    STRMI    r0,[r5],r0,ASR #1
-        0x00003628:    b520b018    .. .    STRLT    r11,[r0,#-0x18]!
-        0x0000362c:    fe1cf7fc    ....    MRC2     p7,#0x0,APSR_nzcv,c12,c12,#7
-        0x00003630:    2700bc60    `..'    STRCS    r11,[r0,-r0,ROR #24]
-        0x00003634:    46b60849    I..F    LDRTMI   r0,[r6],r9,ASR #16
-        0x00003638:    c5c02600    .&..    STRBGT   r2,[r0,#0x600]
-        0x0000363c:    c5c0c5c0    ....    STRBGT   r12,[r0,#0x5c0]
-        0x00003640:    c5c0c5c0    ....    STRBGT   r12,[r0,#0x5c0]
-        0x00003644:    c5c0c5c0    ....    STRBGT   r12,[r0,#0x5c0]
-        0x00003648:    3d40c5c0    ..@=    STCLCC   p5,c12,[r0,#-0x300]
-        0x0000364c:    468d0049    I..F    STRMI    r0,[sp],r9,ASR #32
-        0x00003650:    b5104770    pG..    LDRLT    r4,[r0,#-0x770]
-        0x00003654:    46c04604    .F.F    STRBMI   r4,[r0],r4,LSL #12
-        0x00003658:    462046c0    .F F    STRTMI   r4,[r0],-r0,ASR #13
-        0x0000365c:    fd64f7fc    ..d.    STC2L    p7,c15,[r4,#-0x3f0]!
-        0x00003660:    0000bd10    ....    ANDEQ    r11,r0,r0,LSL sp
-        0x00003664:    47704800    .HpG    LDRBMI   r4,[r0,-r0,LSL #16]!
-        0x00003668:    2000545c    \T.     ANDCS    r5,r0,r12,ASR r4
-        0x0000366c:    188cb570    p...    STMNE    r12,{r4-r6,r8,r10,r12,sp,pc}
-        0x00003670:    1c407805    .x@.    MCRRNE   p8,#0,r7,r0,c5
-        0x00003674:    0f5b076b    k.[.    SVCEQ    #0x5b076b ; formerly SWI
-        0x00003678:    7803d101    ...x    STMDAVC  r3,{r0,r8,r12,lr,pc}
-        0x0000367c:    112a1c40    @.*.    CRC32HNE r1,r10,r0 ; ?  
-        0x00003680:    7802d106    ...x    STMDAVC  r2,{r1,r2,r8,r12,lr,pc}
-        0x00003684:    e0031c40    @...    AND      r1,r3,r0,ASR #24
-        0x00003688:    1c407806    .x@.    MCRRNE   p8,#0,r7,r0,c6
-        0x0000368c:    1c49700e    .pI.    MCRRNE   p0,#0,r7,r9,c14
-        0x00003690:    d1f91e5b    [...    MVNSLE   r1,r11,ASR lr ; ?  
-        0x00003694:    d405072b    +...    STRLE    r0,[r5],#-0x72b
-        0x00003698:    1e522300    .#R.    CDPNE    p3,#0x5,c2,c2,c0,#0
-        0x0000369c:    700bd40d    ...p    ANDVC    sp,r11,sp,LSL #8
-        0x000036a0:    e7fa1c49    I...    LDRB     r1,[r10,r9,ASR #24]!
-        0x000036a4:    1c407803    .x@.    MCRRNE   p8,#0,r7,r0,c3
-        0x000036a8:    1c921acb    ....    VLDMNE   r2,{s2-s204} ; ?  
-        0x000036ac:    781de003    ...x    LDMDAVC  sp,{r0,r1,sp-pc}
-        0x000036b0:    1c49700d    .pI.    MCRRNE   p0,#0,r7,r9,c13
-        0x000036b4:    1e521c5b    [.R.    MRCNE    p12,#0x2,r1,c2,c11,#2
-        0x000036b8:    42a1d5f9    ...B    ADCMI    sp,r1,#0x3e400000
-        0x000036bc:    2000d3d8    ...     LDRDCS   sp,lr,[r0],-r8 ; ?  
-        0x000036c0:    b430bd70    p.0.    LDRTLT   r11,[r0],#-0xd70
-        0x000036c4:    1e644674    tFd.    MCRNE    p6,#0x3,r4,c4,c4,#3
-        0x000036c8:    1c647825    %xd.    STCLNE   p8,c7,[r4],#-0x94
-        0x000036cc:    d30442ab    .B..    MOVLE    r4,#0x42ab
-        0x000036d0:    005b5d63    c][.    SUBSEQ   r5,r11,r3,ROR #26
-        0x000036d4:    bc3018e3    ..0.    LDCLT    p8,c1,[r0],#-0x38c
-        0x000036d8:    461d4718    .G.F    SADD16MI r4,sp,r8 ; ?  
-        0x000036dc:    0000e7f8    ....    STRDEQ   lr,pc,[r0],-r8 ; ?  
-        0x000036e0:    046d046b    k.m.    STRBTEQ  r0,[sp],#-0x46b
-        0x000036e4:    0471046f    o.q.    LDRBTEQ  r0,[r1],#-0x46f
-        0x000036e8:    04760474    t.v.    LDRBTEQ  r0,[r6],#-0x474
-        0x000036ec:    047a0478    x.z.    LDRBTEQ  r0,[r10],#-0x478
-        0x000036f0:    045d045b    [.].    LDRBEQ   r0,[sp],#-0x45b
-        0x000036f4:    0461045f    _.a.    STRBTEQ  r0,[r1],#-0x45f
-        0x000036f8:    04660464    d.f.    STRBTEQ  r0,[r6],#-0x464
-        0x000036fc:    046a0468    h.j.    STRBTEQ  r0,[r10],#-0x468
-        0x00003700:    046e046c    l.n.    STRBTEQ  r0,[lr],#-0x46c
-        0x00003704:    04720470    p.r.    LDRBTEQ  r0,[r2],#-0x470
-        0x00003708:    04750473    s.u.    LDRBTEQ  r0,[r5],#-0x473
-        0x0000370c:    04790477    w.y.    LDRBTEQ  r0,[r9],#-0x477
-        0x00003710:    045e045c    \.^.    LDRBEQ   r0,[lr],#-0x45c
-        0x00003714:    04620460    `.b.    STRBTEQ  r0,[r2],#-0x460
-        0x00003718:    04650463    c.e.    STRBTEQ  r0,[r5],#-0x463
-        0x0000371c:    04690467    g.i.    STRBTEQ  r0,[r9],#-0x467
-        0x00003720:    03880322    "...    ORREQ    r0,r8,#0x88000000
-        0x00003724:    010d03a1    ....    SMLATBEQ sp,r1,r3,r0
-        0x00003728:    01b203b5    ....    LDRHEQ   r0,[r2,r5]! ; ?  
-        0x0000372c:    02420171    q.B.    SUBEQ    r0,r2,#0x4000001c
-        0x00003730:    03ca01c7    ....    BICEQ    r0,r10,#0xc0000031
-        0x00003734:    0129008b    ..).    SMLAWBEQ r9,r11,r0,r0
-        0x00003738:    006d024b    K.m.    RSBEQ    r0,sp,r11,ASR #4
-        0x0000373c:    009f0175    u...    ADDSEQ   r0,pc,r5,ROR r1 ; ?  
-        0x00003740:    03850321    !...    ORREQ    r0,r5,#0x84000000
-        0x00003744:    010b039c    ....    SWPEQ    r0,r12,[r11] ; ?  
-        0x00003748:    01ad03ac    ....    LSREQ    r0,r12,#7 ; ?  
-        0x0000374c:    0239016c    l.9.    EORSEQ   r0,r9,#0x6c, 2 ; #0x1b
-        0x00003750:    03b701bf    ....    MOVSEQ   r0,#0xc000002f ; ?  
-        0x00003754:    01220088    ..".    SMLAWBEQ r2,r8,r0,r0
-        0x00003758:    006a023c    <.j.    RSBEQ    r0,r10,r12,LSR r2
-        0x0000375c:    009a016a    j...    ADDSEQ   r0,r10,r10,ROR #2
-        0x00003760:    33323130    0123    TEQCC    r2,#0x30, 2 ; #0xc ; ?  
-        0x00003764:    37363534    4567    DCI      0x37363534 ; ? Undefined
-        0x00003768:    42413938    89AB    SUBMI    r3,r1,#0x38, 18 ; #0xe0000
-        0x0000376c:    46454443    CDEF    STRBMI   r4,[r5],-r3,ASR #8
-        0x00003770:    00583040    @0X.    SUBSEQ   r3,r8,r0,ASR #32
-        0x00003774:    33323130    0123    TEQCC    r2,#0x30, 2 ; #0xc ; ?  
-        0x00003778:    37363534    4567    DCI      0x37363534 ; ? Undefined
-        0x0000377c:    62613938    89ab    RSBVS    r3,r1,#0x38, 18 ; #0xe0000
-        0x00003780:    66656463    cdef    STRBTVS  r6,[r5],-r3,ROR #8
-        0x00003784:    00783040    @0x.    RSBSEQ   r3,r8,r0,ASR #32
-        0x00003788:    000037a8    .7..    ANDEQ    r3,r0,r8,LSR #15
-        0x0000378c:    20000000    ...     ANDCS    r0,r0,r0
-        0x00003790:    00000188    ....    ANDEQ    r0,r0,r8,LSL #3
-        0x00003794:    0000366c    l6..    ANDEQ    r3,r0,r12,ROR #12
-        0x00003798:    000037fc    .7..    STRDEQ   r3,r4,[r0],-r12 ; ?  
-        0x0000379c:    20000188    ...     ANDCS    r0,r0,r8,LSL #3
-        0x000037a0:    00005f38    8_..    ANDEQ    r5,r0,r8,LSR pc ; ?  
-        0x000037a4:    000000c4    ....    ANDEQ    r0,r0,r4,ASR #1
+        0x00002fb8:    e0532400    .$S.    SUBS     r2,r3,r0,LSL #8
+        0x00002fbc:    d1252d04    .-%.    MSRLE    CPSR_cs,r4 ; ?  
+        0x00002fc0:    60064877    wH.`    ANDVS    r4,r6,r7,ROR r8
+        0x00002fc4:    49772400    .$wI    LDMDBMI  r7,{r10,sp}^ ; ?  
+        0x00002fc8:    29006809    .h.)    STMDBCS  r0,{r0,r3,r11,sp,lr}
+        0x00002fcc:    4601d016    ...F    DCI      0x4601d016 ; ? Undefined
+        0x00002fd0:    4a716809    .hqJ    BMI      0x1c5cffc ; 0x1c5cffc
+        0x00002fd4:    1a896812    .h..    BNE      0xfe25d024 ; 0xfe25d024
+        0x00002fd8:    68124a72    rJ.h    LDMDAVS  r2,{r1,r4-r6,r9,r11,lr}
+        0x00002fdc:    28001a88    ...(    STMDACS  r0,{r3,r7,r9,r11,r12}
+        0x00002fe0:    4601db01    ...F    STRMI    sp,[r1],-r1,LSL #22
+        0x00002fe4:    4241e000    ..AB    SUBMI    lr,r1,#0
+        0x00002fe8:    42914a5e    ^J.B    ADDSMI   r4,r1,#0x5e000
+        0x00002fec:    486cda06    ..lH    STMDAMI  r12,{r1,r2,r9,r11,r12,lr,pc}^ ; ?  
+        0x00002ff0:    48696802    .hiH    STMDAMI  r9,{r1,r11,sp,lr}^ ; ?  
+        0x00002ff4:    a06c6801    .hl.    RSBGE    r6,r12,r1,LSL #16
+        0x00002ff8:    f8f8f000    ....    DCI      0xf8f8f000 ; ? Undefined
+        0x00002ffc:    68004868    hH.h    STMDAVS  r0,{r3,r5,r6,r11,lr}
+        0x00003000:    68094965    eI.h    STMDAVS  r9,{r0,r2,r5,r6,r8,r11,lr}
+        0x00003004:    49671a40    @.gI    STMDBMI  r7,{r6,r9,r11,r12}^ ; ?  
+        0x00003008:    e0006008    .`..    AND      r6,r0,r8
+        0x0000300c:    e0292400    .$).    EOR      r2,r9,r0,LSL #8
+        0x00003010:    d1252d04    .-%.    MSRLE    CPSR_cs,r4 ; ?  
+        0x00003014:    60064868    hH.`    ANDVS    r4,r6,r8,ROR #16
+        0x00003018:    49682400    .$hI    STMDBMI  r8,{r10,sp}^ ; ?  
+        0x0000301c:    29006809    .h.)    STMDBCS  r0,{r0,r3,r11,sp,lr}
+        0x00003020:    4601d016    ...F    DCI      0x4601d016 ; ? Undefined
+        0x00003024:    4a5d6809    .h]J    BMI      0x175d050 ; 0x175d050
+        0x00003028:    1a896812    .h..    BNE      0xfe25d078 ; 0xfe25d078
+        0x0000302c:    68124a63    cJ.h    LDMDAVS  r2,{r0,r1,r5,r6,r9,r11,lr}
+        0x00003030:    28001a88    ...(    STMDACS  r0,{r3,r7,r9,r11,r12}
+        0x00003034:    4601db01    ...F    STRMI    sp,[r1],-r1,LSL #22
+        0x00003038:    4241e000    ..AB    SUBMI    lr,r1,#0
+        0x0000303c:    42914a49    IJ.B    ADDSMI   r4,r1,#0x49000
+        0x00003040:    485dda06    ..]H    LDMDAMI  sp,{r1,r2,r9,r11,r12,lr,pc}^
+        0x00003044:    48556802    .hUH    LDMDAMI  r5,{r1,r11,sp,lr}^
+        0x00003048:    a05d6801    .h].    SUBSGE   r6,sp,r1,LSL #16
+        0x0000304c:    f8cef000    ....    SRSIA    sp,#0 ; ?  
+        0x00003050:    68004859    YH.h    STMDAVS  r0,{r0,r3,r4,r6,r11,lr}
+        0x00003054:    68094951    QI.h    STMDAVS  r9,{r0,r4,r6,r8,r11,lr}
+        0x00003058:    49581a40    @.XI    LDMDBMI  r8,{r6,r9,r11,r12}^
+        0x0000305c:    e0006008    .`..    AND      r6,r0,r8
+        0x00003060:    bf002400    .$..    SVCLT    #0x2400 ; formerly SWI
+        0x00003064:    484bbf00    ..KH    STMDAMI  r11,{r8-sp,pc}^
+        0x00003068:    bf006004    .`..    SVCLT    #0x6004 ; formerly SWI
+        0x0000306c:    b570e780    ..p.    LDRBLT   lr,[r0,#-0x780]!
+        0x00003070:    460e4604    .F.F    STRMI    r4,[lr],-r4,LSL #12
+        0x00003074:    d1002c05    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
+        0x00003078:    4855bd70    p.UH    LDMDAMI  r5,{r4-r6,r8,r10-sp,pc}^
+        0x0000307c:    28007800    .x.(    STMDACS  r0,{r11-lr}
+        0x00003080:    2801d002    ...(    STMDACS  r1,{r1,r12,lr,pc}
+        0x00003084:    e015d12c    ,...    ANDS     sp,r5,r12,LSR #2
+        0x00003088:    d0032c00    .,..    ANDLE    r2,r3,r0,LSL #24
+        0x0000308c:    d0012c01    .,..    ANDLE    r2,r1,r1,LSL #24
+        0x00003090:    d1052c04    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
+        0x00003094:    46204631    1F F    QASXMI   r4,r0,r1 ; ?  
+        0x00003098:    fedcf7ff    ....    MRC2     p7,#0x6,APSR_nzcv,c12,c15,#7
+        0x0000309c:    e0082500    .%..    AND      r2,r8,r0,LSL #10
+        0x000030a0:    d0012c02    .,..    ANDLE    r2,r1,r2,LSL #24
+        0x000030a4:    d1042c03    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
+        0x000030a8:    46204631    1F F    QASXMI   r4,r0,r1 ; ?  
+        0x000030ac:    ff5bf7ff    ..[.    DCI      0xff5bf7ff ; ? Undefined
+        0x000030b0:    e0152501    .%..    ANDS     r2,r5,r1,LSL #10
+        0x000030b4:    d0032c02    .,..    ANDLE    r2,r3,r2,LSL #24
+        0x000030b8:    d0012c03    .,..    ANDLE    r2,r1,r3,LSL #24
+        0x000030bc:    d1052c04    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
+        0x000030c0:    46204631    1F F    QASXMI   r4,r0,r1 ; ?  
+        0x000030c4:    ff4ff7ff    ..O.    DCI      0xff4ff7ff ; ? Undefined
+        0x000030c8:    e0082501    .%..    AND      r2,r8,r1,LSL #10
+        0x000030cc:    d0012c00    .,..    ANDLE    r2,r1,r0,LSL #24
+        0x000030d0:    d1042c01    .,..    MRSLE    r2,APSR ; formerly CPSR ; ?  
+        0x000030d4:    46204631    1F F    QASXMI   r4,r0,r1 ; ?  
+        0x000030d8:    febcf7ff    ....    MRC2     p7,#0x5,APSR_nzcv,c12,c15,#7
+        0x000030dc:    bf002500    .%..    SVCLT    #0x2500 ; formerly SWI
+        0x000030e0:    483bbf00    ..;H    LDMDAMI  r11!,{r8-sp,pc} ; ?  
+        0x000030e4:    bf007005    .p..    SVCLT    #0x7005 ; formerly SWI
+        0x000030e8:    b5f8e7c6    ....    LDRBLT   lr,[r8,#0x7c6]!
+        0x000030ec:    26004604    .F.&    STRCS    r4,[r0],-r4,LSL #12
+        0x000030f0:    38504814    .HP8    LDMDACC  r0,{r2,r4,r11,lr}^
+        0x000030f4:    d9104284    .B..    LDMDBLE  r0,{r2,r7,r9,lr}
+        0x000030f8:    008020af    . ..    ADDEQ    r2,r0,pc,LSR #1
+        0x000030fc:    d20c4284    .B..    ANDLE    r4,r12,#0x84, 4 ; #0x40000008
+        0x00003100:    4834213c    <!4H    LDMDAMI  r4!,{r2-r5,r8,sp} ; ?  
+        0x00003104:    f0006800    .h..    DCI      0xf0006800 ; ? Undefined
+        0x00003108:    0088f961    a...    ADDEQ    pc,r8,r1,ROR #18
+        0x0000310c:    500c4932    2I.P    ANDPL    r4,r12,r2,LSR r9
+        0x00003110:    68004830    0H.h    STMDAVS  r0,{r4,r5,r11,lr}
+        0x00003114:    492f1c40    @./I    STMDBMI  pc!,{r6,r10-r12} ; ?  
+        0x00003118:    25006008    .`.%    STRCS    r6,[r0,#-8]
+        0x0000311c:    00a8e004    ....    ADCEQ    lr,r8,r4
+        0x00003120:    5808492d    -I.X    STMDAPL  r8,{r0,r2,r3,r5,r8,r11,lr}
+        0x00003124:    1c6d1986    ..m.    STCLNE   p9,c1,[sp],#-0x218
+        0x00003128:    dbf82d3c    <-..    BLLE     0xffe0e620 ; 0xffe0e620
+        0x0000312c:    4630213c    <!0F    SHASXMI  r2,r0,r12 ; ?  
+        0x00003130:    f94cf000    ..L.    SRSDB    sp,#0 ; ?  
+        0x00003134:    46394607    .F9F    LDRTMI   r4,[r9],-r7,LSL #12
+        0x00003138:    f000a028    (...    DCI      0xf000a028 ; ? Undefined
+        0x0000313c:    4638f857    W.8F    SHSAXMI  pc,r8,r7 ; ?  
+        0x00003140:    0000bdf8    ....    STRDEQ   r11,r12,[r0],-r8 ; ?  
+        0x00003144:    00000299    ....    MULEQ    r0,r9,r2
+        0x00003148:    000003d2    ....    LDRDEQ   r0,r1,[r0],-r2 ; ?  
+        0x0000314c:    00000514    ....    ANDEQ    r0,r0,r4,LSL r5
+        0x00003150:    20000178    x..     ANDCS    r0,r0,r8,ROR r1
+        0x00003154:    20000158    X..     ANDCS    r0,r0,r8,ASR r1
+        0x00003158:    2000015c    \..     ANDCS    r0,r0,r12,ASR r1
+        0x0000315c:    20000160    `..     ANDCS    r0,r0,r0,ROR #2
+        0x00003160:    2000017c    |..     ANDCS    r0,r0,r12,ROR r1
+        0x00003164:    00001216    ....    ANDEQ    r1,r0,r6,LSL r2
+        0x00003168:    41207a61    az A    DCI      0x41207a61 ; ? Undefined
+        0x0000316c:    6425203a    : %d    STRTVS   r2,[r5],#-0x3a
+        0x00003170:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
+        0x00003174:    0000000a    ....    ANDEQ    r0,r0,r10
+        0x00003178:    20000164    d..     ANDCS    r0,r0,r4,ROR #2
+        0x0000317c:    20000180    ...     ANDCS    r0,r0,r0,LSL #3
+        0x00003180:    42207a61    az B    EORMI    r7,r0,#0x61000
+        0x00003184:    6425203a    : %d    STRTVS   r2,[r5],#-0x3a
+        0x00003188:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
+        0x0000318c:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
+        0x00003190:    0000000a    ....    ANDEQ    r0,r0,r10
+        0x00003194:    20000148    H..     ANDCS    r0,r0,r8,ASR #2
+        0x00003198:    20000134    4..     ANDCS    r0,r0,r4,LSR r1
+        0x0000319c:    20000138    8..     ANDCS    r0,r0,r8,LSR r1
+        0x000031a0:    2000013c    <..     ANDCS    r0,r0,r12,LSR r1
+        0x000031a4:    2000014c    L..     ANDCS    r0,r0,r12,ASR #2
+        0x000031a8:    41206c65    el A    DCI      0x41206c65 ; ? Undefined
+        0x000031ac:    6425203a    : %d    STRTVS   r2,[r5],#-0x3a
+        0x000031b0:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
+        0x000031b4:    0000000a    ....    ANDEQ    r0,r0,r10
+        0x000031b8:    20000140    @..     ANDCS    r0,r0,r0,ASR #2
+        0x000031bc:    20000150    P..     ANDCS    r0,r0,r0,ASR r1
+        0x000031c0:    42206c65    el B    EORMI    r6,r0,#0x6500
+        0x000031c4:    6425203a    : %d    STRTVS   r2,[r5],#-0x3a
+        0x000031c8:    6425202c    , %d    STRTVS   r2,[r5],#-0x2c
+        0x000031cc:    0000000a    ....    ANDEQ    r0,r0,r10
+        0x000031d0:    20000130    0..     ANDCS    r0,r0,r0,LSR r1
+        0x000031d4:    20000184    ...     ANDCS    r0,r0,r4,LSL #3
+        0x000031d8:    2000536c    lS.     ANDCS    r5,r0,r12,ROR #6
+        0x000031dc:    3a677661    avg:    BCC      0x19e0b68 ; 0x19e0b68
+        0x000031e0:    0a642520     %d.    BEQ      0x190c668 ; 0x190c668
+        0x000031e4:    00000000    ....    ANDEQ    r0,r0,r0
+        0x000031e8:    00004770    pG..    ANDEQ    r4,r0,r0,ROR r7
+        0x000031ec:    4905b40f    ...I    STMDBMI  r5,{r0-r3,r10,r12,sp,pc}
+        0x000031f0:    aa03b510    ....    BGE      0xf0638 ; 0xf0638
+        0x000031f4:    f0009802    ....    DCI      0xf0009802 ; ? Undefined
+        0x000031f8:    bc10fa09    ....    DCI      0xbc10fa09 ; ? Undefined
+        0x000031fc:    b004bc08    ....    ANDLT    r11,r4,r8,LSL #24
+        0x00003200:    00004718    .G..    ANDEQ    r4,r0,r8,LSL r7
+        0x00003204:    200000c0    ...     ANDCS    r0,r0,r0,ASR #1
+        0x00003208:    460eb5f8    ...F    DCI      0x460eb5f8 ; ? Undefined
+        0x0000320c:    20004604    .F.     ANDCS    r4,r0,r4,LSL #12
+        0x00003210:    46206220     b F    STRTMI   r6,[r0],-r0,LSR #4
+        0x00003214:    478868e1    .h.G    STRMI    r6,[r8,r1,ROR #17]
+        0x00003218:    d0292800    .().    EORLE    r2,r9,r0,LSL #16
+        0x0000321c:    d0022825    %(..    ANDLE    r2,r2,r5,LSR #16
+        0x00003220:    68a16862    bh.h    STMVS    r1!,{r1,r5,r6,r11,sp,lr}
+        0x00003224:    68e1e020     ..h    STMVS    r1,{r5,sp-pc}^ ; ?  
+        0x00003228:    27004620     F.'    STRCS    r4,[r0,-r0,LSR #12]
+        0x0000322c:    00054788    .G..    ANDEQ    r4,r5,r8,LSL #15
+        0x00003230:    4628d01e    ..(F    QADD16MI sp,r8,lr ; ?  
+        0x00003234:    28193841    A8.(    LDMDACS  r9,{r0,r6,r11-sp}
+        0x00003238:    2701d802    ...'    STRCS    sp,[r1,-r2,LSL #16]
+        0x0000323c:    352002ff    .. 5    STRCC    r0,[r0,#-0x2ff]! ; ?  
+        0x00003240:    46204632    2F F    QASXMI   r4,r0,r2 ; ?  
+        0x00003244:    46296027    '`)F    STRTMI   r6,[r9],-r7,LSR #32
+        0x00003248:    ff4af7fc    ..J.    DCI      0xff4af7fc ; ? Undefined
+        0x0000324c:    d0082800    .(..    ANDLE    r2,r8,r0,LSL #16
+        0x00003250:    d0042801    .(..    ANDLE    r2,r4,r1,LSL #16
+        0x00003254:    08f61df6    ....    LDMEQ    r6,{r1,r2,r4-r8,r10-r12}^ ; ?  
+        0x00003258:    360800f6    ...6    DCI      0x360800f6 ; ? Undefined
+        0x0000325c:    1d36e7d9    ..6.    LDCNE    p7,c14,[r6,#-0x364]!
+        0x00003260:    6862e7d7    ..bh    STMDAVS  r2,{r0-r2,r4,r6-r10,sp-pc}^ ; ?  
+        0x00003264:    68a14628    (F.h    STMVS    r1!,{r3,r5,r9,r10,lr}
+        0x00003268:    6a204790    .G j    BVS      0x8150b0 ; 0x8150b0
+        0x0000326c:    e7cf1c40    @...    STRB     r1,[pc,r0,ASR #24]
+        0x00003270:    bdf86a20     j..    DCI      0xbdf86a20 ; ? Undefined
+        0x00003274:    460cb570    p..F    DCI      0x460cb570 ; ? Undefined
+        0x00003278:    2a014605    .F.*    BCS      0x54a94 ; 0x54a94
+        0x0000327c:    7828d005    ..(x    STMDAVC  r8!,{r0,r2,r12,lr,pc}
+        0x00003280:    d5000680    ....    STRLE    r0,[r0,#-0x680]
+        0x00003284:    230069ea    .i.#    MOVCS    r6,#0x9ea
+        0x00003288:    2301e002    ...#    MOVCS    lr,#0x1002
+        0x0000328c:    1c5be005    ..[.    MRRCNE   p0,#0,lr,r11,c5
+        0x00003290:    d2024293    .B..    ANDLE    r4,r2,#0x30000009
+        0x00003294:    28005ce0    .\.(    STMDACS  r0,{r5-r7,r10-r12,lr}
+        0x00003298:    69a8d1f9    ...i    STMIBVS  r8!,{r0,r3-r8,r12,lr,pc} ; ?  
+        0x0000329c:    1ac018e6    ....    BNE      0xff00963c ; 0xff00963c
+        0x000032a0:    6a2861a8    .a(j    BVS      0xa1b948 ; 0xa1b948
+        0x000032a4:    622818c0    ..(b    EORVS    r1,r8,#0xc0, 16 ; #0xc00000
+        0x000032a8:    46c04628    (F.F    STRBMI   r4,[r0],r8,LSR #12
+        0x000032ac:    e00446c0    .F..    AND      r4,r4,r0,ASR #13
+        0x000032b0:    7820686a    jh x    STMDAVC  r0!,{r1,r3,r5,r6,r11,sp,lr}
+        0x000032b4:    1c6468a9    .hd.    STCLNE   p8,c6,[r4],#-0x2a4
+        0x000032b8:    42b44790    .G.B    ADCSMI   r4,r4,#0x90, 14 ; #0x2400000
+        0x000032bc:    4628d3f8    ..(F    QSUB8MI  sp,r8,r8 ; ?  
+        0x000032c0:    46c046c0    .F.F    STRBMI   r4,[r0],r0,ASR #13
+        0x000032c4:    0000bd70    p...    ANDEQ    r11,r0,r0,ROR sp
+        0x000032c8:    2500b5f7    ...%    STRCS    r11,[r0,#-0x5f7]
+        0x000032cc:    68102975    u).h    LDMDAVS  r0,{r0,r2,r4-r6,r8,r11,sp}
+        0x000032d0:    a6149900    ....    LDRGE    r9,[r4],-r0,LSL #18
+        0x000032d4:    46c0d011    ...F    DCI      0x46c0d011 ; ? Undefined
+        0x000032d8:    280046c0    .F.(    STMDACS  r0,{r6,r7,r9,r10,lr}
+        0x000032dc:    4240da02    ..@B    SUBMI    sp,r0,#0x2000
+        0x000032e0:    e008a611    ....    AND      r10,r8,r1,LSL r6
+        0x000032e4:    68099900    ...h    STMDAVS  r9,{r8,r11,r12,pc}
+        0x000032e8:    d501078a    ....    STRLE    r0,[r1,#-0x78a]
+        0x000032ec:    e002a60f    ....    AND      r10,r2,pc,LSL #12
+        0x000032f0:    d5040749    I...    STRLE    r0,[r4,#-0x749]
+        0x000032f4:    2501a60e    ...%    STRCS    r10,[r1,#-0x60e]
+        0x000032f8:    46c0e001    ...F    STRBMI   lr,[r0],r1
+        0x000032fc:    9f0046c0    .F..    SVCLS    #0x46c0 ; formerly SWI
+        0x00003300:    37242400    .$$7    STRCC    r2,[r4,-r0,LSL #8]!
+        0x00003304:    f000e004    ....    DCI      0xf000e004 ; ? Undefined
+        0x00003308:    3130f995    ..01    DCI      0x3130f995 ; ? Undefined
+        0x0000330c:    1c645539    9Ud.    STCLNE   p5,c5,[r4],#-0xe4
+        0x00003310:    d1f82800    .(..    MVNSLE   r2,r0,LSL #16 ; ?  
+        0x00003314:    4632462b    +F2F    LDRTMI   r4,[r2],-r11,LSR #12
+        0x00003318:    98004621    !F..    STMDALS  r0,{r0,r5,r9,r10,lr}
+        0x0000331c:    f907f000    ....    DCI      0xf907f000 ; ? Undefined
+        0x00003320:    0000bdfe    ....    STRDEQ   r11,r12,[r0],-lr ; ?  
+        0x00003324:    00000000    ....    ANDEQ    r0,r0,r0
+        0x00003328:    0000002d    -...    ANDEQ    r0,r0,sp,LSR #32
+        0x0000332c:    0000002b    +...    ANDEQ    r0,r0,r11,LSR #32
+        0x00003330:    00000020     ...    ANDEQ    r0,r0,r0,LSR #32
+        0x00003334:    4604b570    p..F    DCI      0x4604b570 ; ? Undefined
+        0x00003338:    4621460d    .F!F    STRTMI   r4,[r1],-sp,LSL #12
+        0x0000333c:    46c06810    .h.F    DCI      0x46c06810 ; ? Undefined
+        0x00003340:    882146c0    .F!.    STMDAHI  r1!,{r6,r7,r9,r10,lr}
+        0x00003344:    d5020509    ....    STRLE    r0,[r2,#-0x509]
+        0x00003348:    447a4a0f    .JzD    LDRBTMI  r4,[r10],#-0xa0f
+        0x0000334c:    4a0ee002    ...J    BMI      0x3bb35c ; 0x3bb35c
+        0x00003350:    320e447a    zD.2    ANDCC    r4,lr,#0x7a000000
+        0x00003354:    21004623    #F.!    DCI      0x21004623 ; ? Undefined
+        0x00003358:    e0053324    $3..    AND      r3,r5,r4,LSR #6
+        0x0000335c:    09000706    ....    STMDBEQ  r0,{r1,r2,r8-r10}
+        0x00003360:    5d960f36    6..]    LDCPL    p15,c0,[r6,#0xd8]
+        0x00003364:    1c49545e    ^TI.    MCRRNE   p4,#5,r5,r9,c14
+        0x00003368:    d1f72800    .(..    MVNSLE   r2,r0,LSL #16 ; ?  
+        0x0000336c:    23007820     x.#    MOVWCS   r7,#0x820
+        0x00003370:    d5050700    ....    STRLE    r0,[r5,#-0x700]
+        0x00003374:    d0032d70    p-..    ANDLE    r2,r3,r0,ROR sp
+        0x00003378:    d0012900    .)..    ANDLE    r2,r1,r0,LSL #18
+        0x0000337c:    32112302    .#.2    ANDSCC   r2,r1,#0x8000000
+        0x00003380:    f0004620     F..    DCI      0xf0004620 ; ? Undefined
+        0x00003384:    bd70f8d4    ..p.    LDCLLT   p8,c15,[r0,#-0x350]!
+        0x00003388:    0000048a    ....    ANDEQ    r0,r0,r10,LSL #9
+        0x0000338c:    c004e001    ....    ANDGT    lr,r4,r1
+        0x00003390:    29041f09    ...)    STMDBCS  r4,{r0,r3,r8-r12}
+        0x00003394:    078bd2fb    ....    DCI      0x078bd2fb ; ? Undefined
+        0x00003398:    8002d501    ....    ANDHI    sp,r2,r1,LSL #10
+        0x0000339c:    07c91c80    ....    STRBEQ   r1,[r9,r0,LSL #25]
+        0x000033a0:    7002d000    ...p    ANDVC    sp,r2,r0
+        0x000033a4:    29004770    pG.)    STMDBCS  r0,{r4-r6,r8-r10,lr}
+        0x000033a8:    07c3d00b    ....    STRBEQ   sp,[r3,r11]
+        0x000033ac:    7002d002    ...p    ANDVC    sp,r2,r2
+        0x000033b0:    1e491c40    @.I.    CDPNE    p12,#0x4,c1,c9,c0,#2
+        0x000033b4:    d3042902    .)..    MOVLE    r2,#0x4902
+        0x000033b8:    d5020783    ....    STRLE    r0,[r2,#-0x783]
+        0x000033bc:    1c808002    ....    STCNE    p0,c8,[r0],{2}
+        0x000033c0:    e7e31e89    ....    STRB     r1,[r3,r9,LSL #29]!
+        0x000033c4:    e7ee2200    ."..    STRB     r2,[lr,r0,LSL #4]!
+        0x000033c8:    e7df2200    ."..    LDRB     r2,[pc,r0,LSL #4]
+        0x000033cc:    09032200    ."..    STMDBEQ  r3,{r9,sp}
+        0x000033d0:    d32c428b    .B,.    MSRLE    APSR_nzcvqg,#0xb0000008 ; formerly CPSR_fs ; ?  
+        0x000033d4:    428b0a03    ...B    ADDMI    r0,r11,#0x3000
+        0x000033d8:    2300d311    ...#    MOVCS    sp,#0x311
+        0x000033dc:    e04e469c    .FN.    UMAAL    r4,lr,r12,r6
+        0x000033e0:    430b4603    .F.C    MOVMI    r4,#0xb603
+        0x000033e4:    2200d43c    <.."    ANDCS    sp,r0,#0x3c, 8 ; #0x3c000000
+        0x000033e8:    428b0843    C..B    ADDMI    r0,r11,#0x430000
+        0x000033ec:    0903d331    1...    STMDBEQ  r3,{r0,r4,r5,r8,r9,r12,lr,pc}
+        0x000033f0:    d31c428b    .B..    TSTLE    r12,#0xb0000008 ; ?  
+        0x000033f4:    428b0a03    ...B    ADDMI    r0,r11,#0x3000
+        0x000033f8:    4694d301    ...F    LDRMI    sp,[r4],r1,LSL #6
+        0x000033fc:    09c3e03f    ?...    STMIBEQ  r3,{r0-r5,sp-pc}^
+        0x00003400:    d301428b    .B..    MOVLE    r4,#0x128b
+        0x00003404:    1ac001cb    ....    BNE      0xff003b38 ; 0xff003b38
+        0x00003408:    09834152    RA..    STMIBEQ  r3,{r1,r4,r6,r8,lr}
+        0x0000340c:    d301428b    .B..    MOVLE    r4,#0x128b
+        0x00003410:    1ac0018b    ....    BNE      0xff003a44 ; 0xff003a44
+        0x00003414:    09434152    RAC.    STMDBEQ  r3,{r1,r4,r6,r8,lr}^
+        0x00003418:    d301428b    .B..    MOVLE    r4,#0x128b
+        0x0000341c:    1ac0014b    K...    BNE      0xff003950 ; 0xff003950
+        0x00003420:    09034152    RA..    STMDBEQ  r3,{r1,r4,r6,r8,lr}
+        0x00003424:    d301428b    .B..    MOVLE    r4,#0x128b
+        0x00003428:    1ac0010b    ....    BNE      0xff00385c ; 0xff00385c
+        0x0000342c:    08c34152    RA..    STMEQ    r3,{r1,r4,r6,r8,lr}^
+        0x00003430:    d301428b    .B..    MOVLE    r4,#0x128b
+        0x00003434:    1ac000cb    ....    BNE      0xff003768 ; 0xff003768
+        0x00003438:    08834152    RA..    STMEQ    r3,{r1,r4,r6,r8,lr}
+        0x0000343c:    d301428b    .B..    MOVLE    r4,#0x128b
+        0x00003440:    1ac0008b    ....    BNE      0xff003674 ; 0xff003674
+        0x00003444:    08434152    RAC.    STMDAEQ  r3,{r1,r4,r6,r8,lr}^
+        0x00003448:    d301428b    .B..    MOVLE    r4,#0x128b
+        0x0000344c:    1ac0004b    K...    BNE      0xff003580 ; 0xff003580
+        0x00003450:    1a414152    RAA.    BNE      0x10539a0 ; 0x10539a0
+        0x00003454:    4601d200    ...F    STRMI    sp,[r1],-r0,LSL #4
+        0x00003458:    46104152    RA.F    SSAXMI   r4,r0,r2 ; ?  
+        0x0000345c:    e05d4770    pG].    SUBS     r4,sp,r0,ROR r7
+        0x00003460:    d0000fca    ....    ANDLE    r0,r0,r10,ASR #31
+        0x00003464:    10034249    IB..    ANDNE    r4,r3,r9,ASR #4
+        0x00003468:    4240d300    ..@B    SUBMI    sp,r0,#0, 6 ; #0
+        0x0000346c:    22004053    S@."    ANDCS    r4,r0,#0x53
+        0x00003470:    0903469c    .F..    STMDBEQ  r3,{r2-r4,r7,r9,r10,lr}
+        0x00003474:    d32d428b    .B-.    MSRLE    CPSR_csf,#0xb0000008 ; ?  
+        0x00003478:    428b0a03    ...B    ADDMI    r0,r11,#0x3000
+        0x0000347c:    22fcd312    ..."    RSCSCS   sp,r12,#0x48000000
+        0x00003480:    ba120189    ....    BLT      0x483aac ; 0x483aac
+        0x00003484:    428b0a03    ...B    ADDMI    r0,r11,#0x3000
+        0x00003488:    0189d30c    ....    ORREQ    sp,r9,r12,LSL #6
+        0x0000348c:    428b1192    ...B    ADDMI    r1,r11,#0x80000024
+        0x00003490:    0189d308    ....    ORREQ    sp,r9,r8,LSL #6
+        0x00003494:    428b1192    ...B    ADDMI    r1,r11,#0x80000024
+        0x00003498:    0189d304    ....    ORREQ    sp,r9,r4,LSL #6
+        0x0000349c:    1192d03a    :...    ORRSNE   sp,r2,r10,LSR r0
+        0x000034a0:    0989e000    ....    STMIBEQ  r9,{sp-pc}
+        0x000034a4:    428b09c3    ...B    ADDMI    r0,r11,#0x30c000
+        0x000034a8:    01cbd301    ....    BICEQ    sp,r11,r1,LSL #6
+        0x000034ac:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
+        0x000034b0:    428b0983    ...B    ADDMI    r0,r11,#0x20c000
+        0x000034b4:    018bd301    ....    ORREQ    sp,r11,r1,LSL #6
+        0x000034b8:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
+        0x000034bc:    428b0943    C..B    ADDMI    r0,r11,#0x10c000
+        0x000034c0:    014bd301    ..K.    MRSEQ    sp,??? ; ? RESERVED ; ?  
+        0x000034c4:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
+        0x000034c8:    428b0903    ...B    ADDMI    r0,r11,#0xc000
+        0x000034cc:    010bd301    ....    MRSEQ    sp,??? ; ? RESERVED ; ?  
+        0x000034d0:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
+        0x000034d4:    428b08c3    ...B    ADDMI    r0,r11,#0xc30000
+        0x000034d8:    00cbd301    ....    SBCEQ    sp,r11,r1,LSL #6
+        0x000034dc:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
+        0x000034e0:    428b0883    ...B    ADDMI    r0,r11,#0x830000
+        0x000034e4:    008bd301    ....    ADDEQ    sp,r11,r1,LSL #6
+        0x000034e8:    41521ac0    ..RA    CMPMI    r2,r0,ASR #21 ; ?  
+        0x000034ec:    0843d2d9    ..C.    STMDAEQ  r3,{r0,r3,r4,r6,r7,r9,r12,lr,pc}^
+        0x000034f0:    d301428b    .B..    MOVLE    r4,#0x128b
+        0x000034f4:    1ac0004b    K...    BNE      0xff003628 ; 0xff003628
+        0x000034f8:    1a414152    RAA.    BNE      0x1053a48 ; 0x1053a48
+        0x000034fc:    4601d200    ...F    STRMI    sp,[r1],-r0,LSL #4
+        0x00003500:    41524663    cFRA    CMPMI    r2,r3,ROR #12 ; ?  
+        0x00003504:    4610105b    [..F    SSAXMI   r1,r0,r11 ; ?  
+        0x00003508:    4240d301    ..@B    SUBMI    sp,r0,#0x4000000
+        0x0000350c:    d5002b00    .+..    STRLE    r2,[r0,#-0xb00]
+        0x00003510:    47704249    IBpG    LDRBMI   r4,[r0,-r9,ASR #4]!
+        0x00003514:    105b4663    cF[.    SUBSNE   r4,r11,r3,ROR #12
+        0x00003518:    4240d300    ..@B    SUBMI    sp,r0,#0, 6 ; #0
+        0x0000351c:    2000b501    ...     ANDCS    r11,r0,r1,LSL #10
+        0x00003520:    46c046c0    .F.F    STRBMI   r4,[r0],r0,ASR #13
+        0x00003524:    4770bd02    ..pG    LDRBMI   r11,[r0,-r2,LSL #26]!
+        0x00003528:    47704770    pGpG    DCI      0x47704770 ; ? Undefined
+        0x0000352c:    b5ff4770    pG..    LDRBLT   r4,[pc,#1904] ; ?   ; [0x3ca4]
+        0x00003530:    460d4604    .F.F    STRMI    r4,[sp],-r4,LSL #12
+        0x00003534:    3024b081    ..$0    EORCC    r11,r4,r1,LSL #1
+        0x00003538:    68219000    ..!h    STMDAVS  r1!,{r12,pc}
+        0x0000353c:    d5040688    ....    STRLE    r0,[r4,#-0x688]
+        0x00003540:    69e02210    .".i    STMIBVS  r0,{r4,r9,sp}^ ; ?  
+        0x00003544:    60214391    .C!`    MLAVS    r1,r1,r3,r4
+        0x00003548:    2001e000    ...     ANDCS    lr,r1,r0
+        0x0000354c:    dd0142a8    .B..    STCLE    p2,c4,[r1,#-0x2a0]
+        0x00003550:    e0001b47    G...    AND      r1,r0,r7,ASR #22
+        0x00003554:    98042700    .'..    STMDALS  r4,{r8-r10,sp}
+        0x00003558:    197a69a1    .iz.    LDMDBNE  r10,{r0,r5,r7,r8,r11,sp,lr}^ ; ?  
+        0x0000355c:    1a081810    ....    BNE      0x2095a4 ; 0x2095a4
+        0x00003560:    782061a0    .a x    STMDAVC  r0!,{r5,r7,r8,sp,lr}
+        0x00003564:    d40206c0    ....    STRLE    r0,[r2],#-0x6c0
+        0x00003568:    46c04620     F.F    STRBMI   r4,[r0],r0,LSR #12
+        0x0000356c:    260046c0    .F.&    STRCS    r4,[r0],-r0,ASR #13
+        0x00003570:    9803e008    ....    STMDALS  r3,{r3,sp-pc}
+        0x00003574:    68a16862    bh.h    STMVS    r1!,{r1,r5,r6,r11,sp,lr}
+        0x00003578:    47905d80    .].G    LDRMI    r5,[r0,r0,LSL #27]
+        0x0000357c:    1c406a20     j@.    DCI      0x1c406a20 ; ? Undefined
+        0x00003580:    62201c76    v. b    EORVS    r1,r0,#0x7600
+        0x00003584:    42869804    ...B    ADDMI    r9,r6,#4, 16 ; #0x40000
+        0x00003588:    7820dbf3    .. x    STMDAVC  r0!,{r0,r1,r4-r9,r11,r12,lr,pc}
+        0x0000358c:    d50a06c0    ....    STRLE    r0,[r10,#-0x6c0]
+        0x00003590:    46c04620     F.F    STRBMI   r4,[r0],r0,LSR #12
+        0x00003594:    e00646c0    .F..    AND      r4,r6,r0,ASR #13
+        0x00003598:    68a16862    bh.h    STMVS    r1!,{r1,r5,r6,r11,sp,lr}
+        0x0000359c:    47902030    0 .G    DCI      0x47902030 ; ? Undefined
+        0x000035a0:    1c406a20     j@.    DCI      0x1c406a20 ; ? Undefined
+        0x000035a4:    46386220     b8F    LDRTMI   r6,[r8],-r0,LSR #4
+        0x000035a8:    28001e7f    ...(    STMDACS  r0,{r0-r6,r9-r12}
+        0x000035ac:    e007dcf4    ....    STRD     sp,lr,[r7],-r4 ; ?  
+        0x000035b0:    68629800    ..bh    STMDAVS  r2,{r11,r12,pc}^ ; ?  
+        0x000035b4:    5d4068a1    .h@]    STCLPL   p8,c6,[r0,#-0x284]
+        0x000035b8:    6a204790    .G j    BVS      0x815400 ; 0x815400
+        0x000035bc:    62201c40    @. b    EORVS    r1,r0,#0x40, 24 ; #0x4000
+        0x000035c0:    1e6d4628    (Fm.    CDPNE    p6,#0x6,c4,c13,c8,#1
+        0x000035c4:    dcf32800    .(..    LDCLLE   p8,c2,[r3],#0
+        0x000035c8:    46c04620     F.F    STRBMI   r4,[r0],r0,LSR #12
+        0x000035cc:    782046c0    .F x    STMDAVC  r0!,{r6,r7,r9,r10,lr}
+        0x000035d0:    d5020600    ....    STRLE    r0,[r2,#-0x600]
+        0x000035d4:    b0052002    . ..    ANDLT    r2,r5,r2
+        0x000035d8:    2001bdf0    ...     STRDCS   r11,r12,[r1],-r0 ; ?  
+        0x000035dc:    b510e7fb    ....    LDRLT    lr,[r0,#-0x7fb]
+        0x000035e0:    2b006943    Ci.+    BLCS     0x1daf4 ; 0x1daf4
+        0x000035e4:    46c0d002    ...F    STRBMI   sp,[r0],r2
+        0x000035e8:    e00146c0    .F..    AND      r4,r1,r0,ASR #13
+        0x000035ec:    fe42f7ff    ..B.    MCR2     p7,#0x2,pc,c2,c15,#7 ; ?  
+        0x000035f0:    bd102001    . ..    LDCLT    p0,c2,[r0,#-4]
+        0x000035f4:    46017812    .x.F    DCI      0x46017812 ; ? Undefined
+        0x000035f8:    700a3124    $1.p    ANDVC    r3,r10,r4,LSR #2
+        0x000035fc:    704a2200    ."Jp    SUBVC    r2,r10,r0,LSL #4
+        0x00003600:    e7ec2201    ."..    STRB     r2,[r12,r1,LSL #4]!
+        0x00003604:    22006811    .h."    ANDCS    r6,r0,#0x110000
+        0x00003608:    e7e843d2    .C..    UBFX     r4,r2,#7,#9
+        0x0000360c:    b5704b08    .Kp.    LDRBLT   r4,[r0,#-0xb08]!
+        0x00003610:    447b460d    .F{D    LDRBTMI  r4,[r11],#-0x60d
+        0x00003614:    f827f000    ..'.    DCI      0xf827f000 ; ? Undefined
+        0x00003618:    46284604    .F(F    STRTMI   r4,[r8],-r4,LSL #12
+        0x0000361c:    fe6df7fd    ..m.    MCR2     p7,#0x3,pc,c13,c13,#7 ; ?  
+        0x00003620:    d0022800    .(..    ANDLE    r2,r2,r0,LSL #16
+        0x00003624:    43c02000    . .C    BICMI    r2,r0,#0
+        0x00003628:    4620bd70    p. F    QSUB16MI r11,r0,r0 ; ?  
+        0x0000362c:    0000bd70    p...    ANDEQ    r11,r0,r0,ROR sp
+        0x00003630:    ffffdcbb    ....    DCI      0xffffdcbb ; ? Undefined
+        0x00003634:    08804601    .F..    STMEQ    r0,{r0,r9,r10,lr}
+        0x00003638:    09021a08    ....    STMDBEQ  r2,{r3,r9,r11,r12}
+        0x0000363c:    0a021810    ....    BEQ      0x89684 ; 0x89684
+        0x00003640:    0c021810    ....    DCI      0x0c021810 ; ? Undefined
+        0x00003644:    08c01810    ....    STMEQ    r0,{r4,r11,r12}^
+        0x00003648:    18120082    ....    LDMDANE  r2,{r1,r7}
+        0x0000364c:    1a890052    R...    BNE      0xfe24379c ; 0xfe24379c
+        0x00003650:    1c40e001    ..@.    MCRRNE   p0,#0,lr,r0,c1
+        0x00003654:    290a390a    .9.)    STMDBCS  r10,{r1,r3,r8,r11-sp}
+        0x00003658:    4770d2fb    ..pG    DCI      0x4770d2fb ; ? Undefined
+        0x0000365c:    1c4a6901    .iJ.    MCRRNE   p9,#0,r6,r10,c1
+        0x00003660:    78086102    .a.x    STMDAVC  r8,{r1,r8,sp,lr}
+        0x00003664:    b5004770    pG..    STRLT    r4,[r0,#-0x770]
+        0x00003668:    9102b08f    ....    SMLABBLS r2,pc,r0,r11 ; ?  
+        0x0000366c:    91052100    .!..    MRSLS    r2,APSR ; formerly CPSR ; ?  
+        0x00003670:    93014905    .I..    MOVLS    r4,#0x1905
+        0x00003674:    91034479    yD..    HLTLS    #0x3449 ; ?  
+        0x00003678:    90044611    .F..    ANDLS    r4,r4,r1,LSL r6
+        0x0000367c:    f7ff4668    hF..    DCI      0xf7ff4668 ; ? Undefined ; ?  
+        0x00003680:    b00ffdc3    ....    ANDLT    pc,pc,r3,ASR #27
+        0x00003684:    0000bd00    ....    ANDEQ    r11,r0,r0,LSL #26
+        0x00003688:    ffffffe5    ....    DCI      0xffffffe5 ; ? Undefined
+        0x0000368c:    f0004675    uF..    DCI      0xf0004675 ; ? Undefined
+        0x00003690:    46aef825    %..F    STRTMI   pc,[lr],r5,LSR #16
+        0x00003694:    46690005    ..iF    STRBTMI  r0,[r9],-r5
+        0x00003698:    08c04653    SF..    STMEQ    r0,{r0,r1,r4,r6,r9,r10,lr}^
+        0x0000369c:    468500c0    ...F    STRMI    r0,[r5],r0,ASR #1
+        0x000036a0:    b520b018    .. .    STRLT    r11,[r0,#-0x18]!
+        0x000036a4:    fde0f7fc    ....    STC2L    p7,c15,[r0,#0x3f0]!
+        0x000036a8:    2700bc60    `..'    STRCS    r11,[r0,-r0,ROR #24]
+        0x000036ac:    46b60849    I..F    LDRTMI   r0,[r6],r9,ASR #16
+        0x000036b0:    c5c02600    .&..    STRBGT   r2,[r0,#0x600]
+        0x000036b4:    c5c0c5c0    ....    STRBGT   r12,[r0,#0x5c0]
+        0x000036b8:    c5c0c5c0    ....    STRBGT   r12,[r0,#0x5c0]
+        0x000036bc:    c5c0c5c0    ....    STRBGT   r12,[r0,#0x5c0]
+        0x000036c0:    3d40c5c0    ..@=    STCLCC   p5,c12,[r0,#-0x300]
+        0x000036c4:    468d0049    I..F    STRMI    r0,[sp],r9,ASR #32
+        0x000036c8:    b5104770    pG..    LDRLT    r4,[r0,#-0x770]
+        0x000036cc:    46c04604    .F.F    STRBMI   r4,[r0],r4,LSL #12
+        0x000036d0:    462046c0    .F F    STRTMI   r4,[r0],-r0,ASR #13
+        0x000036d4:    fd28f7fc    ..(.    STC2     p7,c15,[r8,#-0x3f0]!
+        0x000036d8:    0000bd10    ....    ANDEQ    r11,r0,r0,LSL sp
+        0x000036dc:    47704800    .HpG    LDRBMI   r4,[r0,-r0,LSL #16]!
+        0x000036e0:    2000545c    \T.     ANDCS    r5,r0,r12,ASR r4
+        0x000036e4:    188cb570    p...    STMNE    r12,{r4-r6,r8,r10,r12,sp,pc}
+        0x000036e8:    1c407805    .x@.    MCRRNE   p8,#0,r7,r0,c5
+        0x000036ec:    0f5b076b    k.[.    SVCEQ    #0x5b076b ; formerly SWI
+        0x000036f0:    7803d101    ...x    STMDAVC  r3,{r0,r8,r12,lr,pc}
+        0x000036f4:    112a1c40    @.*.    CRC32HNE r1,r10,r0 ; ?  
+        0x000036f8:    7802d106    ...x    STMDAVC  r2,{r1,r2,r8,r12,lr,pc}
+        0x000036fc:    e0031c40    @...    AND      r1,r3,r0,ASR #24
+        0x00003700:    1c407806    .x@.    MCRRNE   p8,#0,r7,r0,c6
+        0x00003704:    1c49700e    .pI.    MCRRNE   p0,#0,r7,r9,c14
+        0x00003708:    d1f91e5b    [...    MVNSLE   r1,r11,ASR lr ; ?  
+        0x0000370c:    d405072b    +...    STRLE    r0,[r5],#-0x72b
+        0x00003710:    1e522300    .#R.    CDPNE    p3,#0x5,c2,c2,c0,#0
+        0x00003714:    700bd40d    ...p    ANDVC    sp,r11,sp,LSL #8
+        0x00003718:    e7fa1c49    I...    LDRB     r1,[r10,r9,ASR #24]!
+        0x0000371c:    1c407803    .x@.    MCRRNE   p8,#0,r7,r0,c3
+        0x00003720:    1c921acb    ....    VLDMNE   r2,{s2-s204} ; ?  
+        0x00003724:    781de003    ...x    LDMDAVC  sp,{r0,r1,sp-pc}
+        0x00003728:    1c49700d    .pI.    MCRRNE   p0,#0,r7,r9,c13
+        0x0000372c:    1e521c5b    [.R.    MRCNE    p12,#0x2,r1,c2,c11,#2
+        0x00003730:    42a1d5f9    ...B    ADCMI    sp,r1,#0x3e400000
+        0x00003734:    2000d3d8    ...     LDRDCS   sp,lr,[r0],-r8 ; ?  
+        0x00003738:    b430bd70    p.0.    LDRTLT   r11,[r0],#-0xd70
+        0x0000373c:    1e644674    tFd.    MCRNE    p6,#0x3,r4,c4,c4,#3
+        0x00003740:    1c647825    %xd.    STCLNE   p8,c7,[r4],#-0x94
+        0x00003744:    d30442ab    .B..    MOVLE    r4,#0x42ab
+        0x00003748:    005b5d63    c][.    SUBSEQ   r5,r11,r3,ROR #26
+        0x0000374c:    bc3018e3    ..0.    LDCLT    p8,c1,[r0],#-0x38c
+        0x00003750:    461d4718    .G.F    SADD16MI r4,sp,r8 ; ?  
+        0x00003754:    0000e7f8    ....    STRDEQ   lr,pc,[r0],-r8 ; ?  
+        0x00003758:    046d046b    k.m.    STRBTEQ  r0,[sp],#-0x46b
+        0x0000375c:    0471046f    o.q.    LDRBTEQ  r0,[r1],#-0x46f
+        0x00003760:    04760474    t.v.    LDRBTEQ  r0,[r6],#-0x474
+        0x00003764:    047a0478    x.z.    LDRBTEQ  r0,[r10],#-0x478
+        0x00003768:    045d045b    [.].    LDRBEQ   r0,[sp],#-0x45b
+        0x0000376c:    0461045f    _.a.    STRBTEQ  r0,[r1],#-0x45f
+        0x00003770:    04660464    d.f.    STRBTEQ  r0,[r6],#-0x464
+        0x00003774:    046a0468    h.j.    STRBTEQ  r0,[r10],#-0x468
+        0x00003778:    046e046c    l.n.    STRBTEQ  r0,[lr],#-0x46c
+        0x0000377c:    04720470    p.r.    LDRBTEQ  r0,[r2],#-0x470
+        0x00003780:    04750473    s.u.    LDRBTEQ  r0,[r5],#-0x473
+        0x00003784:    04790477    w.y.    LDRBTEQ  r0,[r9],#-0x477
+        0x00003788:    045e045c    \.^.    LDRBEQ   r0,[lr],#-0x45c
+        0x0000378c:    04620460    `.b.    STRBTEQ  r0,[r2],#-0x460
+        0x00003790:    04650463    c.e.    STRBTEQ  r0,[r5],#-0x463
+        0x00003794:    04690467    g.i.    STRBTEQ  r0,[r9],#-0x467
+        0x00003798:    03880322    "...    ORREQ    r0,r8,#0x88000000
+        0x0000379c:    010d03a1    ....    SMLATBEQ sp,r1,r3,r0
+        0x000037a0:    01b203b5    ....    LDRHEQ   r0,[r2,r5]! ; ?  
+        0x000037a4:    02420171    q.B.    SUBEQ    r0,r2,#0x4000001c
+        0x000037a8:    03ca01c7    ....    BICEQ    r0,r10,#0xc0000031
+        0x000037ac:    0129008b    ..).    SMLAWBEQ r9,r11,r0,r0
+        0x000037b0:    006d024b    K.m.    RSBEQ    r0,sp,r11,ASR #4
+        0x000037b4:    009f0175    u...    ADDSEQ   r0,pc,r5,ROR r1 ; ?  
+        0x000037b8:    03850321    !...    ORREQ    r0,r5,#0x84000000
+        0x000037bc:    010b039c    ....    SWPEQ    r0,r12,[r11] ; ?  
+        0x000037c0:    01ad03ac    ....    LSREQ    r0,r12,#7 ; ?  
+        0x000037c4:    0239016c    l.9.    EORSEQ   r0,r9,#0x6c, 2 ; #0x1b
+        0x000037c8:    03b701bf    ....    MOVSEQ   r0,#0xc000002f ; ?  
+        0x000037cc:    01220088    ..".    SMLAWBEQ r2,r8,r0,r0
+        0x000037d0:    006a023c    <.j.    RSBEQ    r0,r10,r12,LSR r2
+        0x000037d4:    009a016a    j...    ADDSEQ   r0,r10,r10,ROR #2
+        0x000037d8:    33323130    0123    TEQCC    r2,#0x30, 2 ; #0xc ; ?  
+        0x000037dc:    37363534    4567    DCI      0x37363534 ; ? Undefined
+        0x000037e0:    42413938    89AB    SUBMI    r3,r1,#0x38, 18 ; #0xe0000
+        0x000037e4:    46454443    CDEF    STRBMI   r4,[r5],-r3,ASR #8
+        0x000037e8:    00583040    @0X.    SUBSEQ   r3,r8,r0,ASR #32
+        0x000037ec:    33323130    0123    TEQCC    r2,#0x30, 2 ; #0xc ; ?  
+        0x000037f0:    37363534    4567    DCI      0x37363534 ; ? Undefined
+        0x000037f4:    62613938    89ab    RSBVS    r3,r1,#0x38, 18 ; #0xe0000
+        0x000037f8:    66656463    cdef    STRBTVS  r6,[r5],-r3,ROR #8
+        0x000037fc:    00783040    @0x.    RSBSEQ   r3,r8,r0,ASR #32
+        0x00003800:    00003820     8..    ANDEQ    r3,r0,r0,LSR #16
+        0x00003804:    20000000    ...     ANDCS    r0,r0,r0
+        0x00003808:    00000188    ....    ANDEQ    r0,r0,r8,LSL #3
+        0x0000380c:    000036e4    .6..    ANDEQ    r3,r0,r4,ROR #13
+        0x00003810:    00003874    t8..    ANDEQ    r3,r0,r4,ROR r8
+        0x00003814:    20000188    ...     ANDCS    r0,r0,r8,LSL #3
+        0x00003818:    00005f38    8_..    ANDEQ    r5,r0,r8,LSR pc ; ?  
+        0x0000381c:    000000c4    ....    ANDEQ    r0,r0,r4,ASR #1
 
 ====================================
 
@@ -3636,7 +3666,7 @@
     Type        : SHT_PROGBITS (0x00000001)
     Flags       : SHF_ALLOC + SHF_WRITE (0x00000003)
     Addr        : 0x20000000
-    File Offset : 14300 (0x37dc)
+    File Offset : 14420 (0x3854)
     Size        : 84 bytes (0x54)
     Link        : SHN_UNDEF
     Info        : 0
@@ -3652,7 +3682,7 @@
     Type        : SHT_NOBITS (0x00000008)
     Flags       : SHF_ALLOC + SHF_WRITE (0x00000003)
     Addr        : 0x20000188
-    File Offset : 14384 (0x3830)
+    File Offset : 14504 (0x38a8)
     Size        : 24376 bytes (0x5f38)
     Link        : SHN_UNDEF
     Info        : 0
@@ -3668,7 +3698,7 @@
     Type        : SHT_NOTE (0x00000007)
     Flags       : None (0x00000000)
     Addr        : 0x00000000
-    File Offset : 14384 (0x3830)
+    File Offset : 14504 (0x38a8)
     Size        : 28 bytes (0x1c)
     Link        : SHN_UNDEF
     Info        : 0
@@ -3690,7 +3720,7 @@
     Type        : SHT_PROGBITS (0x00000001)
     Flags       : None (0x00000000)
     Addr        : 0x00000000
-    File Offset : 14412 (0x384c)
+    File Offset : 14532 (0x38c4)
     Size        : 3840 bytes (0xf00)
     Link        : SHN_UNDEF
     Info        : 0
@@ -3753,7 +3783,7 @@
     Type        : SHT_STRTAB (0x00000003)
     Flags       : None (0x00000000)
     Addr        : 0x00000000
-    File Offset : 18252 (0x474c)
+    File Offset : 18372 (0x47c4)
     Size        : 44 bytes (0x2c)
     Link        : SHN_UNDEF
     Info        : 0

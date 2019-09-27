@@ -161,9 +161,12 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 			if(pulse_type == LASER) {
 				//lighthouse a laser
 				elevation_a_laser = timestamp_rise;
-				//go to azimuth b laser detect
+			
 				nextstate = 0;
-				printf("el A: %d, %d\n",elevation_a_sync,elevation_a_laser);
+				if(last_delta_a > 0 && abs(((int)(elevation_a_laser-elevation_a_sync))-(int)last_delta_a)<4630){
+					printf("el A: %d, %d\n",elevation_a_sync,elevation_a_laser);
+				}
+				last_delta_a = elevation_a_laser - elevation_a_sync;
 			}
 			else{
 				nextstate = 0;
@@ -179,7 +182,10 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 				elevation_b_laser = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 0;
-				printf("el B: %d, %d\n",elevation_b_sync,elevation_b_laser);
+				if(last_delta_b > 0 && abs(((int)(elevation_b_laser-elevation_b_sync))-(int)last_delta_b)<4630){
+					printf("el B: %d, %d\n",elevation_b_sync,elevation_b_laser);
+				}
+				last_delta_b = elevation_b_laser - elevation_b_sync;
 			}
 			else{
 				nextstate = 0;
