@@ -106,11 +106,11 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 	}
 			switch(state)
 	{
-		// Search for an azimuth sync pulse, we don't know if it's A or B yet
+		// Search for an azimuth sync pulse, assume its A 
 		case 0: {
 			if(pulse_type == EL || pulse_type == EL_SKIP){
 				if(pulse_type == EL){
-					elevation_unknown_sync = timestamp_rise;
+					elevation_a_sync = timestamp_rise;
 					nextstate = 1;
 					//printf("state transition: %d to %d\n",state,nextstate);
 				}
@@ -130,9 +130,6 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 		case 1: {
 			if(pulse_type == EL_SKIP) {
 				
-				//lighthouse A sweep pulse
-				elevation_a_sync = timestamp_rise;
-				
 				nextstate = 3;
 				//printf("state transition: %d to %d\n",state,nextstate);
 			}
@@ -147,7 +144,7 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 		case 2: {
 			if(pulse_type == EL) {
 				//the last pulse was an azimuth sync from lighthouse B
-				elevation_b_sync = elevation_unknown_sync;
+				elevation_b_sync = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 4;
 				//printf("state transition: %d to %d\n",state,nextstate);
@@ -233,7 +230,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 		case 0: {
 			if(pulse_type == AZ || pulse_type == AZ_SKIP){
 				if(pulse_type == AZ){
-					azimuth_unknown_sync = timestamp_rise;
+									azimuth_a_sync = timestamp_rise;
 					nextstate = 1;
 					//printf("state transition: %d to %d\n",state,nextstate);
 				}
@@ -254,7 +251,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 			if(pulse_type == AZ_SKIP) {
 				
 				//lighthouse A sweep pulse
-				azimuth_a_sync = timestamp_rise;
+
 				
 				nextstate = 3;
 				//printf("state transition: %d to %d\n",state,nextstate);
@@ -270,7 +267,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 		case 2: {
 			if(pulse_type == AZ) {
 				//the last pulse was an azimuth sync from lighthouse B
-				azimuth_b_sync = azimuth_unknown_sync;
+				azimuth_b_sync = timestamp_rise;
 				//go to azimuth b laser detect
 				nextstate = 4;
 				//printf("state transition: %d to %d\n",state,nextstate);

@@ -28,37 +28,41 @@ Project File Date:  09/25/2019
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
 compiling lighthouse.c...
+lighthouse.c(93): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
+  	static unsigned int elevation_unknown_sync;
 lighthouse.c(100): warning:  #177-D: variable "last_delta_a" was declared but never referenced
   	static unsigned int last_delta_a;
 lighthouse.c(101): warning:  #177-D: variable "last_delta_b" was declared but never referenced
   	static unsigned int last_delta_b;
-lighthouse.c(210): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
+lighthouse.c(200): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
+  	static unsigned int azimuth_unknown_sync; 
+lighthouse.c(207): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
   	static unsigned int elevation_a_sync;
-lighthouse.c(211): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
+lighthouse.c(208): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
   	static unsigned int elevation_b_sync;
-lighthouse.c(213): warning:  #177-D: variable "elevation_a_laser" was declared but never referenced
+lighthouse.c(210): warning:  #177-D: variable "elevation_a_laser" was declared but never referenced
   	static unsigned int elevation_a_laser;
-lighthouse.c(214): warning:  #177-D: variable "elevation_b_laser" was declared but never referenced
+lighthouse.c(211): warning:  #177-D: variable "elevation_b_laser" was declared but never referenced
   	static unsigned int elevation_b_laser;	
-lighthouse.c(221): warning:  #177-D: variable "last_delta_a" was declared but never referenced
+lighthouse.c(218): warning:  #177-D: variable "last_delta_a" was declared but never referenced
   	static unsigned int last_delta_a;
-lighthouse.c(222): warning:  #177-D: variable "last_delta_b" was declared but never referenced
+lighthouse.c(219): warning:  #177-D: variable "last_delta_b" was declared but never referenced
   	static unsigned int last_delta_b;
-lighthouse.c: 8 warnings, 0 errors
+lighthouse.c: 10 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=13820 RO-data=328 RW-data=392 ZI-data=24376  
+Program Size: Code=13796 RO-data=328 RW-data=392 ZI-data=24376  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 9 Warning(s).
+".\code.axf" - 0 Error(s), 11 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:02
+Build Time Elapsed:  00:00:00
 </pre>
 </body>
 </html>
