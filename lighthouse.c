@@ -290,7 +290,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				if(last_delta_a > 0 && abs(((int)(azimuth_a_laser-azimuth_a_sync))-(int)last_delta_a)<4630){
 					printf("az A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
 				}
-				last_delta_a = azimuth_a_sync-azimuth_a_laser;
+				last_delta_a = azimuth_a_laser-azimuth_a_sync;
 			}
 			else{
 				nextstate = 0;

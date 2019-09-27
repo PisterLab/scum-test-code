@@ -3067,8 +3067,8 @@
         0x00002edc:    68024883    .H.h    STMDAVS  r2,{r0,r1,r7,r11,lr}
         0x00002ee0:    68014880    .H.h    STMDAVS  r1,{r7,r11,lr}
         0x00002ee4:    f000a084    ....    DCI      0xf000a084 ; ? Undefined
-        0x00002ee8:    487ef945    E.~H    LDMDAMI  lr!,{r0,r2,r6,r8,r11-pc}^ ; ?  
-        0x00002eec:    497f6800    .h.I    LDMDBMI  pc,{r11,sp,lr}^ ; ?  
+        0x00002ee8:    4880f945    E..H    STMMI    r0,{r0,r2,r6,r8,r11-pc}
+        0x00002eec:    497d6800    .h}I    LDMDBMI  sp,{r11,sp,lr}^ ; ?  
         0x00002ef0:    1a406809    .h@.    BNE      0x101cf1c ; 0x101cf1c
         0x00002ef4:    6008497e    ~I.`    ANDVS    r4,r8,lr,ROR r9
         0x00002ef8:    2400e000    ...$    STRCS    lr,[r0],#-0
