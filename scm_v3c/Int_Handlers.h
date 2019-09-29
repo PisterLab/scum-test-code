@@ -66,10 +66,15 @@ extern unsigned short current_RF_channel;
 
 extern unsigned short do_debug_print;
 
+// loop and state variables for coarse code search
+extern unsigned int coarse_code_search_state;
+extern unsigned int coarse_code;
+extern unsigned int coarse_search_index;
+extern unsigned int ism_coarse_codes[16];
+
 // loop variables for building LC monotonic
 extern unsigned int count_LC_glob;
 extern unsigned int count_32k_glob;
-
 extern unsigned int previous_count_LC; // stores the count in the previous iteration for comparison purposes
 extern unsigned int mon_build_complete; // signals when the LC monotomic function has been built (mid version)
 extern unsigned int mon_build_complete_coarse; //signals when the LC monotonic function has been built (coarse version)
@@ -653,7 +658,7 @@ void OPTICAL_SFD_ISR(){
 	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
 	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
 	count_2M = rdata_lsb + (rdata_msb << 16);
-		
+	
 	// Read LC_div counter (via counter4)
 	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
 	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
@@ -670,7 +675,10 @@ void OPTICAL_SFD_ISR(){
 	// Enable all counters
 	ANALOG_CFG_REG__0 = 0x3FFF;
 	
-		
+	if ((coarse_code_search_state == 1)&&(optical_cal_iteration<3)){
+		LC_FREQCHANGE(coarse_code,15,15); // set to an initial frequency for the purposes of coarse code searching
+	}
+	
 	// Don't make updates on the first three executions of this ISR - something is messed up with the first few counts
 	if(optical_cal_iteration > 3){
 		
@@ -680,20 +688,24 @@ void OPTICAL_SFD_ISR(){
 		if(count_HFclock > 2003000) HF_CLOCK_fine++;
 		set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
 		
-		// Do a sweep of the LC
-		//if(optical_cal_iteration/coarse0 == 0) mid0 = 22;
-		//if(optical_cal_iteration/coarse0 == 1) mid0 = 22;
-		//if(optical_cal_iteration/coarse0 == 2) mid0 = 23;
-		//if(optical_cal_iteration/coarse0 == 3) mid0 = 23;
-		//if(optical_cal_iteration/coarse0 == 4) mid0 = 23;
-		//if(optical_cal_iteration/coarse0 == 5) mid0 = 23;
-		//if(optical_cal_iteration/coarse0 == 6) mid0 = 24;
-		//if(optical_cal_iteration/coarse0 == 7) mid0 = 25;
-		//LC_monotonic(LC_code,mid0,coarse0,24);
-		//LC_code +=1;
-		
-		LC_monotonic(LC_code,23,137,24);
-		LC_code += 1;
+		if(coarse_code_search_state == 1) {
+			// the only thing that happens in this state is that coarse codes relevant for the 2.4 GHz ISM band are found
+			LC_FREQCHANGE(coarse_code,15,15); // change it for the next count
+			
+			if ((count_LC*9600 > 2350000000) && (count_LC*9600 < 25200000)) {
+				ism_coarse_codes[coarse_search_index] = coarse_code;
+				coarse_search_index++;
+			}
+			coarse_code++; // increment the coarse code
+			
+			if (count_LC*9600 > 2520000000) {
+				coarse_code_search_state = 0; // if the ISM band has been eclipsed, no need to continue searching
+			}
+			
+			if (coarse_code == 32) {
+				coarse_code_search_state = 0; // in the event that the final code is reached, give up, you cannot hit the far end of the ISM band
+			}
+		}
 		
 		if (mon_build_complete == 0) {
 			if (pass == 1) {

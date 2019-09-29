@@ -14,7 +14,7 @@ import sys
 # Parameters
 # ---------------------------------------------------------------------
 com_port = '/dev/cu.usbmodem40722401' # programmer labeled 'Fil number 4' seems to work very nicely with boards #14 and #Q7 of 9
-com_port = '/dev/cu.usbmodem40954501' # programmer labeled 'Fil number 11' works well with the SARA boards
+#com_port = '/dev/cu.usbmodem40954501' # programmer labeled 'Fil number 11' works well with the SARA boards
 
 binFilePath = "/Users/Filip/Dropbox/scum/scum-test-code/scm_v3c/code.bin"
 
@@ -88,7 +88,7 @@ if(boot_mode == 1):
 	ser.write(b'configopt\n')
 	ser.write(b'80\n')	
 	ser.write(b'80\n')
-	ser.write(b'2\n')
+	ser.write(b'8\n')
 	ser.write(b'80\n')
 	
     # Encode the payload into 4B5B for optical transmission

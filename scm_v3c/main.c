@@ -14,6 +14,11 @@
 #include <math.h>
 #include "scum_radio_bsp.h"
 
+// # defines for calibration
+# define		EXECUTE_COARSE_ISM_SEARCH		0x1; // if this is set to 1, run the search for coarse codes throughout the ISM band
+# define		EXECUTE_MONOTONIC						0x0; // if this is set to 1, run the LC_monotonic generating function in the optical ISR
+# define		COARSE_CODE_SEARCH_INIT			18;  // initial guess for low end of the ISM band
+
 extern unsigned int current_lfsr;
 
 extern char send_packet[127];
@@ -52,10 +57,15 @@ unsigned short doing_initial_packet_search;
 unsigned short current_RF_channel;
 unsigned short do_debug_print = 0;
 
+// loop and state variables for coarse code search
+unsigned int coarse_code_search_state;
+unsigned int coarse_code;
+unsigned int coarse_search_index;
+unsigned int ism_coarse_codes[16];
+
 // loop variables for building LC monotonic
 unsigned int count_LC_glob;
 unsigned int count_32k_glob;
-
 unsigned int previous_count_LC; // stores the count in the previous iteration for comparison purposes
 unsigned int mon_build_complete; // signals when the LC monotomic function has been built (mid0 code only)
 unsigned int mon_build_complete_coarse; // signals when the LC monotonic function has been built (coarse0 code only)
@@ -88,6 +98,9 @@ int main(void) {
 	unsigned int y_accel;
 	unsigned int z_accel;
 	
+	unsigned int execute_coarse_ISM_search;
+	unsigned int execute_monotonic;
+	
 	printf("Initializing...");
 		
 	// Set up mote configuration
@@ -115,6 +128,35 @@ int main(void) {
 	// For MUX signals, '1' = FSM control, '0' = memory mapped control
 	// For EN signals, '1' = turn on LDO
 	ANALOG_CFG_REG__10 = 0x78;
+	
+	// ---------------------------------------------------------------------------------------------------- //
+	// -------------------  INITIALIZATION FOR OPTICAL SFD BASED FREQUENCY CALIBRATION  ------------------- //
+	
+	// -------- Set up initial variables to find the list of coarse codes necessary for scouring the ISM band
+	execute_coarse_ISM_search = EXECUTE_COARSE_ISM_SEARCH;
+	if (execute_coarse_ISM_search) {
+		coarse_code = COARSE_CODE_SEARCH_INIT;
+		coarse_search_index = 0;
+		coarse_code_search_state = 1;
+	}
+	else {
+		coarse_code_search_state = 0;
+	}
+	
+	// -------- Set up initial variables for the LC monotonic building
+	execute_monotonic = EXECUTE_MONOTONIC;
+	if (execute_monotonic) {
+		mon_build_complete = 0;
+		pass = 1;
+		mid0 = 23;
+		coarse0 = 142;
+	}
+	else {
+		mon_build_complete = 1;
+	}
+	// --------------------------------------  END OF INITIALIZATION -------------------------------------- //
+	// ---------------------------------------------------------------------------------------------------- //
+
 	
 	// Enable optical SFD interrupt for optical calibration
 	ISER = 0x0800;
