@@ -1273,7 +1273,7 @@ void initialize_mote(){
 	radio_init_divider(2000);
 
 	// SENSOR ADC INITIALIZATION
-	if (1) {
+	if (0) {
 		unsigned int sel_reset 			= 1;
 		unsigned int sel_convert 		= 1;
 		unsigned int sel_pga_amplify 	= 1;
@@ -1288,11 +1288,6 @@ void initialize_mote(){
 
 		// Set GPIOs for loopback
 		loopback_control_config_adc();
-		
-		// GPO_enables(0x0000);
-		// GPI_enables(0xFFFF);
-		// GPO_control(6,6,6,6);
-		// GPI_control(0,0,0,0);
 
 		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
 						pga_gain, adc_settle, 
