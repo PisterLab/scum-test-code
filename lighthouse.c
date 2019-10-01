@@ -7,7 +7,14 @@
 #include "scum_radio_bsp.h"
 #include "lighthouse.h"
 
+extern char send_packet[127];
+
 //functions//
+//put this in senddone (in inthandlers.h)////
+// set radio frequency for rx
+//run radio rx enable 
+//call radio rx_now
+//if you hear a packet, rx_done runs and thats where things could be found (acks) 
 
 pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_fall){
   pulse_type_t pulse_type;
@@ -91,7 +98,7 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 	static unsigned int elevation_b_laser;	
 	
 	static unsigned int elevation_unknown_sync;
-	
+	int i;
 	static int state = 0;
 	
 	int nextstate;
@@ -184,6 +191,26 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 				nextstate = 0;
 				if(last_delta_b > 0 && abs(((int)(elevation_b_laser-elevation_b_sync))-(int)last_delta_b)<4630){
 					printf("el B: %d, %d\n",elevation_b_sync,elevation_b_laser);
+					//replace with the following://///////
+					
+					//enable radio interrupts (radio_enable_interrupts) (do this somewhere; only needs to be done once)
+					//place data into a "send_packet" global variable array 
+					send_packet[0]= 1;
+					send_packet[1] = 15;
+					
+					//call "radio_loadpacket", which puts array into hardware fifo (takes time)
+					radio_loadPacket(2);
+					
+					//set radio frequency (radio_setfrequency). This needs to be figured out
+						//LC_FREQCHANGE(coarse,mid,fine) for set frequency
+					setFrequencyTX(12);
+					//turn on radio (radio_txenable)
+					radio_txEnable();
+					for(i = 0; i<5; i++){
+						
+					}
+					//transmit packet (radio_txnow) (wait 50 us between tx enable and tx_now)
+					radio_txNow();
 				}
 				last_delta_b = elevation_b_laser - elevation_b_sync;
 			}

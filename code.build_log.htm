@@ -28,22 +28,22 @@ Project File Date:  09/25/2019
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
 compiling lighthouse.c...
-lighthouse.c(93): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
+lighthouse.c(100): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
   	static unsigned int elevation_unknown_sync;
-lighthouse.c(206): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
+lighthouse.c(233): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
   	static unsigned int azimuth_unknown_sync; 
-lighthouse.c(213): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
+lighthouse.c(240): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
   	static unsigned int elevation_a_sync;
-lighthouse.c(214): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
+lighthouse.c(241): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
   	static unsigned int elevation_b_sync;
-lighthouse.c(216): warning:  #177-D: variable "elevation_a_laser" was declared but never referenced
+lighthouse.c(243): warning:  #177-D: variable "elevation_a_laser" was declared but never referenced
   	static unsigned int elevation_a_laser;
-lighthouse.c(217): warning:  #177-D: variable "elevation_b_laser" was declared but never referenced
+lighthouse.c(244): warning:  #177-D: variable "elevation_b_laser" was declared but never referenced
   	static unsigned int elevation_b_laser;	
 lighthouse.c: 6 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14040 RO-data=328 RW-data=392 ZI-data=24376  
+Program Size: Code=14084 RO-data=328 RW-data=392 ZI-data=24376  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
@@ -54,7 +54,7 @@ After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>
