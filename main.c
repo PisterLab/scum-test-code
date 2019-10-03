@@ -220,17 +220,10 @@ int main(void) {
 		last_gpio = current_gpio;
 		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;
 		
-		//if(state != nextstate) printf("%d\n",state);
-				
-		// Update to next FSM state
-		state = nextstate;
-		
 		// Detect rising edge
 		if(last_gpio == 0 && current_gpio == 1){
 						
-			// Reset RF Timer count register at rising edge of first sync pulse
-			//if(state == 0) RFTIMER_REG__COUNTER = 0x0;
-			
+
 			// Save when this event happened
 			timestamp_rise = RFTIMER_REG__COUNTER;
 			
@@ -243,12 +236,11 @@ int main(void) {
 			timestamp_fall = RFTIMER_REG__COUNTER;
 			
 			// Calculate how wide this pulse was
-			//pulse_width = timestamp_fall - timestamp_rise;
 			pulse_width = timestamp_fall - timestamp_rise;
 				
 			//*** 1. classify pulse based on fall and rise time *** 
 			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
-			//printf("Pulse type: %d\n",(int)pulse_type);
+			printf("Pulse type: %d\n",(int)pulse_type);
 			
 
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***

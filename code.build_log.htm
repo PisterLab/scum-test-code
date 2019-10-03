@@ -27,9 +27,51 @@ Project File Date:  09/25/2019
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
+compiling lighthouse.c...
+lighthouse.c(100): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
+  	static unsigned int elevation_unknown_sync;
+lighthouse.c(242): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
+  	static unsigned int azimuth_unknown_sync; 
+lighthouse.c(249): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
+  	static unsigned int elevation_a_sync;
+lighthouse.c(250): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
+  	static unsigned int elevation_b_sync;
+lighthouse.c(252): warning:  #177-D: variable "elevation_a_laser" was declared but never referenced
+  	static unsigned int elevation_a_laser;
+lighthouse.c(253): warning:  #177-D: variable "elevation_b_laser" was declared but never referenced
+  	static unsigned int elevation_b_laser;	
+lighthouse.c: 6 warnings, 0 errors
+compiling main.c...
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+Int_Handlers.h(212): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+Int_Handlers.h(590): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+main.c(82): warning:  #177-D: variable "t" was declared but never referenced
+  	int t,t2;
+main.c(82): warning:  #177-D: variable "t2" was declared but never referenced
+  	int t,t2;
+main.c(85): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(85): warning:  #177-D: variable "rdata_msb" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(85): warning:  #177-D: variable "count_LC" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(85): warning:  #177-D: variable "count_32k" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(85): warning:  #177-D: variable "count_2M" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c: 11 warnings, 0 errors
+linking...
+.\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
+Program Size: Code=14228 RO-data=328 RW-data=392 ZI-data=24376  
+Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 0 Warning(s).
+".\code.axf" - 0 Error(s), 18 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
