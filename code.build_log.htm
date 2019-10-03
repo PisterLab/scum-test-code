@@ -30,8 +30,6 @@ Build target 'Target 1'
 compiling lighthouse.c...
 lighthouse.h(16): warning:  #1-D: last line of file ends without a newline
   gpio_tran_t debounce_gpio(unsigned short gpio);
-lighthouse.c(95): warning:  #224-D: the format string requires additional arguments
-  			printf("quotient: %d, count %d, average: %d\n",count,avg);
 lighthouse.c(172): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
   	static unsigned int elevation_unknown_sync;
 lighthouse.c(314): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
@@ -44,21 +42,21 @@ lighthouse.c(324): warning:  #177-D: variable "elevation_a_laser" was declared b
   	static unsigned int elevation_a_laser;
 lighthouse.c(325): warning:  #177-D: variable "elevation_b_laser" was declared but never referenced
   	static unsigned int elevation_b_laser;	
-lighthouse.c: 8 warnings, 0 errors
+lighthouse.c: 7 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14528 RO-data=328 RW-data=408 ZI-data=24376  
+Program Size: Code=14544 RO-data=328 RW-data=408 ZI-data=24376  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 9 Warning(s).
+".\code.axf" - 0 Error(s), 8 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>
