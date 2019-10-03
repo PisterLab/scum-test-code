@@ -6,6 +6,7 @@
 #include <math.h>
 #include "scum_radio_bsp.h"
 #include "lighthouse.h"
+#include "Memory_map.h"
 
 extern char send_packet[127];
 
@@ -39,6 +40,72 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 
 	return pulse_type;
 }
+
+
+//This function takes the current gpio state as input returns a debounced version of
+//of the current gpio state. It keeps track of the previous gpio states in order to add
+//hysteresis to the system. The return value includes the current gpio state and the time
+//that the first transition ocurred, which should help glitches from disrupting legitamate
+//pulses. 
+gpio_tran_t debounce_gpio(unsigned short gpio){
+	//keep track of number of times this gpio state has been measured since most recent transistion
+	static int count;
+	static gpio_tran_t deb_gpio; //current debounced state
+	
+	static unsigned int tran_time;
+	static unsigned short target_state;
+	// two states: debouncing and not debouncing
+	static enum state{NOT_DEBOUNCING = 0,DEBOUNCING = 1} state;
+	
+	unsigned int avg = 0;
+	
+	switch(state){
+		
+		
+		case NOT_DEBOUNCING: {
+			//if not debouncing, compare current gpio state to previous debounced gpio state
+			if(gpio != deb_gpio.gpio){
+				//if different, initiate debounce procedure
+				state = DEBOUNCING;
+				target_state = gpio;
+				//record start time of this transition
+				tran_time = RFTIMER_REG__COUNTER;
+				//increment counter for averaging
+				count++;
+			}
+			//otherwise just break without changing curr_state
+			break;
+		}
+		case DEBOUNCING: {
+	//if debouncing, compare current gpio state to target transition state
+			if(gpio == target_state){
+				//if same as target transition state, increment counter 
+				count++;
+			}
+			else{
+				//if different from target transition state, decrement counter
+				count--;
+			}
+			//compute average signal assuming 3 measurements of prev state
+			//average = (n*current state +  count*target state) /(n+count)                                    
+			avg = 255*(DEB_N*deb_gpio.gpio + count*target_state)/(DEB_N + count); //255 comes from mapping 0-1 to 0-255
+			
+		//if average is within a threshold of target state, transition state and return current state and initial tran time
+			if(abs(255*(int)target_state - (int)avg)<255/2){
+				deb_gpio.timestamp_tran = tran_time;
+				deb_gpio.gpio = target_state;
+				state=NOT_DEBOUNCING;
+				
+			}
+			break;
+		}
+	}
+	
+	
+	return deb_gpio;
+}
+
+
 
 //keeps track of the current state and will print out pulse train information when it's done.
 void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise){

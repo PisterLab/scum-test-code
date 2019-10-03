@@ -81,7 +81,7 @@ unsigned int pulse_width_data[1000];
 int main(void) {
 	int t,t2;
 	unsigned int calc_crc;
-
+	gpio_tran_t debounced_gpio;
 	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
 	
 	printf("Initializing...");
@@ -209,7 +209,7 @@ int main(void) {
 	// Number of data points to gather before printing
 	target_num_data_points = 120;
 	
-		
+
 	// Loop forever looking for pulses
 	// If this gets interrupted every once in awhile by an ISR, it should still work (untested)
 	// but you will likely miss some lighthouse pulses.
@@ -219,7 +219,8 @@ int main(void) {
 		// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems
 		last_gpio = current_gpio;
 		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;
-		
+		debounced_gpio = debounce_gpio(current_gpio);
+		current_gpio = debounced_gpio.gpio;
 		// Detect rising edge
 		if(last_gpio == 0 && current_gpio == 1){
 						
@@ -231,6 +232,8 @@ int main(void) {
 				
 		// Detect falling edge
 		else if(last_gpio == 1 && current_gpio == 0){
+			
+
 			pulse_type_t pulse_type;
 			// Save when this event happened
 			timestamp_fall = RFTIMER_REG__COUNTER;
