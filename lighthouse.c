@@ -119,7 +119,7 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 				if(pulse_type == EL){
 					elevation_a_sync = timestamp_rise;
 					nextstate = 1;
-					//printf("state transition: %d to %d\n",state,nextstate);
+
 				}
 				else{
 					//go to elevation b state
@@ -127,8 +127,12 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 					//printf("state transition: %d to %d\n",state,nextstate);
 				}
 			}
-			else
+			else{
+				if(DEBUG_STATE){
+					printf("el state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+				}
 				nextstate = 0;
+			}
 			
 			break;
 		}
@@ -138,12 +142,13 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 			if(pulse_type == EL_SKIP) {
 				
 				nextstate = 3;
-				//printf("state transition: %d to %d\n",state,nextstate);
-			}
-			else
+			}	
+			else{
 				nextstate = 0;
-			//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+				if(DEBUG_STATE){
+					printf("el state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+				}
+			}
 			break;
 		}
 		
@@ -163,7 +168,7 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 			break;
 		}
 	
-		// Azimuth A laser sweep
+		// Elevation A laser sweep
 		case 3: {
 			if(pulse_type == LASER) {
 				//lighthouse a laser
@@ -177,7 +182,9 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 			}
 			else{
 				nextstate = 0;
-				//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+				if(DEBUG_STATE){
+					printf("el state fail. State: %d, Pulse Type: %d \n",state,pulse_type);
+				}
 			}
 			break;
 		}
@@ -216,7 +223,9 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 			}
 			else{
 				nextstate = 0;
-				//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
+				if(DEBUG_STATE){
+					printf("el state fail. State: %d, Pulse Type: %d \n",state,pulse_type);
+				}
 			}
 			break;
 		}		

@@ -1,4 +1,5 @@
 typedef enum pulse_type_t{AZ=0,AZ_SKIP=1,EL=2,EL_SKIP=3,LASER=4,INVALID = 5} pulse_type_t;
+#define DEBUG_STATE 1
 
 //functions
 pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_fall);
