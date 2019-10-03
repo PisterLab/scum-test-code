@@ -101,6 +101,9 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 				deb_gpio.gpio = target_state;
 				state=NOT_DEBOUNCING;
 				
+			}else if(count == 0){
+				count = 0;
+				state = NOT_DEBOUNCING;
 			}
 			break;
 		}
