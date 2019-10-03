@@ -100,6 +100,7 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 				deb_gpio.timestamp_tran = tran_time;
 				deb_gpio.gpio = target_state;
 				state=NOT_DEBOUNCING;
+				count = 0;
 				
 			}else if(count == 0){
 				count = 0;
