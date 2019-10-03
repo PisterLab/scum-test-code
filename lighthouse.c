@@ -92,6 +92,9 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 			
 		//if average is within a threshold of target state, transition state and return current state and initial tran time
 			if(abs(255*(int)target_state - (int)avg)<255/2){
+				#ifdef DEBUG_STATE
+				printf("average: %d\n",avg);
+				#endif
 				deb_gpio.timestamp_tran = tran_time;
 				deb_gpio.gpio = target_state;
 				state=NOT_DEBOUNCING;

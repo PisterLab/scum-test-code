@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Thu Oct 03 16:16:33 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Thu Oct 03 16:20:05 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -752,8 +752,9 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[50]"></a>debounce_gpio</STRONG> (Thumb, 184 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<P><STRONG><a name="[50]"></a>debounce_gpio</STRONG> (Thumb, 192 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_idivmod
+<LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -776,7 +777,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
 </UL>
 
-<P><STRONG><a name="[52]"></a>update_state</STRONG> (Thumb, 384 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<P><STRONG><a name="[52]"></a>update_state</STRONG> (Thumb, 400 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
 </UL>
@@ -796,6 +797,7 @@ Global Symbols
 <LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sram_test
 <LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_exit
+<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debounce_gpio
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_ISR
 <LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RF_ISR
