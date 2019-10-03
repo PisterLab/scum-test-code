@@ -2992,9 +2992,9 @@
         0x00002db0:    e000e100    ....    AND      lr,r0,r0,LSL #2
         0x00002db4:    4602b510    ...F    DCI      0x4602b510 ; ? Undefined
         0x00002db8:    1a99460b    .F..    BNE      0xfe6545ec ; 0xfe6545ec
-        0x00002dbc:    24ff2005    . .$    LDRBCS   r2,[pc,#5] ; ?   ; [0x2dc9] = 0xd9
-        0x00002dc0:    42a1342d    -4.B    ADCMI    r3,r1,#0x2d000000
-        0x00002dc4:    2932d202    ..2)    LDMDBCS  r2!,{r1,r9,r12,lr,pc}
+        0x00002dbc:    244b2005    . K$    STRBCS   r2,[r11],#-5
+        0x00002dc0:    42a100e4    ...B    ADCMI    r0,r1,#0xe4
+        0x00002dc4:    2950d202    ..P)    LDMDBCS  r0,{r1,r9,r12,lr,pc}^
         0x00002dc8:    2004d900    ...     ANDCS    sp,r4,r0,LSL #18
         0x00002dcc:    42a14cf3    .L.B    ADCMI    r4,r1,#0xf300
         0x00002dd0:    4cf2d204    ...L    LDCLMI   p2,c13,[r2],#0x10

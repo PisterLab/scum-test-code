@@ -25,7 +25,7 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 
 	// Identify what kind of pulse this was
 
-	if(pulse_width < 300 && pulse_width > 50) pulse_type = LASER; // Laser sweep (THIS NEEDS TUNING)
+	if(pulse_width < 600 && pulse_width > 80) pulse_type = LASER; // Laser sweep (THIS NEEDS TUNING)
 	if(pulse_width < 665 && pulse_width > 585) pulse_type = AZ; // Azimuth sync, data=0, skip = 0
 	if(pulse_width >= 689 && pulse_width < 769) pulse_type = EL; // Elevation sync, data=0, skip = 0
 	if(pulse_width >= 793 && pulse_width < 873) pulse_type = AZ; // Azimuth sync, data=1, skip = 0
