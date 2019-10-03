@@ -3063,12 +3063,12 @@
         0x00002ecc:    1e406800    .h@.    CDPNE    p8,#0x4,c6,c0,c0,#0
         0x00002ed0:    600849c8    .I.`    ANDVS    r4,r8,r8,ASR #19
         0x00002ed4:    88124ac4    .J..    LDMDAHI  r2,{r2,r6,r7,r9,r11,lr}
-        0x00002ed8:    4ac60053    S..J    BMI      0xff18302c ; 0xff18302c
+        0x00002ed8:    4ac60093    ...J    BMI      0xff18312c ; 0xff18312c
         0x00002edc:    4fc36812    .h.O    SVCMI    #0xc36812 ; formerly SWI
         0x00002ee0:    437a883f    ?.zC    CMNMI    r10,#0x3f0000 ; ?  
         0x00002ee4:    0213189a    ....    ANDSEQ   r1,r3,#0x9a0000
         0x00002ee8:    4ac21a98    ...J    BMI      0xff089950 ; 0xff089950
-        0x00002eec:    1c916812    .h..    LDCNE    p8,c6,[r1],{0x12}
+        0x00002eec:    1d116812    .h..    LDCNE    p8,c6,[r1,#-0x48]
         0x00002ef0:    fb4cf000    ..L.    BLX      0x133eefa ; 0x133eefa
         0x00002ef4:    49bd4605    .F.I    LDMIBMI  sp!,{r0,r2,r9,r10,lr}
         0x00002ef8:    020a8809    ....    ANDEQ    r8,r10,#0x90000
