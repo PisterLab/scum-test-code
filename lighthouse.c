@@ -55,7 +55,7 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 	static unsigned int tran_time;
 	static unsigned short target_state;
 	// two states: debouncing and not debouncing
-	static enum state{NOT_DEBOUNCING = 0,DEBOUNCING = 1} state;
+	static enum state{NOT_DEBOUNCING = 0,DEBOUNCING = 1} state = NOT_DEBOUNCING;
 	
 	unsigned int avg = 0;
 	
@@ -72,6 +72,8 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 				tran_time = RFTIMER_REG__COUNTER;
 				//increment counter for averaging
 				count++;
+			}else{
+				deb_gpio.gpio = gpio;
 			}
 			//otherwise just break without changing curr_state
 			break;
@@ -90,7 +92,7 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 			//average = (n*current state +  count*target state) /(n+count)                                    
 			avg = 255*(DEB_N*deb_gpio.gpio + count*target_state)/(DEB_N + count); //255 comes from mapping 0-1 to 0-255
 			#ifdef DEBUG_STATE
-				printf("average: %d\n",avg);
+			printf("quotient: %d, count %d, average: %d\n",count,avg);
 			#endif
 		//if average is within a threshold of target state, transition state and return current state and initial tran time
 			if(abs(255*(int)target_state - (int)avg)<255/2){
