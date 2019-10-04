@@ -219,14 +219,14 @@ int main(void) {
 		// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems
 		last_gpio = current_gpio;
 		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;
-		debounced_gpio = debounce_gpio(current_gpio);
-		current_gpio = debounced_gpio.gpio;
+		//debounced_gpio = debounce_gpio(current_gpio);
+		//current_gpio = debounced_gpio.gpio;
 		// Detect rising edge
 		if(last_gpio == 0 && current_gpio == 1){
 						
 
 			// Save when this event happened
-			timestamp_rise = debounced_gpio.timestamp_tran;
+			timestamp_rise = RFTIMER_REG__COUNTER;
 			
 		}
 				
@@ -236,7 +236,7 @@ int main(void) {
 
 			pulse_type_t pulse_type;
 			// Save when this event happened
-			timestamp_fall = debounced_gpio.timestamp_tran;
+			timestamp_fall = RFTIMER_REG__COUNTER;
 			
 			// Calculate how wide this pulse was
 			pulse_width = timestamp_fall - timestamp_rise;
