@@ -228,7 +228,7 @@ int main(void) {
 						
 
 			// Save when this event happened
-			timestamp_rise = debounced_gpio.timestamp_tran;
+			timestamp_rise = RFTIMER_REG__COUNTER;
 			
 		}
 				
@@ -238,7 +238,7 @@ int main(void) {
 
 			pulse_type_t pulse_type;
 			// Save when this event happened
-			timestamp_fall = debounced_gpio.timestamp_tran;
+			timestamp_fall = RFTIMER_REG__COUNTER;
 			
 			// Calculate how wide this pulse was
 			pulse_width = timestamp_fall - timestamp_rise;
