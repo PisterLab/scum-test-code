@@ -26,7 +26,7 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 
 	// Identify what kind of pulse this was
 
-	if(pulse_width < 600 && pulse_width > 100) pulse_type = LASER; // Laser sweep (THIS NEEDS TUNING)
+	if(pulse_width < 500 && pulse_width > 100) pulse_type = LASER; // Laser sweep (THIS NEEDS TUNING)
 	if(pulse_width < 665 && pulse_width > 585) pulse_type = AZ; // Azimuth sync, data=0, skip = 0
 	if(pulse_width >= 689 && pulse_width < 769) pulse_type = EL; // Elevation sync, data=0, skip = 0
 	if(pulse_width >= 793 && pulse_width < 873) pulse_type = AZ; // Azimuth sync, data=1, skip = 0
@@ -46,7 +46,7 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 //of the current gpio state. It keeps track of the previous gpio states in order to add
 //hysteresis to the system. The return value includes the current gpio state and the time
 //that the first transition ocurred, which should help glitches from disrupting legitamate
-//pulses. 
+//pulses. This is called 
 gpio_tran_t debounce_gpio(unsigned short gpio){
 	//keep track of number of times this gpio state has been measured since most recent transistion
 	static int count;
@@ -56,8 +56,6 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 	static unsigned short target_state;
 	// two states: debouncing and not debouncing
 	static enum state{NOT_DEBOUNCING = 0,DEBOUNCING = 1} state = NOT_DEBOUNCING;
-	
-	unsigned int avg = 0;
 	
 	switch(state){
 		
@@ -73,8 +71,6 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 
 				//increment counter for averaging
 				count++;
-			}else{
-				deb_gpio.gpio = gpio;
 			}
 			//otherwise just break without changing curr_state
 			break;
@@ -109,6 +105,7 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 	
 	return deb_gpio;
 }
+
 
 
 
@@ -317,12 +314,6 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 
 	static unsigned int azimuth_a_laser;
 	static unsigned int azimuth_b_laser;
-
-	static unsigned int elevation_a_sync;
-	static unsigned int elevation_b_sync;
-
-	static unsigned int elevation_a_laser;
-	static unsigned int elevation_b_laser;	
 
 	static int state = 0;
 	
