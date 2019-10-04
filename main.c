@@ -249,7 +249,7 @@ int main(void) {
 			//printf("time: %d \n",RFTIMER_REG__COUNTER);
 
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
-			update_state(pulse_type,timestamp_rise);
+			//update_state(pulse_type,timestamp_rise);
 
 		}
 	}
