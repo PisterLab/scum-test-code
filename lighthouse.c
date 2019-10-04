@@ -26,15 +26,15 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 
 	// Identify what kind of pulse this was
 
-	if(pulse_width < 585 && pulse_width > 100) pulse_type = LASER; // Laser sweep (THIS NEEDS TUNING)
-	if(pulse_width < 665 && pulse_width > 585) pulse_type = AZ; // Azimuth sync, data=0, skip = 0
-	if(pulse_width >= 665 && pulse_width < 769) pulse_type = EL; // Elevation sync, data=0, skip = 0
-	if(pulse_width >= 769 && pulse_width < 873) pulse_type = AZ; // Azimuth sync, data=1, skip = 0
-	if(pulse_width >= 873 && pulse_width < 978) pulse_type = EL; // Elevation sync, data=1, skip = 0
-	if(pulse_width >= 978 && pulse_width < 1080) pulse_type = AZ_SKIP; //Azimuth sync, data=0, skip = 1
-	if(pulse_width >= 1080 && pulse_width < 1200) pulse_type = EL_SKIP; //elevation sync, data=0, skip = 1
-	if(pulse_width >= 1200 && pulse_width < 1300) pulse_type = AZ_SKIP; //Azimuth sync, data=1, skip = 1
-	if(pulse_width >= 1300 && pulse_width < 1400) pulse_type = EL_SKIP; //Elevation sync, data=1, skip = 1
+	if(pulse_width < 585 + WIDTH_BIAS && pulse_width > 100 + WIDTH_BIAS) pulse_type = LASER; // Laser sweep (THIS NEEDS TUNING)
+	if(pulse_width < 675 + WIDTH_BIAS && pulse_width > 585 + WIDTH_BIAS) pulse_type = AZ; // Azimuth sync, data=0, skip = 0
+	if(pulse_width >= 675 + WIDTH_BIAS && pulse_width < 781 + WIDTH_BIAS) pulse_type = EL; // Elevation sync, data=0, skip = 0
+	if(pulse_width >= 781 + WIDTH_BIAS && pulse_width < 885 + WIDTH_BIAS) pulse_type = AZ; // Azimuth sync, data=1, skip = 0
+	if(pulse_width >= 885 + WIDTH_BIAS && pulse_width < 989 + WIDTH_BIAS) pulse_type = EL; // Elevation sync, data=1, skip = 0
+	if(pulse_width >= 989 + WIDTH_BIAS && pulse_width < 1083 + WIDTH_BIAS) pulse_type = AZ_SKIP; //Azimuth sync, data=0, skip = 1
+	if(pulse_width >= 1083 + WIDTH_BIAS && pulse_width < 1200 + WIDTH_BIAS) pulse_type = EL_SKIP; //elevation sync, data=0, skip = 1
+	if(pulse_width >= 1200 + WIDTH_BIAS && pulse_width < 1300 + WIDTH_BIAS) pulse_type = AZ_SKIP; //Azimuth sync, data=1, skip = 1
+	if(pulse_width >= 1300 + WIDTH_BIAS && pulse_width < 1400 + WIDTH_BIAS) pulse_type = EL_SKIP; //Elevation sync, data=1, skip = 1
 
 	
 

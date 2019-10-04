@@ -6,6 +6,7 @@ typedef struct gpio_tran_t {
 }gpio_tran_t;
 #define DEBUG_STATE 0
 #define DEB_THRESH 2
+#define WIDTH_BIAS 10
 //functions
 pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_fall);
 void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise);
