@@ -14,7 +14,6 @@
 #include "bucket_o_functions.h"
 #include <math.h>
 #include "scum_radio_bsp.h"
-#include "lighthouse.h"
 
 extern unsigned int current_lfsr;
 
@@ -63,16 +62,13 @@ unsigned short do_debug_print = 0;
 
 // Variables for lighthouse RX
 unsigned short current_gpio = 0, last_gpio = 0, state = 0, nextstate = 0, pulse_type = 0;
-
+unsigned int timestamp_rise, timestamp_fall, pulse_width;
 //unsigned int azimuth_delta, elevation_delta;
 unsigned int azimuth_t1, elevation_t1, azimuth_t2, elevation_t2;
 unsigned short num_data_points = 0, target_num_data_points;
 unsigned int azimuth_t1_data[1000], elevation_t1_data[1000], azimuth_t2_data[1000], elevation_t2_data[1000];
 
 unsigned int pulse_width_data[1000];
-
-
-
 
 //////////////////////////////////////////////////////////////////
 // Main Function
@@ -81,10 +77,9 @@ unsigned int pulse_width_data[1000];
 int main(void) {
 	int t,t2;
 	unsigned int calc_crc;
-	gpio_tran_t debounced_gpio;
+
 	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
 	
-	unsigned int timestamp_rise, timestamp_fall, pulse_width;
 	printf("Initializing...");
 		
 	// Set up mote configuration
@@ -210,23 +205,28 @@ int main(void) {
 	// Number of data points to gather before printing
 	target_num_data_points = 120;
 	
-
+		
 	// Loop forever looking for pulses
 	// If this gets interrupted every once in awhile by an ISR, it should still work (untested)
 	// but you will likely miss some lighthouse pulses.
-	
 	while(1) {	
 		
 		// Read GPIO<3> (optical_data_raw - this is the digital output of the optical receiver)
 		// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems
 		last_gpio = current_gpio;
 		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;
-		//debounced_gpio = debounce_gpio(current_gpio);
-	  //current_gpio = debounced_gpio.gpio;
+		
+		//if(state != nextstate) printf("%d\n",state);
+				
+		// Update to next FSM state
+		state = nextstate;
+		
 		// Detect rising edge
 		if(last_gpio == 0 && current_gpio == 1){
 						
-
+			// Reset RF Timer count register at rising edge of first sync pulse
+			//if(state == 0) RFTIMER_REG__COUNTER = 0x0;
+			
 			// Save when this event happened
 			timestamp_rise = RFTIMER_REG__COUNTER;
 			
@@ -235,22 +235,113 @@ int main(void) {
 		// Detect falling edge
 		else if(last_gpio == 1 && current_gpio == 0){
 			
-
-			pulse_type_t pulse_type;
 			// Save when this event happened
 			timestamp_fall = RFTIMER_REG__COUNTER;
 			
 			// Calculate how wide this pulse was
+			//pulse_width = timestamp_fall - timestamp_rise;
 			pulse_width = timestamp_fall - timestamp_rise;
+			printf("Pulse Width: %d",pulse_width);
+		
+			// Need to determine what kind of pulse this was
+			// Laser sweep pulses will have widths of only a few us
+			// Sync pulses have a width corresponding to
+			// 62.5 us - azimuth   - data=0 (625 ticks of 10MHz clock)
+			// 72.9 us - elevation - data=0 (729 ticks)
+			// 83.3 us - azimuth   - data=1 (833 ticks)
+			// 93.8 us - elevation - data=0 (938 ticks)
+			// A second lighthouse can be distinguished by differences in these pulse widths
+			
+			// Identify what kind of pulse this was
+			pulse_type = 0; // re-init to zero
+			if(pulse_width < 665 && pulse_width > 585) pulse_type = 1; // Azimuth sync, data=0
+			if(pulse_width >= 689 && pulse_width < 769) pulse_type = 2; // Elevation sync, data=0
+			if(pulse_width >= 793 && pulse_width < 873) pulse_type = 3; // Azimuth sync, data=1
+			if(pulse_width >= 898 && pulse_width < 978) pulse_type = 4; // Elevation sync, data=1
+			if(pulse_width < 300) pulse_type = 5; // Laser sweep
+			
+			// FSM which searches for the four pulse sequence
+			// An output will only be printed if four pulses are found and the sync pulse widths
+			// are within the bounds listed above.
+			switch(state)
+			{
+				// Search for azimuth sync pulse
+				case 0: {
+					if(pulse_type == 1 || pulse_type == 3) {
+							azimuth_t1 = timestamp_rise;
+							nextstate = 1;
+					}
+					else
+						nextstate = 0;
+					
+					break;
+				}
 				
-			//*** 1. classify pulse based on fall and rise time *** 
-			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
-			printf("Pulse type and width:%i, %i\n",pulse_type,pulse_width);
-			//printf("time: %d \n",RFTIMER_REG__COUNTER);
-
-			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
-			//update_state(pulse_type,timestamp_rise);
-
+				// Wait for azimuth laser sweep
+				case 1: {
+					if(pulse_type == 5) {
+						azimuth_t2 = timestamp_rise;
+						nextstate = 2;
+					}
+					else
+						nextstate = 0;
+					
+					break;
+				}
+				
+				// Elevation sync pulse
+				case 2: {
+					if(pulse_type == 2 || pulse_type == 4) {
+						elevation_t1 = timestamp_rise;
+						nextstate = 3;
+					}
+					else
+						nextstate = 0;
+					
+					break;
+				}
+				
+				// Elevation laser sweep
+				case 3:{
+					if(pulse_type == 5) {
+						elevation_t2 = timestamp_rise;
+						nextstate = 4;
+					}
+					else
+						nextstate = 0;
+					
+					break;
+				}	
+				
+				// If make it to state 4, then have seen sync-sweep-sync-sweep
+				// Want to make sure that we then see another azimuth sync pulse before printing
+				// This should ensure we only see the correct elevation sweep pulse and eliminate glitch printouts
+				case 4:{
+					
+					// Found another azimuth sync pulse
+					if(pulse_type == 1 || pulse_type == 3) {
+ 						
+						// Have found all four valid pulses; output data over UART					
+						printf("a-%X-%X\n", azimuth_t1, azimuth_t2);  
+						printf("e-%X-%X\n", elevation_t1,elevation_t2);
+						
+						// Reset variables
+						azimuth_t2 = 0;
+						elevation_t1 = 0;
+						elevation_t2 = 0;
+						
+						// Proceed to looking for azimuth sweep pulse
+						azimuth_t1 = timestamp_rise;
+						nextstate = 1;
+					}
+					
+					// Found an invalid pulse, start over
+					else
+						nextstate = 0;
+					
+					break;
+				}
+			}
 		}
 	}
 }

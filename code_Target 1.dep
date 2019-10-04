@@ -1,7 +1,7 @@
 Dependencies for Project 'code', Target 'Target 1': (DO NOT MODIFY !)
 F (cm0dsasm.s)(0x5D97CA96)(--cpu Cortex-M0 --16 --apcs=interwork -I C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include--pd "__UVISION_VERSION SETA 520" --pd "ARMCM0 SETA 1"--list .\cm0dsasm.lst --xref -o .\cm0dsasm.o --depend .\cm0dsasm.d)
 F (Int_Handlers.h)(0x5D97C8B3)()
-F (main.c)(0x5D97DB78)(-c --cpu Cortex-M0 -O0 --apcs=interwork -I C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include-D__UVISION_VERSION="520" -DARMCM0-o .\main.o --omf_browse .\main.crf --depend .\main.d)
+F (main.c)(0x5D97DCC0)(-c --cpu Cortex-M0 -O0 --apcs=interwork -I C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include-D__UVISION_VERSION="520" -DARMCM0-o .\main.o --omf_browse .\main.crf --depend .\main.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x56FF15CE)
 I (C:\Keil_v5\ARM\ARMCC\include\time.h)(0x56FF15C6)
 I (C:\Keil_v5\ARM\ARMCC\include\rt_misc.h)(0x56FF15C4)
@@ -16,7 +16,6 @@ I (scm3_hardware_interface.h)(0x5D97CA96)
 I (scum_radio_bsp.h)(0x5D97CA96)
 I (bucket_o_functions.h)(0x5D97CA96)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x56FF15C6)
-I (lighthouse.h)(0x5D97D90C)
 F (Memory_Map.h)(0x5D97CA96)()
 F (retarget.c)(0x5D97CA96)(-c --cpu Cortex-M0 -O0 --apcs=interwork -I C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include-D__UVISION_VERSION="520" -DARMCM0-o .\retarget.o --omf_browse .\retarget.crf --depend .\retarget.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x56FF15CE)
