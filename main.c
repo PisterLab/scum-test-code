@@ -243,7 +243,7 @@ int main(void) {
 				
 			//*** 1. classify pulse based on fall and rise time *** 
 			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
-			printf("Pulse type: %d\n",(int)pulse_type);
+			//printf("Pulse type: %d\n",(int)pulse_type);
 			
 
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***

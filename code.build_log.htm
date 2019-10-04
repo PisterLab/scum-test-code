@@ -30,17 +30,17 @@ Build target 'Target 1'
 compiling lighthouse.c...
 lighthouse.h(16): warning:  #1-D: last line of file ends without a newline
   gpio_tran_t debounce_gpio(unsigned short gpio);
-lighthouse.c(176): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
+lighthouse.c(177): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
   	static unsigned int elevation_unknown_sync;
-lighthouse.c(318): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
+lighthouse.c(319): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
   	static unsigned int azimuth_unknown_sync; 
-lighthouse.c(325): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
+lighthouse.c(326): warning:  #177-D: variable "elevation_a_sync" was declared but never referenced
   	static unsigned int elevation_a_sync;
-lighthouse.c(326): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
+lighthouse.c(327): warning:  #177-D: variable "elevation_b_sync" was declared but never referenced
   	static unsigned int elevation_b_sync;
-lighthouse.c(328): warning:  #177-D: variable "elevation_a_laser" was declared but never referenced
+lighthouse.c(329): warning:  #177-D: variable "elevation_a_laser" was declared but never referenced
   	static unsigned int elevation_a_laser;
-lighthouse.c(329): warning:  #177-D: variable "elevation_b_laser" was declared but never referenced
+lighthouse.c(330): warning:  #177-D: variable "elevation_b_laser" was declared but never referenced
   	static unsigned int elevation_b_laser;	
 lighthouse.c: 7 warnings, 0 errors
 compiling main.c...
@@ -71,7 +71,7 @@ main.c(85): warning:  #177-D: variable "count_2M" was declared but never referen
 main.c: 12 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14340 RO-data=328 RW-data=408 ZI-data=24376  
+Program Size: Code=14324 RO-data=328 RW-data=408 ZI-data=24376  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt

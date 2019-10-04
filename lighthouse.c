@@ -65,11 +65,12 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 		case NOT_DEBOUNCING: {
 			//if not debouncing, compare current gpio state to previous debounced gpio state
 			if(gpio != deb_gpio.gpio){
+				//record start time of this transition
+				tran_time = RFTIMER_REG__COUNTER;
 				//if different, initiate debounce procedure
 				state = DEBOUNCING;
 				target_state = gpio;
-				//record start time of this transition
-				tran_time = RFTIMER_REG__COUNTER;
+
 				//increment counter for averaging
 				count++;
 			}else{
