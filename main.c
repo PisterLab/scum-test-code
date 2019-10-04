@@ -63,7 +63,7 @@ unsigned short do_debug_print = 0;
 
 // Variables for lighthouse RX
 unsigned short current_gpio = 0, last_gpio = 0, state = 0, nextstate = 0, pulse_type = 0;
-unsigned int timestamp_rise, timestamp_fall, pulse_width;
+
 //unsigned int azimuth_delta, elevation_delta;
 unsigned int azimuth_t1, elevation_t1, azimuth_t2, elevation_t2;
 unsigned short num_data_points = 0, target_num_data_points;
@@ -84,6 +84,7 @@ int main(void) {
 	gpio_tran_t debounced_gpio;
 	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
 	
+	unsigned int timestamp_rise, timestamp_fall, pulse_width;
 	printf("Initializing...");
 		
 	// Set up mote configuration
@@ -213,6 +214,7 @@ int main(void) {
 	// Loop forever looking for pulses
 	// If this gets interrupted every once in awhile by an ISR, it should still work (untested)
 	// but you will likely miss some lighthouse pulses.
+	
 	while(1) {	
 		
 		// Read GPIO<3> (optical_data_raw - this is the digital output of the optical receiver)
@@ -243,7 +245,7 @@ int main(void) {
 				
 			//*** 1. classify pulse based on fall and rise time *** 
 			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
-			printf("Pulse type and width:%d, %d\n",(int)pulse_type,(int)pulse_width);
+			printf("Pulse type and width:%i, %i\n",pulse_type,pulse_width);
 			printf("time: %d \n",RFTIMER_REG__COUNTER);
 
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
