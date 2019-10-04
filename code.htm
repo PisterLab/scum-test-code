@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Fri Oct 04 14:00:00 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Fri Oct 04 14:03:25 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -752,10 +752,8 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[50]"></a>debounce_gpio</STRONG> (Thumb, 210 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_idivmod
-</UL>
-<BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<P><STRONG><a name="[50]"></a>debounce_gpio</STRONG> (Thumb, 158 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
 <P><STRONG><a name="[82]"></a>update_state_azimuth</STRONG> (Thumb, 274 bytes, Stack size 0 bytes, lighthouse.o(.text))
@@ -776,7 +774,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
 </UL>
 
-<P><STRONG><a name="[52]"></a>update_state</STRONG> (Thumb, 294 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<P><STRONG><a name="[52]"></a>update_state</STRONG> (Thumb, 292 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
 </UL>
@@ -872,7 +870,6 @@ Global Symbols
 
 <P><STRONG><a name="[77]"></a>__aeabi_idivmod</STRONG> (Thumb, 326 bytes, Stack size 0 bytes, aeabi_sdiv.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[40]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_frequency_housekeeping
-<LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debounce_gpio
 <LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
 </UL>
 

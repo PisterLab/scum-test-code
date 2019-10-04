@@ -89,14 +89,9 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 				//if different from target transition state, decrement counter
 				count--;
 			}
-			//compute average signal assuming 3 measurements of prev state
-			//average = (n*current state +  count*target state) /(n+count)                                    
-			avg = 255*(DEB_N*deb_gpio.gpio + count*target_state)/(DEB_N + count); //255 comes from mapping 0-1 to 0-255
-			#ifdef DEBUG_STATE
-			//printf("quotient: %d, count %d, average: %d\n",255*(DEB_N*deb_gpio.gpio + count*target_state),count,avg);
-			#endif
-		//if average is within a threshold of target state, transition state and return current state and initial tran time
-			if(abs(255*(int)target_state - (int)avg)<255/2){
+
+		//if count is high enough
+			if(count>DEB_THRESH){
 
 				deb_gpio.timestamp_tran = tran_time;
 				deb_gpio.gpio = target_state;
