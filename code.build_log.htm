@@ -27,6 +27,14 @@ Project File Date:  10/04/2019
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
+compiling lighthouse.c...
+lighthouse.h(16): warning:  #1-D: last line of file ends without a newline
+  gpio_tran_t debounce_gpio(unsigned short gpio);
+lighthouse.c(169): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
+  	static unsigned int elevation_unknown_sync;
+lighthouse.c(311): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
+  	static unsigned int azimuth_unknown_sync; 
+lighthouse.c: 3 warnings, 0 errors
 compiling main.c...
 scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
   void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
@@ -54,21 +62,23 @@ main.c(85): warning:  #177-D: variable "count_32k" was declared but never refere
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
 main.c(85): warning:  #177-D: variable "count_2M" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c: 13 warnings, 0 errors
+main.c(87): warning:  #550-D: variable "pulse_width" was set but never used
+  	unsigned int timestamp_rise, timestamp_fall, pulse_width;
+main.c: 14 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14248 RO-data=328 RW-data=380 ZI-data=24372  
+Program Size: Code=14196 RO-data=328 RW-data=380 ZI-data=24372  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 14 Warning(s).
+".\code.axf" - 0 Error(s), 18 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>

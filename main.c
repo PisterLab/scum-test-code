@@ -245,11 +245,11 @@ int main(void) {
 				
 			//*** 1. classify pulse based on fall and rise time *** 
 			pulse_type = classify_pulse(timestamp_rise,timestamp_fall);
-			printf("Pulse type and width:%i, %i\n",pulse_type,pulse_width);
+			//printf("Pulse type and width:%i, %i\n",pulse_type,pulse_width);
 			//printf("time: %d \n",RFTIMER_REG__COUNTER);
 
 			//*** 2. update state machine based on pulse type and timestamp rise time of pulse ***
-			//update_state(pulse_type,timestamp_rise);
+			update_state(pulse_type,timestamp_rise);
 
 		}
 	}
