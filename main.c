@@ -216,7 +216,7 @@ int main(void) {
 		// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems
 		last_gpio = current_gpio;
 		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;
-		
+		current_gpio = debounce_gpio(current_gpio).gpio;
 		//if(state != nextstate) printf("%d\n",state);
 				
 		// Update to next FSM state
@@ -242,7 +242,7 @@ int main(void) {
 			// Calculate how wide this pulse was
 			//pulse_width = timestamp_fall - timestamp_rise;
 			pulse_width = timestamp_fall - timestamp_rise;
-			//printf("Pulse Width: %d\n",pulse_width);
+			printf("Pulse Width: %d\n",pulse_width);
 		
 			// Need to determine what kind of pulse this was
 			// Laser sweep pulses will have widths of only a few us
