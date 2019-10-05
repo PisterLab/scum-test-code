@@ -14,6 +14,7 @@
 #include "bucket_o_functions.h"
 #include <math.h>
 #include "scum_radio_bsp.h"
+#include "lighthouse.h"
 
 extern unsigned int current_lfsr;
 
@@ -251,7 +252,7 @@ int main(void) {
 			// 83.3 us - azimuth   - data=1 (833 ticks)
 			// 93.8 us - elevation - data=0 (938 ticks)
 			// A second lighthouse can be distinguished by differences in these pulse widths
-
+			update_state(classify_pulse(timestamp_rise, timestamp_fall),timestamp_rise);
 		}
 	}
 }

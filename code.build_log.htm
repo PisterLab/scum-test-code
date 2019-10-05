@@ -36,30 +36,32 @@ Int_Handlers.h(590): warning:  #177-D: variable "t" was declared but never refer
   	int t;
 scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
   void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
-main.c(257): warning:  #1-D: last line of file ends without a newline
+lighthouse.h(17): warning:  #1-D: last line of file ends without a newline
+  gpio_tran_t debounce_gpio(unsigned short gpio);
+main.c(258): warning:  #1-D: last line of file ends without a newline
   }
-main.c(78): warning:  #177-D: variable "t" was declared but never referenced
+main.c(79): warning:  #177-D: variable "t" was declared but never referenced
   	int t,t2;
-main.c(78): warning:  #177-D: variable "t2" was declared but never referenced
+main.c(79): warning:  #177-D: variable "t2" was declared but never referenced
   	int t,t2;
-main.c(81): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
+main.c(82): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(81): warning:  #177-D: variable "rdata_msb" was declared but never referenced
+main.c(82): warning:  #177-D: variable "rdata_msb" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(81): warning:  #177-D: variable "count_LC" was declared but never referenced
+main.c(82): warning:  #177-D: variable "count_LC" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(81): warning:  #177-D: variable "count_32k" was declared but never referenced
+main.c(82): warning:  #177-D: variable "count_32k" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c(81): warning:  #177-D: variable "count_2M" was declared but never referenced
+main.c(82): warning:  #177-D: variable "count_2M" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
-main.c: 12 warnings, 0 errors
+main.c: 13 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=12940 RO-data=328 RW-data=304 ZI-data=24144  
+Program Size: Code=14280 RO-data=328 RW-data=392 ZI-data=24376  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 13 Warning(s).
+".\code.axf" - 0 Error(s), 14 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
