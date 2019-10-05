@@ -47,7 +47,7 @@ pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_
 //hysteresis to the system. The return value includes the current gpio state and the time
 //that the first transition ocurred, which should help glitches from disrupting legitamate
 //pulses. This is called 
-gpio_tran_t debounce_gpio(unsigned short gpio){
+void debounce_gpio(unsigned short gpio, unsigned short * gpio_out, unsigned int * trans_out){
 	//keep track of number of times this gpio state has been measured since most recent transistion
 	static int count;
 	static gpio_tran_t deb_gpio; //current debounced state
@@ -101,9 +101,10 @@ gpio_tran_t debounce_gpio(unsigned short gpio){
 			break;
 		}
 	}
+	*gpio_out = deb_gpio.gpio;
+	*trans_out = deb_gpio.timestamp_tran;
 	
 	
-	return deb_gpio;
 }
 
 

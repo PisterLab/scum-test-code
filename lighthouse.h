@@ -14,4 +14,4 @@ void azimuth_state(pulse_type_t pulse_type, unsigned int timestamp_rise);
 void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise);
 unsigned int sync_pulse_width_compensate(unsigned int pulse_width);
 void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise);
-gpio_tran_t debounce_gpio(unsigned short gpio);
+void debounce_gpio(unsigned short gpio, unsigned short * deb_gpio, unsigned int * trans_out);
