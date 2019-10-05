@@ -241,7 +241,7 @@ int main(void) {
 			// Calculate how wide this pulse was
 			//pulse_width = timestamp_fall - timestamp_rise;
 			pulse_width = timestamp_fall - timestamp_rise;
-			printf("Pulse Width: %d",pulse_width);
+			printf("Pulse Width: %d\n",pulse_width);
 		
 			// Need to determine what kind of pulse this was
 			// Laser sweep pulses will have widths of only a few us
@@ -251,97 +251,7 @@ int main(void) {
 			// 83.3 us - azimuth   - data=1 (833 ticks)
 			// 93.8 us - elevation - data=0 (938 ticks)
 			// A second lighthouse can be distinguished by differences in these pulse widths
-			
-			// Identify what kind of pulse this was
-			pulse_type = 0; // re-init to zero
-			if(pulse_width < 665 && pulse_width > 585) pulse_type = 1; // Azimuth sync, data=0
-			if(pulse_width >= 689 && pulse_width < 769) pulse_type = 2; // Elevation sync, data=0
-			if(pulse_width >= 793 && pulse_width < 873) pulse_type = 3; // Azimuth sync, data=1
-			if(pulse_width >= 898 && pulse_width < 978) pulse_type = 4; // Elevation sync, data=1
-			if(pulse_width < 300) pulse_type = 5; // Laser sweep
-			
-			// FSM which searches for the four pulse sequence
-			// An output will only be printed if four pulses are found and the sync pulse widths
-			// are within the bounds listed above.
-			switch(state)
-			{
-				// Search for azimuth sync pulse
-				case 0: {
-					if(pulse_type == 1 || pulse_type == 3) {
-							azimuth_t1 = timestamp_rise;
-							nextstate = 1;
-					}
-					else
-						nextstate = 0;
-					
-					break;
-				}
-				
-				// Wait for azimuth laser sweep
-				case 1: {
-					if(pulse_type == 5) {
-						azimuth_t2 = timestamp_rise;
-						nextstate = 2;
-					}
-					else
-						nextstate = 0;
-					
-					break;
-				}
-				
-				// Elevation sync pulse
-				case 2: {
-					if(pulse_type == 2 || pulse_type == 4) {
-						elevation_t1 = timestamp_rise;
-						nextstate = 3;
-					}
-					else
-						nextstate = 0;
-					
-					break;
-				}
-				
-				// Elevation laser sweep
-				case 3:{
-					if(pulse_type == 5) {
-						elevation_t2 = timestamp_rise;
-						nextstate = 4;
-					}
-					else
-						nextstate = 0;
-					
-					break;
-				}	
-				
-				// If make it to state 4, then have seen sync-sweep-sync-sweep
-				// Want to make sure that we then see another azimuth sync pulse before printing
-				// This should ensure we only see the correct elevation sweep pulse and eliminate glitch printouts
-				case 4:{
-					
-					// Found another azimuth sync pulse
-					if(pulse_type == 1 || pulse_type == 3) {
- 						
-						// Have found all four valid pulses; output data over UART					
-						printf("a-%X-%X\n", azimuth_t1, azimuth_t2);  
-						printf("e-%X-%X\n", elevation_t1,elevation_t2);
-						
-						// Reset variables
-						azimuth_t2 = 0;
-						elevation_t1 = 0;
-						elevation_t2 = 0;
-						
-						// Proceed to looking for azimuth sweep pulse
-						azimuth_t1 = timestamp_rise;
-						nextstate = 1;
-					}
-					
-					// Found an invalid pulse, start over
-					else
-						nextstate = 0;
-					
-					break;
-				}
-			}
+
 		}
 	}
 }
