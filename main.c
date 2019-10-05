@@ -216,8 +216,8 @@ int main(void) {
 		// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems
 		last_gpio = current_gpio;
 		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;
-		gp_deb = debounce_gpio(current_gpio);
-		current_gpio = gp_deb.gpio;
+		//gp_deb = debounce_gpio(current_gpio);
+		//current_gpio = gp_deb.gpio;
 		//if(state != nextstate) printf("%d\n",state);
 				
 		// Update to next FSM state
@@ -230,7 +230,7 @@ int main(void) {
 			//if(state == 0) RFTIMER_REG__COUNTER = 0x0;
 			
 			// Save when this event happened
-			timestamp_rise = gp_deb.timestamp_tran;
+			timestamp_rise = RFTIMER_REG__COUNTER;
 			
 		}
 				
@@ -238,7 +238,7 @@ int main(void) {
 		else if(last_gpio == 1 && current_gpio == 0){
 			
 			// Save when this event happened
-			timestamp_fall = gp_deb.timestamp_tran;
+			timestamp_fall = RFTIMER_REG__COUNTER;
 			
 			// Calculate how wide this pulse was
 			//pulse_width = timestamp_fall - timestamp_rise;
