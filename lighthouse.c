@@ -87,7 +87,7 @@ void debounce_gpio(unsigned short gpio, unsigned short * gpio_out, unsigned int 
 			}
 
 		//if count is high enough
-			if(count>DEB_THRESH){
+			if(count>=DEB_THRESH){
 
 				deb_gpio.timestamp_tran = tran_time;
 				deb_gpio.gpio = target_state;
