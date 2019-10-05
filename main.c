@@ -242,7 +242,7 @@ int main(void) {
 			// Calculate how wide this pulse was
 			//pulse_width = timestamp_fall - timestamp_rise;
 			pulse_width = timestamp_fall - timestamp_rise;
-			printf("Pulse Width: %d\n",pulse_width);
+			//printf("Pulse Width: %d\n",pulse_width);
 		
 			// Need to determine what kind of pulse this was
 			// Laser sweep pulses will have widths of only a few us
