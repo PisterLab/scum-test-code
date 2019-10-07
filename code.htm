@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Fri Oct 04 18:08:47 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 07 15:21:42 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -692,21 +692,21 @@ Global Symbols
 <P><STRONG><a name="[80]"></a>setFrequencyTX</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, scum_radio_bsp.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
 </UL>
-<BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 </UL>
 
 <P><STRONG><a name="[45]"></a>radio_loadPacket</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, scum_radio_bsp.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<BR><BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RF_ISR
 </UL>
 
 <P><STRONG><a name="[47]"></a>radio_txEnable</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, scum_radio_bsp.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<BR><BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RFTIMER_ISR
 </UL>
 
 <P><STRONG><a name="[48]"></a>radio_txNow</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, scum_radio_bsp.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<BR><BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RFTIMER_ISR
 </UL>
 
@@ -751,14 +751,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[81]"></a>update_state_azimuth</STRONG> (Thumb, 274 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
-</UL>
-<BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
-</UL>
-
-<P><STRONG><a name="[83]"></a>update_state_elevation</STRONG> (Thumb, 304 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<P><STRONG><a name="[81]"></a>update_state_elevation</STRONG> (Thumb, 304 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setFrequencyTX
@@ -769,14 +762,21 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
 </UL>
 
-<P><STRONG><a name="[51]"></a>update_state</STRONG> (Thumb, 294 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
-<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<P><STRONG><a name="[83]"></a>update_state_azimuth</STRONG> (Thumb, 274 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
+<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+</UL>
+<BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
+</UL>
+
+<P><STRONG><a name="[51]"></a>update_state</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 </UL>
 <BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[84]"></a>sync_pulse_width_compensate</STRONG> (Thumb, 86 bytes, Stack size 0 bytes, lighthouse.o(.text), UNUSED)
+<P><STRONG><a name="[84]"></a>sync_pulse_width_compensate</STRONG> (Thumb, 270 bytes, Stack size 0 bytes, lighthouse.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
 <LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
@@ -785,8 +785,8 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_file
 </UL>
 <BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sync_pulse_width_compensate
-<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
-<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sram_test
 <LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_exit
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -930,8 +930,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[82]"></a>__ARM_common_switch8</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, lighthouse.o(i.__ARM_common_switch8))
-<BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
-<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 </UL>
 <P>
 <H3>

@@ -30,9 +30,9 @@ Build target 'Target 1'
 compiling lighthouse.c...
 lighthouse.h(17): warning:  #1-D: last line of file ends without a newline
   void debounce_gpio(unsigned short gpio, unsigned short * deb_gpio, unsigned int * trans_out);
-lighthouse.c(170): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
+lighthouse.c(137): warning:  #177-D: variable "elevation_unknown_sync" was declared but never referenced
   	static unsigned int elevation_unknown_sync;
-lighthouse.c(312): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
+lighthouse.c(279): warning:  #177-D: variable "azimuth_unknown_sync" was declared but never referenced
   	static unsigned int azimuth_unknown_sync; 
 lighthouse.c: 3 warnings, 0 errors
 compiling main.c...
@@ -71,7 +71,7 @@ main.c(84): warning:  #177-D: variable "count_2M" was declared but never referen
 main.c: 16 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14256 RO-data=328 RW-data=392 ZI-data=24376  
+Program Size: Code=14152 RO-data=328 RW-data=392 ZI-data=24376  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
@@ -82,7 +82,7 @@ After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>
