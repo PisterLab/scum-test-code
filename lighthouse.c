@@ -179,7 +179,11 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 			if(pulse_type == EL_SKIP) {
 				
 				nextstate = 3;
-			}	
+			}else if (pulse_type == EL){
+				//return to this state (skip 0)
+				nextstate = 1;
+				elevation_a_sync = timestamp_rise;
+			}				
 			else{
 				nextstate = 0;
 				if(DEBUG_STATE){
@@ -197,6 +201,9 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 				//go to azimuth b laser detect
 				nextstate = 4;
 				//printf("state transition: %d to %d\n",state,nextstate);
+			}else if (pulse_type == EL_SKIP){
+				//return to this state (skipping 0)
+				nextstate = 2;
 			}
 			else{
 				nextstate = 0;
@@ -216,6 +223,13 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 					printf("el A: %d, %d\n",elevation_a_sync,elevation_a_laser);
 				}
 				last_delta_a = elevation_a_laser - elevation_a_sync;
+			}else if(pulse_type == EL){
+				//skip straight to state 1
+				nextstate = 1;
+				elevation_a_sync = timestamp_rise;
+			}else if (pulse_type == EL_SKIP){
+				//skip straight to state 2
+				nextstate = 2;
 			}
 			else{
 				nextstate = 0;
@@ -257,6 +271,13 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 					radio_txNow();
 				}
 				last_delta_b = elevation_b_laser - elevation_b_sync;
+			}else if(pulse_type == EL){
+				//skip straight to state 1
+				nextstate = 1;
+				elevation_a_sync = timestamp_rise;
+			}else if (pulse_type == EL_SKIP){
+				//skip straight to state 2
+				nextstate = 2;
 			}
 			else{
 				nextstate = 0;
@@ -329,10 +350,16 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 3;
 				//printf("state transition: %d to %d\n",state,nextstate);
 			}
-			else
+			else if (pulse_type == AZ){
+				
+					//staty in this state 
+					nextstate = 1;
+					azimuth_a_sync = timestamp_rise;
+			}
+			else{
 				nextstate = 0;
 			//printf("state fail. State %d, Pulse Type: %d \n",state,pulse_type);
-			
+			}
 			break;
 		}
 		
@@ -344,6 +371,10 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				//go to azimuth b laser detect
 				nextstate = 4;
 				//printf("state transition: %d to %d\n",state,nextstate);
+			}
+			else if (pulse_type == AZ_SKIP){
+				//stay in this state 
+				nextstate = 2;
 			}
 			else{
 				nextstate = 0;
@@ -364,6 +395,13 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 					printf("az A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
 				}
 				last_delta_a = azimuth_a_laser-azimuth_a_sync;
+			}else if (pulse_type == AZ) {
+				//go to first pulse AZ state
+				nextstate = 1;
+				azimuth_a_sync = timestamp_rise;
+			}else if (pulse_type == AZ_SKIP){
+				//go to az b first pulse state
+				nextstate = 2;
 			}
 			else{
 				nextstate = 0;
@@ -385,6 +423,14 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 					printf("az B: %d, %d, %d\n",azimuth_b_sync,azimuth_b_laser,azimuth_b_laser-azimuth_b_sync );
 				}
 				last_delta_b = azimuth_b_laser-azimuth_b_sync;
+			}
+			else if (pulse_type == AZ) {
+				//go to first pulse AZ state
+				nextstate = 1;
+				azimuth_a_sync = timestamp_rise;
+			}else if (pulse_type == AZ_SKIP){
+				//go to az b first pulse state
+				nextstate = 2;
 			}
 			else{
 				nextstate = 0;
