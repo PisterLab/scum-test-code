@@ -2,7 +2,7 @@
 /* --- SENSOR ADC --- */
 /* ------------------ */
 // Everything is MSB -> LSB
-const unsigned int ASC_SENSOR_SEL_RESET = 242;
+const unsigned int ASC_SENSORADC_SEL_RESET = 242;
 const unsigned int ASC_SENSORADC_SEL_CONVERT = 243;
 const unsigned int ASC_SENSORADC_SEL_PGA_AMPLIFY = 244;
 const unsigned int ASC_SENSORADC_PGA_GAIN[8] = {773, 880, 771, 770, 769, 768, 767, 766};
