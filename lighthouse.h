@@ -9,6 +9,21 @@ typedef struct gpio_tran_t {
 #define DEBUG_STATE 0
 #define DEB_THRESH 2
 #define WIDTH_BIAS 0
+
+//defines for lighthouse localization scum configuration
+#define HF_CLOCK_FINE_LH  		17
+#define HF_CLOCK_COARSE_LH 		3
+#define IF_COARSE_LH 					22
+#define IF_FINE_LH  					18
+
+	// RC 2MHz tuning settings
+// This the transmitter chip clock
+#define RC2M_COARSE_LH 			21
+#define RC2M_FINE_LH 				15
+#define RC2M_SUPERFINE_LH 	15
+#define LC_CODE_LH 					680
+
+
 //functions
 pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_fall);
 void update_state(pulse_type_t pulse_type, unsigned int timestamp_rise);

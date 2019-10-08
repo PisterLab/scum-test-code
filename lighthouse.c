@@ -82,7 +82,7 @@ void initialize_mote_lighthouse(){
 	// Set initial coarse/fine on HF_CLOCK
 	//coarse 0:4 = 860 861 875b 876b 877b
 	//fine 0:4 870 871 872 873 874b
-	set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);	
+	set_sys_clk_secondary_freq(HF_CLOCK_COARSE_LH, HF_CLOCK_FINE_LH);	
 	
 	// Set RFTimer source as HF_CLOCK
 	set_asc_bit(1151);
@@ -136,16 +136,16 @@ void initialize_mote_lighthouse(){
 	radio_init_tx_lighthouse();
 		
 	// Set initial IF ADC clock frequency
-	set_IF_clock_frequency(IF_coarse, IF_fine, 0);
+	set_IF_clock_frequency(IF_COARSE_LH, IF_FINE_LH, 0);
 
 	// Set initial TX clock frequency
-	set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
+	set_2M_RC_frequency(31, 31, RC2M_COARSE_LH, RC2M_FINE_LH, RC2M_SUPERFINE_LH);
 
 	// Turn on RC 2M for cal
 	set_asc_bit(1114);
 		
 	// Set initial LO frequency
-	LC_monotonic(LC_code);
+	LC_monotonic(LC_CODE_LH);
 	
 	// Init divider settings
 	//radio_init_divider(2000);
