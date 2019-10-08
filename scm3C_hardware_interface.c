@@ -845,11 +845,11 @@ void radio_init_tx(){
 	ANALOG_CFG_REG__11 = 0x0080;
 	
 	// Set current in LC tank
-	set_LC_current(127);
+		set_LC_current(100);	
 	
 	// Set LDO voltages for PA and LO
 	set_PA_supply(63);
-	set_LO_supply(127,0);
+	set_LO_supply(64,0);
 	
 	// Ensure cortex control of LO
 	clear_asc_bit(964);
@@ -861,10 +861,10 @@ void radio_init_tx(){
 void radio_init_divider(unsigned int div_value){
 	
 	// Set divider LDO value to max
-	set_DIV_supply(40,0);
+	set_DIV_supply(0,0);
 
 	// Set prescaler to div-by-2
-	prescaler(4);
+	prescaler(1);
 	
 	// Activate 8MHz/20MHz output
 	//set_asc_bit(1033);
@@ -874,7 +874,7 @@ void radio_init_divider(unsigned int div_value){
 	
 	// Set sel12 = 1 (choose whether x2 is active)
 	// Want this set to 1 or else the divider output falling edges will be messed up
-	set_asc_bit(1012);
+	//set_asc_bit(1012);
 		
 }
 
@@ -1038,7 +1038,7 @@ void initialize_mote(){
 	// Set LDO reference voltages
 	//set_VDDD_LDO_voltage(0);
 	//set_AUX_LDO_voltage(0);
-	//set_ALWAYSON_LDO_voltage(0);
+	set_ALWAYSON_LDO_voltage(0);
 		
 	// Select banks for GPIO inputs
 	GPI_control(0,0,0,0);

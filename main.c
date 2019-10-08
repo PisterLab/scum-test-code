@@ -99,8 +99,8 @@ void test_LC_sweep_tx(void) {
 					radio_loadPacket(5);
 
 					// Set the LC frequency
-					LC_FREQCHANGE(23&0x1F, 19&0x1F, 7&0x1F);
-					//LC_FREQCHANGE(coarse&0x1F, mid&0x1F, fine&0x1F);
+					//LC_FREQCHANGE(23&0x1F, 19&0x1F, 7&0x1F);
+					LC_FREQCHANGE(coarse&0x1F, mid&0x1F, fine&0x1F);
 					// TODO: Wait for at least 50us
 					for (i=0; i<5000; i++) {}
 
