@@ -158,7 +158,7 @@ int main(void) {
 	// For MUX signals, '1' = FSM control, '0' = memory mapped control
 	// For EN signals, '1' = turn on LDO
 	// Turn on LO, DIV, PA
-	ANALOG_CFG_REG__10 = 0x68;
+	ANALOG_CFG_REG__10 = 0x78;
 	
 	// Turn off polyphase and disable mixer
 	ANALOG_CFG_REG__16 = 0x6;

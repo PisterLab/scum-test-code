@@ -967,7 +967,7 @@
         0x00000e0c:    faf8f002    ....    BLX      0xffe3ce1c ; 0xffe3ce1c
         0x00000e10:    e7febf00    ....    LDRB     r11,[lr,r0,LSL #30]!
         0x00000e14:    f002a088    ....    DCI      0xf002a088 ; ? Undefined
-        0x00000e18:    2068faf3    ..h     STRDCS   pc,r0,[r8],#-0xa3 ; ?  
+        0x00000e18:    2078faf3    ..x     LDRSHTCS pc,[r8],#-0xa3 ; ?  
         0x00000e1c:    6008498d    .I.`    ANDVS    r4,r8,sp,LSL #19
         0x00000e20:    498d2006    . .I    STMIBMI  sp,{r1,r2,sp}
         0x00000e24:    20016008    .`.     ANDCS    r6,r1,r8
