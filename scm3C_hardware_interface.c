@@ -1184,22 +1184,22 @@ void initialize_mote(){
 	for(t=2; t<9; t++) set_asc_bit(t);	
 		
 	// Init RX
-	//radio_init_rx_MF();
+	radio_init_rx_MF();
 		
 	// Init TX
-	//radio_init_tx();
+	radio_init_tx();
 		
 	// Set initial IF ADC clock frequency
-	//set_IF_clock_frequency(IF_coarse, IF_fine, 0);
+	set_IF_clock_frequency(IF_coarse, IF_fine, 0);
 
 	// Set initial TX clock frequency
-	//set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
+	set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
 
 	// Turn on RC 2M for cal
-	//set_asc_bit(1114);
+	set_asc_bit(1114);
 		
 	// Set initial LO frequency
-	//LC_monotonic(LC_code);
+	LC_monotonic(LC_code);
 	
 	// Init divider settings
 	//radio_init_divider(2000);

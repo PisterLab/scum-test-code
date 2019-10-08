@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 07 16:41:15 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 07 18:02:20 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -384,7 +384,7 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 
-<P><STRONG><a name="[5f]"></a>set_IF_LDO_voltage</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[5f]"></a>set_IF_LDO_voltage</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
@@ -430,14 +430,14 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_ZCC
 </UL>
 
-<P><STRONG><a name="[66]"></a>set_IF_stg3gm_ASC</STRONG> (Thumb, 78 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[66]"></a>set_IF_stg3gm_ASC</STRONG> (Thumb, 78 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
 </UL>
 
-<P><STRONG><a name="[67]"></a>set_IF_comparator_trim_I</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[67]"></a>set_IF_comparator_trim_I</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
@@ -445,21 +445,21 @@ Global Symbols
 <LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
 </UL>
 
-<P><STRONG><a name="[68]"></a>set_IF_comparator_trim_Q</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[68]"></a>set_IF_comparator_trim_Q</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
 </UL>
 
-<P><STRONG><a name="[69]"></a>set_IF_gain_ASC</STRONG> (Thumb, 314 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[69]"></a>set_IF_gain_ASC</STRONG> (Thumb, 314 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
 </UL>
 
-<P><STRONG><a name="[6a]"></a>radio_init_rx_MF</STRONG> (Thumb, 282 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[6a]"></a>radio_init_rx_MF</STRONG> (Thumb, 282 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[69]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_gain_ASC
 <LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_comparator_trim_Q
@@ -467,6 +467,8 @@ Global Symbols
 <LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_stg3gm_ASC
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_LDO_voltage
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote
 </UL>
 
 <P><STRONG><a name="[6b]"></a>radio_init_rx_ZCC</STRONG> (Thumb, 182 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
@@ -479,23 +481,25 @@ Global Symbols
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
 
-<P><STRONG><a name="[6f]"></a>set_LO_supply</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[6f]"></a>set_LO_supply</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx
 </UL>
 
-<P><STRONG><a name="[6e]"></a>set_PA_supply</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[6e]"></a>set_PA_supply</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx
 </UL>
 
-<P><STRONG><a name="[6d]"></a>set_LC_current</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[6d]"></a>set_LC_current</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx
 </UL>
 
-<P><STRONG><a name="[6c]"></a>radio_init_tx</STRONG> (Thumb, 60 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[6c]"></a>radio_init_tx</STRONG> (Thumb, 60 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_LC_current
 <LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_PA_supply
 <LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_LO_supply
+</UL>
+<BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote
 </UL>
 
 <P><STRONG><a name="[73]"></a>divProgram</STRONG> (Thumb, 62 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
@@ -529,6 +533,7 @@ Global Symbols
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[40]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_frequency_housekeeping
+<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote
 <LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OPTICAL_SFD_ISR
 </UL>
 
@@ -540,31 +545,13 @@ Global Symbols
 <LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OPTICAL_SFD_ISR
 </UL>
 
-<P><STRONG><a name="[4e]"></a>initialize_mote</STRONG> (Thumb, 200 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
-<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_ALWAYSON_LDO_voltage
-<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;init_ldo_control
-<LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPI_enables
-<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPO_enables
-<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPI_control
-<LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPO_control
-<LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_sys_clk_secondary_freq
-<LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rftimer_disable_interrupts
-<LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_disable_interrupts
-<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
-<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;analog_scan_chain_write
-<LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;analog_scan_chain_load
-</UL>
-<BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-</UL>
-
 <P><STRONG><a name="[74]"></a>LC_FREQCHANGE</STRONG> (Thumb, 102 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;flipChar
 </UL>
 <BR>[Called By]<UL><LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
 </UL>
 
-<P><STRONG><a name="[4a]"></a>LC_monotonic</STRONG> (Thumb, 184 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[4a]"></a>LC_monotonic</STRONG> (Thumb, 106 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_idivmod
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_FREQCHANGE
 </UL>
@@ -572,10 +559,34 @@ Global Symbols
 <LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_TX_channel_table
 <LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_RX_channel_table
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setFrequencyRX
+<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote
 <LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OPTICAL_SFD_ISR
 </UL>
 
-<P><STRONG><a name="[77]"></a>build_RX_channel_table</STRONG> (Thumb, 206 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
+<P><STRONG><a name="[4e]"></a>initialize_mote</STRONG> (Thumb, 336 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
+<LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx
+<LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
+<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_ALWAYSON_LDO_voltage
+<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;init_ldo_control
+<LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPI_enables
+<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPO_enables
+<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPI_control
+<LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPO_control
+<LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_sys_clk_secondary_freq
+<LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_clock_frequency
+<LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_2M_RC_frequency
+<LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rftimer_disable_interrupts
+<LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_disable_interrupts
+<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
+<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;analog_scan_chain_write
+<LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;analog_scan_chain_load
+<LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
+</UL>
+<BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[77]"></a>build_RX_channel_table</STRONG> (Thumb, 210 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
 <LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 <LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
@@ -624,6 +635,7 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;flip_lsb8
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_2M_DAC
+<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote
 <LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OPTICAL_SFD_ISR
 </UL>
 
