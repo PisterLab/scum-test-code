@@ -17,7 +17,28 @@ extern char send_packet[127];
 //run radio rx enable 
 //call radio rx_now
 //if you hear a packet, rx_done runs and thats where things could be found (acks) 
-
+void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lighthouse, angle_type_t angle_type){
+					int i;
+						//turn on radio (radio_txenable)
+					radio_txEnable();
+					//enable radio interrupts (radio_enable_interrupts) (do this somewhere; only needs to be done once)
+					//place data into a "send_packet" global variable array 
+					send_packet[0]= (lighthouse <<1) & angle_type;
+					send_packet[1] = sync_time & 0xFF;
+					send_packet[2] = laser_time & 0xFF;
+					//call "radio_loadpacket", which puts array into hardware fifo (takes time)
+					radio_loadPacket(3);
+					
+					//set radio frequency (radio_setfrequency). This needs to be figured out
+					LC_FREQCHANGE(22&0x1F, 21&0x1F, 4&0x1F); //for set frequency
+					
+					
+					for(i = 0; i<2500; i++){
+						
+					}
+					//transmit packet (radio_txnow) (wait 50 us between tx enable and tx_now)
+					radio_txNow();
+}
 pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_fall){
   pulse_type_t pulse_type;
 	unsigned int pulse_width;
@@ -222,6 +243,7 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 				nextstate = 0;
 				if(last_delta_a > 0 && abs(((int)(elevation_a_laser-elevation_a_sync))-(int)last_delta_a)<4630){
 					printf("el A: %d, %d\n",elevation_a_sync,elevation_a_laser);
+					send_lh_packet(elevation_a_sync,elevation_a_laser,A,ELEVATION);
 				}
 				last_delta_a = elevation_a_laser - elevation_a_sync;
 			}else if(pulse_type == EL){
@@ -394,6 +416,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				//filter out pulses that have changed by more than 10 degrees (4630 ticks)
 				if(last_delta_a > 0 && abs(((int)(azimuth_a_laser-azimuth_a_sync))-(int)last_delta_a)<4630){
 					printf("az A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
+					send_lh_packet(azimuth_a_sync,azimuth_a_laser,A,AZIMUTH);
 				}
 				last_delta_a = azimuth_a_laser-azimuth_a_sync;
 			}else if (pulse_type == AZ) {
@@ -422,6 +445,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				//filter out pulses that have changed by more than 10 degrees (4630 ticks)
 				if(last_delta_b > 0 && abs(((int)(azimuth_b_laser-azimuth_b_sync))-(int)last_delta_b)<4630){
 					printf("az B: %d, %d, %d\n",azimuth_b_sync,azimuth_b_laser,azimuth_b_laser-azimuth_b_sync );
+					send_lh_packet(azimuth_b_sync,azimuth_b_laser,B,AZIMUTH);
 				}
 				last_delta_b = azimuth_b_laser-azimuth_b_sync;
 			}

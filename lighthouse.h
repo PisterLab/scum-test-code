@@ -1,4 +1,6 @@
 typedef enum pulse_type_t{AZ=0,AZ_SKIP=1,EL=2,EL_SKIP=3,LASER=4,INVALID = 5} pulse_type_t;
+typedef enum lh_id_t {A = 0, B = 1} lh_id_t;
+typedef enum angle_type_t {AZIMUTH = 0, ELEVATION = 1} angle_type_t;
 //contains the current gpio state and the time that it first transitioned
 typedef struct gpio_tran_t {
 	unsigned short gpio;
