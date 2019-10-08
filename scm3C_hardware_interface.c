@@ -755,7 +755,7 @@ void radio_init_rx_ZCC(){
 	
 	// Set counter threshold 122:107 MSB:LSB
 	// for 76MHz, use 13
-	set_zcc_demod_threshold(14);
+	set_zcc_demod_threshold(13);
 	// for 64MHz, use 24?
 	//set_zcc_demod_threshold();
 	
@@ -868,6 +868,11 @@ void radio_init_tx(){
 	set_PA_supply(63);
 	set_LO_supply(64,0);
 	
+	// Ensure cortex control of LO
+	clear_asc_bit(964);
+	
+	// Ensure cortex control of divider
+	clear_asc_bit(1081);
 }
 
 void radio_init_divider(unsigned int div_value){
