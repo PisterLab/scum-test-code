@@ -182,7 +182,7 @@ int main(void) {
 	// Number of data points to gather before printing		
 	target_num_data_points = 120;
 	
-	test_LC_sweep_tx();
+	//test_LC_sweep_tx();
 	// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems	
 	last_gpio = current_gpio;	
 	current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;	

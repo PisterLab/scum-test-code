@@ -353,8 +353,8 @@ void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lig
 					radio_loadPacket(9);
 					
 					//set radio frequency (radio_setfrequency). This needs to be figured out
-					LC_FREQCHANGE(22&0x1F, 21&0x1F, 4&0x1F); //for set frequency
-					
+					//LC_FREQCHANGE(22&0x1F, 21&0x1F, 4&0x1F); //for no pa
+					LC_FREQCHANGE(23&0x1F, 2&0x1F, 6&0x1F); //for pa
 					
 					for(i = 0; i<2500; i++){
 						
