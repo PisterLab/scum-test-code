@@ -71,6 +71,52 @@ unsigned int azimuth_t1_data[1000], elevation_t1_data[1000], azimuth_t2_data[100
 
 unsigned int pulse_width_data[1000];
 
+void test_LC_sweep_tx(void) {
+	/*
+	Inputs:
+	Outputs:
+	Note:
+		Initialization of the scan settings should already have 
+		been performed.
+	*/
+
+	int coarse, mid, fine;
+	unsigned char iterations = 3;
+	unsigned int i;
+
+	// Enable the TX. NB: Requires 50us for frequency settling
+	// transient.
+	radio_txEnable();
+	
+	while (1) {
+		for (coarse=0; coarse<32; coarse++) {
+			for (mid=0; mid<32; mid++) {
+				for (fine=0; fine<32; fine++) {
+					// Construct the packet 
+					// with payload {coarse, mid, fine} in 
+					// separate bytes
+					send_packet[0] = coarse & 0x1F;
+					send_packet[1] = mid & 0x1F;
+					send_packet[2] = fine & 0x1F;
+					radio_loadPacket(3);
+
+					// Set the LC frequency
+					LC_FREQCHANGE(23&0x1F, 8&0x1F, 11&0x1F);
+					
+					// TODO: Wait for at least 50us
+					for (i=0; i<2500; i++) {}
+
+					// Send bits out the radio thrice for redundancy
+					for(i=0; i<iterations; i++) {
+						radio_txNow();
+					}
+				}
+			}
+		}
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////
 // Main Function
 //////////////////////////////////////////////////////////////////
@@ -208,7 +254,7 @@ int main(void) {
 	// Number of data points to gather before printing
 	target_num_data_points = 120;
 	
-		
+		test_LC_sweep_tx();
 	// Loop forever looking for pulses
 	// If this gets interrupted every once in awhile by an ISR, it should still work (untested)
 	// but you will likely miss some lighthouse pulses.

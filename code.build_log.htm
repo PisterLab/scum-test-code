@@ -27,17 +27,47 @@ Project File Date:  10/07/2019
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
-compiling scm3C_hardware_interface.c...
+compiling main.c...
 scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
   void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
-scm3C_hardware_interface.c: 1 warning, 0 errors
+Int_Handlers.h(212): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+Int_Handlers.h(590): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
+  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
+lighthouse.h(17): warning:  #1-D: last line of file ends without a newline
+  void debounce_gpio(unsigned short gpio, unsigned short * deb_gpio, unsigned int * trans_out);
+main.c(307): warning:  #1-D: last line of file ends without a newline
+  }
+main.c(125): warning:  #177-D: variable "t" was declared but never referenced
+  	int t,t2;
+main.c(125): warning:  #177-D: variable "t2" was declared but never referenced
+  	int t,t2;
+main.c(127): warning:  #177-D: variable "gp_deb" was declared but never referenced
+  	gpio_tran_t gp_deb;
+main.c(128): warning:  #177-D: variable "deb_gpio" was declared but never referenced
+  	unsigned short deb_gpio;
+main.c(129): warning:  #177-D: variable "trans_time" was declared but never referenced
+  	unsigned int trans_time;
+main.c(130): warning:  #177-D: variable "rdata_lsb" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(130): warning:  #177-D: variable "rdata_msb" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(130): warning:  #177-D: variable "count_LC" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(130): warning:  #177-D: variable "count_32k" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c(130): warning:  #177-D: variable "count_2M" was declared but never referenced
+  	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+main.c: 16 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14380 RO-data=328 RW-data=392 ZI-data=24376  
+Program Size: Code=12996 RO-data=328 RW-data=304 ZI-data=24144  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 2 Warning(s).
+".\code.axf" - 0 Error(s), 17 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
