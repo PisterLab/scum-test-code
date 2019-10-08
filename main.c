@@ -102,7 +102,7 @@ void test_LC_sweep_tx(void) {
 					LC_FREQCHANGE(23&0x1F, 19&0x1F, 7&0x1F);
 					//LC_FREQCHANGE(coarse&0x1F, mid&0x1F, fine&0x1F);
 					// TODO: Wait for at least 50us
-					for (i=0; i<2500; i++) {}
+					for (i=0; i<5000; i++) {}
 
 					// Send bits out the radio thrice for redundancy
 					for(i=0; i<iterations; i++) {

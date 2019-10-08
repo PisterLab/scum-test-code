@@ -1030,7 +1030,7 @@
         0x00000f08:    0a646572    red.    BEQ      0x191a4d8 ; 0x191a4d8
         0x00000f0c:    00000000    ....    ANDEQ    r0,r0,r0
         0x00000f10:    20000130    0..     ANDCS    r0,r0,r0,LSR r1
-        0x00000f14:    000009c4    ....    ANDEQ    r0,r0,r4,ASR #19
+        0x00000f14:    00001388    ....    ANDEQ    r1,r0,r8,LSL #7
         0x00000f18:    74696e49    Init    STRBTVC  r6,[r9],#-0xe49
         0x00000f1c:    696c6169    iali    STMDBVS  r12,{r0,r3,r5,r6,r8,sp,lr}^ ; ?  
         0x00000f20:    676e697a    zing    DCI      0x676e697a ; ? Undefined
