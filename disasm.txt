@@ -2053,10 +2053,10 @@
         0x00001f04:    f0001c80    ....    DCI      0xf0001c80 ; ? Undefined
         0x00001f08:    2080fdfc    ...     STRDCS   pc,r0,[r0],r12 ; ?  
         0x00001f0c:    60084980    .I.`    ANDVS    r4,r8,r0,LSL #19
-        0x00001f10:    f7ff207f    . ..    DCI      0xf7ff207f ; ? Undefined
+        0x00001f10:    f7ff2064    d ..    DCI      0xf7ff2064 ; ? Undefined ; ?  
         0x00001f14:    203fffd1    ..?     LDRSBTCS pc,[pc],-r1 ; ?  
         0x00001f18:    ffbff7ff    ....    DCI      0xffbff7ff ; ? Undefined
-        0x00001f1c:    207f2100    .!.     RSBSCS   r2,pc,r0,LSL #2
+        0x00001f1c:    20402100    .!@     SUBCS    r2,r0,r0,LSL #2
         0x00001f20:    ffabf7ff    ....    DCI      0xffabf7ff ; ? Undefined
         0x00001f24:    008020f1    . ..    STRDEQ   r2,r3,[r0],r1
         0x00001f28:    fdfcf000    ....    LDC2L    p0,c15,[r12,#0]!
