@@ -939,7 +939,7 @@
         0x00000d9c:    0ec006e8    ....    CDPEQ    p6,#0xc,c0,c0,c8,#7
         0x00000da0:    06f07048    Hp..    LDRBTEQ  r7,[r0],r8,ASR #32
         0x00000da4:    70880ec0    ...p    ADDVC    r0,r8,r0,ASR #29
-        0x00000da8:    71082053    S .q    QADDVC   r2,r3,r8
+        0x00000da8:    71082035    5 .q    DCI      0x71082035 ; ? Undefined
         0x00000dac:    f0012004    . ..    DCI      0xf0012004 ; ? Undefined
         0x00000db0:    06f2fd69    i...    LDRBTEQ  pc,[r2],r9,ROR #26 ; ?  
         0x00000db4:    06e90ed2    ....    USATEQ   r0,#9,r2,ASR #29

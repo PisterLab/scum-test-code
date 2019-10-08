@@ -83,7 +83,7 @@ void test_LC_sweep_tx(void) {
 					send_packet[0] = coarse & 0x1F;
 					send_packet[1] = mid & 0x1F;
 					send_packet[2] = fine & 0x1F;
-					send_packet[4] = 0x53;
+					send_packet[4] = 53;
 					radio_loadPacket(4);
 
 					// Set the LC frequency
