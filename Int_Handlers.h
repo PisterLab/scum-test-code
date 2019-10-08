@@ -72,7 +72,7 @@ void UART_ISR(){
 	static char buff[4] = {0x0, 0x0, 0x0, 0x0};
 	static char waiting_for_end_of_copy = 0;
 	char inChar;
-	int t;
+	
 	
 	inChar = UART_REG__RX_DATA;
   buff[3] = buff[2];
@@ -177,7 +177,6 @@ void RF_ISR() {
 	
 	unsigned int interrupt = RFCONTROLLER_REG__INT;
 	unsigned int error     = RFCONTROLLER_REG__ERROR;
-	int t;
 	
   //if (interrupt & 0x00000001) printf("TX LOAD DONE\n");
 	//if (interrupt & 0x00000002) printf("TX SFD DONE\n");
@@ -585,7 +584,6 @@ void OPTICAL_32_ISR(){
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
 void OPTICAL_SFD_ISR(){
 	
-	int t;
 	unsigned int rdata_lsb, rdata_msb; 
 	unsigned int count_LC, count_32k, count_2M, count_HFclock, count_IF;
 		

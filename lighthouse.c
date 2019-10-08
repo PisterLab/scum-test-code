@@ -15,35 +15,11 @@ extern char send_packet[127];
 //functions//
 void initialize_mote_lighthouse(){
 	
-	//todo: decouple all of these settings. If anybody changes these, this code could break
-// HF_CLOCK tuning settings
-	extern unsigned int HF_CLOCK_fine; //17
-	extern unsigned int HF_CLOCK_coarse; //3
-	extern unsigned int IF_coarse; //22
-	extern unsigned int IF_fine ; //18
-	
-		// RC 2MHz tuning settings
-	// This the transmitter chip clock
-	extern unsigned int RC2M_coarse; //21
-	extern unsigned int RC2M_fine; //15
-	extern unsigned int RC2M_superfine; //15
-	extern unsigned int LC_code; //680
-	extern unsigned int ASC[38];	// also where does this come from (scm3_hardware)? and what does it do
+
+	extern unsigned int ASC[38];	// this is a little sketchy
 	
 	int t;
-	
-	// Start of new RX
-	//RFTIMER_REG__COMPARE0 = 1;
-	
-	// Turn on the RX 
-	//RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
 
-	// Time to start listening for packet 
-	//RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
-
-	// RX watchdog - packet never arrived
-	//RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
-	
 	// RF Timer rolls over at this value and starts a new cycle
 	RFTIMER_REG__MAX_COUNT = 0xFFFFFFFF;
 
@@ -80,8 +56,7 @@ void initialize_mote_lighthouse(){
 	set_asc_bit(1147);
 	
 	// Set initial coarse/fine on HF_CLOCK
-	//coarse 0:4 = 860 861 875b 876b 877b
-	//fine 0:4 870 871 872 873 874b
+
 	set_sys_clk_secondary_freq(HF_CLOCK_COARSE_LH, HF_CLOCK_FINE_LH);	
 	
 	// Set RFTimer source as HF_CLOCK
@@ -89,19 +64,7 @@ void initialize_mote_lighthouse(){
 
 	// Disable LF_CLOCK
 	set_asc_bit(553);
-	
-	// HF_CLOCK will be trimmed to 20MHz, so set RFTimer div value to 40 to get 500kHz (inverted, so 1101 0111)
-	/*
-	set_asc_bit(49);
-	set_asc_bit(48);
-	clear_asc_bit(47);
-	set_asc_bit(46);
-	clear_asc_bit(45);
-	set_asc_bit(44);
-	set_asc_bit(43);
-	set_asc_bit(42);
-	*/
-	
+
 	// Set HCLK divider to 2	
 	clear_asc_bit(57);	
 	clear_asc_bit(56);	
@@ -222,7 +185,7 @@ void radio_init_tx_lighthouse(){
 
 
 void radio_init_rx_MF_lighthouse(){
-	
+	extern unsigned int ASC[38];	// this is a little sketchy
 	//int j;
 	unsigned int mask1, mask2;
 	unsigned int tau_shift, e_k_shift, correlation_threshold;
@@ -377,9 +340,17 @@ void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lig
 					//place data into a "send_packet" global variable array 
 					send_packet[0]= (lighthouse <<1) & angle_type;
 					send_packet[1] = sync_time & 0xFF;
-					send_packet[2] = laser_time & 0xFF;
+					send_packet[2] = (sync_time>>8) & 0xFF;
+					send_packet[3] = (sync_time>>16) & 0xFF;
+					send_packet[4] = (sync_time>>24) & 0xFF;
+	
+					send_packet[5] = laser_time & 0xFF;
+					send_packet[6] = (laser_time>>8) & 0xFF;
+					send_packet[7] = (laser_time>>16) & 0xFF;
+					send_packet[8] = (laser_time>>24) & 0xFF;
+	
 					//call "radio_loadpacket", which puts array into hardware fifo (takes time)
-					radio_loadPacket(3);
+					radio_loadPacket(9);
 					
 					//set radio frequency (radio_setfrequency). This needs to be figured out
 					LC_FREQCHANGE(22&0x1F, 21&0x1F, 4&0x1F); //for set frequency
@@ -508,8 +479,6 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 	static unsigned int elevation_a_laser;
 	static unsigned int elevation_b_laser;	
 	
-	static unsigned int elevation_unknown_sync;
-	int i;
 	static int state = 0;
 	
 	int nextstate;
@@ -653,7 +622,6 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 //keeps track of the current state and will print out pulse train information when it's done.
 void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 	
-	static unsigned int azimuth_unknown_sync; 
 	static unsigned int azimuth_a_sync;
 	static unsigned int azimuth_b_sync;
 

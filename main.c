@@ -119,15 +119,17 @@ void test_LC_sweep_tx(void) {
 //////////////////////////////////////////////////////////////////
 
 int main(void) {
-	int t,t2,x;
+
 	unsigned int calc_crc;
 
-	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
+
 	
 	printf("Initializing...");
 		
 	// Set up mote configuration
 	// This function handles all the analog scan chain setup
+	//Do not call any other scm3C or scm3 hardware interface functions, they will mess up the analog scanchain functions
+	//This should be independent of all the random global variable settings 
 	initialize_mote_lighthouse();
 		
 	// Check CRC to ensure there were no errors during optical programming
@@ -144,12 +146,7 @@ int main(void) {
 		while(1);
 	}
 	
-	// Debug output
-	//printf("\nCode length is %u bytes",code_length); 
-	//printf("\nCRC calculated by SCM is: 0x%X",calc_crc);	
-	
-	//printf("done\n");
-	
+
 	// After bootloading the next thing that happens is frequency calibration using optical
 	printf("Calibrating frequencies...\n");
 	
@@ -175,44 +172,32 @@ int main(void) {
 
 	printf("Cal complete\n");
 	
-	// Disable divider to save power
-	//divProgram(480, 0, 0);
-	
+	//run frequency cal sweep
+	//test_LC_sweep_tx();
+
 		// Reset RF Timer count register	
 	RFTIMER_REG__COUNTER = 0x0;	
 
-//test_LC_sweep_tx();
+
 	// Number of data points to gather before printing		
 	target_num_data_points = 120;
 	
 	//test_LC_sweep_tx();
 	// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems	
-		last_gpio = current_gpio;	
-		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;	
-		//debounce_gpio(current_gpio,&deb_gpio,&trans_time);	
-		//current_gpio = deb_gpio;	
-		//if(state != nextstate) printf("%d\n",state);	
+	last_gpio = current_gpio;	
+	current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;	
 
-		// Update to next FSM state	
-		state = nextstate;	
-		while(1) {		
+
+	//start localization loop
+	while(1) {		
 
 		// Read GPIO<3> (optical_data_raw - this is the digital output of the optical receiver)	
 		// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems	
 		last_gpio = current_gpio;	
 		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;	
-		//debounce_gpio(current_gpio,&deb_gpio,&trans_time);	
-		//current_gpio = deb_gpio;	
-		//if(state != nextstate) printf("%d\n",state);	
-
-		// Update to next FSM state	
-		state = nextstate;	
 
 		// Detect rising edge	
 		if(last_gpio == 0 && current_gpio == 1){	
-
-			// Reset RF Timer count register at rising edge of first sync pulse	
-			//if(state == 0) RFTIMER_REG__COUNTER = 0x0;	
 
 			// Save when this event happened	
 			timestamp_rise = RFTIMER_REG__COUNTER;	
@@ -225,19 +210,6 @@ int main(void) {
 			// Save when this event happened	
 			timestamp_fall = RFTIMER_REG__COUNTER;	
 
-			// Calculate how wide this pulse was	
-			//pulse_width = timestamp_fall - timestamp_rise;	
-			pulse_width = timestamp_fall - timestamp_rise;	
-			//printf("Pulse Type, Width:%d, %d\n",classify_pulse(timestamp_rise, timestamp_fall),pulse_width);	
-
-			// Need to determine what kind of pulse this was	
-			// Laser sweep pulses will have widths of only a few us	
-			// Sync pulses have a width corresponding to	
-			// 62.5 us - azimuth   - data=0 (625 ticks of 10MHz clock)	
-			// 72.9 us - elevation - data=0 (729 ticks)	
-			// 83.3 us - azimuth   - data=1 (833 ticks)	
-			// 93.8 us - elevation - data=0 (938 ticks)	
-			// A second lighthouse can be distinguished by differences in these pulse widths	
 			update_state(classify_pulse(timestamp_rise, timestamp_fall),timestamp_rise);	
 		}	
 	}
