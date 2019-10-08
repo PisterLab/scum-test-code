@@ -19,4 +19,3 @@
 .\main.o: bucket_o_functions.h
 .\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 .\main.o: scum_radio_bsp.h
-.\main.o: lighthouse.h
