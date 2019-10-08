@@ -74,7 +74,7 @@ void test_LC_sweep_tx(void) {
 	radio_txEnable();
 	
 	while (1) {
-		for (coarse=0; coarse<32; coarse++) {
+		for (coarse=22; coarse<25; coarse++) {
 			for (mid=0; mid<32; mid++) {
 				for (fine=0; fine<32; fine++) {
 					// Construct the packet 
@@ -86,8 +86,8 @@ void test_LC_sweep_tx(void) {
 					radio_loadPacket(3);
 
 					// Set the LC frequency
-					LC_FREQCHANGE(23&0x1F, 19&0x1F, 7&0x1F);
-					
+					//LC_FREQCHANGE(23&0x1F, 19&0x1F, 7&0x1F);
+					LC_FREQCHANGE(coarse&0x1F, mid&0x1F, fine&0x1F);
 					// TODO: Wait for at least 50us
 					for (i=0; i<2500; i++) {}
 
