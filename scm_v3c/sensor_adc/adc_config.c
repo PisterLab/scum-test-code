@@ -49,7 +49,7 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 		adc_settle: 8-bit binary [0,255]. Settle time of the ADC (exact
 			relationship unknown).
 		bgr_tune: 7-bit binary [0,127]. Value for adjusting the band gap 
-			reference. The LSB (RHS) is the panic bit.
+			reference. The MSB (LHS) is the panic bit.
 		constgm_tune: 8-bit binary [0,255]. Value for adjusting the constant
 			gm device.
 		vbatDiv4_en: Integer 0 or 1. 1 enables the vbat divide-by-4, 0
@@ -67,78 +67,64 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	int i;
 
 	// Selecting where the reset comes from
-	// prog_asc_bit(242, sel_reset);
 	prog_asc_bit(ASC_SENSORADC_SEL_RESET, sel_reset);
 
 	// Selecting where the convert signal comes from
-	// prog_asc_bit(243, sel_convert);
 	prog_asc_bit(ASC_SENSORADC_SEL_CONVERT, sel_convert);
 	
 	// Selecting where the amplify signal comes from
-	// prog_asc_bit(244, sel_pga_amplify);
 	prog_asc_bit(ASC_SENSORADC_SEL_PGA_AMPLIFY, sel_pga_amplify);
 
 	// PGA gain bits
-	// start_idx = 766;
-	// for (i=0; i<6; i++) {
-	// 	prog_asc_bit(start_idx+i, pga_gain[i]);
-	// }
-	// prog_asc_bit(800, pga_gain[6]);
-	// prog_asc_bit(773, pga_gain[7]);
+	prog_asc_bit(ASC_SENSORADC_PGA_GAIN_7, pga_gain[0]);
+	prog_asc_bit(ASC_SENSORADC_PGA_GAIN_6, pga_gain[1]);
+	prog_asc_bit(ASC_SENSORADC_PGA_GAIN_5, pga_gain[2]);
+	prog_asc_bit(ASC_SENSORADC_PGA_GAIN_4, pga_gain[3]);
+	prog_asc_bit(ASC_SENSORADC_PGA_GAIN_3, pga_gain[4]);
+	prog_asc_bit(ASC_SENSORADC_PGA_GAIN_2, pga_gain[5]);
+	prog_asc_bit(ASC_SENSORADC_PGA_GAIN_1, pga_gain[6]);
+	prog_asc_bit(ASC_SENSORADC_PGA_GAIN_0, pga_gain[7]);
+	
+	// ADC settling
+	prog_asc_bit(ASC_SENSORADC_ADC_SETTLE_7, adc_settle[0]);
+	prog_asc_bit(ASC_SENSORADC_ADC_SETTLE_6, adc_settle[1]);
+	prog_asc_bit(ASC_SENSORADC_ADC_SETTLE_5, adc_settle[2]);
+	prog_asc_bit(ASC_SENSORADC_ADC_SETTLE_4, adc_settle[3]);
+	prog_asc_bit(ASC_SENSORADC_ADC_SETTLE_3, adc_settle[4]);
+	prog_asc_bit(ASC_SENSORADC_ADC_SETTLE_2, adc_settle[5]);
+	prog_asc_bit(ASC_SENSORADC_ADC_SETTLE_1, adc_settle[7]);
+	prog_asc_bit(ASC_SENSORADC_ADC_SETTLE_0, adc_settle[8]);
 
-	// ADC settling bits
-	// start_idx = 816;
-	// for (i=0; i<8; i++) {
-	// 	prog_asc_bit(i+start_idx, adc_settle[i]);
-	// }
+	// Constant gm
+	prog_asc_bit(ASC_SENSORADC_CONSTGM_TUNE_7, constgm_tune[0]);
+	prog_asc_bit(ASC_SENSORADC_CONSTGM_TUNE_6, constgm_tune[1]);
+	prog_asc_bit(ASC_SENSORADC_CONSTGM_TUNE_5, constgm_tune[2]);
+	prog_asc_bit(ASC_SENSORADC_CONSTGM_TUNE_4, constgm_tune[3]);
+	prog_asc_bit(ASC_SENSORADC_CONSTGM_TUNE_3, constgm_tune[4]);
+	prog_asc_bit(ASC_SENSORADC_CONSTGM_TUNE_2, constgm_tune[5]);
+	prog_asc_bit(ASC_SENSORADC_CONSTGM_TUNE_1, constgm_tune[6]);
+	prog_asc_bit(ASC_SENSORADC_CONSTGM_TUNE_0, constgm_tune[7]);
 
-	// // LDO BGR tuning
-	// prog_asc_bit(778, bgr_tune[0]);
-	// start_idx = 784;
-	// for (i=1; i<7; i++) {
-	// 	prog_asc_bit(start_idx, bgr_tune[i]);
-	// 	start_idx--;
-	// }
+	// Bandgap tuning
+	prog_asc_bit(ASC_SENSORADC_BGR_TUNE_6, bgr_tune[0]);
+	prog_asc_bit(ASC_SENSORADC_BGR_TUNE_5, bgr_tune[1]);
+	prog_asc_bit(ASC_SENSORADC_BGR_TUNE_4, bgr_tune[2]);
+	prog_asc_bit(ASC_SENSORADC_BGR_TUNE_3, bgr_tune[3]);
+	prog_asc_bit(ASC_SENSORADC_BGR_TUNE_2, bgr_tune[4]);
+	prog_asc_bit(ASC_SENSORADC_BGR_TUNE_1, bgr_tune[5]);
+	prog_asc_bit(ASC_SENSORADC_BGR_TUNE_0, bgr_tune[6]);
 
-	// // Constant gm tuning
-	// start_idx = 765;
-	// for (i=0; i<8; i++) {
-	// 	prog_asc_bit(start_idx-i, constgm_tune[i]);
-	// }
-
-	for (i=0; i<8; i++) {
-		// PGA gain bits
-		prog_asc_bit(ASC_SENSORADC_PGA_GAIN[i], pga_gain[i]);
-		
-		// ADC settling
-		prog_ASC_BIT(ASC_SENSORADC_ADC_SETTLE[i], adc_settle[i]);
-
-		// Constant gm
-		prog_ASC_BIT(ASC_SENSORADC_CONSTGM_TUNE[i], constgm_tune[i]);
-	}
-
-	for (i=0; i<7; i++) {
-		// Bandgap tuning
-		prog_asc_bit(ASC_SENSORADC_BGR_TUNE[i], bgr_tune[i]);
-	}
+	// Input mux selection programming
+	prog_asc_bit(ASC_SENSORADC_SEL_INPUT_MUX_1, input_mux_sel[0]);
+	prog_asc_bit(ASC_SENSORADC_SEL_INPUT_MUX_0, input_mux_sel[1]);
 
 	// Enabling/disabling VBAT/4
-	// prog_asc_bit(798, vbatDiv4_en);
 	prog_asc_bit(ASC_SENSORADC_EN_VBATDIV, vbatDiv4_en);
 
 	// Enabling/disabling on-chip LDO
-	// prog_asc_bit(801, ldo_en);
 	prog_asc_bit(ASC_SENSORADC_EN_LDO, ldo_en);
 
-	// Input mux selection programming
-	// prog_asc_bit(1087, input_mux_sel[1]);
-	// prog_asc_bit(915, input_mux_sel[0]);
-	for (i=0; i<2; i++){
-		prog_asc_bit(ASC_SENSORADC_SEL_INPUT_MUX[i], input_mux_sel[i]);
-	}
-
 	// PGA bypass
-	// prog_asc_bit(1088, pga_byp);
 	prog_asc_bit(ASC_SENSORADC_PGA_BYPASS, pga_byp);
 }
 
