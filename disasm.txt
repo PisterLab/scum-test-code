@@ -941,7 +941,7 @@
         0x00000da4:    70880ec0    ...p    ADDVC    r0,r8,r0,ASR #29
         0x00000da8:    f0012003    . ..    DCI      0xf0012003 ; ? Undefined
         0x00000dac:    220bfd67    g.."    ANDCS    pc,r11,#0x19c0
-        0x00000db0:    2017210f    .!.     ANDSCS   r2,r7,pc,LSL #2
+        0x00000db0:    20172114    .!.     ANDSCS   r2,r7,r4,LSL r1
         0x00000db4:    f982f001    ....    DCI      0xf982f001 ; ? Undefined
         0x00000db8:    e0002400    .$..    AND      r2,r0,r0,LSL #8
         0x00000dbc:    485c1c64    d.\H    LDMDAMI  r12,{r2,r5,r6,r10-r12}^
