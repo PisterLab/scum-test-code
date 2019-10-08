@@ -44,7 +44,7 @@ I (scm3_hardware_interface.h)(0x5D9CF237)
 I (scm3C_hardware_interface.h)(0x5D9CF278)
 I (bucket_o_functions.h)(0x5D97CA96)
 F (.\scum_radio_bsp.h)(0x5D97CA96)()
-F (.\lighthouse.c)(0x5D9CF3A5)(-c --cpu Cortex-M0 -O0 --apcs=interwork -I C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include-D__UVISION_VERSION="520" -DARMCM0-o .\lighthouse.o --omf_browse .\lighthouse.crf --depend .\lighthouse.d)
+F (.\lighthouse.c)(0x5D9D0782)(-c --cpu Cortex-M0 -O0 --apcs=interwork -I C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include-D__UVISION_VERSION="520" -DARMCM0-o .\lighthouse.o --omf_browse .\lighthouse.crf --depend .\lighthouse.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x56FF15CE)
 I (C:\Keil_v5\ARM\ARMCC\include\time.h)(0x56FF15C6)
 I (C:\Keil_v5\ARM\ARMCC\include\rt_misc.h)(0x56FF15C4)

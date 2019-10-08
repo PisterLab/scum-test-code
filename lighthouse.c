@@ -338,7 +338,7 @@ void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lig
 					radio_txEnable();
 					//enable radio interrupts (radio_enable_interrupts) (do this somewhere; only needs to be done once)
 					//place data into a "send_packet" global variable array 
-					send_packet[0]= (lighthouse <<1) & angle_type;
+					send_packet[0]= (lighthouse <<1) | angle_type;
 					send_packet[1] = sync_time & 0xFF;
 					send_packet[2] = (sync_time>>8) & 0xFF;
 					send_packet[3] = (sync_time>>16) & 0xFF;
