@@ -845,11 +845,11 @@ void radio_init_tx(){
 	ANALOG_CFG_REG__11 = 0x0080;
 	
 	// Set current in LC tank
-	set_LC_current(100);
+	set_LC_current(127);
 	
 	// Set LDO voltages for PA and LO
 	set_PA_supply(63);
-	set_LO_supply(64,0);
+	set_LO_supply(127,0);
 	
 	// Ensure cortex control of LO
 	clear_asc_bit(964);
@@ -1044,10 +1044,9 @@ void initialize_mote(){
 	GPI_control(0,0,0,0);
 	
 	// Select banks for GPIO outputs
-	GPO_control(6,6,6,0);
-	
+	GPO_control(0,0,0,0);		
 	// Set all GPIOs as outputs
-	GPI_enables(0x0000);	
+	GPI_enables(0x0008);		
 	GPO_enables(0xFFFF);
 
 	// Set HCLK source as HF_CLOCK
@@ -1065,6 +1064,7 @@ void initialize_mote(){
 	set_asc_bit(553);
 	
 	// HF_CLOCK will be trimmed to 20MHz, so set RFTimer div value to 40 to get 500kHz (inverted, so 1101 0111)
+	/*
 	set_asc_bit(49);
 	set_asc_bit(48);
 	clear_asc_bit(47);
@@ -1073,7 +1073,21 @@ void initialize_mote(){
 	set_asc_bit(44);
 	set_asc_bit(43);
 	set_asc_bit(42);
+	*/
 	
+	// Set HCLK divider to 2	
+	clear_asc_bit(57);	
+	clear_asc_bit(56);	
+	clear_asc_bit(55);		
+	clear_asc_bit(54);	
+	clear_asc_bit(53);	
+	set_asc_bit(52);//inverted		
+	set_asc_bit(51);	
+	clear_asc_bit(50);	
+
+	// Set RF Timer divider to pass through so that RF Timer is 20 MHz	
+	set_asc_bit(36);	
+		
 	// Set 2M RC as source for chip CLK
 	set_asc_bit(1156);
 	
@@ -1107,7 +1121,7 @@ void initialize_mote(){
 	LC_monotonic(LC_code);
 	
 	// Init divider settings
-	radio_init_divider(2000);
+	//radio_init_divider(2000);
 	
 	// Program analog scan chain
 	analog_scan_chain_write(&ASC[0]);

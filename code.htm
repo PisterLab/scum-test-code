@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 07 19:43:32 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 07 19:50:35 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -514,21 +514,19 @@ Global Symbols
 <LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[73]"></a>prescaler</STRONG> (Thumb, 574 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[73]"></a>prescaler</STRONG> (Thumb, 574 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[71]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_divider
 </UL>
 
-<P><STRONG><a name="[72]"></a>set_DIV_supply</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[72]"></a>set_DIV_supply</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[71]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_divider
 </UL>
 
-<P><STRONG><a name="[71]"></a>radio_init_divider</STRONG> (Thumb, 40 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[71]"></a>radio_init_divider</STRONG> (Thumb, 40 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[72]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_DIV_supply
 <LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prescaler
 <LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;divProgram
-</UL>
-<BR>[Called By]<UL><LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote
 </UL>
 
 <P><STRONG><a name="[41]"></a>read_IF_estimate</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
@@ -576,7 +574,6 @@ Global Symbols
 <LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rftimer_disable_interrupts
 <LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_disable_interrupts
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
-<LI><a href="#[71]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_divider
 <LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx
 <LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
 <LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;init_ldo_control
