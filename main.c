@@ -128,7 +128,7 @@ int main(void) {
 		
 	// Set up mote configuration
 	// This function handles all the analog scan chain setup
-	initialize_mote_lighthouse();
+	initialize_mote();
 		
 	// Check CRC to ensure there were no errors during optical programming
 	printf("\n-------------------\n");

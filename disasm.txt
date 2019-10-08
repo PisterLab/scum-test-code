@@ -953,7 +953,7 @@
         0x00000dd4:    e7c9dbcc    ....    STRB     sp,[r9,r12,ASR #23]
         0x00000dd8:    f002a079    y...    DCI      0xf002a079 ; ? Undefined
         0x00000ddc:    f001fb07    ....    DCI      0xf001fb07 ; ? Undefined
-        0x00000de0:    a07bfb76    v.{.    RSBSGE   pc,r11,r6,ROR r11 ; ?  
+        0x00000de0:    a07bfaf1    ..{.    LDRSHTGE pc,[r11],#-0xa1 ; ?  
         0x00000de4:    fb02f002    ....    BLX      0xbcdf6 ; 0xbcdf6
         0x00000de8:    f002a07f    ....    DCI      0xf002a07f ; ? Undefined
         0x00000dec:    4886faff    ...H    STMMI    r6,{r0-r7,r9,r11-pc}
