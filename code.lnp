@@ -6,6 +6,6 @@
 ".\scm3_hardware_interface.o"
 ".\scum_radio_bsp.o"
 --nodebug --strict --scatter ".\code.sct"
---summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
 --list ".\code.map" -o .\code.axf

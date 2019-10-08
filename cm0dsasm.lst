@@ -438,11 +438,11 @@ ARM Macro Assembler    Page 7
               00000400 
               00000000 
 Command Line: --16 --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interwork
- --depend=.\cm0dsasm.d -o.\cm0dsasm.o -I.\RTE\_Target_1 -IC:\Keil_v5\ARM\PACK\A
-RM\CMSIS\5.3.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Ke
-il_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\Include --predefine="__EVAL SETA 1" --pre
-define="__UVISION_VERSION SETA 525" --predefine="ARMCM0 SETA 1" --list=.\cm0dsa
-sm.lst cm0dsasm.s
+ --depend=.\cm0dsasm.d -o.\cm0dsasm.o -IC:\Users\pister-lab4\Documents\Brian\sc
+um-test-code\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Includ
+e -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\I
+nclude --predefine="__UVISION_VERSION SETA 520" --predefine="ARMCM0 SETA 1" --l
+ist=.\cm0dsasm.lst cm0dsasm.s
 
 
 
@@ -840,4 +840,4 @@ Symbol: __use_two_region_memory
       None
 Comment: __use_two_region_memory unused
 14 symbols
-377 symbols in table
+376 symbols in table

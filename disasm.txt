@@ -21,8 +21,8 @@
     Conforms to Soft float procedure-call standard
 
     Built with
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: armasm [4d35ec]
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: armlink [4d35ed]
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: armasm [4d35b2]
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: armlink [4d35b7]
 
     Header size: 52 bytes (0x34)
     Program header entry size: 32 bytes (0x20)
@@ -31,8 +31,8 @@
     Program header entries: 1
     Section header entries: 7
 
-    Program header offset: 16216 (0x00003f58)
-    Section header offset: 16248 (0x00003f78)
+    Program header offset: 16348 (0x00003fdc)
+    Section header offset: 16380 (0x00003ffc)
 
     Section header string table index: 6
 
@@ -3279,14 +3279,14 @@
     Flags       : None (0x00000000)
     Addr        : 0x00000000
     File Offset : 12940 (0x328c)
-    Size        : 3232 bytes (0xca0)
+    Size        : 3364 bytes (0xd24)
     Link        : SHN_UNDEF
     Info        : 0
     Alignment   : 1
     Entry Size  : 0
 
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: armlink [4d35ed]
-    ArmLink --strict --callgraph --load_addr_map_info --map --no_debug --symbols --xref --diag_suppress=9931 --cpu=Cortex-M0 --list=.\code.map --output=.\code.axf --scatter=.\code.sct --info=summarysizes,sizes,totals,unused,veneers
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: armlink [4d35b7]
+    ArmLink --strict --callgraph --map --no_debug --symbols --xref --diag_suppress=9931 --cpu=Cortex-M0 --list=.\code.map --output=.\code.axf --scatter=.\code.sct --info=summarysizes,sizes,totals,unused,veneers
 
     C:\Keil_v5\ARM\ARMCC\Bin\..\lib\armlib\c_p.l
     C:\Keil_v5\ARM\ARMCC\Bin\..\lib\armlib\fz_ps.l
@@ -3297,36 +3297,34 @@
     
     cm0dsasm.o
     
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: armasm [4d35ec]
-    ArmAsm --16 --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interwork --depend=.\cm0dsasm.d  -I.\RTE\_Target_1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\D
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: armasm [4d35b2]
+    ArmAsm --16 --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interwork --depend=.\cm0dsasm.d  -IC:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include
     
     
     main.o
     
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: ArmCC [4d3637]
-    ArmCC -c -o.\main.o --depend=.\main.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -I.\RTE\_Target_1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\Include -D__EVAL -D__UVISION_VERSION=525 -DARMCM0 --omf_browse=.\main.crf main.c
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: ArmCC [4d35cd]
+    ArmCC -c -o.\main.o --depend=.\main.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -IC:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include -D__UVISION_VERSION=520 -DARMCM0 --omf_browse=.\main.crf main.c
     
     retarget.o
     
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: ArmCC [4d3637]
-    ArmCC -c -o.\retarget.o --depend=.\retarget.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -I.\RTE\_Target_1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\Include -D__EVAL -D__UVISION_VERSION=525 -DARMCM0 --omf_browse=.\retarget.crf retarget.c
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: ArmCC [4d35cd]
+    ArmCC -c -o.\retarget.o --depend=.\retarget.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -IC:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include -D__UVISION_VERSION=520 -DARMCM0 --omf_browse=.\retarget.crf retarget.c
     
     scm3c_hardware_interface.o
     
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: ArmCC [4d3637]
-    ArmCC -c -o.\scm3c_hardware_interface.o --depend=.\scm3c_hardware_interface.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -I.\RTE\_Target_1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\Include -D__EVAL -D__UVISION_VERSION=525 -DARMCM0 --omf_browse=.\scm3c_hardware_interface.crf scm3C_hardware_interface.c
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: ArmCC [4d35cd]
+    ArmCC -c -o.\scm3c_hardware_interface.o --depend=.\scm3c_hardware_interface.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -IC:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include -D__UVISION_VERSION=520 -DARMCM0 --omf_browse=.\scm3c_hardware_interface.crf scm3C_hardware_interface.c
     
     scm3_hardware_interface.o
     
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: ArmCC [4d3637]
-    ArmCC -c -o.\scm3_hardware_interface.o --depend=.\scm3_hardware_interface.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -I.\RTE\_Target_1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\Include -D__EVAL -D__UVISION_VERSION=525 -DARMCM0 --omf_browse=.\scm3_hardware_interface.crf scm3_hardware_interface.c
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: ArmCC [4d35cd]
+    ArmCC -c -o.\scm3_hardware_interface.o --depend=.\scm3_hardware_interface.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -IC:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include -D__UVISION_VERSION=520 -DARMCM0 --omf_browse=.\scm3_hardware_interface.crf scm3_hardware_interface.c
     
     scum_radio_bsp.o
     
-    Component: ARM Compiler 5.06 update 6 (build 750) Tool: ArmCC [4d3637]
-    ArmCC -c -o.\scum_radio_bsp.o --depend=.\scum_radio_bsp.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -I.\RTE\_Target_1 -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\Device\Include -D__EVAL -D__UVISION_VERSION=525 -DARMCM0 --omf_browse=.\scum_radio_bsp.crf scum_radio_bsp.c
-    
-    
+    Component: ARM Compiler 5.06 update 2 (build 183) Tool: ArmCC [4d35cd]
+    ArmCC -c -o.\scum_radio_bsp.o --depend=.\scum_radio_bsp.d --cpu=Cortex-M0 --apcs=interwork -O0 --diag_suppress=9931 -IC:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include -IC:\Keil_v5\ARM\CMSIS\Include -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include -D__UVISION_VERSION=520 -DARMCM0 --omf_browse=.\scum_radio_bsp.crf scum_radio_bsp.c
     
     
 
@@ -3338,7 +3336,7 @@
     Type        : SHT_STRTAB (0x00000003)
     Flags       : None (0x00000000)
     Addr        : 0x00000000
-    File Offset : 16172 (0x3f2c)
+    File Offset : 16304 (0x3fb0)
     Size        : 44 bytes (0x2c)
     Link        : SHN_UNDEF
     Info        : 0
