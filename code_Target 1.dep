@@ -27,7 +27,7 @@ I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x56FF15CE)
 I (Memory_Map.h)(0x5D97CA96)
 F (rf_global_vars.h)(0x5D97CA96)()
 F (.\scm3C_hardware_interface.h)(0x5D97CA96)()
-F (.\scm3C_hardware_interface.c)(0x5D9BD5F1)(-c --cpu Cortex-M0 -O0 --apcs=interwork -I C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include-D__UVISION_VERSION="520" -DARMCM0-o .\scm3c_hardware_interface.o --omf_browse .\scm3c_hardware_interface.crf --depend .\scm3c_hardware_interface.d)
+F (.\scm3C_hardware_interface.c)(0x5D9BD6BC)(-c --cpu Cortex-M0 -O0 --apcs=interwork -I C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\Include-D__UVISION_VERSION="520" -DARMCM0-o .\scm3c_hardware_interface.o --omf_browse .\scm3c_hardware_interface.crf --depend .\scm3c_hardware_interface.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x56FF15CE)
 I (Memory_Map.h)(0x5D97CA96)
 I (scm3_hardware_interface.h)(0x5D97CA96)
