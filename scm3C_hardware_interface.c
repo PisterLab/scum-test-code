@@ -861,10 +861,10 @@ void radio_init_tx(){
 void radio_init_divider(unsigned int div_value){
 	
 	// Set divider LDO value to max
-	set_DIV_supply(40,0);
+	set_DIV_supply(0,0);
 
 	// Set prescaler to div-by-2
-	prescaler(4);
+	prescaler(1);
 	
 	// Activate 8MHz/20MHz output
 	//set_asc_bit(1033);
@@ -874,7 +874,7 @@ void radio_init_divider(unsigned int div_value){
 	
 	// Set sel12 = 1 (choose whether x2 is active)
 	// Want this set to 1 or else the divider output falling edges will be messed up
-	set_asc_bit(1012);
+	//set_asc_bit(1012);
 		
 }
 
