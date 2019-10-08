@@ -171,7 +171,7 @@ int main(void) {
 
 	printf("Cal complete\n");
 	
-	radio_rfOff();
+	//radio_rfOff();
 	
 	// Disable all interrupts
 	ICER = 0xFFFF;
