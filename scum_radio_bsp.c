@@ -14,6 +14,8 @@ extern unsigned short current_RF_channel;
 
 extern char send_packet[127];
 
+// These coefficients are used for filtering frequency feedback information
+// These are no necessarily the ideal values to use; situationally dependent
 unsigned char FIR_coeff[11] = {4,16,37,64,87,96,87,64,37,16,4};
 unsigned int IF_estimate_history[11] = {500,500,500,500,500,500,500,500,500,500};
 signed short cdr_tau_history[11] = {0};
@@ -37,13 +39,14 @@ extern signed int SFD_timestamp;
 //If the RX watchdog expires, there will be no ack transmitted so no need to setup for TX
 
 
+// SCM has separate setFrequency functions for RX and TX because of the way the radio is built
+// The LO needs to be set to a different frequency for TX vs RX
 void setFrequencyRX(unsigned int channel){
 	
 	// Set LO code for RX channel
 	LC_monotonic(RX_channel_codes[channel-11]);
 	
 }
-
 
 void setFrequencyTX(unsigned int channel){
 
@@ -76,7 +79,8 @@ void radio_txEnable(){
 	ANALOG_CFG_REG__10 = 0x0028;
 }
 
-// Begin modulating the radio output for TX 
+// Begin modulating the radio output for TX
+// Note that you need some delay before txNow() to allow txLoad() to finish loading the packet
 void radio_txNow(){
 	
 	RFCONTROLLER_REG__CONTROL = 0x2;
@@ -88,7 +92,7 @@ void radio_rxEnable(){
 	
 	// Turn on LO, IF, and AUX LDOs via memory mapped register
 	ANALOG_CFG_REG__10 = 0x0018;
-
+	
 	// Enable polyphase and mixers via memory-mapped I/O
 	ANALOG_CFG_REG__16 = 0x1;
 	
@@ -113,15 +117,11 @@ void radio_rxNow(){
 
 void radio_rfOff(){
 	
-	// Reset radio FSM
-	RFCONTROLLER_REG__CONTROL = 0x10;
-
 	// Hold digital baseband in reset
 	ANALOG_CFG_REG__4 = 0x2000;
 
 	// Turn off LDOs
 	ANALOG_CFG_REG__10 = 0x0000;
-	
 }
 
 
@@ -260,7 +260,7 @@ void radio_enable_interrupts(){
 	//RFCONTROLLER_REG__ERROR_CONFIG = 0x1F;  
 	
 	// Enable only the RX CRC error
-	RFCONTROLLER_REG__ERROR_CONFIG = 0x10; 
+	RFCONTROLLER_REG__ERROR_CONFIG = 0x8;	//0x10; x10 is wrong? 
 }
 
 
