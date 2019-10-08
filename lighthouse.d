@@ -7,5 +7,6 @@
 .\lighthouse.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\lighthouse.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 .\lighthouse.o: scum_radio_bsp.h
+.\lighthouse.o: scm3_hardware_interface.h
 .\lighthouse.o: lighthouse.h
 .\lighthouse.o: Memory_map.h

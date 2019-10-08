@@ -5,6 +5,7 @@
 
 #include <math.h>
 #include "scum_radio_bsp.h"
+#include "scm3_hardware_interface.h"
 #include "lighthouse.h"
 #include "Memory_map.h"
 
@@ -250,21 +251,21 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 				if(last_delta_b > 0 && abs(((int)(elevation_b_laser-elevation_b_sync))-(int)last_delta_b)<4630){
 					printf("el B: %d, %d\n",elevation_b_sync,elevation_b_laser);
 					//replace with the following://///////
-					
+					//turn on radio (radio_txenable)
+					radio_txEnable();
 					//enable radio interrupts (radio_enable_interrupts) (do this somewhere; only needs to be done once)
 					//place data into a "send_packet" global variable array 
 					send_packet[0]= 1;
-					send_packet[1] = 15;
-					
+					send_packet[1] = elevation_a_sync & 0xFF;
+					send_packet[2] = elevation_b_laser & 0xFF;
 					//call "radio_loadpacket", which puts array into hardware fifo (takes time)
-					radio_loadPacket(2);
+					radio_loadPacket(3);
 					
 					//set radio frequency (radio_setfrequency). This needs to be figured out
-						//LC_FREQCHANGE(coarse,mid,fine) for set frequency
-					setFrequencyTX(12);
-					//turn on radio (radio_txenable)
-					radio_txEnable();
-					for(i = 0; i<5; i++){
+					LC_FREQCHANGE(22&0x1F, 21&0x1F, 4&0x1F); //for set frequency
+					
+					
+					for(i = 0; i<2500; i++){
 						
 					}
 					//transmit packet (radio_txnow) (wait 50 us between tx enable and tx_now)
