@@ -14,6 +14,7 @@
 #include "bucket_o_functions.h"
 #include <math.h>
 #include "scum_radio_bsp.h"
+#include "lighthouse.h"
 
 extern unsigned int current_lfsr;
 
@@ -55,6 +56,16 @@ unsigned short optical_cal_iteration = 0, optical_cal_finished = 0;
 unsigned short doing_initial_packet_search;
 unsigned short current_RF_channel;
 unsigned short do_debug_print = 0;
+
+// Variables for lighthouse RX	
+unsigned short current_gpio = 0, last_gpio = 0, state = 0, nextstate = 0, pulse_type = 0;	
+unsigned int timestamp_rise, timestamp_fall, pulse_width;	
+//unsigned int azimuth_delta, elevation_delta;	
+unsigned int azimuth_t1, elevation_t1, azimuth_t2, elevation_t2;	
+unsigned short num_data_points = 0, target_num_data_points;	
+unsigned int azimuth_t1_data[1000], elevation_t1_data[1000], azimuth_t2_data[1000], elevation_t2_data[1000];	
+
+unsigned int pulse_width_data[1000];	
 
 void test_LC_sweep_tx(void) {
 	/*
@@ -165,7 +176,69 @@ int main(void) {
 	printf("Cal complete\n");
 	
 	// Disable divider to save power
-	divProgram(480, 0, 0);
+	//divProgram(480, 0, 0);
+	
+		// Reset RF Timer count register	
+	RFTIMER_REG__COUNTER = 0x0;	
+
+
+	// Number of data points to gather before printing		test_LC_sweep_tx();
+	target_num_data_points = 120;
 	
 	test_LC_sweep_tx();
+	// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems	
+		last_gpio = current_gpio;	
+		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;	
+		//debounce_gpio(current_gpio,&deb_gpio,&trans_time);	
+		//current_gpio = deb_gpio;	
+		//if(state != nextstate) printf("%d\n",state);	
+
+		// Update to next FSM state	
+		state = nextstate;	
+		while(1) {		
+
+		// Read GPIO<3> (optical_data_raw - this is the digital output of the optical receiver)	
+		// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems	
+		last_gpio = current_gpio;	
+		current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;	
+		//debounce_gpio(current_gpio,&deb_gpio,&trans_time);	
+		//current_gpio = deb_gpio;	
+		//if(state != nextstate) printf("%d\n",state);	
+
+		// Update to next FSM state	
+		state = nextstate;	
+
+		// Detect rising edge	
+		if(last_gpio == 0 && current_gpio == 1){	
+
+			// Reset RF Timer count register at rising edge of first sync pulse	
+			//if(state == 0) RFTIMER_REG__COUNTER = 0x0;	
+
+			// Save when this event happened	
+			timestamp_rise = RFTIMER_REG__COUNTER;	
+
+		}	
+
+		// Detect falling edge	
+		else if(last_gpio == 1 && current_gpio == 0){	
+
+			// Save when this event happened	
+			timestamp_fall = RFTIMER_REG__COUNTER;	
+
+			// Calculate how wide this pulse was	
+			//pulse_width = timestamp_fall - timestamp_rise;	
+			pulse_width = timestamp_fall - timestamp_rise;	
+			//printf("Pulse Type, Width:%d, %d\n",classify_pulse(timestamp_rise, timestamp_fall),pulse_width);	
+
+			// Need to determine what kind of pulse this was	
+			// Laser sweep pulses will have widths of only a few us	
+			// Sync pulses have a width corresponding to	
+			// 62.5 us - azimuth   - data=0 (625 ticks of 10MHz clock)	
+			// 72.9 us - elevation - data=0 (729 ticks)	
+			// 83.3 us - azimuth   - data=1 (833 ticks)	
+			// 93.8 us - elevation - data=0 (938 ticks)	
+			// A second lighthouse can be distinguished by differences in these pulse widths	
+			update_state(classify_pulse(timestamp_rise, timestamp_fall),timestamp_rise);	
+		}	
+	}
 }
