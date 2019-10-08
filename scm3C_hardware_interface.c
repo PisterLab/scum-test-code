@@ -845,11 +845,11 @@ void radio_init_tx(){
 	ANALOG_CFG_REG__11 = 0x0080;
 	
 	// Set current in LC tank
-	set_LC_current(127);
+	set_LC_current(100);
 	
 	// Set LDO voltages for PA and LO
 	set_PA_supply(63);
-	set_LO_supply(127,0);
+	set_LO_supply(64,0);
 	
 	// Ensure cortex control of LO
 	clear_asc_bit(964);
@@ -1006,19 +1006,19 @@ void initialize_mote(){
 	int t;
 	
 	// Start of new RX
-	RFTIMER_REG__COMPARE0 = 1;
+	//RFTIMER_REG__COMPARE0 = 1;
 	
 	// Turn on the RX 
-	RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
+	//RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
 
 	// Time to start listening for packet 
-	RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
+	//RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
 
 	// RX watchdog - packet never arrived
-	RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
+	//RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
 	
 	// RF Timer rolls over at this value and starts a new cycle
-	RFTIMER_REG__MAX_COUNT = packet_interval;
+	RFTIMER_REG__MAX_COUNT = 0xFFFFFFFF;
 
 	// Enable RF Timer
 	RFTIMER_REG__CONTROL = 0x7;
