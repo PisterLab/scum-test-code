@@ -88,7 +88,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 		teensy_ser.write(b'configopt\n')
 		teensy_ser.write(b'80\n')
 		teensy_ser.write(b'80\n')
-		teensy_ser.write(b'2\n')
+		teensy_ser.write(b'3\n')
 		teensy_ser.write(b'80\n')
 		
 	    # Encode the payload into 4B5B for optical transmission
@@ -128,15 +128,18 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 			timeout=.5)
 
 		# After programming, several lines are sent from SCM over UART
-		for _ in range(10):
-			print(uart_ser.readline())
+		print(uart_ser.readline())
+		print(uart_ser.readline())
+		print(uart_ser.readline())
+		print(uart_ser.readline())
+		print(uart_ser.readline())
 
 		uart_ser.close()
 
 	return
 
 if __name__ == "__main__":
-	programmer_port = "COM15"
+	programmer_port = "COM12"
 	scm_port = None
 
 	program_cortex_specs = dict(teensy_port=programmer_port,
