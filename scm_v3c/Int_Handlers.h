@@ -702,8 +702,7 @@ void OPTICAL_SFD_ISR(){
         //radio_disable_all();
         
         // Halt all counters
-        ANALOG_CFG_REG__0 = 0x0000;    
-                        
+        ANALOG_CFG_REG__0 = 0x0000;
     }
 }
     
