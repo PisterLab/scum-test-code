@@ -3,7 +3,6 @@
 #include "scm3_hardware_interface.h"
 #include "bucket_o_functions.h"
 #include "scum_radio_bsp.h"
-#include "sensor_adc/adc_config.h"
 
 extern unsigned int ASC[38];
 extern unsigned int cal_iteration;
@@ -28,11 +27,21 @@ unsigned int TX_channel_codes[16] = {0};
 // Timer parameters 
 // Assuming RF timer frequency = 500 kHz
 unsigned int packet_interval = 62500; // 125ms
-unsigned int guard_time = 500; 
-unsigned int radio_startup_time = 70; //200us
-unsigned int expected_RX_arrival = 25000;		// must be > 30ms
-unsigned int ack_turnaround_time = 96;	//192 us
+unsigned int guard_time = 500; //1ms
+unsigned int radio_startup_time = 70; //140us
+unsigned int expected_RX_arrival = 15000;	// Where within the timeslot the packet will arrive; somewhat arbitrary choice
+unsigned int ack_turnaround_time = 596;	//1.2 ms
 
+
+// Reverses (reflects) bits in a 32-bit word.
+unsigned reverse(unsigned x) {
+   x = ((x & 0x55555555) <<  1) | ((x >>  1) & 0x55555555);
+   x = ((x & 0x33333333) <<  2) | ((x >>  2) & 0x33333333);
+   x = ((x & 0x0F0F0F0F) <<  4) | ((x >>  4) & 0x0F0F0F0F);
+   x = (x << 24) | ((x & 0xFF00) << 8) |
+       ((x >> 8) & 0xFF00) | (x >> 24);
+   return x;
+}
 
 // Computes 32-bit crc from a starting address over 'length' dwords
 unsigned int crc32c(unsigned char *message, unsigned int length) {
@@ -147,6 +156,7 @@ void GPO_enables(unsigned int mask){
 	unsigned int j;
 	
 	for (j = 0; j <= 15; j++) { 
+	
 		if((mask >> j) & 0x1)
 			clear_asc_bit(asc_locations[j]);
 		else	
@@ -172,121 +182,8 @@ void GPI_enables(unsigned int mask){
 			clear_asc_bit(asc_locations[j]);
 	}
 }
+	
 
-unsigned int get_GPI_enables(void) {
-	/*
-	Inputs:
-		None.
-	Outputs:
-		Returns the mask for the GPI enables in unsigned
-		int form. Note that this is intended to be 2 bytes long.
-	*/
-	unsigned int gpi_enables = 0x0000;
-	// LSB -> MSB
-	unsigned short asc_locations[16] = {1132,1134,1136,1138,1139,1141,1143,1145,1116,1118,1120,1122,1123,1125,1127,1129};
-	int i;
-	for (i=0; i<16; i++) {
-		gpi_enables |= (get_asc_bit(asc_locations[i]) << i);
-	}
-	return gpi_enables;
-}
-
-
-unsigned int get_GPO_enables(void) {
-	/*
-	Inputs:
-		None.
-	Outputs:
-		Returns the mask for the GPO enables in unsigned int form.
-		Note that this is intended to be 2 bytes long.
-	*/
-	unsigned int gpo_enables = 0x0000;
-	// LSB -> MSB
-	unsigned short asc_locations[16] = {1131,1133,1135,1137,1140,1142,1144,1146,1115,1117,1119,1121,1124,1126,1128,1130};
-	int i;
-	for (i=0; i<16; i++) {
-		gpo_enables |= ((0x1-get_asc_bit(asc_locations[i])) << i);
-	}
-	return gpo_enables;
-}
-
-unsigned char get_GPI_control(unsigned short rowNum) {
-	/*
-	Inputs:
-		rowNum: Integer [0,3]. Determines which grouping of GPIs you'd 
-			like to get the bank for.
-	Outputs:
-		Returns (in unsigned character form) the bank number associated
-		a specific grouping of GPIOs. e.g. if you have the GPI setting such
-		that D_OUT<0> is adc_reset_gpi, get_GPI_control(0) will return 
-		3. A return value of 0xFF indicates that the row number was invalid.
-	Notes:
-		Untested.
-	*/
-	int start_idx;
-	int i;
-	unsigned char row_value;
-	switch (rowNum) {
-		case 0:
-			start_idx = 261;
-			break;
-		case 1:
-			start_idx = 263;
-			break;
-		case 2:
-			start_idx = 265;
-			break;
-		case 3:
-			start_idx = 267;
-			break;
-		default:
-			// Do nothing
-			return 0xFF;
-	}
-	for(i=0; i<2; i++) {
-		row_value |= (get_asc_bit(start_idx+i) << i);
-	}
-	return row_value;
-}
-
-unsigned char get_GPO_control(unsigned short rowNum) {
-	/*
-	Inputs:
-		rowNum: Integer [0,3]. Determines which grouping of GPIs you'd 
-			like to get the bank for.
-	Outputs:
-		Returns (in unsigned character form) the bank number associated
-		a specific grouping of GPIOs. e.g. if you have the GPI setting such
-		that D_OUT<0> is ADC_CLK, get_GPO_control(0) will return 2. A return
-		value of 0xFF indicates that the row number was invalid.
-	Notes:
-		Untested.
-	*/
-	int start_idx;
-	int i;
-	unsigned char row_value;
-	switch (rowNum) {
-		case 0:
-			start_idx = 245;
-			break;
-		case 1:
-			start_idx = 249;
-			break;
-		case 2:
-			start_idx = 253;
-			break;
-		case 3:
-			start_idx = 257;
-			break;
-		default:
-			// Do nothing
-			return 0xFF;
-	}
-	for(i=0; i<4; i++) {
-		row_value |= (get_asc_bit(start_idx+i) << i);
-	}
-	return row_value;
-}
 
 // Configure how radio and AUX LDOs are turned on and off
 void init_ldo_control(void){
@@ -294,7 +191,7 @@ void init_ldo_control(void){
 	// Analog scan chain setup for radio LDOs
 	// Memory mapped control signals from the cortex are connected to fsm_pon signals
 	clear_asc_bit(501); // = scan_pon_if
-	set_asc_bit(502); // = scan_pon_lo
+	clear_asc_bit(502); // = scan_pon_lo
 	clear_asc_bit(503); // = scan_pon_pa
 	clear_asc_bit(504); // = gpio_pon_en_if
 	set_asc_bit(505); // = fsm_pon_en_if
@@ -305,15 +202,20 @@ void init_ldo_control(void){
 	set_asc_bit(510); // = master_ldo_en_if
 	set_asc_bit(511); // = master_ldo_en_lo
 	set_asc_bit(512); // = master_ldo_en_pa
-	set_asc_bit(513); // = scan_pon_div
+	clear_asc_bit(513); // = scan_pon_div
 	clear_asc_bit(514); // = gpio_pon_en_div
 	set_asc_bit(515); // = fsm_pon_en_div
 	set_asc_bit(516); // = master_ldo_en_div
 
+	
+	// Initialize all radio LDOs off but leave AUX on
+	ANALOG_CFG_REG__10 = 0x0000;
+	
 	// AUX LDO Control:
 	// ASC<914> chooses whether ASC<916> or analog_cfg<167> controls LDO
 	// 0 = ASC<916> has control
 	// 1 = analog_cfg<167> has control
+	// Enable is inverted so 0=on
 	set_asc_bit(914);
 	//set_asc_bit(916);
 	
@@ -336,12 +238,12 @@ void init_ldo_control(void){
 	// Memory-mapped LDO control
 	// ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
 	// For MUX signals, '1' = FSM control, '0' = memory mapped control
-	// For EN signals, '1' = turn on LDO
+	// For EN signals, '1' = turn on LDO (except for AUX which is inverted)
 
 	// Some examples:
 		
 	// Assert all PON_XX signals for the radio via memory mapped register
-	// ANALOG_CFG_REG__10 = 0x00F8; 
+	// ANALOG_CFG_REG__10 = 0x0078; 
 
 	// Turn off all PON_XX signals for the radio via memory mapped register
 	//ANALOG_CFG_REG__10 = 0x0000; 
@@ -689,6 +591,8 @@ void radio_init_rx_MF(){
 	ASC[8] &= mask1;
 	ASC[15] &= mask2;
 
+	// A large number of bits in the radio scan chain have no need to be changed
+	// These values were exported from Matlab during radio testing
 	// Same settings as used for 122418 ADC data captures
 	ASC[8] |= (0x4050FFE0 & ~mask1);    //256-287
 	ASC[9] = 0x00422188;   //288-319
@@ -703,19 +607,24 @@ void radio_init_rx_MF(){
  	clear_asc_bit(424);
 	set_asc_bit(425);
 
-	// Set gain for I and Q
-	set_IF_gain_ASC(43,43);
+	// Set gain for I and Q (63 is the max)
+	set_IF_gain_ASC(63,63);
 	
-	// Set gm for stg3 ADC drivers
+	// Set gm for stg3 ADC drivers 
+	// Sets the transconductance for the third amplifier which drives the ADC
+	// (7 was experimentally found to be about the best choice)
 	set_IF_stg3gm_ASC(7, 7); //(I, Q)
 
 	// Set comparator trims
-	set_IF_comparator_trim_I(0, 5); //(p,n)
-	set_IF_comparator_trim_Q(15, 0); //(p,n)
+	// These allow you to trim the comparator offset for both I and Q channels
+	// Shouldn't make much of a difference in matched filter mode, but can for zero-crossing demod
+	// Only way to observe effect of trim is to adjust and look for increase/decrease in packet error rate
+	set_IF_comparator_trim_I(0, 0); //(p,n)
+	set_IF_comparator_trim_Q(0, 0); //(p,n)
 
 	// Setup baseband
 
-	// Choose MF demod
+	// Choose matched filter demod
 	// ASC<0:1> = [0 0]
 	clear_asc_bit(0);
 	clear_asc_bit(1);
@@ -725,7 +634,11 @@ void radio_init_rx_MF(){
 	// '1' = from GPIO
 	clear_asc_bit(96);
 	
-	// AGC Setup
+	// Automatic Gain Control Setup
+	
+	// Set gain control signals to come from ASC
+	clear_asc_bit(271);
+	clear_asc_bit(491);
 	
 	// ASC<100> = envelope detector  
 	// '0' to choose envelope detector, 
@@ -737,8 +650,8 @@ void radio_init_rx_MF(){
 	// 00 = AGC FSM
 	// 01 or 10 = analog_cfg
 	// 11 = GPIN
-	set_asc_bit(101);
-	set_asc_bit(102);
+	clear_asc_bit(101);
+	clear_asc_bit(102);
 	
 	// Activate TIA only mode
 	// '1' = only control gain of TIA
@@ -756,17 +669,21 @@ void radio_init_rx_MF(){
 	ANALOG_CFG_REG__14 = 0x0000;
 	ANALOG_CFG_REG__15 = 0xA00F;
 	
-	// MF/CDR
+	// Matched Filter/Clock & Data Recovery
 	// Choose output polarity of demod
+	// If RX LO is 2.5MHz below the channel, use ASC<103>=1
+	// This bit just inverts the output data bits
 	set_asc_bit(103);
 	
 	// CDR feedback parameters
+	// Determined experimentally - unlikely to need to ever change
 	tau_shift = 11;
 	e_k_shift = 2;
 	ANALOG_CFG_REG__3 = (tau_shift << 11) | (e_k_shift << 7);
 	
 	// Threshold used for packet detection
-	correlation_threshold = 14;
+	// This number corresponds to the Hamming distance threshold for determining if incoming 15.4 chip stream is a packet
+	correlation_threshold = 5;
 	ANALOG_CFG_REG__9 = correlation_threshold;
 
 	// Mux select bits to choose internal demod or external clk/data from gpio
@@ -775,22 +692,33 @@ void radio_init_rx_MF(){
 	clear_asc_bit(270);
 
 	// Set LDO reference voltage
+	// Best performance was found with LDO at max voltage (0)
+	// Some performance can be traded for power by turning this voltage down
 	set_IF_LDO_voltage(0);
 
 	// Set RST_B to analog_cfg[75]
+	// This chooses whether the reset for the digital blocks is connected to a memory mapped register or a scan bit
 	set_asc_bit(240);
+			
+	// Mixer and polyphase control settings can be driven from either ASC or memory mapped I/O
+	// Mixers and polyphase should both be enabled for RX and both disabled for TX
+	// --
+	// For polyphase (1=enabled), 
+	// 	mux select signal ASC<746>=0 gives control to ASC<971>
+	//	mux select signal ASC<746>=1 gives control to analog_cfg<256> (bit 0 of ANALOG_CFG_REG__16)
+	// --
+	// For mixers (0=enabled), both I and Q should be enabled for matched filter mode
+	// 	mux select signals ASC<744>=0 and ASC<745>=0 give control to ASC<298> and ASC<307>
+	//	mux select signals ASC<744>=1 and ASC<745>=1 give control to analog_cfg<257> analog_cfg<258> (bits 1 and 2 in ANALOG_CFG_REG__16)	
 	
-	// Set RST_B = 1 (it is active low)
-	//ANALOG_CFG_REG__4 = 0x2800;	
+	// Set mixer and polyphase control signals to memory mapped I/O
+	set_asc_bit(744);
+	set_asc_bit(745);
+	set_asc_bit(746);
 	
-	// Enable the polyphase filter
-	// The polyphase is required for RX and is ideally off in TX
-	// Changing it requires programming the ASC in between TX and RX modes
-	// So for now just leaving it always enabled
-	// Note this may trash the TX efficiency
-	// And will also significantly affect the frequency change between TX and RX
-	// ASC[30] |= 0x00100000;
-	set_asc_bit(971);
+	// Enable both polyphase and mixers via memory mapped IO (...001 = 0x1)
+	// To disable both you would invert these values (...110 = 0x6)
+	ANALOG_CFG_REG__16 = 0x1;
 		
 }
 
@@ -807,15 +735,6 @@ void radio_init_rx_ZCC(){
 	ASC[8] &= mask1;
 	ASC[15] &= mask2;
 	
-	// Set ASC bits for the analog RX blocks
-//	ASC[8] |= (0x0000FFF0	 & mask1);   //256-287
-//	ASC[9] = 0x00423188;   //288-319
-//	ASC[10] = 0x88020000;   //320-351
-//	ASC[11] = 0x000C0000;   //352-383
-//	ASC[12] = 0x00188102;   //384-415
-//	ASC[13] = 0x01603C44;   //416-447
-//	ASC[14] = 0x70010001;   //448-479
-//	ASC[15] |= (0xFFE02800 & mask2);   //480-511
 
 	ASC[8] |= (0x0000FFF0 & ~mask1);   //256-287
 	ASC[9] = 0x00422188;   //288-319
@@ -835,9 +754,7 @@ void radio_init_rx_ZCC(){
 	
 	// Set counter threshold 122:107 MSB:LSB
 	// for 76MHz, use 13
-	set_zcc_demod_threshold(14);
-	// for 64MHz, use 24?
-	//set_zcc_demod_threshold();
+	set_zcc_demod_threshold(13);
 	
 	// Set clock divider value for zcc
 	// The IF clock divided by this value must equal 2 MHz for 802.15.4
@@ -871,13 +788,6 @@ void radio_init_rx_ZCC(){
 	// Set RST_B to analog_cfg[75]
 	set_asc_bit(240);
 	
-	// Set RST_B to ASC<241>
-	//clear_asc_bit(240);
-	
-	// check to see what onchip zcc does when taken out of reset
-	//set_asc_bit(241);
-	
-	
 	// Leave baseband held in reset until RX activated
 	// RST_B = 0 (it is active low)
 	ANALOG_CFG_REG__4 = 0x2000;	
@@ -901,11 +811,6 @@ void radio_init_tx(){
 	//set_asc_bit(996);
 	//set_asc_bit(998);
 	//set_asc_bit(999);
-	
-	// Make sure the BLE modulation mux is not also modulating the BLE DAC at the same time
-	// Bit 1013 sets the BLE mod dac to cortex, since we are using the pad for 15.4 here
-	// In the IC version, comment this line out (ie, leave the ble mod source as the pad since 15.4 will use the cortex)	
-	//set_asc_bit(1013);
 	// ----
 
 	
@@ -921,8 +826,6 @@ void radio_init_tx(){
 	// set dummy bit to 1
 	set_asc_bit(1003);
 	// ----
-
-
 
 	// If you need to adjust the tone spacing, turn on the LO and PA, and uncomment the lines below one at a time to force the transmitter to each of its two output tones
 	// Then adjust mod_15_4_tune until the spacing is close to 1 MHz
@@ -942,41 +845,21 @@ void radio_init_tx(){
 	ANALOG_CFG_REG__11 = 0x0080;
 	
 	// Set current in LC tank
-	set_LC_current(100);
+	set_LC_current(127);
 	
 	// Set LDO voltages for PA and LO
 	set_PA_supply(63);
-	set_LO_supply(64,0);
+	set_LO_supply(127,0);
 	
 }
 
 void radio_init_divider(unsigned int div_value){
-
-	//int j;
 	
 	// Set divider LDO value to max
-	set_DIV_supply(0,0);
+	set_DIV_supply(40,0);
 
-	// Disable /5 prescaler
-	//clear_asc_bit(1023);		//en
-	//set_asc_bit(1024);	//enb
-	
-	// Enable /2 prescaler
-	//set_asc_bit(1022);	//en
-	//clear_asc_bit(1021);		//enb
-
-	// Set prescaler to div-by-5
-	prescaler(1);
-
-	
-	
-	//pre_dyn 2 0 1 = eb 0 1 2
-	//eb2 turns on the other /2 (active low)
-	//eb1 and eb0 turn on the other /5 thing --leave these high
-	//pre_dyn<5:0> = asc<1030:1025>
-	//set_asc_bit(1025);
-	//set_asc_bit(1026);	// set this low to turn on the other /2; must disable all other dividers
-	//set_asc_bit(1027);
+	// Set prescaler to div-by-2
+	prescaler(4);
 	
 	// Activate 8MHz/20MHz output
 	//set_asc_bit(1033);
@@ -984,12 +867,9 @@ void radio_init_divider(unsigned int div_value){
 	// set divider to div-by-480
 	divProgram(480,1,1);
 	
-
-	// Enable static divider
-	//set_asc_bit(1061);
-	
 	// Set sel12 = 1 (choose whether x2 is active)
-	//set_asc_bit(1012);
+	// Want this set to 1 or else the divider output falling edges will be messed up
+	set_asc_bit(1012);
 		
 }
 
@@ -1027,42 +907,6 @@ void read_counters_3B(unsigned int* count_2M, unsigned int* count_LC, unsigned i
 
 }
 
-void radio_enable_PA(){
-	
-	// Turn on PA via memory mapped register
-	// LO should have already been enabled to allow it to settle
-	// AUX LDO also needs to be turned on since the chip clock divider is on aux supply
-	ANALOG_CFG_REG__10 = 0x8028;
-	
-}
-
-void radio_enable_LO(){
-	
-	// Turn on only LO via memory mapped register
-	ANALOG_CFG_REG__10 = 0x0008;
-}
-
-void radio_enable_RX(){
-	
-	// Turn on LO, IF, and AUX LDOs via memory mapped register
-	ANALOG_CFG_REG__10 = 0x0098;
-	
-	// Deassert reset on baseband
-	// RST_B = 1 (it is active low) 
-	// analog_cfg[75]; note that analog_cfg[78:76] = sample_pt for MF CDR = 2
-	ANALOG_CFG_REG__4 = 0x2800;	
-
-}
-
-void radio_disable_all(){
-	
-	// Turn off all LDOs, including AUX
-	ANALOG_CFG_REG__10 = 0x0000;
-	
-	// Put baseband back in reset until RX activated
-	// RST_B = 0 (it is active low)
-	//ANALOG_CFG_REG__4 = 0x2000;		
-}
 
 // read IF estimate
 unsigned int read_IF_estimate(){
@@ -1155,43 +999,30 @@ void set_sys_clk_secondary_freq(unsigned int coarse, unsigned int fine){
 void initialize_mote(){
 
 	int t;
-
-	// Set HCLK source as HF_CLOCK
-	set_asc_bit(1147);
 	
-	// Set initial coarse/fine on HF_CLOCK
-	//coarse 0:4 = 860 861 875b 876b 877b
-	//fine 0:4 870 871 872 873 874b
-	set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);	//Close to 20MHz at room temp
-
-	// Program analog scan chain
-	//analog_scan_chain_write(&ASC[0]);
-	//analog_scan_chain_load();
-	printf("-x-");
+	// Start of new RX
+	RFTIMER_REG__COMPARE0 = 1;
 	
-//	// Start of new RX
-//	RFTIMER_REG__COMPARE0 = 1;
-//	
-//	// Turn on the RX 
-//	RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
+	// Turn on the RX 
+	RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
 
-//	// Time to start listening for packet 
-//	RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
+	// Time to start listening for packet 
+	RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
 
-//	// RX watchdog - packet never arrived
-//	RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
-//	
-//	// RF Timer rolls over at this value and starts a new cycle
-//	RFTIMER_REG__MAX_COUNT = packet_interval;
+	// RX watchdog - packet never arrived
+	RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
+	
+	// RF Timer rolls over at this value and starts a new cycle
+	RFTIMER_REG__MAX_COUNT = packet_interval;
 
-//	// Enable RF Timer
-//	RFTIMER_REG__CONTROL = 0x7;
+	// Enable RF Timer
+	RFTIMER_REG__CONTROL = 0x7;
 
-//	// Disable interrupts for the radio FSM
-//	radio_disable_interrupts();
-//	
-//	// Disable RF timer interrupts
-//	rftimer_disable_interrupts();
+	// Disable interrupts for the radio FSM
+	radio_disable_interrupts();
+	
+	// Disable RF timer interrupts
+	rftimer_disable_interrupts();
 	
 	//--------------------------------------------------------
 	// SCM3C Analog Scan Chain Initialization
@@ -1200,26 +1031,27 @@ void initialize_mote(){
 	init_ldo_control();
 
 	// Set LDO reference voltages
-	// set_VDDD_LDO_voltage(0);
+	//set_VDDD_LDO_voltage(0);
 	//set_AUX_LDO_voltage(0);
-	set_ALWAYSON_LDO_voltage(0);
+	//set_ALWAYSON_LDO_voltage(0);
 		
 	// Select banks for GPIO inputs
-	// GPI_control(0,0,0,0);
+	GPI_control(0,0,0,0);
 	
-	// // Select banks for GPIO outputs
-	// // GPO_control(6,5,6,0);
+	// Select banks for GPIO outputs
+	GPO_control(6,6,6,0);
 	
-	// // Set all GPIOs as outputs
-	// GPI_enables(0x0000);	
-	// GPO_enables(0xFFFF);
+	// Set all GPIOs as outputs
+	GPI_enables(0x0000);	
+	GPO_enables(0xFFFF);
 
-
+	// Set HCLK source as HF_CLOCK
+	set_asc_bit(1147);
+	
 	// Set initial coarse/fine on HF_CLOCK
 	//coarse 0:4 = 860 861 875b 876b 877b
 	//fine 0:4 870 871 872 873 874b
-	//set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
-
+	set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);	
 	
 	// Set RFTimer source as HF_CLOCK
 	set_asc_bit(1151);
@@ -1271,31 +1103,7 @@ void initialize_mote(){
 	
 	// Init divider settings
 	radio_init_divider(2000);
-
-	// SENSOR ADC INITIALIZATION
-	if (0) {
-		unsigned int sel_reset 			= 1;
-		unsigned int sel_convert 		= 1;
-		unsigned int sel_pga_amplify 	= 1;
-		unsigned int pga_gain[8] 		= {0,0,0,0, 0,0,0,0};
-		unsigned int adc_settle[8] 		= {0,0,0,0, 0,0,0,0};
-		unsigned int bgr_tune[7] 		= {0,0,0, 0,0,0,1};
-		unsigned int constgm_tune[8] 	= {1,1,1,1, 1,1,1,1};
-		unsigned int vbatDiv4_en 		= 0;
-		unsigned int ldo_en 			= 1;
-		unsigned int input_mux_sel[2] 	= {1,0};
-		unsigned int pga_byp 			= 1;
-
-		// Set GPIOs for loopback
-		loopback_control_config_adc();
-
-		scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
-						pga_gain, adc_settle, 
-						bgr_tune, constgm_tune,
-						vbatDiv4_en, ldo_en,
-						input_mux_sel, pga_byp);
-	}
-
+	
 	// Program analog scan chain
 	analog_scan_chain_write(&ASC[0]);
 	analog_scan_chain_load();
@@ -1449,7 +1257,7 @@ void build_channel_table(unsigned int channel_11_LC_code){
 
 		build_TX_channel_table(channel_11_LC_code,count_LC_RX_ch11);
 		
-		radio_disable_all();
+		radio_rfOff();
 }
 
 unsigned int estimate_temperature_2M_32k(){
@@ -1542,10 +1350,10 @@ void LC_monotonic(int LC_code){
 	int fine_fix = 0;
 	int mid_fix = 0;
 	//int coarse_divs = 136;
-	int mid_divs = 25; // works for Ioana's board, Fil's board, Brad's other board
+	int mid_divs = 23; // works for Ioana's board, Fil's board, Brad's other board
 	
 	//int coarse_divs = 167;
-		int coarse_divs = 155;
+		int coarse_divs = 140;
 	//int mid_divs = 27; // works for Brad's board // 25 and 155 worked really well @ low frequency, 27 167 worked great @ high frequency (Brad's board)
 	
 	int mid;

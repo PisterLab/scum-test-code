@@ -5,7 +5,6 @@
 #include "bucket_o_functions.h"
 
 extern unsigned int ASC[38];
-//extern unsigned int ASC_FPGA[38];
 extern unsigned int cal_iteration;
 extern char recv_packet[130];
 
@@ -15,6 +14,8 @@ extern unsigned short current_RF_channel;
 
 extern char send_packet[127];
 
+// These coefficients are used for filtering frequency feedback information
+// These are no necessarily the ideal values to use; situationally dependent
 unsigned char FIR_coeff[11] = {4,16,37,64,87,96,87,64,37,16,4};
 unsigned int IF_estimate_history[11] = {500,500,500,500,500,500,500,500,500,500};
 signed short cdr_tau_history[11] = {0};
@@ -35,121 +36,29 @@ extern unsigned int packet_interval;
 extern unsigned int expected_RX_arrival;
 extern signed int SFD_timestamp;
 	
-//When any of these occur, execute an ASC load:
-//-TX completed
-//-RX occurred
-//analog_scan_chain_load_3B_fromFPGA();
-
 //If the RX watchdog expires, there will be no ack transmitted so no need to setup for TX
 
 
-// Call this to setup RX, followed quickly by a TX ack
-// Note that due to the two ASC program cycles, this function takes about 27ms to execute (@5MHz HCLK)
+// SCM has separate setFrequency functions for RX and TX because of the way the radio is built
+// The LO needs to be set to a different frequency for TX vs RX
 void setFrequencyRX(unsigned int channel){
 	
 	// Set LO code for RX channel
 	LC_monotonic(RX_channel_codes[channel-11]);
 	
-	//printf("chan code = %d\n", RX_channel_codes[channel-11]);
-	
-	// On FPGA, have to use the chip's GPIO outputs for radio signals
-	// Note that can't reprogram while the RX is active
-	GPO_control(2,10,1,1);
-
-	// Turn polyphase on for RX
-	set_asc_bit(971);
-
-	// Enable mixer for RX
-	clear_asc_bit(298);
-	clear_asc_bit(307);
-
-	// Analog scan chain setup for radio LDOs for RX
-	set_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	clear_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(514); // = gpio_pon_en_div
-
-	// Write and load analog scan chain
-	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	//analog_scan_chain_load_3B_fromFPGA();
-
-	// Set LO code for TX ack
-	LC_monotonic(TX_channel_codes[channel-11]);
-	
-	// Set GPIOs back
-	GPO_control(0,10,8,10);
-
-	// Turn polyphase off for TX
-	clear_asc_bit(971);
-
-	// Hi-Z mixer wells for TX
-	set_asc_bit(298);
-	set_asc_bit(307);
-
-	// Analog scan chain setup for radio LDOs for TX
-	clear_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	set_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(514); // = gpio_pon_en_div
-
-	// Write analog scan chain (do not load yet)
-	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	
 }
 
-
-// Call this to setup TX, followed quickly by a RX ack
 void setFrequencyTX(unsigned int channel){
 
 	// Set LO code for TX channel
 	LC_monotonic(TX_channel_codes[channel-11]);
 
-	// Turn polyphase off for TX
-	clear_asc_bit(971);
-
-	// Hi-Z mixer wells for TX
-	set_asc_bit(298);
-	set_asc_bit(307);
-
-	// Analog scan chain setup for radio LDOs for TX
-	clear_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	set_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(514); // = gpio_pon_en_div
-
-	// Write and load analog scan chain
-	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	//analog_scan_chain_load_3B_fromFPGA();
-
-	// Set LO code for RX ack
-	LC_monotonic(RX_channel_codes[channel-11]);
-	
-	// On FPGA, have to use the chip's GPIO outputs for radio signals
-	// Note that can't reprogram while the RX is active
-	GPO_control(2,10,1,1);
-
-	// Turn polyphase on for RX
-	set_asc_bit(971);
-
-	// Enable mixer for RX
-	clear_asc_bit(298);
-	clear_asc_bit(307);
-
-	// Analog scan chain setup for radio LDOs for RX
-	set_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(506); // = gpio_pon_en_lo
-	clear_asc_bit(508); // = gpio_pon_en_pa
-	clear_asc_bit(514); // = gpio_pon_en_div
-
-	// Write analog scan chain (do not load yet)
-	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
 }
-
-
-
 
 void radio_loadPacket(unsigned int len){
 
+	int i;
+	
 	RFCONTROLLER_REG__TX_DATA_ADDR = &send_packet[0];
 			
 	// Set length field (should include +2 for CRC in length)
@@ -160,31 +69,39 @@ void radio_loadPacket(unsigned int len){
 }
 
 // Turn on the radio for transmit
-// This should be done at least X us before txNow()
+// This should be done at least ~50 us before txNow()
 void radio_txEnable(){
 	
+	// Turn off polyphase and disable mixer
+	ANALOG_CFG_REG__16 = 0x6;
+	
 	// Turn on LO, PA, and AUX LDOs
-	ANALOG_CFG_REG__10 = 0x00A8;
+	ANALOG_CFG_REG__10 = 0x0028;
 }
 
-// Begin modulating the radio output for TX 
+// Begin modulating the radio output for TX
+// Note that you need some delay before txNow() to allow txLoad() to finish loading the packet
 void radio_txNow(){
 	
 	RFCONTROLLER_REG__CONTROL = 0x2;
 }
 
 // Turn on the radio for receive
-// This should be done at least X us before rxNow()
+// This should be done at least ~50 us before rxNow()
 void radio_rxEnable(){
 	
 	// Turn on LO, IF, and AUX LDOs via memory mapped register
-	ANALOG_CFG_REG__10 = 0x0098;
-
-	// Reset radio FSM
-	RFCONTROLLER_REG__CONTROL = 0x10;
+	ANALOG_CFG_REG__10 = 0x0018;
+	
+	// Enable polyphase and mixers via memory-mapped I/O
+	ANALOG_CFG_REG__16 = 0x1;
 	
 	// Where packet will be stored in memory
 	DMA_REG__RF_RX_ADDR = &recv_packet[0];
+	
+	// Reset radio FSM
+	RFCONTROLLER_REG__CONTROL = 0x10;
+	
 }
 
 // Radio will begin searching for start of packet
@@ -200,22 +117,11 @@ void radio_rxNow(){
 
 void radio_rfOff(){
 	
-	// Reset radio FSM
-	RFCONTROLLER_REG__CONTROL = 0x10;
-
 	// Hold digital baseband in reset
 	ANALOG_CFG_REG__4 = 0x2000;
 
 	// Turn off LDOs
 	ANALOG_CFG_REG__10 = 0x0000;
-	
-	
-	// Make sure GPIOs are set back to allow for reprogramming
-//	GPO_control(0,10,8,10);
-	// Write and load analog scan chain
-	//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-	//analog_scan_chain_load_3B_fromFPGA();
-	
 }
 
 
@@ -354,7 +260,7 @@ void radio_enable_interrupts(){
 	//RFCONTROLLER_REG__ERROR_CONFIG = 0x1F;  
 	
 	// Enable only the RX CRC error
-	RFCONTROLLER_REG__ERROR_CONFIG = 0x10; 
+	RFCONTROLLER_REG__ERROR_CONFIG = 0x8;	//0x10; x10 is wrong? 
 }
 
 

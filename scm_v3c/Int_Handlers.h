@@ -5,7 +5,6 @@
 #include "scm3_hardware_interface.h"
 #include "scum_radio_bsp.h"
 #include "bucket_o_functions.h"
-#include "sensor_adc/adc_test.h"
 
 extern char send_packet[127];
 extern char recv_packet[130];
@@ -23,7 +22,6 @@ extern unsigned int IF_coarse;
 extern unsigned int IF_fine;
 extern unsigned int cal_iteration;
 extern unsigned int ASC[38];
-//extern unsigned int ASC_FPGA[38];
 
 unsigned int num_packets_received;
 unsigned int num_crc_errors;
@@ -68,17 +66,8 @@ extern unsigned short current_RF_channel;
 
 extern unsigned short do_debug_print;
 
-// Sensor ADC: General
-extern unsigned short ADC_DATA_VALID;
-extern unsigned short ADC_CONTINUOUS;
-extern unsigned short ADC_STOP;
 
-// Sensor ADC: Loopback-specific
-unsigned int cycles_reset = 1000;
-unsigned int cycles_to_start = 1000;
-unsigned int cycles_pga = 1000;
-
-void UART_ISR() {	
+void UART_ISR(){	
 	static char i=0;
 	static char buff[4] = {0x0, 0x0, 0x0, 0x0};
 	static char waiting_for_end_of_copy = 0;
@@ -86,7 +75,7 @@ void UART_ISR() {
 	int t;
 	
 	inChar = UART_REG__RX_DATA;
-  	buff[3] = buff[2];
+  buff[3] = buff[2];
 	buff[2] = buff[1];
 	buff[1] = buff[0];
 	buff[0] = inChar;
@@ -94,34 +83,31 @@ void UART_ISR() {
 	// If we are still waiting for the end of a load command
 	if (waiting_for_end_of_copy) {
 		if (inChar=='\n'){
-			int j=0;
-			printf("copying string of size %u to send_packet: ", i);
-			for (j=0; j < i; j++) {
-				printf("%c",send_packet[j]);
-			}
-			printf("\n");
-			RFCONTROLLER_REG__TX_PACK_LEN = i;
-			i = 0;
-			waiting_for_end_of_copy = 0;
+				int j=0;
+				printf("copying string of size %u to send_packet: ", i);
+				for (j=0; j < i; j++) {
+					printf("%c",send_packet[j]);
+				}
+				printf("\n");
+				RFCONTROLLER_REG__TX_PACK_LEN = i;
+				i = 0;
+				waiting_for_end_of_copy = 0;
 		} else if (i < 127) {		
 			send_packet[i] = inChar;			
 			i++;
-		} else {
+		}	else {
 			printf("Input exceeds maximum packet size\n");
 		}
 	} else { //If waiting for a command
-		// zzz: Used for small demo code
-		if ( (buff[3]=='z') && (buff[2]=='z') && (buff[1]=='z') && (buff[0]=='\n') ) {
-			printf("Change me!\n");
 		// Copies string from UART to send_packet
-		} else if ( (buff[3]=='c') && (buff[2]=='p') && (buff[1]=='y') && (buff[0]==' ') ) {
+		if ( (buff[3]=='c') && (buff[2]=='p') && (buff[1]=='y') && (buff[0]==' ') ) {
 			waiting_for_end_of_copy = 1;
 		// Sends TX_LOAD signal to radio controller
 		} else if ( (buff[3]=='l') && (buff[2]=='o') && (buff[1]=='d') && (buff[0]=='\n') ) {
 		  RFCONTROLLER_REG__CONTROL = 0x1;
 			printf("TX LOAD\n");
 		// Sends TX_SEND signal to radio controller
-	  	} else if ( (buff[3]=='s') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
+	  } else if ( (buff[3]=='s') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
 		  RFCONTROLLER_REG__CONTROL = 0x2;
 		  printf("TX SEND\n");
 		// Sends RX_START signal to radio controller
@@ -130,7 +116,7 @@ void UART_ISR() {
 	    DMA_REG__RF_RX_ADDR = &recv_packet[0];
 		  RFCONTROLLER_REG__CONTROL = 0x4;
 		// Sends RX_STOP signal to radio controller
-	  	} else if ( (buff[3]=='e') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
+	  } else if ( (buff[3]=='e') && (buff[2]=='n') && (buff[1]=='d') && (buff[0]=='\n') ) {
 			RFCONTROLLER_REG__CONTROL = 0x8;
 			printf("RX STOP\n");
 		// Sends RF_RESET signal to radio controller
@@ -143,43 +129,11 @@ void UART_ISR() {
 			printf("status register is 0x%x\n", status);	
 		
 			printf("power=%d, reset=%d, %d\n",ANALOG_CFG_REG__10,ANALOG_CFG_REG__4,doing_initial_packet_search);
-		// Trigger a soft reset
-	  	} else if ( (buff[3]=='s') && (buff[2]=='f') && (buff[1]=='t') && (buff[0]=='\n') ) {
-	  		*(unsigned int*)(0xE000ED0C) = 0x05FA0004;
-		// Initiate a single on-chip FSM-driven ADC conversion
-	  	} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='1') && (buff[0]=='\n') ) {
-		 	printf("Starting on-chip FSM ADC conversion\n");
-		 	ADC_DATA_VALID = 0;
-		 	onchip_control_adc_shot();
-		// Initiate a single ADC conversion with loopback control of the ADC
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='2') && (buff[0]=='\n') ) {
-		 	printf("Starting loopback-controlled ADC conversion\n");
-		 	ADC_DATA_VALID = 0;
-		 	loopback_control_adc_shot(cycles_reset, cycles_to_start, cycles_pga);
-		// Initiate a single ADC conversion with external GPIO control of the ADC
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='3') && (buff[0]=='\n') ) {
-			printf("Starting externally-driven GPIO ADC conversion");
-			ADC_DATA_VALID = 0;
-			// TODO
-		// Initiate continuous on-chip FSM-driven ADC conversions
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='4') && (buff[0]=='\n') ) {
-			printf("Starting continuous on-chip FSM ADC conversions\n");
-			ADC_DATA_VALID = 0;
-			onchip_control_adc_continuous();
-		// Initiate continuous loopback-controlled ADC conversions 
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='5') && (buff[0]=='\n') ) {
-			printf("Starting continuous loopback-controlled ADC conversions\n");
-			ADC_DATA_VALID = 0;
-			loopback_control_adc_continuous(cycles_reset, cycles_to_start, cycles_pga);
-		// Initiate continuous external GPIO-controlled ADC conversions
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='6') && (buff[0]=='\n') ) {
-			printf("Starting continuous externally-criven GPIO ADC conversions\n");
-			ADC_DATA_VALID = 0;
-			// TODO
-		// Halt a continuous ADC run, otherwise does nothing
-		} else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='0') && (buff[0]=='\n') ) {
-			printf("Halting continuous ADC run\n");
-			halt_adc_continuous();
+		
+		// Initiates an ADC conversion
+	  } else if ( (buff[3]=='a') && (buff[2]=='d') && (buff[1]=='c') && (buff[0]=='\n') ) {
+		  ADC_REG__START = 0x1;
+		  printf("starting ADC conversion\n");
 		// Uses the radio timer to send TX_LOAD in 0.5s, TX_SEND in 1s, capture when SFD is sent and capture when packet is sent
 		} else if ( (buff[3]=='a') && (buff[2]=='t') && (buff[1]=='x') && (buff[0]=='\n') ) {
 			unsigned int t = RFTIMER_REG__COUNTER + 0x3D090;
@@ -207,74 +161,51 @@ void UART_ISR() {
 			RFTIMER_REG__CAPTURE0_CONTROL = 0x0;
 			RFTIMER_REG__CAPTURE1_CONTROL = 0x0;
 		  printf("Radio timer reset\n");				
-			
-		// Attempt to recover if stuck in unprogrammable mode
-		} else if ( (buff[3]=='x') && (buff[2]=='x') && (buff[1]=='1') && (buff[0]=='\n') ) {
-		
-			//for(t=0;t<=38;t++){
-			//	ASC_FPGA[t] = 0;	
-			//}
-	
-			for(t=0;t<=38;t++) {ASC[t] = 0;}
-			
-			// Program analog scan chain
-			analog_scan_chain_write(&ASC[0]);
-			analog_scan_chain_load();
-			
-			// Program analog scan chain on SCM3B
-			//analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
-			//analog_scan_chain_load_3B_fromFPGA();
-			
-			printf("Mote re-initialized to default\n");
-			
-			radio_disable_interrupts();
-			
-			rftimer_disable_interrupts();
-			
-		// Debug pring
-		} else if ( (buff[3]=='x') && (buff[2]=='x') && (buff[1]=='2') && (buff[0]=='\n') ) {
-			do_debug_print = 1;
+					
 		// Unknown command
-		} else if (inChar=='\n'){printf("unknown command\n");}
+		} else if (inChar=='\n'){	
+			printf("unknown command\n");		
+		}
 	}
 }
 
 void ADC_ISR() {
-	ADC_DATA_VALID = 1;
-	// printf("%d\n", (ADC_DATA_VALID&0xFFFF));
-	printf("%d\n", ADC_REG__DATA);
+	printf("Conversion complete: 0x%x\n", ADC_REG__DATA);
 }
 
-
 void RF_ISR() {
+	
 	unsigned int interrupt = RFCONTROLLER_REG__INT;
 	unsigned int error     = RFCONTROLLER_REG__ERROR;
+	int t;
 	
   //if (interrupt & 0x00000001) printf("TX LOAD DONE\n");
 	//if (interrupt & 0x00000002) printf("TX SFD DONE\n");
 	if (interrupt & 0x00000004){ //printf("TX SEND DONE\n");
 		
-		
-			GPIO_REG__OUTPUT |= 0x1;
-			GPIO_REG__OUTPUT |= 0x1;
-			GPIO_REG__OUTPUT &= ~(0x1);
-		
+		// Lower GPIO3 to indicate TX is off
+		GPIO_REG__OUTPUT &= ~(0x8);
 		
 		// Packet sent; turn transmitter off
 		radio_rfOff();
-		
+				
 		// Apply frequency corrections
 		radio_frequency_housekeeping();
 		
+		// Debug outputs
 		//printf("TX DONE\n");
-		printf("IF=%d, LQI=%d, CDR=%d, len=%d, SFD=%d, LC=%d\n",IF_estimate,LQI_chip_errors,cdr_tau_value,recv_packet[0],packet_interval,LC_code);
+		//printf("IF=%d, LQI=%d, CDR=%d, len=%d, SFD=%d, LC=%d\n",IF_estimate,LQI_chip_errors,cdr_tau_value,recv_packet[0],packet_interval,LC_code);
 		
 	}
 	if (interrupt & 0x00000008){// printf("RX SFD DONE\n");
 		SFD_timestamp_n_1 = SFD_timestamp;
 		SFD_timestamp = RFTIMER_REG__COUNTER;
 		
-		//printf("%d --",SFD_timestamp);
+		// Toggle GPIO5 to indicate a SFD was found
+		// Write twice to make the pulse wider for easier capture on scope
+		GPIO_REG__OUTPUT |= 0x20;
+		GPIO_REG__OUTPUT |= 0x20;
+		GPIO_REG__OUTPUT &= ~(0x20);
 		
 		// Disable watchdog if a SFD has been found
 		RFTIMER_REG__COMPARE3_CONTROL = 0x0;
@@ -284,15 +215,14 @@ void RF_ISR() {
 			RFTIMER_REG__COUNTER = expected_RX_arrival;
 		}
 		
-		GPIO_REG__OUTPUT |= 0x4;
-		GPIO_REG__OUTPUT &= ~(0x4);
-		
 	}
 	if (interrupt & 0x00000010) {
 		
 		//int i;
 		unsigned int RX_DONE_timestamp;
 		char num_bytes_rec = recv_packet[0];
+		
+		// Debug printing of packet contents
 		//char *current_byte_rec = recv_packet+1;
 		//printf("RX DONE\n");
 		//printf("RX'd %d: \n", num_bytes_rec);
@@ -301,27 +231,22 @@ void RF_ISR() {
 		//}
 		//printf("\n");
 		
+		// Set GPIO1 low to indicate RX is now done/off
+		GPIO_REG__OUTPUT &= ~(0x2);
 		
+		// Note when the packet reception was complete
 		RX_DONE_timestamp = RFTIMER_REG__COUNTER;
 		
-		num_packets_received++;
+		// Keep track of how many packets have been received
+		num_packets_received++;	
 		
-		// continuous rx for debug
-		//printf("IF=%d, LQI=%d, CDR=%d, %d\n",read_IF_estimate(),read_LQI(),ANALOG_CFG_REG__25,SFD_timestamp);
-		//radio_rxEnable();
-		//radio_rxNow();		
-			
-			
+		// Check if the packet length is as expected (20 payload bytes + 2 for CRC)	
+		// In this demo code, it is assumed the OpenMote is sending packets with 20B payloads
 		if(num_bytes_rec != 22){
 			wrong_lengths++;
 			
-
-			
 			// If packet was a failure, turn the radio off
 			if(doing_initial_packet_search == 0){
-
-				// Exit RX mode (so can reprogram on FPGA version)
-				analog_scan_chain_load();
 				
 				radio_rfOff();
 			}
@@ -333,21 +258,18 @@ void RF_ISR() {
 			}
 			
 		}
-		// Bad CRC
+		
+		// Length was right but CRC was wrong
 		else if (error == 0x00000008){
+			
+			// Keep track of number of CRC errors
 			num_crc_errors++;
+			
+			// Clear error flag
 			RFCONTROLLER_REG__ERROR_CLEAR = error;
-						
-			// Exit RX mode (so can reprogram on FPGA version)
-			//analog_scan_chain_load_3B_fromFPGA();
-			
-			printf("bad crc\n");
-			
-			// If packet was a failure, turn thfe radio off
-			if(doing_initial_packet_search == 0){
 
-				// Exit RX mode (so can reprogram on FPGA version)
-				analog_scan_chain_load();
+			// If packet was a failure, turn the radio off
+			if(doing_initial_packet_search == 0){
 				
 				radio_rfOff();
 			}
@@ -361,14 +283,10 @@ void RF_ISR() {
 		// Packet has good CRC value and is the correct length
 		} else {
 			
-			GPIO_REG__OUTPUT |= 0x1;
-			GPIO_REG__OUTPUT |= 0x1;
-			GPIO_REG__OUTPUT &= ~(0x1);
-			
-			// This is the first valid packet received, start timers for next expected packet
+			// If this is the first valid packet received, start timers for next expected packet
 			if(doing_initial_packet_search == 1){
 				
-				// Clear this flag
+				// Clear this flag to note we are no longer doing continuous RX listen
 				doing_initial_packet_search = 0;
 			
 				// Enable compare interrupts for RX
@@ -379,15 +297,12 @@ void RF_ISR() {
 				// Enable timer ISRs in the NVIC
 				rftimer_enable_interrupts();
 				
-				analog_scan_chain_load();
-				
+				// Shut radio off until next packet
 				radio_rfOff();
-				
-
 			}	
 			// Already locked onto packet rate
 			else{
-			
+				
 				// Only record IF estimate, LQI, and CDR tau for valid packets
 				IF_estimate = read_IF_estimate();
 				LQI_chip_errors	= ANALOG_CFG_REG__21 & 0xFF; //read_LQI();	
@@ -396,48 +311,43 @@ void RF_ISR() {
 				// Do this later in the ISR to make sure this register has settled before trying to read it
 				// (the register is on the adc clock domain)
 				cdr_tau_value = ANALOG_CFG_REG__25;
-					
+				
+				// Keep track of how many received packets were valid
 				num_valid_packets_received++;
 				
-				// Prepare ack	
+				// Prepare ack - for this demo code the contents are arbitrary
+				// The OpenMote receiver is looking for 30B packets - still on channel 11
 				// Data is stored in send_packet[]
+				send_packet[0] = 't';
+				send_packet[1] = 'e';
+				send_packet[2] = 's';
+				send_packet[3] = 't';
 				radio_loadPacket(30);
 		
 				// Transmit packet at this time
 				RFTIMER_REG__COMPARE5 = RX_DONE_timestamp + ack_turnaround_time;	
 				
-				// Turn on transmitter 
+				// Turn on transmitter at this time
 				RFTIMER_REG__COMPARE4 = RFTIMER_REG__COMPARE5 - radio_startup_time;
 					
 				// Enable TX timers
 				RFTIMER_REG__COMPARE4_CONTROL = 0x3;
 				RFTIMER_REG__COMPARE5_CONTROL = 0x3;
 				
-				analog_scan_chain_load();
-			}
+				// Turn radio off until next packet
+				radio_rfOff();
+							}
 		
-		// Keep listening if not locked yet
-		//if(doing_initial_packet_search==1) radio_rxNow();
-			
-				
-		// Do this no matter whether the packet was valid or not:
-		// Load the ASC to prep for TX
-		//analog_scan_chain_load_3B_fromFPGA();
-			
-			//	IF_estimate = read_IF_estimate();
-				//LQI_chip_errors	= ANALOG_CFG_REG__21 & 0xFF; //read_LQI();	
-//				
-//				// Read the value of tau debug at end of packet
-//				// Do this later in the ISR to make sure this register has settled before trying to read it
-//				// (the register is on the adc clock domain)
-			//	cdr_tau_value = ANALOG_CFG_REG__25;
-			
-	//		printf("IF=%d, LQI=%d, CDR=%d, len=%d, SFD=%d, LC=%d\n",IF_estimate,LQI_chip_errors,cdr_tau_value,recv_packet[0],packet_interval,LC_code);
-	//		radio_rxEnable();
-	//		radio_rxNow();
-	//		rftimer_disable_interrupts();
-
 		}
+		
+			// Debug print output		
+			//printf("IF=%d, LQI=%d, CDR=%d, len=%d, SFD=%d, LC=%d, numcrc=%d\n",IF_estimate,LQI_chip_errors,cdr_tau_value,recv_packet[0],packet_interval,LC_code,num_crc_errors);
+			
+			// Uncomment below to enter continuous RX loop
+			//setFrequencyRX(current_RF_channel);
+			//radio_rxEnable();
+			//radio_rxNow();
+			//rftimer_disable_interrupts();
 	}
 	
 	//if (error != 0) {
@@ -454,51 +364,58 @@ void RF_ISR() {
 
 void RFTIMER_ISR() {
 	
-	
+	// The below explains what each timer interrupt does:	
 	
 // COMPARE0 @ t=0
+// --------------------
+// Set the LO frequency for packet reception on ch11
 // setFrequencyRX(channel);
-// 
+ 
 // Disable TX interrupts (turn them on only if RX is successful)
 // RFTIMER_REG__COMPARE3_CONTROL = 0x0;
 // RFTIMER_REG__COMPARE4_CONTROL = 0x0;
 
-// Enable RX watchdog
+// Enable RX watchdog in case packet is never heard
 // RFTIMER_REG__COMPARE2_CONTROL = 0x3;
 
-// COMPARE1 (t1) = Turn on the RX 
+	
+// COMPARE1 (t1) = Turn on the analog part of the RX 
+// --------------------
 // t0 = (expected - guard_time - radio_startup_time);
 // rxEnable();
 
+
 // COMPARE2 (t2) = Time to start listening for packet 
+// --------------------
 // t1 = (expected_arrival - guard_time);
 // rxNow(); 
 
+
 // COMPARE3 (t3) = RX watchdog 
+// If SFD was never heard, then turn the radio back off
+// --------------------
 // t2 = (t1 + 2 * guard_time);
 // radio_rfOff();
-// analog_scan_chain_load_3B_fromFPGA();
+
 
 // COMPARE4 (t4) = Turn on transmitter 
+// --------------------
 // t3 = (expected_RX_arrival + ack_turnaround_time - radio_startup_time);
-// analog_scan_chain_load_3B_fromFPGA();
 // txEnable();
 
+
 // COMPARE5 (t5) = Transmit packet 
+// --------------------
 // t4 = (expected_RX_arrival + ack_turnaround_time - radio_startup_time);
 // txNow();
 
 
-	
-	
-  
+
 	unsigned int interrupt = RFTIMER_REG__INT;
 	
 	if (interrupt & 0x00000001){ //printf("COMPARE0 MATCH\n");
-				
-		GPIO_REG__OUTPUT = 0x0;
 		
-		// Setup for reception, followed by tranmitting an ack
+		// Setup LO for reception
 		setFrequencyRX(current_RF_channel);
 
 		// Enable RX watchdog
@@ -508,64 +425,67 @@ void RFTIMER_ISR() {
 		RFTIMER_REG__COMPARE4_CONTROL = 0x0;
 		RFTIMER_REG__COMPARE5_CONTROL = 0x0;
 		
+		// Toggle GPIO7 to indicate start of packet interval (t=0)
+		GPIO_REG__OUTPUT |= 0x80;
+		GPIO_REG__OUTPUT |= 0x80;
+		GPIO_REG__OUTPUT &= ~(0x80);
+		
 	}
 	if (interrupt & 0x00000002){// printf("COMPARE1 MATCH\n");
 		
-		GPIO_REG__OUTPUT ^= 0x1;
-		
+	// Raise GPIO1 to indicate RX is on
+		GPIO_REG__OUTPUT |= 0x2;
+
 		// Turn on the analog part of RX
 		radio_rxEnable();
 		
 	}
 	if (interrupt & 0x00000004){// printf("COMPARE2 MATCH\n");
-		
-		GPIO_REG__OUTPUT ^= 0x1;
-		
+				
 		// Start listening for packet
 		radio_rxNow();
 				
 	}
+	// Watchdog has expired - no packet received
 	if (interrupt & 0x00000008){// printf("COMPARE3 MATCH\n");
-	
-		GPIO_REG__OUTPUT |= 0x8;
-		GPIO_REG__OUTPUT &= ~(0x8);
 		
-		// Exit RX mode (so can reprogram on FPGA version)
-		analog_scan_chain_load();
+		// Lower GPIO1 to indicate RX is off
+		GPIO_REG__OUTPUT &= ~(0x2);
 		
 		// Turn off the radio
 		radio_rfOff();
 		
 	}
+	// Turn on transmitter to allow frequency to settle
 	if (interrupt & 0x00000010){// printf("COMPARE4 MATCH\n");
 		
-		GPIO_REG__OUTPUT ^= 0x1;
+		// Raise GPIO3 to indicate TX is on
+		GPIO_REG__OUTPUT |= 0x8;
 		
-		// Switch over to TX
-		analog_scan_chain_load();
-	
+		// Setup LO for transmit
+		setFrequencyTX(current_RF_channel);
+		
 		// Turn on RF for TX
 		radio_txEnable();
 		
 	}
-	if (interrupt & 0x00000020){// printf("COMPARE5 MATCH\n");
-		
-		GPIO_REG__OUTPUT ^= 0x1;
+	// Transmit now
+	if (interrupt & 0x00000020){// printf("COMPARE5 MATCH\n");	
 		
 		// Tranmit the packet
 		radio_txNow();
 		
 	}
-	if (interrupt & 0x00000040) printf("COMPARE6 MATCH\n");
-	if (interrupt & 0x00000080) printf("COMPARE7 MATCH\n");
-	if (interrupt & 0x00000100) printf("CAPTURE0 TRIGGERED AT: 0x%x\n", RFTIMER_REG__CAPTURE0);
-	if (interrupt & 0x00000200) printf("CAPTURE1 TRIGGERED AT: 0x%x\n", RFTIMER_REG__CAPTURE1);
-	if (interrupt & 0x00000400) printf("CAPTURE2 TRIGGERED AT: 0x%x\n", RFTIMER_REG__CAPTURE2);
-	if (interrupt & 0x00000800) printf("CAPTURE3 TRIGGERED AT: 0x%x\n", RFTIMER_REG__CAPTURE3);
-	if (interrupt & 0x00001000) printf("CAPTURE0 OVERFLOW AT: 0x%x\n", RFTIMER_REG__CAPTURE0);
-	if (interrupt & 0x00002000) printf("CAPTURE1 OVERFLOW AT: 0x%x\n", RFTIMER_REG__CAPTURE1);
-	if (interrupt & 0x00004000) printf("CAPTURE2 OVERFLOW AT: 0x%x\n", RFTIMER_REG__CAPTURE2);
-	if (interrupt & 0x00008000) printf("CAPTURE3 OVERFLOW AT: 0x%x\n", RFTIMER_REG__CAPTURE3);
+	//if (interrupt & 0x00000040) printf("COMPARE6 MATCH\n");
+	//if (interrupt & 0x00000080) printf("COMPARE7 MATCH\n");
+	//if (interrupt & 0x00000100) printf("CAPTURE0 TRIGGERED AT: 0x%x\n", RFTIMER_REG__CAPTURE0);
+	//if (interrupt & 0x00000200) printf("CAPTURE1 TRIGGERED AT: 0x%x\n", RFTIMER_REG__CAPTURE1);
+	//if (interrupt & 0x00000400) printf("CAPTURE2 TRIGGERED AT: 0x%x\n", RFTIMER_REG__CAPTURE2);
+	//if (interrupt & 0x00000800) printf("CAPTURE3 TRIGGERED AT: 0x%x\n", RFTIMER_REG__CAPTURE3);
+	//if (interrupt & 0x00001000) printf("CAPTURE0 OVERFLOW AT: 0x%x\n", RFTIMER_REG__CAPTURE0);
+	//if (interrupt & 0x00002000) printf("CAPTURE1 OVERFLOW AT: 0x%x\n", RFTIMER_REG__CAPTURE1);
+	//if (interrupt & 0x00004000) printf("CAPTURE2 OVERFLOW AT: 0x%x\n", RFTIMER_REG__CAPTURE2);
+	//if (interrupt & 0x00008000) printf("CAPTURE3 OVERFLOW AT: 0x%x\n", RFTIMER_REG__CAPTURE3);
 	
 	RFTIMER_REG__INT_CLEAR = interrupt;
 }
@@ -636,6 +556,8 @@ void RAWCHIPS_STARTVAL_ISR() {
 	chips[chip_index] = rdata_lsb + (rdata_msb << 16);
 	chip_index++;
 
+	//printf("x2\n");
+
 }
 
 
@@ -643,7 +565,7 @@ void RAWCHIPS_STARTVAL_ISR() {
 // Do not recommend trying to do any CPU intensive actions while trying to receive optical data
 // ex, printf will mess up the received data values
 void OPTICAL_32_ISR(){
-	// printf("Optical 32-bit interrupt triggered\n");
+	//printf("Optical 32-bit interrupt triggered\n");
 	
 	//unsigned int LSBs, MSBs, optical_shiftreg;
 	//int t;
@@ -662,8 +584,11 @@ void OPTICAL_32_ISR(){
 // This interrupt can also be used to synchronize to the start of an optical data transfer
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
 void OPTICAL_SFD_ISR(){
+	
+	int t;
 	unsigned int rdata_lsb, rdata_msb; 
 	unsigned int count_LC, count_32k, count_2M, count_HFclock, count_IF;
+		
 	// Disable all counters
 	ANALOG_CFG_REG__0 = 0x007F;
 	
@@ -711,8 +636,8 @@ void OPTICAL_SFD_ISR(){
 		set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
 		
 		// Do correction on LC
-		if(count_LC > (LC_target + 30)) LC_code -= 1;
-		if(count_LC < (LC_target - 30))	LC_code += 1;
+		if(count_LC > (LC_target + 0)) LC_code -= 1;
+		if(count_LC < (LC_target - 0))	LC_code += 1;
 		LC_monotonic(LC_code);
 			
 		// Do correction on 2M RC
@@ -739,9 +664,8 @@ void OPTICAL_SFD_ISR(){
 	}
 	
 	// Debugging output
-	// printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
+	//printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
 	 
-	//printf("%d\n",count_LC);
 	if(optical_cal_iteration == 25){
 		// Disable this ISR
 		ICER = 0x0800;
@@ -761,10 +685,14 @@ void OPTICAL_SFD_ISR(){
 		// (125 / 100) / 40 = 1/32
 		packet_interval = num_HFclock_ticks_in_100ms >> 5;
 	
+		// Debug prints
 		//printf("LC_code=%d\n", LC_code);
 		//printf("IF_fine=%d\n", IF_fine);
 		
 		printf("done\n");
+				
+		// This was an earlier attempt to build out a complete table of LC_code for TX/RX on each channel
+		// It doesn't really work well yet so leave it commented
 		//printf("Building channel table...");
 		
 		//build_channel_table(LC_code);
@@ -775,7 +703,7 @@ void OPTICAL_SFD_ISR(){
 		
 		// Halt all counters
 		ANALOG_CFG_REG__0 = 0x0000;	
-	
+						
 	}
 }
 	
