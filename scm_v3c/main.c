@@ -74,27 +74,27 @@ int main(void) {
     initialize_mote();
         
     // Check CRC to ensure there were no errors during optical programming
-    printf("\n-------------------\n");
+    printf("\r\n-------------------\r\n");
     printf("Validating program integrity..."); 
     
     calc_crc = crc32c(0x0000,code_length);
 
     if(calc_crc == crc_value){
-        printf("CRC OK\n");
+        printf("CRC OK\r\n");
     }
     else{
-        printf("\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\n");
+        printf("\r\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\r\n");
         while(1);
     }
     
     // Debug output
-    //printf("\nCode length is %u bytes",code_length); 
-    //printf("\nCRC calculated by SCM is: 0x%X",calc_crc);    
+    //printf("\r\nCode length is %u bytes",code_length); 
+    //printf("\r\nCRC calculated by SCM is: 0x%X",calc_crc);    
     
-    //printf("done\n");
+    //printf("done\r\n");
     
     // After bootloading the next thing that happens is frequency calibration using optical
-    printf("Calibrating frequencies...\n");
+    printf("Calibrating frequencies...\r\n");
     
     // Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
     // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
@@ -115,7 +115,7 @@ int main(void) {
     while(optical_cal_finished == 0);
     optical_cal_finished = 0;
 
-    printf("Cal complete\n");
+    printf("Cal complete\r\n");
 
     //skip building a channel table for now; hardcode LC values
     LC_code = 698; //Board Q3
@@ -125,7 +125,7 @@ int main(void) {
 
     current_RF_channel = 11;
 
-    printf("Listening for packets on ch %d (LC_code=%d)\n",current_RF_channel,RX_channel_codes[current_RF_channel-11]);
+    printf("Listening for packets on ch %d (LC_code=%d)\r\n",current_RF_channel,RX_channel_codes[current_RF_channel-11]);
 
     // First listen continuously for rx packet
     doing_initial_packet_search = 1;
@@ -145,7 +145,7 @@ int main(void) {
         for(t=0; t<100000; t++);
         
         if(doing_initial_packet_search == 0) {
-            printf("Locked to incoming packet rate...\n");
+            printf("Locked to incoming packet rate...\r\n");
             break;
         }
     }

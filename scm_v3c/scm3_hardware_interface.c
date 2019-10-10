@@ -37,7 +37,7 @@ void analog_scan_chain_write(unsigned int* scan_bits) {
 	
 	for (i=37; i>=0; i--) {
 		
-		//printf("\n%d,%lX\n",i,scan_bits[i]);
+		//printf("\r\n%d,%lX\r\n",i,scan_bits[i]);
 		
 		for (j=0; j<32; j++) {
 
@@ -129,7 +129,7 @@ void set_2M_RC_frequency(int coarse1, int coarse2, int coarse3, int fine, int su
 /* Initializes the 2MHz DAC with values set in the dac_2M_settings array. */
 void initialize_2M_DAC(void) {
     set_2M_RC_frequency(dac_2M_settings[0], dac_2M_settings[1], dac_2M_settings[2], dac_2M_settings[3], dac_2M_settings[4]);
-    // printf("Initialized 2MHz DAC\n");
+    // printf("Initialized 2MHz DAC\r\n");
     // print_2MHz_DAC();
 }
 
@@ -161,9 +161,9 @@ void read_counters(unsigned int* count_2M, unsigned int* count_LC, unsigned int*
 	// Enable all counters
 	ANALOG_CFG_REG__0 = 0x3FFF;	
 	
-	//printf("LC_count=%X\n",count_LC);
-	//printf("2M_count=%X\n",count_2M);
-	//printf("32k_count=%X\n\n",count_32k);
+	//printf("LC_count=%X\r\n",count_LC);
+	//printf("2M_count=%X\r\n",count_2M);
+	//printf("32k_count=%X\r\n\r\n",count_32k);
 
 }
 

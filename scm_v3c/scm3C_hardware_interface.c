@@ -279,8 +279,8 @@ unsigned int sram_test(unsigned int * baseAddress, unsigned int num_dwords) {
 	unsigned int num_errors = 0;
 	addr = baseAddress;
 	
-	printf("\n\nStarting SRAM test from 0x%X to 0x%X...\n",baseAddress,baseAddress+num_dwords); 
-	printf("This takes awhile...\n");
+	printf("\r\n\r\nStarting SRAM test from 0x%X to 0x%X...\r\n",baseAddress,baseAddress+num_dwords); 
+	printf("This takes awhile...\r\n");
 		
 	// Write 0 to all bits, in any address order
 	// Outer loop selects 32-bit dword, inner loop does single bit
@@ -294,7 +294,7 @@ unsigned int sram_test(unsigned int * baseAddress, unsigned int num_dwords) {
 	for(i=0; i<num_dwords; i++) {
 		for(j=0; j<32; j++) {
 			if((addr[i] & (1UL << j)) != 0x0) {
-				printf("\nERROR 1 @ address %X bit %d -- Value is %X",i,j,addr[i]);
+				printf("\r\nERROR 1 @ address %X bit %d -- Value is %X",i,j,addr[i]);
 				num_errors++;
 			}
 			addr[i] |= 1UL << j;
@@ -305,7 +305,7 @@ unsigned int sram_test(unsigned int * baseAddress, unsigned int num_dwords) {
 	for(i=0; i<num_dwords; i++) {
 		for(j=0; j<32; j++) {
 			if((addr[i] & (1UL << j)) != 1UL << j) {
-				printf("\nERROR 2 @ address %X bit %d -- Value is %X",i,j,addr[i]);
+				printf("\r\nERROR 2 @ address %X bit %d -- Value is %X",i,j,addr[i]);
 				num_errors++;
 			}
 			addr[i] &= ~(1UL << j);
@@ -316,7 +316,7 @@ unsigned int sram_test(unsigned int * baseAddress, unsigned int num_dwords) {
 	for(i=(num_dwords-1); i>=0; i--) {
 		for(j=31; j>=0; j--) {
 			if((addr[i] & (1UL << j)) != 0x0) {
-				printf("\nERROR 3 @ address %X bit %d -- Value is %X",i,j,addr[i]);
+				printf("\r\nERROR 3 @ address %X bit %d -- Value is %X",i,j,addr[i]);
 				num_errors++;
 			}
 			addr[i] |= 1UL << j;
@@ -327,7 +327,7 @@ unsigned int sram_test(unsigned int * baseAddress, unsigned int num_dwords) {
 	for(i=(num_dwords-1); i>=0; i--) {
 		for(j=31; j>=0; j--) {
 			if((addr[i] & (1UL << j)) != 1UL << j) {
-				printf("\nERROR 4 @ address %X bit %d -- Value is %X",i,j,addr[i]);
+				printf("\r\nERROR 4 @ address %X bit %d -- Value is %X",i,j,addr[i]);
 				num_errors++;
 			}
 			addr[i] &= ~(1UL << j);
@@ -338,13 +338,13 @@ unsigned int sram_test(unsigned int * baseAddress, unsigned int num_dwords) {
 	for(i=0; i<num_dwords; i++) {
 		for(j=0; j<32; j++) {
 			if((addr[i] & (1UL << j)) != 0x0) {
-				printf("\nERROR 5 @ address %X bit %d -- Value is %X",i,j,addr[i]);
+				printf("\r\nERROR 5 @ address %X bit %d -- Value is %X",i,j,addr[i]);
 				num_errors++;
 			}
 		}
 	}
 
-	printf("\nSRAM Test Complete -- %d Errors\n",num_errors);
+	printf("\r\nSRAM Test Complete -- %d Errors\r\n",num_errors);
 	
 	return num_errors;
 	
@@ -901,9 +901,9 @@ void read_counters_3B(unsigned int* count_2M, unsigned int* count_LC, unsigned i
 	// Enable all counters
 	ANALOG_CFG_REG__0 = 0x3FFF;	
 	
-	//printf("LC_count=%X\n",*count_LC);
-	//printf("2M_count=%X\n",*count_2M);
-	//printf("adc_count=%X\n\n",*count_adc);
+	//printf("LC_count=%X\r\n",*count_LC);
+	//printf("2M_count=%X\r\n",*count_2M);
+	//printf("adc_count=%X\r\n\r\n",*count_adc);
 
 }
 
@@ -1165,7 +1165,7 @@ unsigned int build_RX_channel_table(unsigned int channel_11_LC_code){
 	}
 	
 	//for(ii=0; ii<16; ii++){
-	//	printf("\nRX ch=%d,  count_LC=%d,  count_targets=%d,  RX_channel_codes=%d",ii+11,count_LC[ii],count_targets[ii],RX_channel_codes[ii]);
+	//	printf("\r\nRX ch=%d,  count_LC=%d,  count_targets=%d,  RX_channel_codes=%d",ii+11,count_LC[ii],count_targets[ii],RX_channel_codes[ii]);
 	//}
 	
 	return count_LC[0];
@@ -1226,7 +1226,7 @@ void build_TX_channel_table(unsigned int channel_11_LC_code, unsigned int count_
 	}
 	
 	//for(ii=0; ii<16; ii++){
-	//	printf("\nTX ch=%d,  count_LC=%d,  count_targets=%d,  TX_channel_codes=%d",ii+11,count_LC[ii],count_targets[ii],TX_channel_codes[ii]);
+	//	printf("\r\nTX ch=%d,  count_LC=%d,  count_targets=%d,  TX_channel_codes=%d",ii+11,count_LC[ii],count_targets[ii],TX_channel_codes[ii]);
 	//}
 	
 }
@@ -1239,7 +1239,7 @@ void build_channel_table(unsigned int channel_11_LC_code){
 	
 		count_LC_RX_ch11 = build_RX_channel_table(channel_11_LC_code);
 	
-		//printf("--\n");
+		//printf("--\r\n");
 	
 		// Switch over to TX mode
 	
@@ -1288,7 +1288,7 @@ unsigned int estimate_temperature_2M_32k(){
 	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
 	count_32k = rdata_lsb + (rdata_msb << 16);
 	
-	//printf("%d - %d - %d\n",count_2M,count_32k,(count_2M << 13) / count_32k);
+	//printf("%d - %d - %d\r\n",count_2M,count_32k,(count_2M << 13) / count_32k);
 	
 	return (count_2M << 13) / count_32k;
 }
@@ -1321,9 +1321,9 @@ void LC_FREQCHANGE(int coarse, int mid, int fine){
 	mid_f &= 0x000000FF;
 	coarse_f &= 0x000000FF;
 	
-	//printf("%d\n",fine_m);
-	//printf("%d\n",mid_m);
-	//printf("%d\n",coarse_m);
+	//printf("%d\r\n",fine_m);
+	//printf("%d\r\n",mid_m);
+	//printf("%d\r\n",coarse_m);
 	    
   fcode |= (unsigned int)((fine_f & 0x78) << 9);
 	fcode |= (unsigned int)(mid_f << 3);
@@ -1331,8 +1331,8 @@ void LC_FREQCHANGE(int coarse, int mid, int fine){
     
   fcode2 |= (unsigned int)((fine_f&0x80) >> 7);
 	
-	//printf("%X\n",fcode);
-	//printf("%X\n",fcode2);
+	//printf("%X\r\n",fcode);
+	//printf("%X\r\n",fcode2);
 		
 	// ACFG_LO_ADDR   = [ f1 | f2 | f3 | f4 | md | m0 | m1 | m2 | m3 | m4 | cd | c0 | c1 | c2 | c3 | c4 ]
 	// ACFG_LO_ADDR_2 = [ xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | fd | f0 ]

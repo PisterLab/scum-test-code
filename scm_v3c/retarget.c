@@ -54,7 +54,7 @@ void _ttywrch(int ch)
 
 void _sys_exit(void) {
 
-	printf("\nTEST DONE\n");
+	printf("\r\nTEST DONE\r\n");
 	while(1); 
 	
 }

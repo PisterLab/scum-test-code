@@ -144,7 +144,7 @@ void radio_frequency_housekeeping(){
 	// The value at which the RF timer rolls over
 	RFTIMER_REG__MAX_COUNT = packet_interval - timing_correction;
 	
-	//printf("%d - %d\n", SFD_timestamp, RFTIMER_REG__MAX_COUNT);
+	//printf("%d - %d\r\n", SFD_timestamp, RFTIMER_REG__MAX_COUNT);
 	
 	
 	// When updating LO and IF clock frequncies, must wait long enough for the changes to propagate before changing again
@@ -179,7 +179,7 @@ void radio_frequency_housekeeping(){
 	// Divide by 512 (sum of the coefficients) to scale output
 	chip_rate_error_ppm_filtered = sum / 512;
 	
-	//printf("%d -- %d\n",cdr_tau_value,chip_rate_error_ppm_filtered);
+	//printf("%d -- %d\r\n",cdr_tau_value,chip_rate_error_ppm_filtered);
 	
 	// The IF clock frequency steps are about 2000ppm, so make an adjustment only if the error is larger than 1000ppm
 	// Must wait long enough between changes for FIR to settle (at least 10 packets)
@@ -220,7 +220,7 @@ void radio_frequency_housekeeping(){
 		// Divide by 512 (sum of the coefficients) to scale output
 		IF_est_filtered = sum / 512;
 		
-		//printf("%d - %d, %d\n",IF_estimate,IF_est_filtered,LQI_chip_errors);
+		//printf("%d - %d, %d\r\n",IF_estimate,IF_est_filtered,LQI_chip_errors);
 		
 		// The LO frequency steps are about ~80-100 kHz, so make an adjustment only if the error is larger than that
 		// These hysteresis bounds (+/- X) have not been optimized
@@ -236,7 +236,7 @@ void radio_frequency_housekeeping(){
 				TX_channel_codes[current_RF_channel - 11]--; 
 			}
 			
-			//printf("--%d - %d\n",IF_estimate,IF_est_filtered);
+			//printf("--%d - %d\r\n",IF_estimate,IF_est_filtered);
 
 			frequency_update_cooldown_timer = 0;
 		}
