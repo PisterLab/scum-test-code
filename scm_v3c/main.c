@@ -149,6 +149,13 @@ int main(void) {
             break;
         }
     }
+    
+    // If no packet received, then stop RX so can reprogram
+    if(doing_initial_packet_search == 1) {
+        radio_rfOff();
+        radio_disable_interrupts();
+        printf("RX Stopped - Lock Failed\n");
+    }
 
     while(1) {
         for(t=0; t<1000000; t++);
