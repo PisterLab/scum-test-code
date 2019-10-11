@@ -75,7 +75,7 @@ void UART_ISR(){
     int t;
     
     inChar = UART_REG__RX_DATA;
-  buff[3] = buff[2];
+    buff[3] = buff[2];
     buff[2] = buff[1];
     buff[1] = buff[0];
     buff[0] = inChar;
@@ -193,8 +193,8 @@ void RF_ISR() {
         radio_frequency_housekeeping();
         
         // Debug outputs
-        //printf("TX DONE\r\n");
-        //printf("IF=%d, LQI=%d, CDR=%d, len=%d, SFD=%d, LC=%d\r\n",IF_estimate,LQI_chip_errors,cdr_tau_value,recv_packet[0],packet_interval,LC_code);
+        printf("TX DONE\r\n");
+        printf("IF=%d, LQI=%d, CDR=%d, len=%d, SFD=%d, LC=%d\r\n",IF_estimate,LQI_chip_errors,cdr_tau_value,recv_packet[0],packet_interval,LC_code);
         
     }
     if (interrupt & 0x00000008){// printf("RX SFD DONE\r\n");
@@ -336,7 +336,7 @@ void RF_ISR() {
                 
                 // Turn radio off until next packet
                 radio_rfOff();
-                            }
+            }
         
         }
         

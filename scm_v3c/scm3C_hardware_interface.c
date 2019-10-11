@@ -1357,7 +1357,7 @@ void LC_FREQCHANGE(int coarse, int mid, int fine){
     // set the memory and prevent any overwriting of other analog config
     ANALOG_CFG_REG__7 = fcode;
     ANALOG_CFG_REG__8 = fcode2;
-        
+    
 }
 void LC_monotonic(int LC_code){
 
@@ -1370,7 +1370,7 @@ void LC_monotonic(int LC_code){
     int mid_divs = 23; // works for Ioana's board, Fil's board, Brad's other board
     
     //int coarse_divs = 167;
-        int coarse_divs = 140;
+    int coarse_divs = 140;
     //int mid_divs = 27; // works for Brad's board // 25 and 155 worked really well @ low frequency, 27 167 worked great @ high frequency (Brad's board)
     
     int mid;
@@ -1379,12 +1379,13 @@ void LC_monotonic(int LC_code){
     
     LC_code = LC_code % coarse_divs;
     //mid = ((((LC_code/mid_divs)*4 + mid_fix) & 0x000000FF)); // works for boards (a)
-     mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
+    mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
     //mid = ((((LC_code/mid_divs) + mid_fix) & 0x000000FF));
     if (LC_code/mid_divs >= 2) {fine_fix = 0;};
     fine = (((LC_code % mid_divs + fine_fix) & 0x000000FF));
     if (fine > 15){fine++;};
     
+    // coarse=24, mid=0, fine=10 worked at Inria for Tx Frequency
     LC_FREQCHANGE(coarse,mid,fine);
     
 }
