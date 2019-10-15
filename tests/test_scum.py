@@ -86,6 +86,7 @@ def test_bootload(serial_openmote, serial_scum):
     pytest.output_openmote  = serial_openmote.get_output()
     pytest.output_scum      = serial_scum.get_output()
     
+    # use pytest -s to see the print out message
     print   'openmote_output\n', pytest.output_openmote
     print   'scum_output\n', pytest.output_scum
     
@@ -98,3 +99,5 @@ def test_communication():
     syscall("echo SCuM Locked on the frequency of incoming single.")
 
     assert 'Ptest' in pytest.output_openmote
+    
+    syscall("echo Frames sent by SCuM are received correctly by OpenMote.")
