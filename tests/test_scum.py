@@ -4,7 +4,7 @@ import time
 import serial
 import threading
 
-# ====
+# =========================== variables =======================================
 
 BAUDRATE_OPENMOTE  = 115200
 BAUDRATE_SCUM      = 19200
@@ -32,14 +32,8 @@ class serialReader(threading.Thread):
         self.serial = serial.Serial(self.serialport,self.baudrate,timeout=1)
         
         while self.goOn:
-            try:
-                output = self.serial.read(100)
-                self.output += str(output)
-            except Exception as err:
-                errMsg=u.formatCrashMessage(self.name,err)
-                print errMsg
-            finally:
-                break
+            output = self.serial.read(100)
+            self.output += str(output)
                 
         self.serial.close()
         
@@ -49,7 +43,6 @@ class serialReader(threading.Thread):
     def get_output(self):
         return self.output
         
-
 # =========================== test ============================================
 
 def syscall(cmd):
@@ -86,9 +79,9 @@ def test_bootload(serial_openmote, serial_scum):
     assert result == None
     
     # waiting to let the code run for a while 
-    time.sleep(5)
-    # serial_openmote.close()
-    # serial_scum.close()
+    time.sleep(10)
+    serial_openmote.close()
+    serial_scum.close()
     
     pytest.output_openmote  = serial_openmote.get_output()
     pytest.output_scum      = serial_scum.get_output()
