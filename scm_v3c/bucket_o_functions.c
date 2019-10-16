@@ -37,9 +37,9 @@ void LC_FREQCHANGE(int coarse, int mid, int fine){
     mid_f &= 0x000000FF;
     coarse_f &= 0x000000FF;
     
-    //printf("%d\n",fine_m);
-    //printf("%d\n",mid_m);
-    //printf("%d\n",coarse_m);
+    //printf("%d\r\n",fine_m);
+    //printf("%d\r\n",mid_m);
+    //printf("%d\r\n",coarse_m);
         
     fcode |= (unsigned int)((fine_f & 0x78) << 9);
     fcode |= (unsigned int)(mid_f << 3);
@@ -47,8 +47,8 @@ void LC_FREQCHANGE(int coarse, int mid, int fine){
     
     fcode2 |= (unsigned int)((fine_f&0x80) >> 7);
     
-    //printf("%X\n",fcode);
-    //printf("%X\n",fcode2);
+    //printf("%X\r\n",fcode);
+    //printf("%X\r\n",fcode2);
         
     // ACFG_LO_ADDR   = [ f1 | f2 | f3 | f4 | md | m0 | m1 | m2 | m3 | m4 | cd | c0 | c1 | c2 | c3 | c4 ]
     // ACFG_LO_ADDR_2 = [ xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | fd | f0 ]
@@ -56,6 +56,7 @@ void LC_FREQCHANGE(int coarse, int mid, int fine){
     // set the memory and prevent any overwriting of other analog config
     ANALOG_CFG_REG__7 = fcode;
     ANALOG_CFG_REG__8 = fcode2;
+    
 }
 void LC_monotonic(int LC_code){
 
@@ -65,10 +66,10 @@ void LC_monotonic(int LC_code){
     int fine_fix = 0;
     int mid_fix = 0;
     //int coarse_divs = 136;
-    int mid_divs = 25; // works for Ioana's board, Fil's board, Brad's other board
+    int mid_divs = 23; // works for Ioana's board, Fil's board, Brad's other board
     
     //int coarse_divs = 167;
-        int coarse_divs = 155;
+    int coarse_divs = 140;
     //int mid_divs = 27; // works for Brad's board // 25 and 155 worked really well @ low frequency, 27 167 worked great @ high frequency (Brad's board)
     
     int mid;
@@ -77,12 +78,13 @@ void LC_monotonic(int LC_code){
     
     LC_code = LC_code % coarse_divs;
     //mid = ((((LC_code/mid_divs)*4 + mid_fix) & 0x000000FF)); // works for boards (a)
-     mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
+    mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
     //mid = ((((LC_code/mid_divs) + mid_fix) & 0x000000FF));
     if (LC_code/mid_divs >= 2) {fine_fix = 0;};
     fine = (((LC_code % mid_divs + fine_fix) & 0x000000FF));
     if (fine > 15){fine++;};
     
+    // coarse=24, mid=0, fine=10 worked at Inria for Tx Frequency
     LC_FREQCHANGE(coarse,mid,fine);
     
 }
@@ -153,10 +155,6 @@ void set_DIV_supply(unsigned int code, unsigned char panic) {
 
 void prescaler(int code) {
     
-    
-    
-
-
     // code is a number between 0 and 5
     // 0 -> disable pre-scaler entirely
     // 1 -> enable div-by-5 back-up pre-scaler
