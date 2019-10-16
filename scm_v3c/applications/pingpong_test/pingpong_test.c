@@ -118,9 +118,9 @@ int main(void) {
     printf("Cal complete\r\n");
 
     //skip building a channel table for now; hardcode LC values
-    LC_code = 698; //Board Q3: tested at Inria A102 room (Oct, 11 2019)
+    LC_code = 700; //Board Q3: tested at Inria A102 room (Oct, 16 2019)
     RX_channel_codes[0] = LC_code; 
-    LC_code = 713; //Board Q3: tested at Inria A102 room (Oct, 11 2019)
+    LC_code = 713; //Board Q3: tested at Inria A102 room (Oct, 16 2019)
     TX_channel_codes[0] = LC_code;
 
     current_RF_channel = 11;
