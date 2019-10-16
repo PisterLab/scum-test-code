@@ -77,7 +77,7 @@ void test_LC_sweep_tx(void) {
 	*/
 
 	int coarse, mid, fine;
-	unsigned char iterations = 3;
+	unsigned int iterations = 3;
 	unsigned int i;
 
 	// Enable the TX. NB: Requires 50us for frequency settling

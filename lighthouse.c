@@ -2,6 +2,8 @@
 #include <time.h>
 #include <rt_misc.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #include <math.h>
 #include "scum_radio_bsp.h"
@@ -333,7 +335,11 @@ void radio_init_rx_MF_lighthouse(){
 //call radio rx_now
 //if you hear a packet, rx_done runs and thats where things could be found (acks) 
 void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lighthouse, angle_type_t angle_type){
+
 					int i;
+					if(USE_RADIO == 0){
+						return;
+					}
 						//turn on radio (radio_txenable)
 					radio_txEnable();
 					//enable radio interrupts (radio_enable_interrupts) (do this somewhere; only needs to be done once)
