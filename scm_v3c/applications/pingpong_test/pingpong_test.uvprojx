@@ -382,9 +382,9 @@
           <GroupName>app</GroupName>
           <Files>
             <File>
-              <FileName>main.c</FileName>
+              <FileName>pingpong_test.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\main.c</FilePath>
+              <FilePath>.\pingpong_test.c</FilePath>
             </File>
           </Files>
         </Group>
