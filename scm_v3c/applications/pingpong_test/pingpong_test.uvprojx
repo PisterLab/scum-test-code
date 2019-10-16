@@ -83,7 +83,7 @@
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>1</RunUserProg2>
             <UserProg1Name>fromelf --bin pingpong_test.axf -o pingpong_test.bin</UserProg1Name>
-            <UserProg2Name>fromelf -cvf pingpong_test.axf -o disasm.txt</UserProg2Name>
+            <UserProg2Name>python ..\..\bootload\bootload.py -i pingpong_test.bin</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -437,14 +437,14 @@
               <FilePath>..\..\scm3_hardware_interface.h</FilePath>
             </File>
             <File>
-              <FileName>scm3C_hardware_interface.c</FileName>
+              <FileName>scm3c_hardware_interface.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\scm3C_hardware_interface.c</FilePath>
+              <FilePath>..\..\scm3c_hardware_interface.c</FilePath>
             </File>
             <File>
-              <FileName>scm3C_hardware_interface.h</FileName>
+              <FileName>scm3c_hardware_interface.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\scm3C_hardware_interface.h</FilePath>
+              <FilePath>..\..\scm3c_hardware_interface.h</FilePath>
             </File>
             <File>
               <FileName>scum_radio_bsp.c</FileName>
