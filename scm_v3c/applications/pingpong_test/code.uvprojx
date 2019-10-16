@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>SCM_3C</TargetName>
+      <TargetName>pingpong_test</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\</OutputDirectory>
-          <OutputName>code</OutputName>
+          <OutputName>pingpong_test</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -82,8 +82,8 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>1</RunUserProg2>
-            <UserProg1Name>fromelf --bin code.axf -o code.bin</UserProg1Name>
-            <UserProg2Name>fromelf -cvf code.axf -o disasm.txt</UserProg2Name>
+            <UserProg1Name>fromelf --bin pingpong_test.axf -o pingpong_test.bin</UserProg1Name>
+            <UserProg2Name>fromelf -cvf pingpong_test.axf -o disasm.txt</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -337,7 +337,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>../../</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -368,7 +368,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>code.sct</ScatterFile>
+            <ScatterFile>pingpong_test.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -379,72 +379,82 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>Baseline</GroupName>
+          <GroupName>app</GroupName>
           <Files>
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>main.c</FilePath>
-            </File>
-            <File>
-              <FileName>cm0dsasm.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>cm0dsasm.s</FilePath>
-            </File>
-            <File>
-              <FileName>Int_Handlers.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>Int_Handlers.h</FilePath>
-            </File>
-            <File>
-              <FileName>Memory_Map.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>Memory_Map.h</FilePath>
-            </File>
-            <File>
-              <FileName>retarget.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>retarget.c</FilePath>
-            </File>
-            <File>
-              <FileName>scm3C_hardware_interface.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\scm3C_hardware_interface.c</FilePath>
-            </File>
-            <File>
-              <FileName>scm3C_hardware_interface.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\scm3C_hardware_interface.h</FilePath>
-            </File>
-            <File>
-              <FileName>scm3_hardware_interface.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\scm3_hardware_interface.c</FilePath>
-            </File>
-            <File>
-              <FileName>scm3_hardware_interface.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\scm3_hardware_interface.h</FilePath>
+              <FilePath>.\main.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Radio</GroupName>
+          <GroupName>drv</GroupName>
           <Files>
+            <File>
+              <FileName>bucket_o_functions.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\bucket_o_functions.c</FilePath>
+            </File>
+            <File>
+              <FileName>bucket_o_functions.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\bucket_o_functions.h</FilePath>
+            </File>
+            <File>
+              <FileName>cm0dsasm.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\cm0dsasm.s</FilePath>
+            </File>
+            <File>
+              <FileName>Int_Handlers.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Int_Handlers.h</FilePath>
+            </File>
+            <File>
+              <FileName>Memory_Map.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Memory_Map.h</FilePath>
+            </File>
+            <File>
+              <FileName>retarget.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\retarget.c</FilePath>
+            </File>
             <File>
               <FileName>rf_global_vars.h</FileName>
               <FileType>5</FileType>
-              <FilePath>rf_global_vars.h</FilePath>
+              <FilePath>..\..\rf_global_vars.h</FilePath>
             </File>
             <File>
-              <FileName>scum_radio_bsp.h</FileName>
+              <FileName>scm3_hardware_interface.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\scm3_hardware_interface.c</FilePath>
+            </File>
+            <File>
+              <FileName>scm3_hardware_interface.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\scum_radio_bsp.h</FilePath>
+              <FilePath>..\..\scm3_hardware_interface.h</FilePath>
+            </File>
+            <File>
+              <FileName>scm3C_hardware_interface.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\scm3C_hardware_interface.c</FilePath>
+            </File>
+            <File>
+              <FileName>scm3C_hardware_interface.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\scm3C_hardware_interface.h</FilePath>
             </File>
             <File>
               <FileName>scum_radio_bsp.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\scum_radio_bsp.c</FilePath>
+              <FilePath>..\..\scum_radio_bsp.c</FilePath>
+            </File>
+            <File>
+              <FileName>scum_radio_bsp.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\scum_radio_bsp.h</FilePath>
             </File>
           </Files>
         </Group>
