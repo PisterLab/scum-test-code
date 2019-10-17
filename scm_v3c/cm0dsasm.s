@@ -81,14 +81,14 @@ Reset_Handler       PROC
 
 UART_Handler        PROC
         EXPORT      UART_Handler
-        IMPORT      UART_ISR
+        IMPORT      uart_rx_isr
         
         PUSH        {R0,LR}
         
         MOVS        R0, #1 ;         ;MASK all interrupts
         MSR         PRIMASK, R0 ;         
         
-        BL          UART_ISR
+        BL          uart_rx_isr
         
                 
         MOVS        R0, #0        ;ENABLE all interrupts
@@ -99,7 +99,7 @@ UART_Handler        PROC
 
 ADC_Handler         PROC
         EXPORT      ADC_Handler
-        IMPORT      ADC_ISR
+        IMPORT      adc_isr
         
         PUSH        {R0,LR}
         
@@ -107,7 +107,7 @@ ADC_Handler         PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          ADC_ISR
+        BL          adc_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -117,7 +117,7 @@ ADC_Handler         PROC
 
 RF_Handler    PROC
         EXPORT      RF_Handler
-        IMPORT      RF_ISR
+        IMPORT      radio_isr
         
         PUSH        {R0,LR}
         
@@ -125,7 +125,7 @@ RF_Handler    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          RF_ISR
+        BL          radio_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -133,9 +133,9 @@ RF_Handler    PROC
         POP         {R0,PC}
         ENDP
         
-RFTIMER_Handler    PROC
-        EXPORT     RFTIMER_Handler
-        IMPORT      RFTIMER_ISR
+RFTIMER_Handler     PROC
+        EXPORT      RFTIMER_Handler
+        IMPORT      timer_isr
         
         PUSH        {R0,LR}
         
@@ -143,7 +143,7 @@ RFTIMER_Handler    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          RFTIMER_ISR
+        BL          timer_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -156,7 +156,7 @@ RFTIMER_Handler    PROC
 ; -----------------------------
 EXT_GPIO3_ACTIVEHIGH_DEBOUNCED_Handler    PROC
         EXPORT      EXT_GPIO3_ACTIVEHIGH_DEBOUNCED_Handler
-        IMPORT      INTERRUPT_GPIO3_ISR
+        IMPORT      ext_gpio3_activehigh_debounced_isr
         
         PUSH        {R0,LR}
         
@@ -164,7 +164,7 @@ EXT_GPIO3_ACTIVEHIGH_DEBOUNCED_Handler    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          INTERRUPT_GPIO3_ISR
+        BL          ext_gpio3_activehigh_debounced_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -174,7 +174,7 @@ EXT_GPIO3_ACTIVEHIGH_DEBOUNCED_Handler    PROC
 
 EXT_GPIO8_ACTIVEHIGH_Handler    PROC
         EXPORT      EXT_GPIO8_ACTIVEHIGH_Handler
-        IMPORT      INTERRUPT_GPIO8_ISR
+        IMPORT      ext_gpio8_activehigh_isr
         
         PUSH        {R0,LR}
         
@@ -182,7 +182,7 @@ EXT_GPIO8_ACTIVEHIGH_Handler    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          INTERRUPT_GPIO8_ISR
+        BL          ext_gpio8_activehigh_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -192,7 +192,7 @@ EXT_GPIO8_ACTIVEHIGH_Handler    PROC
 
 EXT_GPIO9_ACTIVELOW_Handler    PROC
         EXPORT      EXT_GPIO9_ACTIVELOW_Handler
-        IMPORT      INTERRUPT_GPIO9_ISR
+        IMPORT      ext_gpio9_activelow_isr
         
         PUSH        {R0,LR}
         
@@ -200,7 +200,7 @@ EXT_GPIO9_ACTIVELOW_Handler    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          INTERRUPT_GPIO9_ISR
+        BL          ext_gpio9_activelow_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -210,7 +210,7 @@ EXT_GPIO9_ACTIVELOW_Handler    PROC
 
 EXT_GPIO10_ACTIVELOW    PROC
         EXPORT      EXT_GPIO10_ACTIVELOW
-        IMPORT      INTERRUPT_GPIO10_ISR
+        IMPORT      ext_gpio10_activelow_isr
         
         PUSH        {R0,LR}
         
@@ -218,7 +218,7 @@ EXT_GPIO10_ACTIVELOW    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          INTERRUPT_GPIO10_ISR
+        BL          ext_gpio10_activelow_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -232,7 +232,7 @@ EXT_GPIO10_ACTIVELOW    PROC
 
 RAWCHIPS_STARTVAL_Handler    PROC
         EXPORT      RAWCHIPS_STARTVAL_Handler
-        IMPORT      RAWCHIPS_STARTVAL_ISR
+        IMPORT      rawchips_startval_isr
         
         PUSH        {R0,LR}
         
@@ -240,7 +240,7 @@ RAWCHIPS_STARTVAL_Handler    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          RAWCHIPS_STARTVAL_ISR
+        BL          rawchips_startval_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -250,7 +250,7 @@ RAWCHIPS_STARTVAL_Handler    PROC
 
 RAWCHIPS_32_Handler    PROC
         EXPORT      RAWCHIPS_32_Handler
-        IMPORT      RAWCHIPS_32_ISR
+        IMPORT      rawchips_32_isr
         
         PUSH        {R0,LR}
         
@@ -258,7 +258,7 @@ RAWCHIPS_32_Handler    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          RAWCHIPS_32_ISR
+        BL          rawchips_32_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -268,7 +268,7 @@ RAWCHIPS_32_Handler    PROC
 
 EXT_OPTICAL_IRQ_IN_Handler      PROC
         EXPORT      EXT_OPTICAL_IRQ_IN_Handler
-        IMPORT      OPTICAL_32_ISR
+        IMPORT      optical_32_isr
         
         PUSH        {R0,LR}
         
@@ -276,7 +276,7 @@ EXT_OPTICAL_IRQ_IN_Handler      PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          OPTICAL_32_ISR
+        BL          optical_32_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0
@@ -286,7 +286,7 @@ EXT_OPTICAL_IRQ_IN_Handler      PROC
 
 OPTICAL_SFD_Handler    PROC
         EXPORT      OPTICAL_SFD_Handler
-        IMPORT      OPTICAL_SFD_ISR
+        IMPORT      optical_sfd_isr
         
         PUSH        {R0,LR}
         
@@ -294,7 +294,7 @@ OPTICAL_SFD_Handler    PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          OPTICAL_SFD_ISR
+        BL          optical_sfd_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0

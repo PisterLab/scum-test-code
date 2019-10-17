@@ -67,7 +67,7 @@ extern unsigned short current_RF_channel;
 extern unsigned short do_debug_print;
 
 
-void UART_ISR(){    
+void uart_rx_isr(){
     static char i=0;
     static char buff[4] = {0x0, 0x0, 0x0, 0x0};
     static char waiting_for_end_of_copy = 0;
@@ -169,11 +169,11 @@ void UART_ISR(){
     }
 }
 
-void ADC_ISR() {
+void adc_isr() {
     printf("Conversion complete: 0x%x\r\n", ADC_REG__DATA);
 }
 
-void RF_ISR() {
+void radio_isr() {
     
     unsigned int interrupt = RFCONTROLLER_REG__INT;
     unsigned int error     = RFCONTROLLER_REG__ERROR;
@@ -362,7 +362,7 @@ void RF_ISR() {
     RFCONTROLLER_REG__INT_CLEAR = interrupt;
 }
 
-void RFTIMER_ISR() {
+void timer_isr() {
     
     // The below explains what each timer interrupt does:    
     
@@ -493,7 +493,7 @@ void RFTIMER_ISR() {
 
 // This ISR goes off when the raw chip shift register interrupt goes high
 // It reads the current 32 bits and then prints them out after N cycles
-void RAWCHIPS_32_ISR() {
+void rawchips_32_isr() {
     
     unsigned int jj;
     unsigned int rdata_lsb, rdata_msb;
@@ -535,7 +535,7 @@ void RAWCHIPS_32_ISR() {
 // With HCLK = 5MHz, data rate of 1.25MHz tested OK
 // For faster data rate, will need to raise the HCLK frequency
 // This ISR goes off when the input register matches the target value
-void RAWCHIPS_STARTVAL_ISR() {
+void rawchips_startval_isr() {
     
     unsigned int rdata_lsb, rdata_msb;
     
@@ -564,7 +564,7 @@ void RAWCHIPS_STARTVAL_ISR() {
 // This interrupt goes off every time 32 new bits of data have been shifted into the optical register
 // Do not recommend trying to do any CPU intensive actions while trying to receive optical data
 // ex, printf will mess up the received data values
-void OPTICAL_32_ISR(){
+void optical_32_isr(){
     //printf("Optical 32-bit interrupt triggered\r\n");
     
     //unsigned int LSBs, MSBs, optical_shiftreg;
@@ -583,7 +583,7 @@ void OPTICAL_32_ISR(){
 // This interrupt goes off when the optical register holds the value {221, 176, 231, 47}
 // This interrupt can also be used to synchronize to the start of an optical data transfer
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
-void OPTICAL_SFD_ISR(){
+void optical_sfd_isr(){
     
     int t;
     unsigned int rdata_lsb, rdata_msb; 
@@ -708,16 +708,16 @@ void OPTICAL_SFD_ISR(){
     
     
 // ISRs for external interrupts
-void INTERRUPT_GPIO3_ISR(){
+void ext_gpio3_activehigh_debounced_isr(){
     printf("External Interrupt GPIO3 triggered\r\n");
 }
-void INTERRUPT_GPIO8_ISR(){
+void ext_gpio8_activehigh_isr(){
     printf("External Interrupt GPIO8 triggered\r\n");
 }
-void INTERRUPT_GPIO9_ISR(){
+void ext_gpio9_activelow_isr(){
     printf("External Interrupt GPIO9 triggered\r\n");
 }
-void INTERRUPT_GPIO10_ISR(){
+void ext_gpio10_activelow_isr(){
     printf("External Interrupt GPIO10 triggered\r\n");
 }
 
