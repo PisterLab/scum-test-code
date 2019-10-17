@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"
-#include "scum_radio_bsp.h"
+#include "radio.h"
 #include "bucket_o_functions.h"
 
 extern unsigned int LC_target;

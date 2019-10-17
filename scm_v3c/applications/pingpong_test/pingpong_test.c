@@ -6,14 +6,15 @@
 #include <time.h>
 #include <rt_misc.h>
 #include <stdlib.h>
+#include <math.h>
 #include "Memory_map.h"
 #include "radio.h"
 #include "rf_global_vars.h"
 #include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"
 #include "bucket_o_functions.h"
-#include <math.h>
-#include "scum_radio_bsp.h"
+
+#include "radio.h"
 
 extern unsigned int current_lfsr;
 

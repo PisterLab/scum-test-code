@@ -2,7 +2,7 @@
 #include "Memory_Map.h"
 #include "scm3_hardware_interface.h"
 #include "bucket_o_functions.h"
-#include "scum_radio_bsp.h"
+#include "radio.h"
 
 extern unsigned int ASC[38];
 extern unsigned int cal_iteration;
