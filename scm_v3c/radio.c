@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include "Memory_Map.h"
 #include "scm3c_hardware_interface.h"
 #include "scm3_hardware_interface.h"
@@ -70,30 +74,109 @@ signed short cdr_tau_history[11] = {0};
 unsigned short frequency_update_rate = 15; 
 unsigned short frequency_update_cooldown_timer;
 
-// ========================== definition ======================================
+//=========================== definition ======================================
 
-// ========================== variables =======================================
+#define MAXLENGTH_TRX_BUFFER    128     // 1B length, 125B data, 2B CRC
 
-// ========================== public ==========================================
+//===== default crc check result and rssi value
+
+#define DEFAULT_CRC_CHECK        01     // this is an arbitrary value for now
+#define DEFAULT_RSSI            -50     // this is an arbitrary value for now
+#define DEFAULT_FREQ             11     // use the channel 11 for now
+
+//===== for calibration
+
+#define  IF_FREQ_UPDATE_TIMEOUT  10
+#define  LO_FREQ_UPDATE_TIMEOUT  10
+#define  FILTER_WINDOWS_LEN      11
+#define  FIR_COEFF_SCALE         512 // determined by FIR_coeff
+
+//===== for recognizing panid
+
+#define  LEN_PKT_INDEX           0x00
+#define  PANID_LBYTE_PKT_INDEX   0x04
+#define  PANID_HBYTE_PKT_INDEX   0x05
+#define  DEFAULT_PANID           0xcafe
+
+//=========================== variables =======================================
+
+typedef struct {
+    radio_capture_cbt   startFrame_cb;
+    radio_capture_cbt   endFrame_cb;
+    uint8_t             radio_tx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
+                                                            ((aligned (4)));
+    uint8_t             radio_rx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
+                                                            ((aligned (4)));
+    uint8_t             current_frequency;
+    bool                crc_ok;
+} radio_vars_t;
+
+radio_vars_t radio_vars;
+
+//=========================== prototypes ======================================
+
+void setFrequencyTX(unsigned int channel);
+void setFrequencyRX(unsigned int channel);
+
+//=========================== public ==========================================
 
 
-//If the RX watchdog expires, there will be no ack transmitted so no need to setup for TX
+void radio_init(void) {
 
+    // clear variables
+    memset(&radio_vars,0,sizeof(radio_vars_t));
 
-// SCM has separate setFrequency functions for RX and TX because of the way the radio is built
-// The LO needs to be set to a different frequency for TX vs RX
-void setFrequencyRX(unsigned int channel){
+    // Enable radio interrupts in NVIC
+    ISER = 0x40;
     
-    // Set LO code for RX channel
-    LC_monotonic(RX_channel_codes[channel-11]);
-    
+    // enable sfd done and send done interruptions of tranmission
+    // enable sfd done and receiving done interruptions of reception
+    RFCONTROLLER_REG__INT_CONFIG    = TX_LOAD_DONE_INT_EN           |   \
+                                      TX_SFD_DONE_INT_EN            |   \
+                                      TX_SEND_DONE_INT_EN           |   \
+                                      RX_SFD_DONE_INT_EN            |   \
+                                      RX_DONE_INT_EN                |   \
+                                      TX_SFD_DONE_RFTIMER_PULSE_EN  |   \
+                                      TX_SEND_DONE_RFTIMER_PULSE_EN |   \
+                                      RX_SFD_DONE_RFTIMER_PULSE_EN  |   \
+                                      RX_DONE_RFTIMER_PULSE_EN;
+
+    // Enable all errors
+    RFCONTROLLER_REG__ERROR_CONFIG  = TX_OVERFLOW_ERROR_EN          |   \
+                                      TX_CUTOFF_ERROR_EN            |   \
+                                      RX_OVERFLOW_ERROR_EN          |   \
+                                      RX_CRC_ERROR_EN               |   \
+                                      RX_CUTOFF_ERROR_EN;
 }
 
-void setFrequencyTX(unsigned int channel){
+void radio_setStartFrameCb(radio_capture_cbt cb) {
+    radio_vars.startFrame_cb    = cb;
+}
 
-    // Set LO code for TX channel
-    LC_monotonic(TX_channel_codes[channel-11]);
+void radio_setEndFrameCb(radio_capture_cbt cb) {
+    radio_vars.endFrame_cb      = cb;
+}
 
+void radio_reset(void) {
+    // reset SCuM radio module
+    RFCONTROLLER_REG__CONTROL = RF_RESET;
+}
+
+void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {
+    
+    radio_vars.current_frequency = DEFAULT_FREQ;
+    
+    switch(tx_or_rx){
+    case 0x01:
+        setFrequencyTX(radio_vars.current_frequency);
+        break;
+    case 0x02:
+        setFrequencyRX(radio_vars.current_frequency);
+        break;
+    default:
+        // shouldn't happen
+        break;
+    }
 }
 
 void radio_loadPacket(unsigned int len){
@@ -142,7 +225,6 @@ void radio_rxEnable(){
     
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = 0x10;
-    
 }
 
 // Radio will begin searching for start of packet
@@ -225,10 +307,12 @@ void radio_frequency_housekeeping(){
     // Must wait long enough between changes for FIR to settle (at least 10 packets)
     // Need to add some handling here in case the IF_fine code will rollover with this change (0 <= IF_fine <= 31)
     if(frequency_update_cooldown_timer == frequency_update_rate){
-        if(chip_rate_error_ppm_filtered > 1000)
+        if(chip_rate_error_ppm_filtered > 1000) {
             set_IF_clock_frequency(IF_coarse, IF_fine++, 0);
-        if(chip_rate_error_ppm_filtered < -1000)
+        }
+        if(chip_rate_error_ppm_filtered < -1000) {
             set_IF_clock_frequency(IF_coarse, IF_fine--, 0);
+        }
     }
     
     
@@ -307,21 +391,33 @@ void radio_disable_interrupts(){
     ICER = 0x40;
 }
 
-
 void rftimer_enable_interrupts(){
     // Enable RF timer interrupts in NVIC
     ISER = 0x80;
 }
-
 
 void rftimer_disable_interrupts(){
     // Enable RF timer interrupts in NVIC
     ICER = 0x80;
 }
 
-// ========================== private =========================================
+//=========================== private =========================================
 
-// ========================== intertupt =======================================
+// SCM has separate setFrequency functions for RX and TX because of the way the
+// radio is built. The LO needs to be set to a different frequency for TX vs RX
+void setFrequencyRX(unsigned int channel){
+    
+    // Set LO code for RX channel
+    LC_monotonic(RX_channel_codes[channel-11]);
+}
+
+void setFrequencyTX(unsigned int channel){
+    
+    // Set LO code for TX channel
+    LC_monotonic(TX_channel_codes[channel-11]);
+}
+
+//=========================== intertupt =======================================
 
 void radio_isr() {
     
