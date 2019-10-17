@@ -2,7 +2,6 @@
 #include "Memory_Map.h"
 
 unsigned int ASC[38] = {0};
-extern char send_packet[127];
 
 unsigned int current_lfsr = 0x12345678;
 
@@ -175,27 +174,6 @@ void update_PN31_byte(unsigned int* current_lfsr){
         int newbit = (((*current_lfsr >> 30) ^ (*current_lfsr >> 27)) & 1);
         *current_lfsr = ((*current_lfsr << 1) | newbit);    
     }
-}
-
-
-void TX_load_PN_data(unsigned int num_bytes){
-    int i;
-    for(i=0; i<num_bytes; i++){
-        send_packet[i] = (char)(current_lfsr & 0xFF);
-    }
-    
-    RFCONTROLLER_REG__TX_PACK_LEN = num_bytes + 2;
-    RFCONTROLLER_REG__CONTROL = 0x1; // "lod"    
-}
-
-void TX_load_counter_data(unsigned int num_bytes){
-    int i;
-    for(i=0; i<num_bytes; i++){
-        send_packet[i] = (char)(0x30 + i);
-    }
-    
-    RFCONTROLLER_REG__TX_PACK_LEN = num_bytes + 2;    
-    RFCONTROLLER_REG__CONTROL = 0x1; // "lod"
 }
 
 void set_asc_bit(unsigned int position){

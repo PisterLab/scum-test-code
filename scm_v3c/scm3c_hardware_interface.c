@@ -6,7 +6,6 @@
 
 extern unsigned int ASC[38];
 extern unsigned int cal_iteration;
-extern char recv_packet[130];
 
 extern unsigned int LC_target;
 extern unsigned int IF_clk_target;
