@@ -427,6 +427,11 @@
               <FileType>5</FileType>
               <FilePath>.\scm3_hardware_interface.h</FilePath>
             </File>
+            <File>
+              <FileName>ASC_mapping.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\ASC_mapping.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

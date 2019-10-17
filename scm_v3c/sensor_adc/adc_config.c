@@ -64,7 +64,6 @@ void scan_config_adc(unsigned int sel_reset, unsigned int sel_convert,
 	Outputs:
 		None. Configures the scan chain for testing the sensor ADC.
 	*/
-	int i;
 
 	// Selecting where the reset comes from
 	prog_asc_bit(ASC_SENSORADC_SEL_RESET, sel_reset);
@@ -185,7 +184,7 @@ void gpio_read_config_adc(void) {
 		No inputs.
 	Outputs:
 		No return value. Enables the relevant GPIO buffers
-		and sets the banks appropritaely to have the sensor ADC output
+		and sets the banks appropriately to have the sensor ADC output
 		come from the GPOs. Does not disable any buffers from their 
 		initial setting. Note that this does overwrite any
 		bank settings.
