@@ -7,7 +7,7 @@
 #include <rt_misc.h>
 #include <stdlib.h>
 #include "Memory_map.h"
-#include "Int_Handlers.h"
+#include "radio.h"
 #include "rf_global_vars.h"
 #include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"
@@ -55,6 +55,9 @@ unsigned short optical_cal_iteration = 0, optical_cal_finished = 0;
 unsigned short doing_initial_packet_search;
 unsigned short current_RF_channel;
 unsigned short do_debug_print = 0;
+
+extern unsigned int RX_channel_codes[16];
+extern unsigned int TX_channel_codes[16];
 
 //////////////////////////////////////////////////////////////////
 // Main Function
