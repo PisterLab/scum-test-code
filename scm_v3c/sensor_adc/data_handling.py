@@ -10,6 +10,70 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
 
+def write_temp_data(temp_data, file_out):
+	"""
+	Inputs:
+		temp_data: A collection of tuples (gnd_truth, adc_out) where
+			gnd_truth is the reading from the ground truth I2C temperature
+			sensor and adc_out is the ADC reading taken for that temperature.
+		file_out: String. Path to the file to hold the data.
+	Outputs:
+		No return value. The first column is the temperature readings taken
+		from the I2C temperature sensor. The second column is the ADC codes
+		associated with the I2C reading of the same row.
+	"""
+	with open(file_out, 'w') as f:
+		fwriter = csv.writer(f)
+		for tup in temp_data:
+			fwriter.writerow(list(tup))
+	return
+
+def read_temp_data(file_in):
+	"""
+	Inputs:
+		file_in: String. Path to the file containing the data. The format
+			should have it that the first column is the ground truth values, 
+			and the second column is the ADC readings.
+			
+			e.g.
+			gnd_truth0, adc0
+			gnd_truth1, adc1
+	Outputs:
+		Returns a collection of tuples (gnd_truth, adc_out) where gnd_truth
+		is the reading from the ground truth I2C temperature sensor and
+		adc_out is the ADC reading taken for that temperature.
+	"""
+	temp_data = []
+	with open(file_in, 'r') as f:
+		freader = csv.reader(f)
+		for row in freader:
+			if len(row) == 0:
+				continue
+			gnd_truth = row[0]
+			adc_out = row[1]
+			temp_data.append((gnd_truth, adc_out))
+	return temp_data
+
+def plot_temp_data(temp_data, pga_gain=1):
+	"""
+	Inputs: 
+		temp_data: A collection of tuples (gnd_truth, adc_out) where
+			gnd_truth is the reading from the ground truth I2C temperature
+			sensor and adc_out is the ADC reading taken for that temperature.
+		pga_gain: Integer. The gain setting on the PGA. This is strictly
+			for record-keeping purposes.
+	Outputs:
+		No return value. Provides a scatter plot of ADC code vs. ground
+		truth temperature.
+	"""
+	gnd_truths = [float(datum[0]) for datum in temp_data]
+	adc_outs = [int(datum[1]) for datum in temp_data]
+	plt.scatter(gnd_truths, adc_outs)
+	plt.title("PGA Gain={0}".format(pga_gain))
+	plt.xlabel("I2C Temperature Reading")
+	plt.ylabel("ADC Code")
+	plt.show()
+
 def write_adc_data(adc_outs, file_out):
 	"""
 	Inputs:
@@ -130,8 +194,6 @@ def calc_adc_inl_straightline(adc_outs, vlsb_ideal):
 	slope, intercept, r_value, p_value, std_error = stats.linregress(x, y)
 
 	return slope, intercept
-
-
 
 
 def plot_adc_data(adc_outs, plot_inl=False, plot_ideal=False, vdd=1.2, num_bits=10):
