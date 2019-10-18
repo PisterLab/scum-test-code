@@ -3,22 +3,32 @@
 #include "scm3_hardware_interface.h"
 #include "bucket_o_functions.h"
 #include "radio.h"
+#include "rftimer.h"
 
 extern unsigned int ASC[38];
 extern unsigned int cal_iteration;
 
-extern unsigned int LC_target;
-extern unsigned int IF_clk_target;
-extern unsigned int LC_code;
-extern unsigned int IF_coarse;
-extern unsigned int IF_fine;
-extern unsigned int cal_iteration;
+// Target radio LO freq = 2.4025G
+// Divide ratio is currently 480*2
+// Calibration counts for 100ms
+unsigned int LC_target = 250260;
+unsigned int LC_code = 698;
 
-extern unsigned int HF_CLOCK_fine;
-extern unsigned int HF_CLOCK_coarse;
-extern unsigned int RC2M_coarse;
-extern unsigned int RC2M_fine;
-extern unsigned int RC2M_superfine;
+// HF_CLOCK tuning settings
+unsigned int HF_CLOCK_fine = 17;
+unsigned int HF_CLOCK_coarse = 3;
+
+// RC 2MHz tuning settings
+// This the transmitter chip clock
+unsigned int RC2M_coarse = 21;
+unsigned int RC2M_fine = 15;
+unsigned int RC2M_superfine = 15;
+
+// Receiver clock settings
+// The receiver chip clock is derived from this clock
+unsigned int IF_clk_target = 1600000;
+unsigned int IF_coarse = 22;
+unsigned int IF_fine = 18;
 
 unsigned int RX_channel_codes[16] = {0};
 unsigned int TX_channel_codes[16] = {0};
@@ -1015,30 +1025,6 @@ void set_sys_clk_secondary_freq(unsigned int coarse, unsigned int fine){
 void initialize_mote(){
 
     int t;
-    
-    // Start of new RX
-    RFTIMER_REG__COMPARE0 = 1;
-    
-    // Turn on the RX 
-    RFTIMER_REG__COMPARE1 = expected_RX_arrival - guard_time - radio_startup_time;
-
-    // Time to start listening for packet 
-    RFTIMER_REG__COMPARE2 = expected_RX_arrival - guard_time;
-
-    // RX watchdog - packet never arrived
-    RFTIMER_REG__COMPARE3 = expected_RX_arrival + guard_time;
-    
-    // RF Timer rolls over at this value and starts a new cycle
-    RFTIMER_REG__MAX_COUNT = packet_interval;
-
-    // Enable RF Timer
-    RFTIMER_REG__CONTROL = 0x7;
-
-    // Disable interrupts for the radio FSM
-    radio_disable_interrupts();
-    
-    // Disable RF timer interrupts
-    rftimer_disable_interrupts();
     
     //--------------------------------------------------------
     // SCM3C Analog Scan Chain Initialization

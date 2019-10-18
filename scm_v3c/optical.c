@@ -5,8 +5,15 @@
 #include "radio.h"
 #include "bucket_o_functions.h"
 
+#include <string.h>
+
+//=========================== defines =========================================
+
+//=========================== variables =======================================
+
 extern unsigned int LC_target;
 extern unsigned int LC_code;
+
 extern unsigned int IF_clk_target;
 extern unsigned int IF_coarse;
 extern unsigned int IF_fine;
@@ -27,10 +34,31 @@ unsigned int num_HFclock_ticks_in_100ms;
 
 extern unsigned int RX_channel_codes[16];
 extern unsigned int TX_channel_codes[16];
-extern unsigned short optical_cal_iteration,optical_cal_finished;
 
 // Timer parameters 
 extern unsigned int packet_interval;
+
+typedef struct {
+    uint8_t optical_cal_iteration;
+    uint8_t optical_cal_finished;
+} optical_vars_t;
+
+optical_vars_t optical_vars;
+
+//=========================== prototypes ======================================
+
+//=========================== public ==========================================
+
+void optical_init(void) {
+    
+    memset(&optical_vars, 0, sizeof(optical_vars_t));
+}
+
+uint8_t optical_getCalibrationFinshed(void) {
+    return optical_vars.optical_cal_finished;
+}
+
+//=========================== interrupt =======================================
 
 // This interrupt goes off every time 32 new bits of data have been shifted into the optical register
 // Do not recommend trying to do any CPU intensive actions while trying to receive optical data
@@ -64,7 +92,7 @@ void optical_sfd_isr(){
     ANALOG_CFG_REG__0 = 0x007F;
     
     // Keep track of how many calibration iterations have been completed
-    optical_cal_iteration++;
+    optical_vars.optical_cal_iteration++;
         
     // Read 32k counter
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
@@ -98,7 +126,7 @@ void optical_sfd_isr(){
     ANALOG_CFG_REG__0 = 0x3FFF;    
         
     // Don't make updates on the first two executions of this ISR
-    if(optical_cal_iteration > 2){
+    if(optical_vars.optical_cal_iteration > 2){
         
         // Do correction on HF CLOCK
         // Fine DAC step size is about 6000 counts
@@ -137,11 +165,11 @@ void optical_sfd_isr(){
     // Debugging output
     printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
      
-    if(optical_cal_iteration == 25){
+    if(optical_vars.optical_cal_iteration == 25){
         // Disable this ISR
         ICER = 0x0800;
-        optical_cal_iteration = 0;
-        optical_cal_finished = 1;
+        optical_vars.optical_cal_iteration = 0;
+        optical_vars.optical_cal_finished = 1;
         
         // Store the last count values
         num_32k_ticks_in_100ms = count_32k;

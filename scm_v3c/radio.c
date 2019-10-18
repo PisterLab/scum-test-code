@@ -7,6 +7,7 @@
 #include "scm3c_hardware_interface.h"
 #include "scm3_hardware_interface.h"
 #include "radio.h"
+#include "rftimer.h"
 #include "bucket_o_functions.h"
 
 extern char send_packet[127];
@@ -18,7 +19,6 @@ int raw_chips;
 int jj;
 unsigned int acfg3_val;
 
-extern unsigned int LC_target;
 extern unsigned int LC_code;
 extern unsigned int IF_clk_target;
 extern unsigned int IF_coarse;
@@ -46,7 +46,6 @@ extern unsigned int RC2M_coarse;
 
 extern unsigned int RX_channel_codes[16];
 extern unsigned int TX_channel_codes[16];
-extern unsigned short optical_cal_iteration,optical_cal_finished;
 
 signed int SFD_timestamp = 0;
 signed int SFD_timestamp_n_1 = 0;
@@ -101,8 +100,11 @@ unsigned short frequency_update_cooldown_timer;
 //=========================== variables =======================================
 
 typedef struct {
-    radio_capture_cbt   startFrame_cb;
-    radio_capture_cbt   endFrame_cb;
+    radio_capture_cbt   startFrame_tx_cb;
+    radio_capture_cbt   endFrame_tx_cb;
+    radio_capture_cbt   startFrame_rx_cb;
+    radio_capture_cbt   endFrame_rx_cb;
+    
     uint8_t             radio_tx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
                                                             ((aligned (4)));
     uint8_t             radio_rx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
@@ -115,8 +117,8 @@ radio_vars_t radio_vars;
 
 //=========================== prototypes ======================================
 
-void setFrequencyTX(unsigned int channel);
-void setFrequencyRX(unsigned int channel);
+void setFrequencyTX(uint8_t channel);
+void setFrequencyRX(uint8_t channel);
 
 //=========================== public ==========================================
 
@@ -135,26 +137,32 @@ void radio_init(void) {
                                       TX_SFD_DONE_INT_EN            |   \
                                       TX_SEND_DONE_INT_EN           |   \
                                       RX_SFD_DONE_INT_EN            |   \
-                                      RX_DONE_INT_EN                |   \
-                                      TX_SFD_DONE_RFTIMER_PULSE_EN  |   \
-                                      TX_SEND_DONE_RFTIMER_PULSE_EN |   \
-                                      RX_SFD_DONE_RFTIMER_PULSE_EN  |   \
-                                      RX_DONE_RFTIMER_PULSE_EN;
+                                      RX_DONE_INT_EN;
 
     // Enable all errors
-    RFCONTROLLER_REG__ERROR_CONFIG  = TX_OVERFLOW_ERROR_EN          |   \
-                                      TX_CUTOFF_ERROR_EN            |   \
-                                      RX_OVERFLOW_ERROR_EN          |   \
-                                      RX_CRC_ERROR_EN               |   \
-                                      RX_CUTOFF_ERROR_EN;
+//    RFCONTROLLER_REG__ERROR_CONFIG  = TX_OVERFLOW_ERROR_EN          |   \
+//                                      TX_CUTOFF_ERROR_EN            |   \
+//                                      RX_OVERFLOW_ERROR_EN          |   \
+//                                      RX_CRC_ERROR_EN               |   \
+//                                      RX_CUTOFF_ERROR_EN;
+                                      
+    RFCONTROLLER_REG__ERROR_CONFIG  = RX_CRC_ERROR_EN;
 }
 
-void radio_setStartFrameCb(radio_capture_cbt cb) {
-    radio_vars.startFrame_cb    = cb;
+void radio_setStartFrameTxCb(radio_capture_cbt cb) {
+    radio_vars.startFrame_tx_cb    = cb;
 }
 
-void radio_setEndFrameCb(radio_capture_cbt cb) {
-    radio_vars.endFrame_cb      = cb;
+void radio_setEndFrameTxCb(radio_capture_cbt cb) {
+    radio_vars.endFrame_tx_cb      = cb;
+}
+
+void radio_setStartFrameRxCb(radio_capture_cbt cb) {
+    radio_vars.startFrame_rx_cb    = cb;
+}
+
+void radio_setEndFrameRxCb(radio_capture_cbt cb) {
+    radio_vars.endFrame_rx_cb      = cb;
 }
 
 void radio_reset(void) {
@@ -179,17 +187,15 @@ void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {
     }
 }
 
-void radio_loadPacket(unsigned int len){
-
-    int i;
+void radio_loadPacket(uint8_t* packet, uint16_t len){
     
-    RFCONTROLLER_REG__TX_DATA_ADDR = &send_packet[0];
-            
-    // Set length field (should include +2 for CRC in length)
-    RFCONTROLLER_REG__TX_PACK_LEN = len + 2;
+    memcpy(&radio_vars.radio_tx_buffer[0],packet,len);
 
-    // Load packet into radio
-    RFCONTROLLER_REG__CONTROL = 0x1;
+    // load packet in TXFIFO
+    RFCONTROLLER_REG__TX_DATA_ADDR  = &(radio_vars.radio_tx_buffer[0]);
+    RFCONTROLLER_REG__TX_PACK_LEN   = len;
+
+    RFCONTROLLER_REG__CONTROL       = TX_LOAD;
 }
 
 // Turn on the radio for transmit
@@ -207,7 +213,7 @@ void radio_txEnable(){
 // Note that you need some delay before txNow() to allow txLoad() to finish loading the packet
 void radio_txNow(){
     
-    RFCONTROLLER_REG__CONTROL = 0x2;
+    RFCONTROLLER_REG__CONTROL = TX_SEND;
 }
 
 // Turn on the radio for receive
@@ -221,10 +227,10 @@ void radio_rxEnable(){
     ANALOG_CFG_REG__16 = 0x1;
     
     // Where packet will be stored in memory
-    DMA_REG__RF_RX_ADDR = &recv_packet[0];
+    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);;
     
     // Reset radio FSM
-    RFCONTROLLER_REG__CONTROL = 0x10;
+    RFCONTROLLER_REG__CONTROL = RF_RESET;
 }
 
 // Radio will begin searching for start of packet
@@ -235,7 +241,25 @@ void radio_rxNow(){
     ANALOG_CFG_REG__4 = 0x2800;
 
     // Start RX FSM
-    RFCONTROLLER_REG__CONTROL = 0x4;
+    RFCONTROLLER_REG__CONTROL = RX_START;
+}
+
+void radio_getReceivedFrame(uint8_t* pBufRead,
+                            uint8_t* pLenRead,
+                            uint8_t  maxBufLen,
+                             int8_t* pRssi,
+                            uint8_t* pLqi) {
+   
+    //===== rssi
+    *pRssi          = DEFAULT_RSSI;
+    
+    //===== length
+    *pLenRead       = radio_vars.radio_rx_buffer[0];
+    
+    //===== packet 
+    if (*pLenRead<=maxBufLen) {
+        memcpy(pBufRead,&(radio_vars.radio_rx_buffer[1]),*pLenRead);
+    }
 }
 
 void radio_rfOff(){
@@ -256,18 +280,7 @@ void radio_frequency_housekeeping(){
     unsigned short packet_len;
     signed int timing_correction;
     
-    packet_len = recv_packet[0];
-                
-    
-    // Update the expected number of RF timer counts that corresponds to the packet rate
-    timing_correction = (expected_RX_arrival - SFD_timestamp);
-    packet_interval -= timing_correction;
-    
-    // The value at which the RF timer rolls over
-    RFTIMER_REG__MAX_COUNT = packet_interval - timing_correction;
-    
-    //printf("%d - %d\r\n", SFD_timestamp, RFTIMER_REG__MAX_COUNT);
-    
+    packet_len = radio_vars.radio_rx_buffer[0];
     
     // When updating LO and IF clock frequncies, must wait long enough for the changes to propagate before changing again
     // Need to receive as many packets as there are taps in the FIR filter
@@ -352,12 +365,12 @@ void radio_frequency_housekeeping(){
         // For now, assume that TX/RX should both be updated, even though the IF information is only from the RX code
         if(frequency_update_cooldown_timer == frequency_update_rate){
             if(IF_est_filtered > 520){
-                RX_channel_codes[current_RF_channel - 11]++; 
-                TX_channel_codes[current_RF_channel - 11]++; 
+                RX_channel_codes[radio_vars.current_frequency - 11]++; 
+                TX_channel_codes[radio_vars.current_frequency - 11]++; 
             }
             if(IF_est_filtered < 480){
-                RX_channel_codes[current_RF_channel - 11]--; 
-                TX_channel_codes[current_RF_channel - 11]--; 
+                RX_channel_codes[radio_vars.current_frequency - 11]--; 
+                TX_channel_codes[radio_vars.current_frequency - 11]--; 
             }
             
             //printf("--%d - %d\r\n",IF_estimate,IF_est_filtered);
@@ -385,33 +398,27 @@ void radio_enable_interrupts(){
     RFCONTROLLER_REG__ERROR_CONFIG = 0x8;    //0x10; x10 is wrong? 
 }
 
-void radio_disable_interrupts(){
+void radio_disable_interrupts(void){
 
     // Clear radio interrupts in NVIC
     ICER = 0x40;
 }
 
-void rftimer_enable_interrupts(){
-    // Enable RF timer interrupts in NVIC
-    ISER = 0x80;
-}
-
-void rftimer_disable_interrupts(){
-    // Enable RF timer interrupts in NVIC
-    ICER = 0x80;
+bool radio_getCrcOk(void){
+    return radio_vars.crc_ok;
 }
 
 //=========================== private =========================================
 
 // SCM has separate setFrequency functions for RX and TX because of the way the
 // radio is built. The LO needs to be set to a different frequency for TX vs RX
-void setFrequencyRX(unsigned int channel){
+void setFrequencyRX(uint8_t channel){
     
     // Set LO code for RX channel
     LC_monotonic(RX_channel_codes[channel-11]);
 }
 
-void setFrequencyTX(unsigned int channel){
+void setFrequencyTX(uint8_t channel){
     
     // Set LO code for TX channel
     LC_monotonic(TX_channel_codes[channel-11]);
@@ -419,191 +426,75 @@ void setFrequencyTX(unsigned int channel){
 
 //=========================== intertupt =======================================
 
-void radio_isr() {
+void radio_isr(void) {
     
     unsigned int interrupt = RFCONTROLLER_REG__INT;
     unsigned int error     = RFCONTROLLER_REG__ERROR;
-    int t;
     
-  //if (interrupt & 0x00000001) printf("TX LOAD DONE\r\n");
-    //if (interrupt & 0x00000002) printf("TX SFD DONE\r\n");
-    if (interrupt & 0x00000004){ //printf("TX SEND DONE\r\n");
+    radio_vars.crc_ok   = true;
+    if (error != 0) {
         
-        // Lower GPIO3 to indicate TX is off
-        GPIO_REG__OUTPUT &= ~(0x8);
+        printf("Radio ERROR\r\n");
         
-        // Packet sent; turn transmitter off
-        radio_rfOff();
-                
-        // Apply frequency corrections
-        radio_frequency_housekeeping();
+        if (error & 0x00000001) {
+            printf("TX OVERFLOW ERROR\r\n");
+        }
+        if (error & 0x00000002) {
+            printf("TX CUTOFF ERROR\r\n");
+        }
+        if (error & 0x00000004) {
+            printf("RX OVERFLOW ERROR\r\n");
+        }
         
-        // Debug outputs
-        printf("TX DONE\r\n");
-        printf("IF=%d, LQI=%d, CDR=%d, len=%d, SFD=%d, LC=%d\r\n",IF_estimate,LQI_chip_errors,cdr_tau_value,recv_packet[0],packet_interval,LC_code);
-        
-    }
-    if (interrupt & 0x00000008){// printf("RX SFD DONE\r\n");
-        SFD_timestamp_n_1 = SFD_timestamp;
-        SFD_timestamp = RFTIMER_REG__COUNTER;
-        
-        // Toggle GPIO5 to indicate a SFD was found
-        // Write twice to make the pulse wider for easier capture on scope
-        GPIO_REG__OUTPUT |= 0x20;
-        GPIO_REG__OUTPUT |= 0x20;
-        GPIO_REG__OUTPUT &= ~(0x20);
-        
-        // Disable watchdog if a SFD has been found
-        RFTIMER_REG__COMPARE3_CONTROL = 0x0;
-        
-        if(doing_initial_packet_search==1){
-            // Sync next RX turn-on to expected arrival time
-            RFTIMER_REG__COUNTER = expected_RX_arrival;
+        if (error & 0x00000008) {
+            printf("RX CRC ERROR\r\n");
+            radio_vars.crc_ok   = false;
+        }
+        if (error & 0x00000010) {
+            printf("RX CUTOFF ERROR\r\n");
         }
         
     }
+    RFCONTROLLER_REG__ERROR_CLEAR = error;
+    
+    if (interrupt & 0x00000001) {
+        printf("TX LOAD DONE\r\n");
+    }
+    
+    if (interrupt & 0x00000002) {
+        printf("TX SFD DONE\r\n");
+        
+        if (radio_vars.startFrame_tx_cb != 0) {
+            radio_vars.startFrame_tx_cb(RFTIMER_REG__COUNTER);
+        }
+    }
+    
+    if (interrupt & 0x00000004){
+        printf("TX SEND DONE\r\n");
+        
+        // radio_frequency_housekeeping();
+        
+        if (radio_vars.endFrame_tx_cb != 0) {
+            radio_vars.endFrame_tx_cb(RFTIMER_REG__COUNTER);
+        }
+    }
+    
+    if (interrupt & 0x00000008){
+        printf("RX SFD DONE\r\n");
+        
+        if (radio_vars.startFrame_rx_cb != 0) {
+            radio_vars.startFrame_rx_cb(RFTIMER_REG__COUNTER);
+        }
+    }
+    
     if (interrupt & 0x00000010) {
         
-        //int i;
-        unsigned int RX_DONE_timestamp;
-        char num_bytes_rec = recv_packet[0];
+        printf("RX DONE\r\n");
         
-        // Debug printing of packet contents
-        //char *current_byte_rec = recv_packet+1;
-        //printf("RX DONE\r\n");
-        //printf("RX'd %d: \r\n", num_bytes_rec);
-        //for (i=0; i < num_bytes_rec; i++) {
-        //    printf("%c",current_byte_rec[i]);
-        //}
-        //printf("\r\n");
-        
-        // Set GPIO1 low to indicate RX is now done/off
-        GPIO_REG__OUTPUT &= ~(0x2);
-        
-        // Note when the packet reception was complete
-        RX_DONE_timestamp = RFTIMER_REG__COUNTER;
-        
-        // Keep track of how many packets have been received
-        num_packets_received++;    
-        
-        // Check if the packet length is as expected (20 payload bytes + 2 for CRC)    
-        // In this demo code, it is assumed the OpenMote is sending packets with 20B payloads
-        if(num_bytes_rec != 22){
-            wrong_lengths++;
-            
-            // If packet was a failure, turn the radio off
-            if(doing_initial_packet_search == 0){
-                
-                radio_rfOff();
-            }
-            else{
-                
-                // Keep listening if doing initial search
-                radio_rxEnable();
-                radio_rxNow();
-            }
-            
+        if (radio_vars.endFrame_rx_cb != 0) {
+            radio_vars.endFrame_rx_cb(RFTIMER_REG__COUNTER);
         }
-        
-        // Length was right but CRC was wrong
-        else if (error == 0x00000008){
-            
-            // Keep track of number of CRC errors
-            num_crc_errors++;
-            
-            // Clear error flag
-            RFCONTROLLER_REG__ERROR_CLEAR = error;
-
-            // If packet was a failure, turn the radio off
-            if(doing_initial_packet_search == 0){
-                
-                radio_rfOff();
-            }
-            else{
-                
-                // Keep listening if doing initial search
-                radio_rxEnable();
-                radio_rxNow();
-            }
-        
-        // Packet has good CRC value and is the correct length
-        } else {
-            
-            // If this is the first valid packet received, start timers for next expected packet
-            if(doing_initial_packet_search == 1){
-                
-                // Clear this flag to note we are no longer doing continuous RX listen
-                doing_initial_packet_search = 0;
-            
-                // Enable compare interrupts for RX
-                RFTIMER_REG__COMPARE0_CONTROL = 0x3;
-                RFTIMER_REG__COMPARE1_CONTROL = 0x3;
-                RFTIMER_REG__COMPARE2_CONTROL = 0x3;
-                
-                // Enable timer ISRs in the NVIC
-                rftimer_enable_interrupts();
-                
-                // Shut radio off until next packet
-                radio_rfOff();
-            }    
-            // Already locked onto packet rate
-            else{
-                
-                // Only record IF estimate, LQI, and CDR tau for valid packets
-                IF_estimate = read_IF_estimate();
-                LQI_chip_errors    = ANALOG_CFG_REG__21 & 0xFF; //read_LQI();    
-                
-                // Read the value of tau debug at end of packet
-                // Do this later in the ISR to make sure this register has settled before trying to read it
-                // (the register is on the adc clock domain)
-                cdr_tau_value = ANALOG_CFG_REG__25;
-                
-                // Keep track of how many received packets were valid
-                num_valid_packets_received++;
-                
-                // Prepare ack - for this demo code the contents are arbitrary
-                // The OpenMote receiver is looking for 30B packets - still on channel 11
-                // Data is stored in send_packet[]
-                send_packet[0] = 't';
-                send_packet[1] = 'e';
-                send_packet[2] = 's';
-                send_packet[3] = 't';
-                radio_loadPacket(30);
-        
-                // Transmit packet at this time
-                RFTIMER_REG__COMPARE5 = RX_DONE_timestamp + ack_turnaround_time;    
-                
-                // Turn on transmitter at this time
-                RFTIMER_REG__COMPARE4 = RFTIMER_REG__COMPARE5 - radio_startup_time;
-                    
-                // Enable TX timers
-                RFTIMER_REG__COMPARE4_CONTROL = 0x3;
-                RFTIMER_REG__COMPARE5_CONTROL = 0x3;
-                
-                // Turn radio off until next packet
-                radio_rfOff();
-            }
-        
-        }
-        
-            // Debug print output        
-            //printf("IF=%d, LQI=%d, CDR=%d, len=%d, SFD=%d, LC=%d, numcrc=%d\r\n",IF_estimate,LQI_chip_errors,cdr_tau_value,recv_packet[0],packet_interval,LC_code,num_crc_errors);
-            
-            // Uncomment below to enter continuous RX loop
-            //setFrequencyRX(current_RF_channel);
-            //radio_rxEnable();
-            //radio_rxNow();
-            //rftimer_disable_interrupts();
     }
-    
-    //if (error != 0) {
-    //    if (error & 0x00000001) printf("TX OVERFLOW ERROR\r\n");
-    //    if (error & 0x00000002) printf("TX CUTOFF ERROR\r\n");
-    //    if (error & 0x00000004) printf("RX OVERFLOW ERROR\r\n");
-    //    if (error & 0x00000008) printf("RX CRC ERROR\r\n");
-    //    if (error & 0x00000010) printf("RX CUTOFF ERROR\r\n");
-        RFCONTROLLER_REG__ERROR_CLEAR = error;
-    //}
     
     RFCONTROLLER_REG__INT_CLEAR = interrupt;
 }

@@ -135,7 +135,7 @@ RF_Handler    PROC
         
 RFTIMER_Handler     PROC
         EXPORT      RFTIMER_Handler
-        IMPORT      timer_isr
+        IMPORT      rftimer_isr
         
         PUSH        {R0,LR}
         
@@ -143,7 +143,7 @@ RFTIMER_Handler     PROC
         MSR         PRIMASK, R0 ; 
         ;STR        R0,[R1]    
         
-        BL          timer_isr
+        BL          rftimer_isr
         
         MOVS        R0, #0        ;ENABLE all interrupts
         MSR         PRIMASK, R0

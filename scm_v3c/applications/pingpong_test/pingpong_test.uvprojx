@@ -407,11 +407,6 @@
               <FilePath>..\..\cm0dsasm.s</FilePath>
             </File>
             <File>
-              <FileName>Int_Handlers.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\Int_Handlers.h</FilePath>
-            </File>
-            <File>
               <FileName>Memory_Map.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\Memory_Map.h</FilePath>
@@ -447,14 +442,74 @@
               <FilePath>..\..\scm3c_hardware_interface.h</FilePath>
             </File>
             <File>
-              <FileName>scum_radio_bsp.c</FileName>
+              <FileName>optical.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\scum_radio_bsp.c</FilePath>
+              <FilePath>..\..\optical.c</FilePath>
             </File>
             <File>
-              <FileName>scum_radio_bsp.h</FileName>
+              <FileName>optical.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\scum_radio_bsp.h</FilePath>
+              <FilePath>..\..\optical.h</FilePath>
+            </File>
+            <File>
+              <FileName>radio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\radio.c</FilePath>
+            </File>
+            <File>
+              <FileName>radio.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\radio.h</FilePath>
+            </File>
+            <File>
+              <FileName>adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>adc.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\adc.h</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\gpio.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\uart.h</FilePath>
+            </File>
+            <File>
+              <FileName>clocks.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\clocks.c</FilePath>
+            </File>
+            <File>
+              <FileName>clocks.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\clocks.h</FilePath>
+            </File>
+            <File>
+              <FileName>rftimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\rftimer.c</FilePath>
+            </File>
+            <File>
+              <FileName>rftimer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\rftimer.h</FilePath>
             </File>
           </Files>
         </Group>
