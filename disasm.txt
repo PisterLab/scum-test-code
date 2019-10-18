@@ -1069,7 +1069,7 @@
         0x00000fa4:    fb48f002    ..H.    BLX      0x123cfb6 ; 0x123cfb6
         0x00000fa8:    a08ebd10    ....    ADDGE    r11,lr,r0,LSL sp
         0x00000fac:    fb44f002    ..D.    BLX      0x113cfbe ; 0x113cfbe
-        0x00000fb0:    f9f0f001    ....    DCI      0xf9f0f001 ; ? Undefined
+        0x00000fb0:    ffbbf001    ....    DCI      0xffbbf001 ; ? Undefined
         0x00000fb4:    f002a08f    ....    DCI      0xf002a08f ; ? Undefined
         0x00000fb8:    a094fb3f    ?...    ADDSGE   pc,r4,pc,LSR r11 ; ?  
         0x00000fbc:    fb3cf002    ..<.    BLX      0xf3cfce ; 0xf3cfce

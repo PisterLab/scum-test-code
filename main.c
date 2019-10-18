@@ -86,7 +86,7 @@ int main(void) {
 	printf("Initializing...");
 		
 	// Set up mote configuration
-	initialize_mote();
+	initialize_mote_lighthouse();
 		
 	// Check CRC
 	printf("\n-------------------\n");
