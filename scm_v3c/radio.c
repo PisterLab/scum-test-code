@@ -472,8 +472,6 @@ void radio_isr(void) {
     if (interrupt & 0x00000004){
         printf("TX SEND DONE\r\n");
         
-        // radio_frequency_housekeeping();
-        
         if (radio_vars.endFrame_tx_cb != 0) {
             radio_vars.endFrame_tx_cb(RFTIMER_REG__COUNTER);
         }

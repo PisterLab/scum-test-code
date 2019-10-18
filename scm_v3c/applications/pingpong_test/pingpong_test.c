@@ -27,7 +27,7 @@ The target image running on OpenMote can be found at:
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
     
 #define LC_CODE_RX      700 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
-#define LC_CODE_TX      713 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
+#define LC_CODE_TX      707 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
 
 #define LENGTH_PACKET   125+LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_TX_PKT      30+LENGTH_CRC  ///< length of tx packet
@@ -144,7 +144,7 @@ int main(void) {
     radio_enable_interrupts();
 
     // Begin listening
-    setFrequencyRX(CHANNEL);
+    radio_setFrequency(CHANNEL, FREQ_RX);
     radio_rxEnable();
     radio_rxNow();    
     
@@ -185,6 +185,8 @@ void    cb_endFrame_tx(uint32_t timestamp){
     // turn to listen
     
     radio_rfOff();
+    
+//    radio_frequency_housekeeping();
     
     radio_setFrequency(CHANNEL, FREQ_RX);
     radio_rxEnable();
@@ -247,6 +249,12 @@ void    cb_endFrame_rx(uint32_t timestamp){
             
             radio_rfOff();
             
+            // Setup LO for transmit
+            radio_setFrequency(CHANNEL, FREQ_TX);
+            
+            // Turn on RF for TX
+            radio_txEnable();
+            
             // send frame after 2ms
             rftimer_setCompareIn(rftimer_readCounter()+ TIMER_PERIOD);
         }
@@ -255,12 +263,6 @@ void    cb_endFrame_rx(uint32_t timestamp){
 
 void    cb_timer(void) {
     
-    // Setup LO for transmit
-    radio_setFrequency(CHANNEL, FREQ_TX);
-
-    // Turn on RF for TX
-    radio_txEnable();
-
     // Tranmit the packet
     radio_txNow();
 }
