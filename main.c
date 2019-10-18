@@ -164,14 +164,15 @@ int main(void) {
 	ANALOG_CFG_REG__16 = 0x6;
 	
 	// Enable optical SFD interrupt for optical calibration
-	ISER = 0xFFFF;
+	ISER = 0x0800;
 	
 	// Wait for optical cal to finish
 	while(optical_cal_finished == 0);
 	optical_cal_finished = 0;
 
 	printf("Cal complete\n");
-	
+		// Disable all interrupts
+	ICER = 0xFFFF;
 	//run frequency cal sweep
 	//test_LC_sweep_tx();
 
@@ -188,6 +189,7 @@ int main(void) {
 	current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;	
 
 
+	
 	//start localization loop
 	while(1) {		
 
