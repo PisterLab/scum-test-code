@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <stdbool.h>
 typedef enum pulse_type_t{AZ=0,AZ_SKIP=1,EL=2,EL_SKIP=3,LASER=4,INVALID = 5} pulse_type_t;
 typedef enum lh_id_t {A = 0, B = 1} lh_id_t;
 typedef enum angle_type_t {AZIMUTH = 0, ELEVATION = 1} angle_type_t;
@@ -9,7 +11,7 @@ typedef struct gpio_tran_t {
 #define DEBUG_STATE 0
 #define DEB_THRESH 2
 #define WIDTH_BIAS 0
-#define USE_RADIO 0
+#define USE_RADIO 1
 
 //defines for lighthouse localization scum configuration
 #define HF_CLOCK_FINE_LH  		17
@@ -33,3 +35,12 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise);
 unsigned int sync_pulse_width_compensate(unsigned int pulse_width);
 void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise);
 void debounce_gpio(unsigned short gpio, unsigned short * deb_gpio, unsigned int * trans_out);
+void initialize_mote_lighthouse(void);
+void radio_init_tx_lighthouse(uint8_t lo_supply_v, uint8_t lc_supply_c, uint8_t pa_supply_v, bool lo_cortex_ctrl, bool div_cortex_ctrl);
+void radio_init_rx_MF_lighthouse(void);
+
+//defines for initialization
+
+#define LC_CURRENT_LH 100
+#define PA_SUPPLY_LH 63
+#define LO_SUPPLY_LH 64

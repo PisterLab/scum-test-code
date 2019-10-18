@@ -11,6 +11,7 @@
 #include "scm3C_hardware_interface.h"
 #include "lighthouse.h"
 #include "Memory_map.h"
+#include <stdbool.h>
 
 extern char send_packet[127];
 
@@ -98,7 +99,7 @@ void initialize_mote_lighthouse(){
 	radio_init_rx_MF_lighthouse();
 		
 	// Init TX
-	radio_init_tx_lighthouse();
+	radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,true,true);
 		
 	// Set initial IF ADC clock frequency
 	set_IF_clock_frequency(IF_COARSE_LH, IF_FINE_LH, 0);
@@ -122,7 +123,9 @@ void initialize_mote_lighthouse(){
 	
 }
 
-void radio_init_tx_lighthouse(){
+//initialize tx
+//args: LO supply, LC supply current, PA supply voltage, lo cortex control, divider cortex control 
+void radio_init_tx_lighthouse(uint8_t lo_supply_v, uint8_t lc_supply_c, uint8_t pa_supply_v, bool lo_cortex_ctrl, bool div_cortex_ctrl){
 	
 	// Set up 15.4 modulation source
 	// ----
@@ -171,18 +174,29 @@ void radio_init_tx_lighthouse(){
 	// Need to set analog_cfg<183> to 1 to select 15.4 for chips out
 	ANALOG_CFG_REG__11 = 0x0080;
 	
+	//codes
+	//LC: 100
+	//PA_Supply: 63
+	//LO_supply:64,0
+	
 	// Set current in LC tank
-		set_LC_current(100);	
+		set_LC_current(lc_supply_c);	
 	
 	// Set LDO voltages for PA and LO
-	set_PA_supply(63);
-	set_LO_supply(64,0);
+	set_PA_supply(pa_supply_v);
+	set_LO_supply(lo_supply_v,0);
 	
-	// Ensure cortex control of LO
-	clear_asc_bit(964);
 	
-	// Ensure cortex control of divider
-	clear_asc_bit(1081);
+	//LO cortex control:964
+	if(lo_cortex_ctrl){
+		// Ensure cortex control of LO
+		clear_asc_bit(964);
+	}
+	//divider cortex control: 1081
+	if(div_cortex_ctrl){
+		// Ensure cortex control of divider
+		clear_asc_bit(1081);
+	}
 }
 
 
