@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Fri Oct 18 13:49:30 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Fri Oct 18 14:23:31 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -389,7 +389,7 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 
-<P><STRONG><a name="[60]"></a>set_IF_LDO_voltage</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[60]"></a>set_IF_LDO_voltage</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
@@ -437,7 +437,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_ZCC
 </UL>
 
-<P><STRONG><a name="[67]"></a>set_IF_stg3gm_ASC</STRONG> (Thumb, 78 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[67]"></a>set_IF_stg3gm_ASC</STRONG> (Thumb, 78 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
@@ -445,7 +445,7 @@ Global Symbols
 <LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
 </UL>
 
-<P><STRONG><a name="[68]"></a>set_IF_comparator_trim_I</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[68]"></a>set_IF_comparator_trim_I</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
@@ -454,7 +454,7 @@ Global Symbols
 <LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
 </UL>
 
-<P><STRONG><a name="[69]"></a>set_IF_comparator_trim_Q</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[69]"></a>set_IF_comparator_trim_Q</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
@@ -462,7 +462,7 @@ Global Symbols
 <LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF
 </UL>
 
-<P><STRONG><a name="[6a]"></a>set_IF_gain_ASC</STRONG> (Thumb, 314 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[6a]"></a>set_IF_gain_ASC</STRONG> (Thumb, 314 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
@@ -793,21 +793,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote_lighthouse
 </UL>
 
-<P><STRONG><a name="[83]"></a>radio_init_rx_MF_lighthouse</STRONG> (Thumb, 282 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
-<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
-<LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_gain_ASC
-<LI><a href="#[69]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_comparator_trim_Q
-<LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_comparator_trim_I
-<LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_stg3gm_ASC
-<LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_LDO_voltage
-</UL>
-<BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote_lighthouse
-</UL>
-
-<P><STRONG><a name="[4e]"></a>initialize_mote_lighthouse</STRONG> (Thumb, 268 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_rx_MF_lighthouse
-<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx_lighthouse
+<P><STRONG><a name="[4e]"></a>initialize_mote_lighthouse</STRONG> (Thumb, 262 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx_lighthouse
 <LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rftimer_disable_interrupts
 <LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_disable_interrupts
@@ -826,6 +813,16 @@ Global Symbols
 <LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
 </UL>
 <BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[83]"></a>radio_init_rx_MF_lighthouse</STRONG> (Thumb, 284 bytes, Stack size 0 bytes, lighthouse.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
+<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
+<LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_gain_ASC
+<LI><a href="#[69]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_comparator_trim_Q
+<LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_comparator_trim_I
+<LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_stg3gm_ASC
+<LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_LDO_voltage
 </UL>
 
 <P><STRONG><a name="[84]"></a>send_lh_packet</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, lighthouse.o(.text))

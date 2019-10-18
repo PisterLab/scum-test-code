@@ -84,7 +84,7 @@ void initialize_mote_lighthouse(){
 	// Set 2M RC as source for chip CLK
 	set_asc_bit(1156);
 	
-	// Enable 32k for cal
+	// Enable 32k for cal// could be removed
 	set_asc_bit(623);
 	
 	// Enable passthrough on chip CLK divider
@@ -95,20 +95,20 @@ void initialize_mote_lighthouse(){
 	//ASC[0] |= 0x6F800000; 
 	for(t=2; t<9; t++) set_asc_bit(t);	
 		
-	// Init RX
-	radio_init_rx_MF_lighthouse();
+	// Init RX 
+	//radio_init_rx_MF_lighthouse(); //could be removed
 		
 	// Init TX
-	radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,true,true);
+	radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,false,true);
 		
 	// Set initial IF ADC clock frequency
-	set_IF_clock_frequency(IF_COARSE_LH, IF_FINE_LH, 0);
+	set_IF_clock_frequency(IF_COARSE_LH, IF_FINE_LH, 0); // could be revomed
 
 	// Set initial TX clock frequency
-	set_2M_RC_frequency(31, 31, RC2M_COARSE_LH, RC2M_FINE_LH, RC2M_SUPERFINE_LH);
+	set_2M_RC_frequency(31, 31, RC2M_COARSE_LH, RC2M_FINE_LH, RC2M_SUPERFINE_LH); //could be removed
 
 	// Turn on RC 2M for cal
-	set_asc_bit(1114);
+	set_asc_bit(1114); // could be removed
 		
 	// Set initial LO frequency
 	LC_monotonic(LC_CODE_LH);
