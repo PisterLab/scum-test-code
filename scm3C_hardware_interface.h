@@ -43,4 +43,6 @@ unsigned int build_RX_channel_table(unsigned int channel_11_LC_code);
 void build_TX_channel_table(unsigned int channel_11_LC_code,unsigned int count_LC_RX_ch11);
 void build_channel_table(unsigned int channel_11_LC_code);
 unsigned int estimate_temperature_2M_32k(void);
-
+void initialize_mote_lighthouse(void);
+void radio_init_tx_lighthouse(void);
+void radio_init_rx_MF_lighthouse(void);
