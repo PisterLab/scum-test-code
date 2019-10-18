@@ -2930,7 +2930,7 @@
         0x00002cb8:    f7ff4620     F..    DCI      0xf7ff4620 ; ? Undefined ; ?  
         0x00002cbc:    1c64fdd0    ..d.    STCLNE   p13,c15,[r4],#-0x340
         0x00002cc0:    dbf92c09    .,..    BLLE     0xffe4dcec ; 0xffe4dcec
-        0x00002cc4:    23002001    . .#    MOVWCS   r2,#1
+        0x00002cc4:    46032000    . .F    STRMI    r2,[r3],-r0
         0x00002cc8:    2164223f    ?"d!    DCI      0x2164223f ; ? Undefined
         0x00002ccc:    20409000    ..@     SUBCS    r9,r0,r0
         0x00002cd0:    ff68f7ff    ..h.    DCI      0xff68f7ff ; ? Undefined

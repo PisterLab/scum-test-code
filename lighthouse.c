@@ -99,7 +99,7 @@ void initialize_mote_lighthouse(){
 	//radio_init_rx_MF_lighthouse(); //could be removed
 		
 	// Init TX
-	radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,false,true);
+	radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,false,false);
 		
 	// Set initial IF ADC clock frequency
 	set_IF_clock_frequency(IF_COARSE_LH, IF_FINE_LH, 0); // could be revomed
