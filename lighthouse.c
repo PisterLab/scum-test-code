@@ -85,7 +85,7 @@ void initialize_mote_lighthouse(){
 	set_asc_bit(1156);
 	
 	// Enable 32k for cal// could be removed
-	set_asc_bit(623);
+	//set_asc_bit(623);
 	
 	// Enable passthrough on chip CLK divider
 	set_asc_bit(41);
