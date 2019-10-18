@@ -108,7 +108,7 @@ void initialize_mote_lighthouse(){
 	set_2M_RC_frequency(31, 31, RC2M_COARSE_LH, RC2M_FINE_LH, RC2M_SUPERFINE_LH); //could be removed
 
 	// Turn on RC 2M for cal
-	set_asc_bit(1114); // could be removed
+	//set_asc_bit(1114); // could be removed
 		
 	// Set initial LO frequency
 	LC_monotonic(LC_CODE_LH);
