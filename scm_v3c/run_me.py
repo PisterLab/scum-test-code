@@ -16,11 +16,11 @@ from bootload import *
 
 
 if __name__ == "__main__":
-	programmer_port = "COM22"
-	scm_port = "COM29"
+	programmer_port = "COM5"
+	scm_port = "COM3"
 
 	# Program SCM
-	if True:
+	if False:
 		program_cortex_specs = dict(teensy_port=programmer_port,
 								uart_port=scm_port,
 								file_binary="./code.bin",
@@ -43,22 +43,6 @@ if __name__ == "__main__":
 			timeout=.5)
 		ser.write(b'zzz\n')
 		ser.close()
-
-	######################
-	### LC CALIBRATION ###
-	######################
-
-	# LC sweep and measure (preliminary measurements for figuring out
-	# how to calibrate)
-	if False:
-		file_out = './calibration/data/blep.csv'
-
-		test_LC_sweep_specs = dict(uart_port=scm_port,
-								num_codes=2048)
-
-		LC_outs = test_LC_sweep(**test_LC_sweep_specs)
-
-		write_LC_data(LC_outs, file_out)
 
 	##################
 	### SENSOR ADC ###
@@ -91,6 +75,19 @@ if __name__ == "__main__":
 		ts = time.gmtime()
 		datetime = time.strftime("%Y%m%d_%H%M%S",ts)
 		write_adc_data(adc_outs, './sensor_adc/data/psu_{}.csv'.format(datetime))
+
+	### Testing the temperature sensor many times. ###
+	if False:
+		for i in range(200):
+			test_temp_sensor_specs = dict(scm_port=scm_port,
+									temp_port="COM7",
+									control_mode='loopback',
+									read_mode='uart',
+									iterations=500)
+			temp_data = test_temp_sensor(**test_temp_sensor_specs)
+			ts = time.gmtime()
+			datetime = time.strftime("%Y%m%d_%H%M%S",ts)
+			write_temp_data(temp_data, './sensor_adc/data/temp_{}_{}.csv'.format(datetime, i))
 
 	# Plotting ADC data
 	if False:
@@ -133,3 +130,13 @@ if __name__ == "__main__":
 		plt.grid()
 		plt.title("Peak Positive INL: {0}\nPeak Negative INL: {1}".format(max(INLs_cleaned), min(INLs_cleaned)))
 		plt.show()
+
+	# Plotting ADC code vs. temperature
+	if True:
+		fname = "./sensor_adc/data/20191017_0/temp_20191017_gain5.csv"
+		temp_data = read_temp_data(fname)
+		plot_temp_data_specs = dict(temp_data=temp_data,
+				pga_gain="5",
+				linefit=True)
+
+		plot_temp_data(**plot_temp_data_specs)
