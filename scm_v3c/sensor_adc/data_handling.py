@@ -54,7 +54,7 @@ def read_temp_data(file_in):
 			temp_data.append((gnd_truth, adc_out))
 	return temp_data
 
-def plot_temp_data(temp_data, pga_gain=1):
+def plot_temp_data(temp_data, pga_gain=1, linefit=True):
 	"""
 	Inputs: 
 		temp_data: A collection of tuples (gnd_truth, adc_out) where
@@ -62,16 +62,27 @@ def plot_temp_data(temp_data, pga_gain=1):
 			sensor and adc_out is the ADC reading taken for that temperature.
 		pga_gain: Integer. The gain setting on the PGA. This is strictly
 			for record-keeping purposes.
+		linefit: Boolean. True = perform linear regression on data and plot.
+			with annotated slope.
 	Outputs:
 		No return value. Provides a scatter plot of ADC code vs. ground
 		truth temperature.
 	"""
 	gnd_truths = [float(datum[0]) for datum in temp_data]
 	adc_outs = [int(datum[1]) for datum in temp_data]
-	plt.scatter(gnd_truths, adc_outs)
+	plt.scatter(gnd_truths, adc_outs, label="Data Points")
+	
+	if linefit:
+		sorted_gnd_truths = list(gnd_truths)
+		sorted_gnd_truths.sort()
+		slope, intercept, r_value, p_value, std_error = stats.linregress(gnd_truths, adc_outs)
+		plt.plot(sorted_gnd_truths, [slope*x + intercept for x in sorted_gnd_truths], 'r', \
+				label="Slope={0}".format('%.3f'%(slope)))
+
 	plt.title("PGA Gain={0}".format(pga_gain))
-	plt.xlabel("I2C Temperature Reading")
+	plt.xlabel("I2C Temperature Reading")	
 	plt.ylabel("ADC Code")
+	plt.legend()
 	plt.show()
 
 def write_adc_data(adc_outs, file_out):
