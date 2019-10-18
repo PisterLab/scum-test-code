@@ -967,11 +967,11 @@
         0x00000e0c:    fac0f002    ....    BLX      0xff03ce1c ; 0xff03ce1c
         0x00000e10:    e7febf00    ....    LDRB     r11,[lr,r0,LSL #30]!
         0x00000e14:    f002a088    ....    DCI      0xf002a088 ; ? Undefined
-        0x00000e18:    2078fabb    ..x     LDRHTCS  pc,[r8],#-0xab ; ?  
+        0x00000e18:    2058fabb    ..X     LDRHCS   pc,[r8],#-0xab ; ?  
         0x00000e1c:    6008498d    .I.`    ANDVS    r4,r8,sp,LSL #19
         0x00000e20:    498d2006    . .I    STMIBMI  sp,{r1,r2,sp}
-        0x00000e24:    20016008    .`.     ANDCS    r6,r1,r8
-        0x00000e28:    492d02c0    ..-I    PUSHMI   {r6,r7,r9}
+        0x00000e24:    48716008    .`qH    LDMDAMI  r1,{r3,sp,lr}^ ; ?  
+        0x00000e28:    492d303f    ?0-I    PUSHMI   {r0-r5,r12,sp} ; ?  
         0x00000e2c:    60083980    .9.`    ANDVS    r3,r8,r0,LSL #19
         0x00000e30:    482cbf00    ..,H    STMDAMI  r12!,{r8-sp,pc} ; ?  
         0x00000e34:    28008800    ...(    STMDACS  r0,{r11,pc}

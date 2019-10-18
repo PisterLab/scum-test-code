@@ -28,8 +28,8 @@ extern unsigned int ASC[38];
 // Target radio LO freq = 2.4025G
 // Divide ratio is currently 480*2
 // Calibration counts for 100ms
-unsigned int LC_target = 250187;
-unsigned int LC_code = 680;
+unsigned int LC_target = 500521;
+unsigned int LC_code = 548;
 
 // HF_CLOCK tuning settings
 unsigned int HF_CLOCK_fine = 17;
@@ -158,13 +158,13 @@ int main(void) {
 	// For MUX signals, '1' = FSM control, '0' = memory mapped control
 	// For EN signals, '1' = turn on LDO
 	// Turn on LO, DIV, PA
-	ANALOG_CFG_REG__10 = 0x78;
+	ANALOG_CFG_REG__10 = 0x58;
 	
 	// Turn off polyphase and disable mixer
 	ANALOG_CFG_REG__16 = 0x6;
 	
 	// Enable optical SFD interrupt for optical calibration
-	ISER = 0x0800;
+	ISER = 0xFFFF;
 	
 	// Wait for optical cal to finish
 	while(optical_cal_finished == 0);
