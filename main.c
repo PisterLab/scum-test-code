@@ -71,6 +71,54 @@ unsigned int azimuth_t1_data[1000], elevation_t1_data[1000], azimuth_t2_data[100
 
 unsigned int pulse_width_data[1000];
 
+//scan function
+void test_LC_sweep_tx(void) {
+	/*
+	Inputs:
+	Outputs:
+	Note:
+		Initialization of the scan settings should already have 
+		been performed.
+	*/
+
+	int coarse, mid, fine;
+	unsigned int iterations = 3;
+	unsigned int i;
+
+	// Enable the TX. NB: Requires 50us for frequency settling
+	// transient.
+	radio_txEnable();
+	
+	while (1) {
+		for (coarse=22; coarse<25; coarse++) {
+			for (mid=0; mid<32; mid++) {
+				for (fine=0; fine<32; fine++) {
+					// Construct the packet 
+					// with payload {coarse, mid, fine} in 
+					// separate bytes
+					send_packet[0] = coarse & 0x1F;
+					send_packet[1] = mid & 0x1F;
+					send_packet[2] = fine & 0x1F;
+					send_packet[4] = 53;
+					send_packet[5] = 53;
+					radio_loadPacket(5);
+
+					// Set the LC frequency
+					//LC_FREQCHANGE(22&0x1F, 21&0x1F, 4&0x1F);
+					LC_FREQCHANGE(coarse&0x1F, mid&0x1F, fine&0x1F);
+					// TODO: Wait for at least 50us
+					for (i=0; i<5000; i++) {}
+
+					// Send bits out the radio thrice for redundancy
+					for(i=0; i<iterations; i++) {
+						radio_txNow();
+					}
+				}
+			}
+		}
+	}
+}
+
 //////////////////////////////////////////////////////////////////
 // Main Function
 //////////////////////////////////////////////////////////////////
@@ -125,7 +173,8 @@ int main(void) {
 
 	printf("Cal complete\n");
 	
-	radio_rfOff();
+	//test_LC_sweep_tx();
+	//radio_rfOff();
 	
 	// Disable all interrupts
 	ICER = 0xFFFF;
