@@ -201,5 +201,80 @@ def test_adc_psu(
 	
 	return adc_outs
 
+def test_temp_sensor(scm_port="COM18", temp_port="COM9", control_mode='uart', read_mode='uart',
+		iterations=1):
+	"""
+	Inputs:
+		scm_port: String. Name of the COM port that the UART is connected to.
+		temp_port: String. Name of the COM port that the ground truth temperature sensor
+			is connected to.
+		control_mode: String 'uart', 'loopback' 'gpio'. Determines if you'll be triggering
+			the FSM via UART, GPIO loopback, or externally-controlled (e.g. Teensy) GPI.
+		read_mode: String 'uart' or 'gpio'. Determines if you're reading via GPIO.
+		iterations: Integer. Number of times to take a reading for
+			a single input voltage.
+	Outputs:
+		Returns an ordered collection of tuples (gnd_truth, adc_code) 
+		where the ith element corresponds to the ith reading. gnd_truth is the value
+		read from the device used for ground truth temperature measurements.
+		adc_code is the output of the ADC for that particular reading. Note that this 
+		assumes that SCM has already been programmed.
+	Raises:
+		ValueError if the control mode is not 'uart', 'loopback', or 'gpio'.
+		ValueError if the read mode is not 'uart' or 'gpio'.
+	"""
+	if control_mode not in ['uart', 'loopback', 'gpio']:
+		raise ValueError("Invalid control mode {}".format(control_mode))
+	if read_mode not in ['uart', 'gpio']:
+		raise ValueError("Invalid read mode {}".format(read_mode))
+
+	# Opening up the UART connection
+	scm_ser = serial.Serial(
+		port=scm_port,
+		baudrate=19200,
+		parity=serial.PARITY_NONE,
+		stopbits=serial.STOPBITS_ONE,
+		bytesize=serial.EIGHTBITS,
+		timeout=1)
+
+	# Opening the ground truth temperature sensor connection
+	temp_ser = serial.Serial(
+		port=temp_port,
+		baudrate=19200,
+		parity=serial.PARITY_NONE,
+		stopbits=serial.STOPBITS_ONE,
+		bytesize=serial.EIGHTBITS,
+		timeout=1)
+
+	results = []
+
+	for _ in range(iterations):
+		# Trigger the ground truth temperature reading
+		temp_ser.write(b"temp\n")
+
+		# Trigger SCM ADC reading
+		trigger_spot(scm_ser, control_mode)
+
+		if read_mode == 'uart':
+			read_func = read_uart
+		elif read_mode == 'gpio':
+			read_func = read_gpo
+
+		# Read from the ground truth temp sensor
+		gnd_truth = temp_ser.readline()
+		
+		# Read from SCM
+		adc_out = read_func(scm_ser)
+
+		print((gnd_truth, adc_out))
+		# Append the results
+		results.append((gnd_truth, adc_out))
+
+	temp_ser.close()
+	scm_ser.close()
+
+	return results
+
+
 if __name__ == "__main__":
 	print("Don't modify this file. Use ../run_me.py ")
