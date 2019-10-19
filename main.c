@@ -173,11 +173,9 @@ int main(void) {
 
 	printf("Cal complete\n");
 	
-	//test_LC_sweep_tx();
+	test_LC_sweep_tx();
 	//radio_rfOff();
-		RFCONTROLLER_REG__CONTROL = 0x10;
 
-	ANALOG_CFG_REG__10 = 0x0000;
 	// Disable all interrupts
 	ICER = 0xFFFF;
 	
