@@ -99,7 +99,7 @@ void initialize_mote_lighthouse(){
 	//radio_init_rx_MF_lighthouse(); //could be removed
 		
 	// Init TX
-	radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,false,true);
+	radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,true,true);
 		
 	// Set initial IF ADC clock frequency
 	set_IF_clock_frequency(IF_COARSE_LH, IF_FINE_LH, 0); // could be revomed
@@ -376,7 +376,7 @@ void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lig
 					//LC_FREQCHANGE(22&0x1F, 21&0x1F, 4&0x1F); //for no pa
 					LC_FREQCHANGE(23&0x1F, 2&0x1F, 6&0x1F); //for pa
 					
-					for(i = 0; i<2500; i++){
+					for(i = 0; i<100; i++){
 						
 					}
 					//transmit packet (radio_txnow) (wait 50 us between tx enable and tx_now)
