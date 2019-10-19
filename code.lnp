@@ -5,7 +5,6 @@
 ".\scm3c_hardware_interface.o"
 ".\scm3_hardware_interface.o"
 ".\scum_radio_bsp.o"
-".\lighthouse.o"
 --nodebug --strict --scatter ".\code.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

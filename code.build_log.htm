@@ -22,30 +22,37 @@ Dialog DLL:      TARMCM1.DLL V1.10.0.0
  
 <h2>Project:</h2>
 C:\Users\pister-lab4\Documents\Brian\scum-test-code\code.uvprojx
-Project File Date:  10/07/2019
+Project File Date:  10/18/2019
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
-compiling lighthouse.c...
-lighthouse.c(344): warning:  #111-D: statement is unreachable
-  					radio_txEnable();
-lighthouse.c: 1 warning, 0 errors
+compiling scum_radio_bsp.c...
+assembling cm0dsasm.s...
+compiling retarget.c...
+retarget.c(18): warning:  #223-D: function "uart_out" declared implicitly
+    return(uart_out(ch));
+retarget.c(24): warning:  #223-D: function "uart_in" declared implicitly
+   	return(uart_in());
+retarget.c: 2 warnings, 0 errors
+compiling scm3_hardware_interface.c...
 compiling main.c...
+compiling scm3C_hardware_interface.c...
 linking...
-.\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14480 RO-data=328 RW-data=384 ZI-data=24384  
-Finished: 0 information, 1 warning and 0 error messages.
-After Build - User command #1: fromelf --bin code.axf -o code.bin
-After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 2 Warning(s).
+.\code.axf: Error: L6218E: Undefined symbol classify_pulse (referred from main.o).
+.\code.axf: Error: L6218E: Undefined symbol initialize_mote_lighthouse (referred from main.o).
+.\code.axf: Error: L6218E: Undefined symbol update_state (referred from main.o).
+Not enough information to list image symbols.
+Finished: 1 information, 0 warning and 3 error messages.
+".\code.axf" - 3 Error(s), 2 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:02
+Target not created.
+Build Time Elapsed:  00:00:00
 </pre>
 </body>
 </html>
