@@ -65,7 +65,7 @@ def serial_scum():
 
 def test_compilation():
     syscall("echo compilation...")
-    result = syscall("%KEIL_UV_DIR%\UV4.exe -b scm_v3c\applications\pingpong_test\pingpong_test.uvprojx")
+    result = syscall("%KEIL_UV_DIR%\\UV4.exe -b scm_v3c\\applications\\pingpong_test\\pingpong_test.uvprojx")
     assert result == None
     
 def test_bootload(serial_openmote, serial_scum):
@@ -75,7 +75,7 @@ def test_bootload(serial_openmote, serial_scum):
     serial_openmote.start()
     serial_scum.start()
     
-    result = syscall("python scm_v3c\bootload\bootload.py -tp %PORT_TEENSY% -i scm_v3c\applications\pingpong_test\pingpong_test.bin")
+    result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\pingpong_test\\pingpong_test.bin")
     assert result == None
     
     # waiting to let the code run for a while 
