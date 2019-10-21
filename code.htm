@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 21 15:37:28 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 21 15:48:38 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -283,9 +283,10 @@ Global Symbols
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_FREQCHANGE
 </UL>
 
-<P><STRONG><a name="[28]"></a>main</STRONG> (Thumb, 254 bytes, Stack size 0 bytes, main.o(.text))
+<P><STRONG><a name="[28]"></a>main</STRONG> (Thumb, 258 bytes, Stack size 0 bytes, main.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
+<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_rfOff
 <LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote_lighthouse
 <LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;crc32c
 <LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;classify_pulse
@@ -561,8 +562,7 @@ Global Symbols
 <P><STRONG><a name="[4d]"></a>LC_FREQCHANGE</STRONG> (Thumb, 102 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;flipChar
 </UL>
-<BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
-<LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
+<BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
 <LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;test_LC_sweep_tx
 </UL>
 
@@ -729,20 +729,17 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[41]"></a>radio_loadPacket</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, scum_radio_bsp.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
-<LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;test_LC_sweep_tx
+<BR><BR>[Called By]<UL><LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;test_LC_sweep_tx
 <LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RF_ISR
 </UL>
 
 <P><STRONG><a name="[44]"></a>radio_txEnable</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, scum_radio_bsp.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
-<LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;test_LC_sweep_tx
+<BR><BR>[Called By]<UL><LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;test_LC_sweep_tx
 <LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RFTIMER_ISR
 </UL>
 
 <P><STRONG><a name="[45]"></a>radio_txNow</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, scum_radio_bsp.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
-<LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;test_LC_sweep_tx
+<BR><BR>[Called By]<UL><LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;test_LC_sweep_tx
 <LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RFTIMER_ISR
 </UL>
 
@@ -757,8 +754,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[3b]"></a>radio_rfOff</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, scum_radio_bsp.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
-<LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_channel_table
+<BR><BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_channel_table
+<LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RF_ISR
 <LI><a href="#[31]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RFTIMER_ISR
 </UL>
@@ -826,40 +823,34 @@ Global Symbols
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_LDO_voltage
 </UL>
 
-<P><STRONG><a name="[84]"></a>send_lh_packet</STRONG> (Thumb, 98 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[45]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_txNow
-<LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_txEnable
-<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_rfOff
-<LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_loadPacket
-<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_FREQCHANGE
-</UL>
-<BR>[Called By]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
-<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<P><STRONG><a name="[86]"></a>send_lh_packet</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
+<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 </UL>
 
 <P><STRONG><a name="[50]"></a>classify_pulse</STRONG> (Thumb, 166 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[85]"></a>update_state_elevation</STRONG> (Thumb, 356 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<P><STRONG><a name="[84]"></a>update_state_elevation</STRONG> (Thumb, 470 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
-<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
+<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
 </UL>
 <BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
 </UL>
 
 <P><STRONG><a name="[87]"></a>update_state_azimuth</STRONG> (Thumb, 366 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
-<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
+<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
 </UL>
 <BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
 </UL>
 
 <P><STRONG><a name="[51]"></a>update_state</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
-<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 </UL>
 <BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -874,7 +865,7 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sync_pulse_width_compensate
 <LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
-<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sram_test
 <LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_exit
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -1015,9 +1006,9 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[24]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__user_setup_stackheap
 </UL>
 
-<P><STRONG><a name="[86]"></a>__ARM_common_switch8</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, lighthouse.o(i.__ARM_common_switch8))
+<P><STRONG><a name="[85]"></a>__ARM_common_switch8</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, lighthouse.o(i.__ARM_common_switch8))
 <BR><BR>[Called By]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
-<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
+<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 </UL>
 <P>
 <H3>

@@ -186,7 +186,7 @@ int main(void) {
 	// The optical_data_raw signal is not synchronized to HCLK domain so could possibly see glitching problems	
 	last_gpio = current_gpio;	
 	current_gpio = (0x8 & GPIO_REG__INPUT) >> 3;	
-
+	radio_rfOff();
 
 	//start localization loop
 	while(1) {		
