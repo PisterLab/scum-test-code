@@ -27,20 +27,6 @@ Project File Date:  10/21/2019
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
-compiling scum_radio_bsp.c...
-scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
-  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
-scum_radio_bsp.c(57): warning:  #177-D: variable "i" was declared but never referenced
-  	int i;
-scum_radio_bsp.c: 2 warnings, 0 errors
-compiling scm3_hardware_interface.c...
-assembling cm0dsasm.s...
-compiling retarget.c...
-retarget.c(18): warning:  #223-D: function "uart_out" declared implicitly
-    return(uart_out(ch));
-retarget.c(24): warning:  #223-D: function "uart_in" declared implicitly
-   	return(uart_in());
-retarget.c: 2 warnings, 0 errors
 compiling main.c...
 scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
   void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
@@ -75,25 +61,13 @@ main.c(84): warning:  #177-D: variable "count_32k" was declared but never refere
 main.c(84): warning:  #177-D: variable "count_2M" was declared but never referenced
   	unsigned int rdata_lsb, rdata_msb, count_LC, count_32k, count_2M;
 main.c: 16 warnings, 0 errors
-compiling lighthouse.c...
-scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
-  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
-lighthouse.h(46): warning:  #1-D: last line of file ends without a newline
-  #define LO_SUPPLY_LH 64
-lighthouse.c(815): warning:  #1-D: last line of file ends without a newline
-  }
-lighthouse.c: 3 warnings, 0 errors
-compiling scm3C_hardware_interface.c...
-scm3_hardware_interface.h(30): warning:  #1-D: last line of file ends without a newline
-  void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
-scm3C_hardware_interface.c: 1 warning, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
 Program Size: Code=15132 RO-data=328 RW-data=384 ZI-data=24384  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 25 Warning(s).
+".\code.axf" - 0 Error(s), 17 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
