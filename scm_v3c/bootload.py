@@ -139,7 +139,7 @@ def program_cortex(teensy_port="COM15", uart_port="COM18", file_binary="./code.b
 	return
 
 if __name__ == "__main__":
-	programmer_port = "COM12"
+	programmer_port = "COM20"
 	scm_port = None
 
 	program_cortex_specs = dict(teensy_port=programmer_port,
