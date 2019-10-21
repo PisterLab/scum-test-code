@@ -381,6 +381,7 @@ void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lig
 					}
 					//transmit packet (radio_txnow) (wait 50 us between tx enable and tx_now)
 					radio_txNow();
+					radio_rfOff();
 }
 pulse_type_t classify_pulse(unsigned int timestamp_rise, unsigned int timestamp_fall){
   pulse_type_t pulse_type;
