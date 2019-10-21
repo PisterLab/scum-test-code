@@ -28,13 +28,19 @@ Project File Date:  10/18/2019
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
 compiling main.c...
+Int_Handlers.h(212): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+Int_Handlers.h(590): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+main.c: 2 warnings, 0 errors
+compiling scm3C_hardware_interface.c...
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=14520 RO-data=328 RW-data=384 ZI-data=24384  
+Program Size: Code=15156 RO-data=328 RW-data=384 ZI-data=24384  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 1 Warning(s).
+".\code.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
