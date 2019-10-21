@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 21 16:35:03 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Mon Oct 21 16:48:29 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -490,17 +490,17 @@ Global Symbols
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
 
-<P><STRONG><a name="[6f]"></a>set_LO_supply</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[6f]"></a>set_LO_supply</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx_lighthouse
 <LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx
 </UL>
 
-<P><STRONG><a name="[6e]"></a>set_PA_supply</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[6e]"></a>set_PA_supply</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx_lighthouse
 <LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx
 </UL>
 
-<P><STRONG><a name="[6d]"></a>set_LC_current</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text))
+<P><STRONG><a name="[6d]"></a>set_LC_current</STRONG> (Thumb, 50 bytes, Stack size 0 bytes, scm3c_hardware_interface.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx_lighthouse
 <LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx
 </UL>
@@ -543,7 +543,6 @@ Global Symbols
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[40]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_frequency_housekeeping
-<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote_lighthouse
 <LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OPTICAL_SFD_ISR
 </UL>
 
@@ -587,7 +586,6 @@ Global Symbols
 <LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_TX_channel_table
 <LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;build_RX_channel_table
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setFrequencyRX
-<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote_lighthouse
 <LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OPTICAL_SFD_ISR
 </UL>
 
@@ -642,7 +640,6 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;flip_lsb8
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_2M_DAC
-<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote_lighthouse
 <LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OPTICAL_SFD_ISR
 </UL>
 
@@ -772,19 +769,8 @@ Global Symbols
 <LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_ISR
 </UL>
 
-<P><STRONG><a name="[82]"></a>radio_init_tx_lighthouse</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<P><STRONG><a name="[4e]"></a>initialize_mote_lighthouse</STRONG> (Thumb, 202 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
-<LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_LC_current
-<LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_PA_supply
-<LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_LO_supply
-<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
-</UL>
-<BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initialize_mote_lighthouse
-</UL>
-
-<P><STRONG><a name="[4e]"></a>initialize_mote_lighthouse</STRONG> (Thumb, 262 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_init_tx_lighthouse
-<LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_ALWAYSON_LDO_voltage
 <LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;init_ldo_control
 <LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPI_enables
@@ -792,16 +778,21 @@ Global Symbols
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPI_control
 <LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPO_control
 <LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_sys_clk_secondary_freq
-<LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_IF_clock_frequency
-<LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_2M_RC_frequency
 <LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rftimer_disable_interrupts
 <LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_disable_interrupts
 <LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 <LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;analog_scan_chain_write
 <LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;analog_scan_chain_load
-<LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LC_monotonic
 </UL>
 <BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[82]"></a>radio_init_tx_lighthouse</STRONG> (Thumb, 98 bytes, Stack size 0 bytes, lighthouse.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_asc_bit
+<LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_LC_current
+<LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_PA_supply
+<LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_LO_supply
+<LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clear_asc_bit
 </UL>
 
 <P><STRONG><a name="[83]"></a>radio_init_rx_MF_lighthouse</STRONG> (Thumb, 284 bytes, Stack size 0 bytes, lighthouse.o(.text), UNUSED)
@@ -828,7 +819,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[85]"></a>update_state_elevation</STRONG> (Thumb, 356 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<P><STRONG><a name="[85]"></a>update_state_elevation</STRONG> (Thumb, 472 bytes, Stack size 0 bytes, lighthouse.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 <LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
