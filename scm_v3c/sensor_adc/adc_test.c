@@ -126,7 +126,7 @@ void loopback_control_adc_shot(unsigned int cycles_reset,
 	// }
 
 	// Unset the convert + amplify signals + reset the ADC
-	reset_adc(cycles_reset);
+	// reset_adc(cycles_reset);
 
 }
 

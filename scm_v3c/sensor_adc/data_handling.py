@@ -54,7 +54,7 @@ def read_temp_data(file_in):
 			temp_data.append((gnd_truth, adc_out))
 	return temp_data
 
-def plot_temp_data(temp_data, pga_gain=1, linefit=True):
+def plot_temp_data(temp_data, pga_gain=1, linefit=True, plot_stats=True):
 	"""
 	Inputs: 
 		temp_data: A collection of tuples (gnd_truth, adc_out) where
@@ -64,6 +64,7 @@ def plot_temp_data(temp_data, pga_gain=1, linefit=True):
 			for record-keeping purposes.
 		linefit: Boolean. True = perform linear regression on data and plot.
 			with annotated slope.
+		plot_stats:	Boolean. True = plot standard deviation and mean over main plot.
 	Outputs:
 		No return value. Provides a scatter plot of ADC code vs. ground
 		truth temperature.
@@ -84,6 +85,73 @@ def plot_temp_data(temp_data, pga_gain=1, linefit=True):
 	plt.ylabel("ADC Code")
 	plt.legend()
 	plt.show()
+
+	if plot_stats:
+		plt.figure()
+		plt.subplot(2,1,1)
+		plt.scatter(gnd_truths, adc_outs, label="Data Points")
+		stats_data = calc_temp_stats(temp_data)
+		means = [val["mu"] for key,val in stats_data.items()]
+		sigmas = [val["sigma"] for key,val in stats_data.items()]
+		plt.errorbar(stats_data.keys(), means, sigmas, color='g', ecolor='r', linestyle='None', marker='^',label="$\mu+\sigma$")
+		plt.title("PGA Gain={0}".format(pga_gain))
+		plt.xlabel("I2C Temperature Reading")	
+		plt.ylabel("ADC Code")
+		plt.legend()
+
+		plt.subplot(2,1,2)
+		plt.scatter(stats_data.keys(), [len(val['samples']) for key,val in stats_data.items()])
+		plt.xlabel("I2C Temperature Reading")
+		plt.ylabel("No. of Samples")
+		plt.yscale('log')
+		plt.show()
+
+	plt.figure()
+	plt.subplot(2,1,1)
+	plt.title("PGA Gain={0}".format(pga_gain))
+	plt.plot(gnd_truths)
+	plt.xlabel("Sample Number")
+	plt.ylabel("I2C Temperature Reading")
+	plt.grid(True)
+
+	plt.subplot(2,1,2)
+	plt.plot(adc_outs)
+	plt.xlabel("Sample Number")
+	plt.ylabel("ADC Code")
+	plt.grid(True)
+	plt.show()
+
+def calc_temp_stats(temp_data):
+	'''
+	Inputs:
+		temp_data: A collection of tuples (gnd_truth, adc_out) where
+			gnd_truth is the reading from the ground truth I2C temperature
+			sensor and adc_out is the ADC reading taken for that temperature.
+	Outputs:
+		Returns a dictionary where key:value is 
+		(I2C temp reading): {"sigma":(std dev @ that temp), "mu":(mean @ that temp),
+			"samples":[list ADC outputs associated taken with that I2C reading]}
+	'''
+	
+	# Matches all the ground truth readings with the measured ADC outputs
+	# i.e. key:value in matchings is i2c_reading:[list of all adc_readings for that temp]
+	matchings = dict()
+	for datum in temp_data:
+		i2c_reading = float(datum[0])
+		adc_reading = int(datum[1])
+		if i2c_reading in matchings.keys():
+			matchings[i2c_reading].append(adc_reading)
+		else:
+			matchings[i2c_reading] = [adc_reading]
+
+	result = dict()
+	for gnd_truth, adc_outs in matchings.items():
+		result[gnd_truth] = dict(sigma=np.std(adc_outs),
+								 mu=np.mean(adc_outs),
+								 samples=adc_outs)
+
+	return result
+
 
 def write_adc_data(adc_outs, file_out):
 	"""
