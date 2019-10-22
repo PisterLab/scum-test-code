@@ -99,19 +99,19 @@ void initialize_mote_lighthouse(){
 	//radio_init_rx_MF_lighthouse(); //could be removed
 		
 	// Init TX
-	//radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,true,true);
+	radio_init_tx_lighthouse(LO_SUPPLY_LH, LC_CURRENT_LH,PA_SUPPLY_LH,true,true);
 		
 	// Set initial IF ADC clock frequency
-	//set_IF_clock_frequency(IF_COARSE_LH, IF_FINE_LH, 0); // could be revomed
+	set_IF_clock_frequency(IF_COARSE_LH, IF_FINE_LH, 0); // could be revomed
 
 	// Set initial TX clock frequency
-	//set_2M_RC_frequency(31, 31, RC2M_COARSE_LH, RC2M_FINE_LH, RC2M_SUPERFINE_LH); //could be removed
+	set_2M_RC_frequency(31, 31, RC2M_COARSE_LH, RC2M_FINE_LH, RC2M_SUPERFINE_LH); //could be removed
 
 	// Turn on RC 2M for cal
-	//set_asc_bit(1114); // could be removed
+	set_asc_bit(1114); // could be removed
 		
 	// Set initial LO frequency
-	//LC_monotonic(LC_CODE_LH);
+	LC_monotonic(LC_CODE_LH);
 	
 	// Init divider settings
 	//radio_init_divider(2000);
