@@ -362,7 +362,7 @@ void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lig
 					//LC_FREQCHANGE(22&0x1F, 21&0x1F, 4&0x1F); //for no pa
 					LC_FREQCHANGE(23&0x1F, 2&0x1F, 6&0x1F); //for pa
 					
-					for(i = 0; i<100; i++){
+					for(i = 0; i<1000; i++){
 						
 					}
 					//transmit packet (radio_txnow) (wait 50 us between tx enable and tx_now)
