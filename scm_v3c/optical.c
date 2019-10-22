@@ -11,18 +11,6 @@
 
 //=========================== variables =======================================
 
-extern unsigned int IF_clk_target;
-extern unsigned int IF_coarse;
-extern unsigned int IF_fine;
-
-extern unsigned int ASC[38];
-
-extern unsigned int HF_CLOCK_fine;
-extern unsigned int HF_CLOCK_coarse;
-extern unsigned int RC2M_superfine;
-extern unsigned int RC2M_fine;
-extern unsigned int RC2M_coarse;
-
 typedef struct {
     uint8_t     optical_cal_iteration;
     uint8_t     optical_cal_finished;

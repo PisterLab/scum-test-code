@@ -15,18 +15,6 @@ int raw_chips;
 int jj;
 unsigned int acfg3_val;
 
-extern unsigned int ASC[38];
-
-extern unsigned int IF_clk_target;
-extern unsigned int IF_coarse;
-extern unsigned int IF_fine;
-
-extern unsigned int HF_CLOCK_fine;
-extern unsigned int HF_CLOCK_coarse;
-extern unsigned int RC2M_superfine;
-extern unsigned int RC2M_fine;
-extern unsigned int RC2M_coarse;
-
 // These coefficients are used for filtering frequency feedback information
 // These are no necessarily the ideal values to use; situationally dependent
 unsigned char FIR_coeff[11] = {4,16,37,64,87,96,87,64,37,16,4};
@@ -295,7 +283,7 @@ void radio_frequency_housekeeping(
     
     // Shift old samples
     for (jj=9; jj>=0; jj--){
-        cdr_tau_history[jj+1] = cdr_tau_history[jj];        
+        cdr_tau_history[jj+1] = cdr_tau_history[jj];
     }
     
     // New sample
@@ -303,7 +291,7 @@ void radio_frequency_housekeeping(
     
     // Do FIR convolution
     for (jj=0; jj<=10; jj++){
-        sum = sum + cdr_tau_history[jj] * FIR_coeff[jj];        
+        sum = sum + cdr_tau_history[jj] * FIR_coeff[jj];
     }
     
     // Divide by 512 (sum of the coefficients) to scale output
