@@ -68,6 +68,7 @@ int main(void) {
     
     memset(&app_vars,0,sizeof(app_vars_t));
     
+    scm3c_hw_interface_init();
     radio_init();
     rftimer_init();
     
