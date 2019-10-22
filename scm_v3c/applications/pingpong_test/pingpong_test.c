@@ -146,7 +146,7 @@ int main(void) {
     // Begin listening
     radio_setFrequency(CHANNEL, FREQ_RX);
     radio_rxEnable();
-    radio_rxNow();    
+    radio_rxNow();
     
     // Wait awhile
     for (t2=0; t2<100; t2++){
@@ -238,7 +238,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
             
             // Prepare ack - for this demo code the contents are arbitrary
             // The OpenMote receiver is looking for 30B packets - still on channel 11
-            // Data is stored in send_packet[]
+            // Data is stored in app_vars.packet[]
             
             app_vars.packet[0] = 't';
             app_vars.packet[1] = 'e';

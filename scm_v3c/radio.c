@@ -3,15 +3,12 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "Memory_Map.h"
+#include "memory_map.h"
 #include "scm3c_hardware_interface.h"
 #include "scm3_hardware_interface.h"
 #include "radio.h"
 #include "rftimer.h"
 #include "bucket_o_functions.h"
-
-extern char send_packet[127];
-extern char recv_packet[130];
 
 unsigned int chips[100];
 unsigned int chip_index = 0;
@@ -19,7 +16,6 @@ int raw_chips;
 int jj;
 unsigned int acfg3_val;
 
-extern unsigned int LC_code;
 extern unsigned int IF_clk_target;
 extern unsigned int IF_coarse;
 extern unsigned int IF_fine;

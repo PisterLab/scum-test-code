@@ -1,4 +1,4 @@
-#include "Memory_Map.h"
+#include "memory_map.h"
 #include <stdio.h>
 #include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"

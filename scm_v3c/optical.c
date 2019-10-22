@@ -1,4 +1,4 @@
-#include "Memory_Map.h"
+#include "memory_map.h"
 #include <stdio.h>
 #include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"
@@ -31,9 +31,6 @@ unsigned int num_2MRC_ticks_in_100ms;
 unsigned int num_IFclk_ticks_in_100ms;
 unsigned int num_LC_ch11_ticks_in_100ms;
 unsigned int num_HFclock_ticks_in_100ms;
-
-extern unsigned int RX_channel_codes[16];
-extern unsigned int TX_channel_codes[16];
 
 // Timer parameters 
 extern unsigned int packet_interval;

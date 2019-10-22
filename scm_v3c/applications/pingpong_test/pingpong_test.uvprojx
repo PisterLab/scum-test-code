@@ -417,11 +417,6 @@
               <FilePath>..\..\retarget.c</FilePath>
             </File>
             <File>
-              <FileName>rf_global_vars.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\rf_global_vars.h</FilePath>
-            </File>
-            <File>
               <FileName>scm3_hardware_interface.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\scm3_hardware_interface.c</FilePath>
