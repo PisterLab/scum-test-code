@@ -13,13 +13,10 @@
 
 //=========================== variables =======================================
 
-extern unsigned int LC_target;
-extern unsigned int LC_code;
-
 extern unsigned int IF_clk_target;
 extern unsigned int IF_coarse;
 extern unsigned int IF_fine;
-extern unsigned int cal_iteration;
+
 extern unsigned int ASC[38];
 
 extern unsigned int HF_CLOCK_fine;
@@ -27,7 +24,6 @@ extern unsigned int HF_CLOCK_coarse;
 extern unsigned int RC2M_superfine;
 extern unsigned int RC2M_fine;
 extern unsigned int RC2M_coarse;
-
 
 
 // Timer parameters 
@@ -157,20 +153,40 @@ void optical_sfd_isr(){
         // Do correction on 2M RC
         // Coarse step ~1100 counts, fine ~150 counts, superfine ~25
         // Too fast
-        if(count_2M > (200600)) RC2M_coarse += 1;
-        else if(count_2M > (200080)) RC2M_fine += 1;
-        else if(count_2M > (200015))    RC2M_superfine += 1;
+        if(count_2M > (200600)) {
+            RC2M_coarse += 1;
+        } else {
+            if(count_2M > (200080)) {
+                RC2M_fine += 1;
+            } else {
+                if(count_2M > (200015)) {
+                    RC2M_superfine += 1;
+                }
+            }
+        } 
         
         // Too slow
-        if(count_2M < (199400))    RC2M_coarse -= 1;
-        else if(count_2M < (199920)) RC2M_fine -= 1;
-        else if(count_2M < (199985))    RC2M_superfine -= 1;
+        if(count_2M < (199400)) {
+            RC2M_coarse -= 1;
+        } else {
+            if(count_2M < (199920)) {
+                RC2M_fine -= 1;
+            } else {
+                if(count_2M < (199985)) {
+                    RC2M_superfine -= 1;
+                }
+            }
+        }
         set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
 
         // Do correction on IF RC clock
         // Fine DAC step size is ~2800 counts
-        if(count_IF > (1600000+1400)) IF_fine += 1;
-        if(count_IF < (1600000-1400))    IF_fine -= 1;
+        if(count_IF > (1600000+1400)) {
+            IF_fine += 1;
+        }
+        if(count_IF < (1600000-1400)) {
+            IF_fine -= 1;
+        }
         set_IF_clock_frequency(IF_coarse, IF_fine, 0);
         
         analog_scan_chain_write(&ASC[0]);
@@ -192,15 +208,9 @@ void optical_sfd_isr(){
         optical_vars.num_IFclk_ticks_in_100ms = count_IF;
         optical_vars.num_LC_ch11_ticks_in_100ms = count_LC;
         optical_vars.num_HFclock_ticks_in_100ms = count_HFclock;
-        
-        // Update the expected packet rate based on the measured HF clock frequency
-        // Have an estimate of how many 20MHz clock ticks there are in 100ms
-        // But need to know how many 20MHz/40 = 500kHz ticks there are in 125ms (if doing 8 Hz packet rate)
-        // (125 / 100) / 40 = 1/32
-        packet_interval = optical_vars.num_HFclock_ticks_in_100ms >> 5;
     
         // Debug prints
-        //printf("LC_code=%d\r\n", LC_code);
+        //printf("LC_code=%d\r\n", optical_vars.LC_code);
         //printf("IF_fine=%d\r\n", IF_fine);
         
         printf("done\r\n");

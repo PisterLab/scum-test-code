@@ -7,7 +7,6 @@
 #include "scum_defs.h"
 
 extern unsigned int ASC[38];
-extern unsigned int cal_iteration;
 
 // HF_CLOCK tuning settings
 unsigned int HF_CLOCK_fine = 17;
@@ -24,15 +23,6 @@ unsigned int RC2M_superfine = 15;
 unsigned int IF_clk_target = 1600000;
 unsigned int IF_coarse = 22;
 unsigned int IF_fine = 18;
-
-// Timer parameters 
-// Assuming RF timer frequency = 500 kHz
-unsigned int packet_interval = 62500; // 125ms
-unsigned int guard_time = 500; //1ms
-unsigned int radio_startup_time = 70; //140us
-unsigned int expected_RX_arrival = 15000;    // Where within the timeslot the packet will arrive; somewhat arbitrary choice
-unsigned int ack_turnaround_time = 596;    //1.2 ms
-
 
 // Reverses (reflects) bits in a 32-bit word.
 unsigned reverse(unsigned x) {

@@ -19,7 +19,6 @@ unsigned int acfg3_val;
 extern unsigned int IF_clk_target;
 extern unsigned int IF_coarse;
 extern unsigned int IF_fine;
-extern unsigned int cal_iteration;
 extern unsigned int ASC[38];
 
 unsigned int num_packets_received;
