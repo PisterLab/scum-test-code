@@ -1,28 +1,145 @@
+#include <string.h>
 #include <stdio.h>
+
 #include "memory_map.h"
-#include "scm3_hardware_interface.h"
-#include "bucket_o_functions.h"
+#include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
 #include "scum_defs.h"
 
-extern unsigned int ASC[38];
+//=========================== definition ======================================
 
-// HF_CLOCK tuning settings
-unsigned int HF_CLOCK_fine = 17;
-unsigned int HF_CLOCK_coarse = 3;
+#define ASC_LEN                     38
+#define DAC_2M_SETTING_LEN          5
 
-// RC 2MHz tuning settings
-// This the transmitter chip clock
-unsigned int RC2M_coarse = 21;
-unsigned int RC2M_fine = 15;
-unsigned int RC2M_superfine = 15;
+// initialized value for frequency configuration
+#define INIT_HF_CLOCK_FINE          17
+#define INIT_HF_CLOCK_COARSE        3
+#define INIT_RC2M_COARSE            21
+#define INIT_RC2M_FINE              15
+#define INIT_RC2M_SUPERFINE         15
+#define INIT_IF_CLK_TARGET          1600000
+#define INIT_IF_COARSE              22
+#define INIT_IF_FINE                18
 
-// Receiver clock settings
-// The receiver chip clock is derived from this clock
-unsigned int IF_clk_target = 1600000;
-unsigned int IF_coarse = 22;
-unsigned int IF_fine = 18;
+//=========================== variable ========================================
+
+// default setting
+static const uint32_t default_dac_2m_setting[] = {31,31,29,2,2};
+
+typedef struct {
+    uint32_t ASC[ASC_LEN];
+    uint32_t dac_2M_settings[DAC_2M_SETTING_LEN];
+    
+    // HF_CLOCK tuning settings
+    uint32_t HF_CLOCK_fine;
+    uint32_t HF_CLOCK_coarse;
+
+    // RC 2MHz tuning settings
+    // This the transmitter chip clock
+    uint32_t RC2M_coarse;
+    uint32_t RC2M_fine;
+    uint32_t RC2M_superfine;
+
+    // Receiver clock settings
+    // The receiver chip clock is derived from this clock
+    uint32_t IF_clk_target;
+    uint32_t IF_coarse;
+    uint32_t IF_fine;
+} scm3c_hw_interface_vars_t;
+
+scm3c_hw_interface_vars_t scm3c_hw_interface_vars;
+
+//=========================== prototype =======================================
+
+//=========================== public ==========================================
+
+//==== admin
+
+void scm3c_hw_interface_init(void){
+    
+    memset(&scm3c_hw_interface_vars, 0, sizeof(scm3c_hw_interface_vars_t));
+    
+        // HF_CLOCK tuning settings
+    scm3c_hw_interface_vars.HF_CLOCK_fine   = INIT_HF_CLOCK_FINE;
+    scm3c_hw_interface_vars.HF_CLOCK_coarse = INIT_HF_CLOCK_COARSE;
+
+    // RC 2MHz tuning settings
+    // This the transmitter chip clock
+    scm3c_hw_interface_vars.RC2M_coarse     = INIT_RC2M_COARSE;
+    scm3c_hw_interface_vars.RC2M_fine       = INIT_RC2M_FINE;
+    scm3c_hw_interface_vars.RC2M_superfine  = INIT_RC2M_SUPERFINE;
+
+    // Receiver clock settings
+    // The receiver chip clock is derived from this clock
+    scm3c_hw_interface_vars.IF_clk_target   = INIT_IF_CLK_TARGET;
+    scm3c_hw_interface_vars.IF_coarse       = INIT_IF_COARSE;
+    scm3c_hw_interface_vars.IF_fine         = INIT_IF_FINE;
+    
+    // coarse1, coarse2, coarse3, fine, superfine dac settings
+    memcpy(
+        &scm3c_hw_interface_vars.dac_2M_settings[0],
+        default_dac_2m_setting,
+        sizeof(default_dac_2m_setting)
+    );
+}
+
+//==== get/set functions
+
+//==== get functions
+uint32_t scm3c_hw_interface_get_HF_CLOCK_fine(void){
+    return scm3c_hw_interface_vars.HF_CLOCK_fine;
+}
+uint32_t scm3c_hw_interface_get_HF_CLOCK_coarse(void){
+    return scm3c_hw_interface_vars.HF_CLOCK_coarse;
+}
+uint32_t scm3c_hw_interface_get_RC2M_coarse(void){
+    return scm3c_hw_interface_vars.RC2M_coarse;
+}
+uint32_t scm3c_hw_interface_get_RC2M_fine(void){
+    return scm3c_hw_interface_vars.RC2M_fine;
+}
+uint32_t scm3c_hw_interface_get_RC2M_superfine(void){
+    return scm3c_hw_interface_vars.RC2M_superfine;
+}
+uint32_t scm3c_hw_interface_get_IF_clk_target(void){
+    return scm3c_hw_interface_vars.IF_clk_target;
+}
+uint32_t scm3c_hw_interface_get_IF_coarse(void){
+    return scm3c_hw_interface_vars.IF_coarse;
+}
+uint32_t scm3c_hw_interface_get_IF_fine(void){
+    return scm3c_hw_interface_vars.IF_fine;
+}
+
+//===== set function
+
+void scm3c_hw_interface_set_HF_CLOCK_fine(uint32_t value){
+    scm3c_hw_interface_vars.HF_CLOCK_fine = value;
+}
+void scm3c_hw_interface_set_HF_CLOCK_coarse(uint32_t value){
+    scm3c_hw_interface_vars.HF_CLOCK_coarse = value;
+}
+void scm3c_hw_interface_set_RC2M_coarse(uint32_t value){
+    scm3c_hw_interface_vars.RC2M_coarse = value;
+}
+void scm3c_hw_interface_set_RC2M_fine(uint32_t value){
+    scm3c_hw_interface_vars.RC2M_fine = value;
+}
+void scm3c_hw_interface_set_RC2M_superfine(uint32_t value){
+    scm3c_hw_interface_vars.RC2M_superfine = value;
+}
+void scm3c_hw_interface_set_IF_clk_target(uint32_t value){
+    scm3c_hw_interface_vars.IF_clk_target = value;
+}
+void scm3c_hw_interface_set_IF_coarse(uint32_t value){
+    scm3c_hw_interface_vars.IF_coarse = value;
+}
+void scm3c_hw_interface_set_IF_fine(uint32_t value){
+    scm3c_hw_interface_vars.IF_fine = value;
+}
+
+//==== from scm3c_hardware_interface.h
 
 // Reverses (reflects) bits in a 32-bit word.
 unsigned reverse(unsigned x) {
@@ -64,7 +181,7 @@ unsigned char flipChar(unsigned char b) {
     return b;
 }
 
-void GPO_control(unsigned char row1, unsigned char row2, unsigned char row3, unsigned char row4) {
+void GPO_control(uint8_t row1, uint8_t row2, uint8_t row3, uint8_t row4) {
     
     int j;
     
@@ -101,7 +218,7 @@ void GPO_control(unsigned char row1, unsigned char row2, unsigned char row3, uns
     }
 }
 
-void GPI_control(char row1, char row2, char row3, char row4) {
+void GPI_control(uint8_t row1, uint8_t row2, uint8_t row3, uint8_t row4) {
     
     int j;
     
@@ -588,20 +705,20 @@ void radio_init_rx_MF(){
     // IF uses ASC<271:500>, mask off outside that range
     mask1 = 0xFFFC0000;
     mask2 = 0x000007FF;
-    ASC[8] &= mask1;
-    ASC[15] &= mask2;
+    scm3c_hw_interface_vars.ASC[8] &= mask1;
+    scm3c_hw_interface_vars.ASC[15] &= mask2;
 
     // A large number of bits in the radio scan chain have no need to be changed
     // These values were exported from Matlab during radio testing
     // Same settings as used for 122418 ADC data captures
-    ASC[8] |= (0x4050FFE0 & ~mask1);    //256-287
-    ASC[9] = 0x00422188;   //288-319
-    ASC[10] = 0x88040031;   //320-351
-    ASC[11] = 0x113B4081;   //352-383
-    ASC[12] = 0x027E8102;   //384-415
-    ASC[13] = 0x03ED4844;   //416-447
-    ASC[14] = 0x60010000;   //448-479
-    ASC[15] |= (0xFFE02E03 & ~mask2);   //480-511
+    scm3c_hw_interface_vars.ASC[8] |= (0x4050FFE0 & ~mask1);    //256-287
+    scm3c_hw_interface_vars.ASC[9] = 0x00422188;   //288-319
+    scm3c_hw_interface_vars.ASC[10] = 0x88040031;   //320-351
+    scm3c_hw_interface_vars.ASC[11] = 0x113B4081;   //352-383
+    scm3c_hw_interface_vars.ASC[12] = 0x027E8102;   //384-415
+    scm3c_hw_interface_vars.ASC[13] = 0x03ED4844;   //416-447
+    scm3c_hw_interface_vars.ASC[14] = 0x60010000;   //448-479
+    scm3c_hw_interface_vars.ASC[15] |= (0xFFE02E03 & ~mask2);   //480-511
 
     // Set clock mux to internal RC oscillator
      clear_asc_bit(424);
@@ -732,18 +849,18 @@ void radio_init_rx_ZCC(){
     // IF uses ASC<271:500>, mask off outside that range
     mask1 = 0xFFFE0000;
     mask2 = 0x000007FF;    
-    ASC[8] &= mask1;
-    ASC[15] &= mask2;
+    scm3c_hw_interface_vars.ASC[8] &= mask1;
+    scm3c_hw_interface_vars.ASC[15] &= mask2;
     
 
-    ASC[8] |= (0x0000FFF0 & ~mask1);   //256-287
-    ASC[9] = 0x00422188;   //288-319
-    ASC[10] = 0x88040071;   //320-351
-    ASC[11] = 0x100C4081;   //352-383
-    ASC[12] = 0x00188102;   //384-415
-    ASC[13] = 0x017FC844;   //416-447
-    ASC[14] = 0x70010001;   //448-479
-    ASC[15] |= (0xFFE00800 & ~mask2);   //480-511
+    scm3c_hw_interface_vars.ASC[8] |= (0x0000FFF0 & ~mask1);   //256-287
+    scm3c_hw_interface_vars.ASC[9] = 0x00422188;   //288-319
+    scm3c_hw_interface_vars.ASC[10] = 0x88040071;   //320-351
+    scm3c_hw_interface_vars.ASC[11] = 0x100C4081;   //352-383
+    scm3c_hw_interface_vars.ASC[12] = 0x00188102;   //384-415
+    scm3c_hw_interface_vars.ASC[13] = 0x017FC844;   //416-447
+    scm3c_hw_interface_vars.ASC[14] = 0x70010001;   //448-479
+    scm3c_hw_interface_vars.ASC[15] |= (0xFFE00800 & ~mask2);   //480-511
     
     // Set zcc demod parameters
     
@@ -1035,7 +1152,10 @@ void initialize_mote(){
     // Set initial coarse/fine on HF_CLOCK
     //coarse 0:4 = 860 861 875b 876b 877b
     //fine 0:4 870 871 872 873 874b
-    set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);    
+    set_sys_clk_secondary_freq(
+        scm3c_hw_interface_vars.HF_CLOCK_coarse,
+        scm3c_hw_interface_vars.HF_CLOCK_fine
+    );
     
     // Set RFTimer source as HF_CLOCK
     set_asc_bit(1151);
@@ -1063,8 +1183,8 @@ void initialize_mote(){
     set_asc_bit(41);
     
     // Init counter setup - set all to analog_cfg control
-    // ASC[0] is leftmost
-    //ASC[0] |= 0x6F800000; 
+    // scm3c_hw_interface_vars.ASC[0] is leftmost
+    //scm3c_hw_interface_vars.ASC[0] |= 0x6F800000; 
     for(t=2; t<9; t++) set_asc_bit(t);    
         
     // Init RX
@@ -1074,10 +1194,20 @@ void initialize_mote(){
     radio_init_tx();
         
     // Set initial IF ADC clock frequency
-    set_IF_clock_frequency(IF_coarse, IF_fine, 0);
+    set_IF_clock_frequency(
+        scm3c_hw_interface_vars.IF_coarse,
+        scm3c_hw_interface_vars.IF_fine,
+        0
+    );
 
     // Set initial TX clock frequency
-    set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
+    set_2M_RC_frequency(
+        31,
+        31,
+        scm3c_hw_interface_vars.RC2M_coarse,
+        scm3c_hw_interface_vars.RC2M_fine,
+        scm3c_hw_interface_vars.RC2M_superfine
+    );
 
     // Turn on RC 2M for cal
     set_asc_bit(1114);
@@ -1089,7 +1219,7 @@ void initialize_mote(){
     radio_init_divider(2000);
     
     // Program analog scan chain
-    analog_scan_chain_write(&ASC[0]);
+    analog_scan_chain_write();
     analog_scan_chain_load();
     //--------------------------------------------------------
     
@@ -1126,4 +1256,449 @@ unsigned int estimate_temperature_2M_32k(){
     //printf("%d - %d - %d\r\n",count_2M,count_32k,(count_2M << 13) / count_32k);
     
     return (count_2M << 13) / count_32k;
+}
+
+
+//==== from scm3_hardware_interface.h
+
+
+// Reverse endianness of lower 16 bits
+unsigned int flip_lsb8(unsigned int in){
+    int out = 0;
+    
+    out |= (0x01 & in) << 7;
+    out |= (0x02 & in) << 5;
+    out |= (0x04 & in) << 3;
+    out |= (0x08 & in) << 1;
+    
+    out |= (0x10 & in) >> 1;
+    out |= (0x20 & in) >> 3;
+    out |= (0x40 & in) >> 5;
+    out |= (0x80 & in) >> 7;    
+    
+    return out;
+}
+
+void analog_scan_chain_write(void) {
+    
+    int i = 0;
+    int j = 0;
+    unsigned int asc_reg;
+    
+    // analog_cfg<357> is resetb for chip shift register, so leave that high
+    
+    for (i=37; i>=0; i--) {
+        
+        //printf("\r\n%d,%lX\r\n",i,scan_bits[i]);
+        
+        for (j=0; j<32; j++) {
+
+        // Set scan_in (should be inverted)
+        if((scm3c_hw_interface_vars.ASC[i] & (0x00000001 << j)) == 0) {
+            asc_reg = 0x21;    
+        } else {
+            asc_reg = 0x20;
+        }
+
+        // Write asc_reg to analog_cfg
+        ANALOG_CFG_REG__22 = asc_reg;
+
+        // Lower phi1
+        asc_reg &= ~(0x2);
+        ANALOG_CFG_REG__22 = asc_reg;
+
+        // Toggle phi2
+        asc_reg |= 0x4;
+        ANALOG_CFG_REG__22 = asc_reg;
+        asc_reg &= ~(0x4);
+        ANALOG_CFG_REG__22 = asc_reg;
+
+        // Raise phi1
+        asc_reg |= 0x2;
+        ANALOG_CFG_REG__22 = asc_reg;
+        
+        }    
+    }
+}
+
+void analog_scan_chain_load() {
+    
+    // Assert load signal (and cfg<357>)
+    ANALOG_CFG_REG__22 = 0x0028;
+
+    // Lower load signal
+    ANALOG_CFG_REG__22 = 0x0020;
+
+}
+/* sets the 2 MHz RC DAC frequency. 
+-updates the local dac settings array
+-flips endianness and sets the appropriate bits in the scanchain array
+-writes it to the scanchain
+-loads the scanchain
+*/
+void set_2M_RC_frequency(int coarse1, int coarse2, int coarse3, int fine, int superfine) {
+    
+    unsigned int newval;
+    unsigned int newcoarse1, newcoarse2, newcoarse3, newfine, newsuperfine;
+    
+    /* update our local dac array */
+    scm3c_hw_interface_vars.dac_2M_settings[0] = coarse1;
+    scm3c_hw_interface_vars.dac_2M_settings[1] = coarse2;
+    scm3c_hw_interface_vars.dac_2M_settings[2] = coarse3;
+    scm3c_hw_interface_vars.dac_2M_settings[3] = fine;
+    scm3c_hw_interface_vars.dac_2M_settings[4] = superfine;
+    
+    // make sure each argument is between 0-31, inclusive
+    
+    // scm3c_hw_interface_vars.ASC[34] covers 1088:1119
+    newval = scm3c_hw_interface_vars.ASC[34] & 0x8000001F;
+    
+    // flip endianness of each
+    newcoarse1 = (flip_lsb8(coarse1) >> 3) & 0x1F;
+    newcoarse2 = (flip_lsb8(coarse2) >> 3) & 0x1F;
+    newcoarse3 = (flip_lsb8(coarse3) >> 3) & 0x1F;
+    newfine = (flip_lsb8(fine) >> 3) & 0x1F;
+    newsuperfine = (flip_lsb8(superfine) >> 3) & 0x1F;
+
+    newval |= newcoarse1 << 26;
+    newval |= newcoarse2 << 21;
+    newval |= newcoarse3 << 16;
+    newval |= newfine << 11;
+    newval |= newsuperfine << 6;
+    
+    // Enable bit
+    newval |= 0x1 << 5;
+    
+    scm3c_hw_interface_vars.ASC[34] = newval;
+
+    //write to analog scanchain and load
+    //analog_scan_chain_write();
+    //analog_scan_chain_load();
+    
+    //print_2MHz_DAC();
+}
+
+
+/* Initializes the 2MHz DAC with values set in the dac_2M_settings array. */
+void initialize_2M_DAC(void) {
+    set_2M_RC_frequency(
+        scm3c_hw_interface_vars.dac_2M_settings[0],
+        scm3c_hw_interface_vars.dac_2M_settings[1],
+        scm3c_hw_interface_vars.dac_2M_settings[2],
+        scm3c_hw_interface_vars.dac_2M_settings[3],
+        scm3c_hw_interface_vars.dac_2M_settings[4]
+    );
+    // printf("Initialized 2MHz DAC\r\n");
+    // print_2MHz_DAC();
+}
+
+void read_counters(unsigned int* count_2M, unsigned int* count_LC, unsigned int* count_32k){
+
+    unsigned int rdata_lsb, rdata_msb;//, count_LC, count_32k;
+    
+    // Disable all counters
+    ANALOG_CFG_REG__0 = 0x007F;
+        
+    // Read 2M counter
+    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
+    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
+    *count_2M = rdata_lsb + (rdata_msb << 16);
+        
+    // Read LC_div counter (via counter4)
+    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x200000);
+    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x240000);
+    *count_LC = rdata_lsb + (rdata_msb << 16);
+        
+    // Read 32k counter
+    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
+    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
+    *count_32k = rdata_lsb + (rdata_msb << 16);
+    
+    // Reset all counters
+    ANALOG_CFG_REG__0 = 0x0000;        
+    
+    // Enable all counters
+    ANALOG_CFG_REG__0 = 0x3FFF;    
+    
+    //printf("LC_count=%X\r\n",count_LC);
+    //printf("2M_count=%X\r\n",count_2M);
+    //printf("32k_count=%X\r\n\r\n",count_32k);
+
+}
+
+void update_PN31_byte(unsigned int* current_lfsr){
+    int i;
+    
+    for(i=0; i<8; i++){
+        int newbit = (((*current_lfsr >> 30) ^ (*current_lfsr >> 27)) & 1);
+        *current_lfsr = ((*current_lfsr << 1) | newbit);    
+    }
+}
+
+void set_asc_bit(unsigned int position){
+
+    unsigned int index;
+    
+    index = position >> 5;
+    
+    scm3c_hw_interface_vars.ASC[index] |= 0x80000000 >> (position - (index << 5));
+    
+    // Possibly more efficient
+    //scm3c_hw_interface_vars.ASC[position/32] |= 1 << (position%32);
+
+}
+
+void clear_asc_bit(unsigned int position){
+
+    unsigned int index;
+    
+    index = position >> 5;
+    
+    scm3c_hw_interface_vars.ASC[index] &= ~(0x80000000 >> (position - (index << 5)));
+    
+    // Possibly more efficient
+    //scm3c_hw_interface_vars.ASC[position/32] &= ~(1 << (position%32));                
+
+
+}
+
+
+//==== from bucket_o_functions.h
+
+
+void LC_FREQCHANGE(int coarse, int mid, int fine){
+    
+    //    Inputs:
+    //        coarse: 5-bit code (0-31) to control the ~15 MHz step frequency DAC
+    //        mid: 5-bit code (0-31) to control the ~800 kHz step frequency DAC
+    //        fine: 5-bit code (0-31) to control the ~100 kHz step frequency DAC
+    //    Outputs:
+    //        none, it programs the LC radio frequency immediately
+    
+    // mask to ensure that the coarse, mid, and fine are actually 5-bit
+    char coarse_m = (char)(coarse & 0x1F);
+    char mid_m = (char)(mid & 0x1F);
+    char fine_m = (char)(fine & 0x1F);
+    
+    // flip the bit order to make it fit more easily into the ACFG registers
+    unsigned int coarse_f = (unsigned int)(flipChar(coarse_m));
+    unsigned int mid_f = (unsigned int)(flipChar(mid_m));
+    unsigned int fine_f = (unsigned int)(flipChar(fine_m));
+
+    // initialize registers
+    unsigned int fcode = 0x00000000;   // contains everything but LSB of the fine DAC
+    unsigned int fcode2 = 0x00000000;  // contains the LSB of the fine DAC
+    
+    fine_f &= 0x000000FF;
+    mid_f &= 0x000000FF;
+    coarse_f &= 0x000000FF;
+    
+    //printf("%d\r\n",fine_m);
+    //printf("%d\r\n",mid_m);
+    //printf("%d\r\n",coarse_m);
+        
+    fcode |= (unsigned int)((fine_f & 0x78) << 9);
+    fcode |= (unsigned int)(mid_f << 3);
+    fcode |= (unsigned int)(coarse_f >> 3);
+    
+    fcode2 |= (unsigned int)((fine_f&0x80) >> 7);
+    
+    //printf("%X\r\n",fcode);
+    //printf("%X\r\n",fcode2);
+        
+    // ACFG_LO_ADDR   = [ f1 | f2 | f3 | f4 | md | m0 | m1 | m2 | m3 | m4 | cd | c0 | c1 | c2 | c3 | c4 ]
+    // ACFG_LO_ADDR_2 = [ xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | fd | f0 ]
+        
+    // set the memory and prevent any overwriting of other analog config
+    ANALOG_CFG_REG__7 = fcode;
+    ANALOG_CFG_REG__8 = fcode2;
+    
+}
+void LC_monotonic(int LC_code){
+
+    //int coarse_divs = 440;
+    //int mid_divs = 31; // For full fine code sweeps
+    
+    int fine_fix = 0;
+    int mid_fix = 0;
+    //int coarse_divs = 136;
+    int mid_divs = 23; // works for Ioana's board, Fil's board, Brad's other board
+    
+    //int coarse_divs = 167;
+    int coarse_divs = 140;
+    //int mid_divs = 27; // works for Brad's board // 25 and 155 worked really well @ low frequency, 27 167 worked great @ high frequency (Brad's board)
+    
+    int mid;
+    int fine;
+    int coarse = (((LC_code/coarse_divs + 19) & 0x000000FF));
+    
+    LC_code = LC_code % coarse_divs;
+    //mid = ((((LC_code/mid_divs)*4 + mid_fix) & 0x000000FF)); // works for boards (a)
+    mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
+    //mid = ((((LC_code/mid_divs) + mid_fix) & 0x000000FF));
+    if (LC_code/mid_divs >= 2) {fine_fix = 0;};
+    fine = (((LC_code % mid_divs + fine_fix) & 0x000000FF));
+    if (fine > 15){fine++;};
+    
+    // coarse=24, mid=0, fine=10 worked at Inria for Tx Frequency
+    LC_FREQCHANGE(coarse,mid,fine);
+    
+}
+
+
+void set_LC_current(unsigned int current) {
+    unsigned int current_msb = (current & 0x000000F0) >> 4;
+    unsigned int current_lsb = (current & 0x0000000F) << 28;
+    
+    scm3c_hw_interface_vars.ASC[30] &= 0xFFFFFFF0;
+    scm3c_hw_interface_vars.ASC[30] |= current_msb;
+    
+    scm3c_hw_interface_vars.ASC[31] &= 0x0FFFFFFF;
+    scm3c_hw_interface_vars.ASC[31] |= current_lsb;
+}
+void disable_polyphase_ASC() {
+    scm3c_hw_interface_vars.ASC[30] &= 0xFFEFFFFF;
+}
+
+void enable_polyphase_ASC() {
+    scm3c_hw_interface_vars.ASC[30] |= 0x00100000;
+}
+
+void disable_div_power_ASC() {
+    scm3c_hw_interface_vars.ASC[16] &= 0xB7FFFFFF;
+}
+void enable_div_power_ASC() {
+    scm3c_hw_interface_vars.ASC[16] |= 0x48000000;
+}
+
+void ext_clk_ble_ASC() {
+    scm3c_hw_interface_vars.ASC[32] |= 0x00080000;
+}
+void int_clk_ble_ASC() {
+    scm3c_hw_interface_vars.ASC[32] &= 0xFFF7FFFF;
+}
+
+
+void enable_1mhz_ble_ASC() {
+    scm3c_hw_interface_vars.ASC[32] &= 0xFFF9FFFF;
+}
+
+void disable_1mhz_ble_ASC() {
+    scm3c_hw_interface_vars.ASC[32] |= 0x00060000;
+}
+void set_PA_supply(unsigned int code) {
+    // 7-bit setting (between 0 and 127)
+    // MSB is a "panic" bit that engages the high-voltage settings
+    unsigned int code_ASC = ((~code)&0x0000007F) << 13;
+    scm3c_hw_interface_vars.ASC[30] &= 0xFFF01FFF;
+    scm3c_hw_interface_vars.ASC[30] |= code_ASC;
+    
+}
+void set_LO_supply(unsigned int code, unsigned char panic) {
+    // 7-bit setting (between 0 and 127)
+    // MSB is a "panic" bit that engages the high-voltage settings
+    unsigned int code_ASC = ((~code)&0x0000007F) << 5;
+    scm3c_hw_interface_vars.ASC[30] &= 0xFFFFF017;
+    scm3c_hw_interface_vars.ASC[30] |= code_ASC;
+}
+void set_DIV_supply(unsigned int code, unsigned char panic) {
+    // 7-bit setting (between 0 and 127)
+    // MSB is a "panic" bit that engages the high-voltage settings
+    unsigned int code_ASC = ((~code)&0x0000007F) << 5;
+    scm3c_hw_interface_vars.ASC[30] &= 0xFFF01FFF;
+    scm3c_hw_interface_vars.ASC[30] |= code_ASC;
+}
+
+void prescaler(int code) {
+    
+    // code is a number between 0 and 5
+    // 0 -> disable pre-scaler entirely
+    // 1 -> enable div-by-5 back-up pre-scaler
+    // 2 -> enable div-by-2 back-up pre-scaler
+    // 3 -> enable dynamic pre-scaler version 1 (div-by-5, strong)
+    // 4 -> enable dynamic pre-scaler version 2 (div-by-2, strong)
+    // 5 -> enable dynamic pre-scaler version 3 (div-by-5, weak)
+    
+    if (code == 0) {
+        // disable div-by-5 backup, disable div-by-2 backup, disable dynamic pre-scaler
+        scm3c_hw_interface_vars.ASC[31] |= 0x00000004;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+        scm3c_hw_interface_vars.ASC[32] |= 0x80000000;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+        scm3c_hw_interface_vars.ASC[32] |= 0x70000000; // disable all of the dynamic pre-scalers
+    }
+    else if (code == 1) {
+        // enable div-by-5 backup, disable div-by-2 backup, disable dynamic pre-scaler
+        scm3c_hw_interface_vars.ASC[31] |= 0x00000002;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFB; // enable div-by-5 backup
+        scm3c_hw_interface_vars.ASC[32] |= 0x80000000;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+        scm3c_hw_interface_vars.ASC[32] |= 0x70000000; // disable all of the dynamic pre-scalers
+    }
+    else if (code == 2) {
+        // disable div-by-5 backup, enable div-by-2 backup, disable dynamic pre-scaler
+        scm3c_hw_interface_vars.ASC[31] |= 0x00000004;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+        scm3c_hw_interface_vars.ASC[32] &= 0x7FFFFFFF;
+        scm3c_hw_interface_vars.ASC[31] |= 0x00000001; // enable div-by-2 backup
+        scm3c_hw_interface_vars.ASC[32] |= 0x70000000; // disable all of the dynamic pre-scalers
+    }
+    else if (code == 3) {
+        // disable div-by-5 backup, disable div-by-2 backup, enable setting #1 of dynamic pre-scaler
+        scm3c_hw_interface_vars.ASC[31] |= 0x00000004;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+        scm3c_hw_interface_vars.ASC[32] |= 0x80000000;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+        scm3c_hw_interface_vars.ASC[32] &= 0xBFFFFFFF; // enable first bit of pre-scaler
+    }
+    else if (code == 4) {
+        // disable div-by-5 backup, disable div-by-2 backup, enable setting #2 of dynamic pre-scaler
+        scm3c_hw_interface_vars.ASC[31] |= 0x00000004;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+        scm3c_hw_interface_vars.ASC[32] |= 0x80000000;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+        scm3c_hw_interface_vars.ASC[32] &= 0xDFFFFFFF; // enable second bit of pre-scaler
+    }
+    else if (code == 5) {
+        // disable div-by-5 backup, disable div-by-2 backup, enable setting #3 of dynamic pre-scaler
+        scm3c_hw_interface_vars.ASC[31] |= 0x00000004;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFD; // disable div-by-5 backup
+        scm3c_hw_interface_vars.ASC[32] |= 0x80000000;
+        scm3c_hw_interface_vars.ASC[31] &= 0xFFFFFFFE; // disable div-by-2 backup
+        scm3c_hw_interface_vars.ASC[32] &= 0x9FFFFFFF; // enable third bit of pre-scaler
+    }
+}
+
+void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable) {
+    // Inputs: 
+    //    div_ratio, a number between 1 and 65536 that determines the integer divide ratio of the static divider (after pre-scaler)
+    //    reset, active low
+    //    enable, active high
+    // Outputs:
+    //    none, it programs the divider immediately
+    // Example:
+    //    divProgram(480,1,1) will further divide the LC tank frequency by 480
+    
+    // For this function to work, the scan chain must have bitwise scm3c_hw_interface_vars.ASC[1081]=0, or scm3c_hw_interface_vars.ASC[33] &= 0xFFFFFFBF;
+    // BIG BUG:::: odd divide ratios DO NOT WORK when the input to the divider is a high frequency (~1.2 GHz)
+    
+    // initialize the programming registers
+    unsigned int div_code_1 = 0x00000000;
+    unsigned int div_code_2 = 0x00000000;
+    
+    //     The two analog config registers look like this:
+    
+    // ACFG_CFG_REG__5   = [ d11 | d10 | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx | xx  | xx  | xx  | xx  ]
+    // ACFG_CFG_REG__6 = [ d3  | d2  | d1 | d0 | rb | en | d9 | d8 | d7 | d6 | d5 | d4 | d15 | d14 | d13 | d12 ]
+
+    div_code_1  = ((div_ratio & 0x00000C00) << 4);
+    div_code_2 |= ((div_ratio & 0x0000F000) >> 12);
+    div_code_2 |= (div_ratio & 0x000003F0);
+    div_code_2 |= (enable << 10);
+    div_code_2 |= (reset << 11);
+    div_code_2 |= ((div_ratio & 0x0000000F) << 12);
+    
+    // also every bit needs to be inverted, hooray
+    ANALOG_CFG_REG__5 = ~div_code_1;
+    ANALOG_CFG_REG__6 = ~div_code_2;
 }

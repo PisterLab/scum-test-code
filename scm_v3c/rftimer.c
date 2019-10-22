@@ -1,11 +1,9 @@
-#include "memory_map.h"
-#include <stdio.h>
-#include "scm3C_hardware_interface.h"
-#include "scm3_hardware_interface.h"
-#include "radio.h"
-#include "bucket_o_functions.h"
-#include "rftimer.h"
 #include <string.h>
+#include <stdio.h>
+#include "memory_map.h"
+#include "scm3c_hw_interface.h"
+#include "radio.h"
+#include "rftimer.h"
 
 // ========================== definition ======================================
 

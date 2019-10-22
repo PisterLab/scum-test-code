@@ -15,7 +15,7 @@ The target image running on OpenMote can be found at:
 
 #include <string.h>
 
-#include "scm3c_hardware_interface.h"
+#include "scm3c_hw_interface.h"
 #include "memory_map.h"
 #include "rftimer.h"
 #include "radio.h"

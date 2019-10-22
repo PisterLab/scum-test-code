@@ -2,9 +2,7 @@
 #include <string.h>
 
 #include "memory_map.h"
-#include "scm3C_hardware_interface.h"
-#include "scm3_hardware_interface.h"
-#include "bucket_o_functions.h"
+#include "scm3c_hw_interface.h"
 
 #include "radio.h"
 #include "scum_defs.h"
@@ -87,9 +85,27 @@ void optical_32_isr(){
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
 void optical_sfd_isr(){
     
-    int t;
-    unsigned int rdata_lsb, rdata_msb; 
-    unsigned int count_LC, count_32k, count_2M, count_HFclock, count_IF;
+    int32_t t;
+    uint32_t rdata_lsb, rdata_msb; 
+    uint32_t count_LC, count_32k, count_2M, count_HFclock, count_IF;
+    
+    uint32_t HF_CLOCK_fine;
+    uint32_t HF_CLOCK_coarse;
+    uint32_t RC2M_coarse;
+    uint32_t RC2M_fine;
+    uint32_t RC2M_superfine;
+    uint32_t IF_clk_target;
+    uint32_t IF_coarse;
+    uint32_t IF_fine;
+    
+    HF_CLOCK_fine       = scm3c_hw_interface_get_HF_CLOCK_fine();
+    HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
+    RC2M_coarse         = scm3c_hw_interface_get_RC2M_coarse();
+    RC2M_fine           = scm3c_hw_interface_get_RC2M_fine();
+    RC2M_superfine      = scm3c_hw_interface_get_RC2M_superfine();
+    IF_clk_target       = scm3c_hw_interface_get_IF_clk_target();
+    IF_coarse           = scm3c_hw_interface_get_IF_coarse();
+    IF_fine             = scm3c_hw_interface_get_IF_fine();
         
     // Disable all counters
     ANALOG_CFG_REG__0 = 0x007F;
@@ -133,9 +149,16 @@ void optical_sfd_isr(){
         
         // Do correction on HF CLOCK
         // Fine DAC step size is about 6000 counts
-        if(count_HFclock < 1997000) HF_CLOCK_fine--;
-        if(count_HFclock > 2003000) HF_CLOCK_fine++;
+        if(count_HFclock < 1997000) {
+            HF_CLOCK_fine--;
+        }
+        if(count_HFclock > 2003000) {
+            HF_CLOCK_fine++;
+        }
+        
         set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
+        scm3c_hw_interface_set_HF_CLOCK_coarse(HF_CLOCK_coarse);
+        scm3c_hw_interface_set_HF_CLOCK_fine(HF_CLOCK_fine);
         
         // Do correction on LC
         if(count_LC > (optical_vars.LC_target + 0)) {
@@ -173,7 +196,11 @@ void optical_sfd_isr(){
                 }
             }
         }
+        
         set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
+        scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
+        scm3c_hw_interface_set_RC2M_fine(RC2M_fine);
+        scm3c_hw_interface_set_RC2M_superfine(RC2M_superfine);
 
         // Do correction on IF RC clock
         // Fine DAC step size is ~2800 counts
@@ -183,9 +210,12 @@ void optical_sfd_isr(){
         if(count_IF < (1600000-1400)) {
             IF_fine -= 1;
         }
-        set_IF_clock_frequency(IF_coarse, IF_fine, 0);
         
-        analog_scan_chain_write(&ASC[0]);
+        set_IF_clock_frequency(IF_coarse, IF_fine, 0);
+        scm3c_hw_interface_set_IF_coarse(IF_coarse);
+        scm3c_hw_interface_set_IF_fine(IF_fine);
+        
+        analog_scan_chain_write();
         analog_scan_chain_load();    
     }
     

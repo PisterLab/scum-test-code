@@ -4,11 +4,9 @@
 #include <string.h>
 
 #include "memory_map.h"
-#include "scm3c_hardware_interface.h"
-#include "scm3_hardware_interface.h"
+#include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
-#include "bucket_o_functions.h"
 
 // raw_chip interrupt related
 unsigned int chips[100];
@@ -162,10 +160,10 @@ void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {
     radio_vars.current_frequency = DEFAULT_FREQ;
     
     switch(tx_or_rx){
-    case 0x01:
+    case FREQ_TX:
         setFrequencyTX(radio_vars.current_frequency);
         break;
-    case 0x02:
+    case FREQ_RX:
         setFrequencyRX(radio_vars.current_frequency);
         break;
     default:
@@ -264,12 +262,18 @@ void radio_frequency_housekeeping(
     int16_t cdr_tau_value
 ) {
     
-    signed int sum = 0;
+    signed int sum      = 0;
     int jj;
     unsigned int IF_est_filtered;
     signed int chip_rate_error_ppm, chip_rate_error_ppm_filtered;
     unsigned short packet_len;
     signed int timing_correction;
+    
+    uint32_t IF_coarse;
+    uint32_t IF_fine;
+    
+    IF_coarse           = scm3c_hw_interface_get_IF_coarse();
+    IF_fine             = scm3c_hw_interface_get_IF_fine();
     
     packet_len = radio_vars.radio_rx_buffer[0];
     
@@ -318,6 +322,8 @@ void radio_frequency_housekeeping(
             set_IF_clock_frequency(IF_coarse, IF_fine--, 0);
         }
     }
+    scm3c_hw_interface_set_IF_coarse(IF_coarse);
+    scm3c_hw_interface_set_IF_fine(IF_fine);
     
     
     // FIR filter for IF estimate

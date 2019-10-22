@@ -392,16 +392,6 @@
           <GroupName>drv</GroupName>
           <Files>
             <File>
-              <FileName>bucket_o_functions.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\bucket_o_functions.c</FilePath>
-            </File>
-            <File>
-              <FileName>bucket_o_functions.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\bucket_o_functions.h</FilePath>
-            </File>
-            <File>
               <FileName>cm0dsasm.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\..\cm0dsasm.s</FilePath>
@@ -415,26 +405,6 @@
               <FileName>retarget.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\retarget.c</FilePath>
-            </File>
-            <File>
-              <FileName>scm3_hardware_interface.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\scm3_hardware_interface.c</FilePath>
-            </File>
-            <File>
-              <FileName>scm3_hardware_interface.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\scm3_hardware_interface.h</FilePath>
-            </File>
-            <File>
-              <FileName>scm3c_hardware_interface.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\scm3c_hardware_interface.c</FilePath>
-            </File>
-            <File>
-              <FileName>scm3c_hardware_interface.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\scm3c_hardware_interface.h</FilePath>
             </File>
             <File>
               <FileName>optical.c</FileName>
@@ -510,6 +480,16 @@
               <FileName>scum_defs.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\scum_defs.h</FilePath>
+            </File>
+            <File>
+              <FileName>scm3c_hw_interface.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\scm3c_hw_interface.h</FilePath>
+            </File>
+            <File>
+              <FileName>scm3c_hw_interface.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\scm3c_hw_interface.c</FilePath>
             </File>
           </Files>
         </Group>
