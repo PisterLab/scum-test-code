@@ -583,7 +583,7 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 			
 				nextstate = 0;
 				if(last_delta_a > 0 && abs(((int)(elevation_a_laser-elevation_a_sync))-(int)last_delta_a)<4630){
-					printf("el A: %d, %d\n",elevation_a_sync,elevation_a_laser);
+					//printf("el A: %d, %d\n",elevation_a_sync,elevation_a_laser);
 					send_lh_packet(elevation_a_sync,elevation_a_laser,A,ELEVATION);
 				}
 				last_delta_a = elevation_a_laser - elevation_a_sync;
@@ -612,7 +612,7 @@ void update_state_elevation(pulse_type_t pulse_type, unsigned int timestamp_rise
 				//go to azimuth b laser detect
 				nextstate = 0;
 				if(last_delta_b > 0 && abs(((int)(elevation_b_laser-elevation_b_sync))-(int)last_delta_b)<4630){
-					printf("el B: %d, %d\n",elevation_b_sync,elevation_b_laser);
+					//printf("el B: %d, %d\n",elevation_b_sync,elevation_b_laser);
 					send_lh_packet(elevation_b_sync,elevation_b_laser,B,ELEVATION);
 				}
 				last_delta_b = elevation_b_laser - elevation_b_sync;
@@ -736,7 +736,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				nextstate = 0;
 				//filter out pulses that have changed by more than 10 degrees (4630 ticks)
 				if(last_delta_a > 0 && abs(((int)(azimuth_a_laser-azimuth_a_sync))-(int)last_delta_a)<4630){
-					printf("az A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
+					//printf("az A: %d, %d\n",azimuth_a_sync,azimuth_a_laser);
 					send_lh_packet(azimuth_a_sync,azimuth_a_laser,A,AZIMUTH);
 				}
 				last_delta_a = azimuth_a_laser-azimuth_a_sync;
@@ -765,7 +765,7 @@ void update_state_azimuth(pulse_type_t pulse_type, unsigned int timestamp_rise){
 				
 				//filter out pulses that have changed by more than 10 degrees (4630 ticks)
 				if(last_delta_b > 0 && abs(((int)(azimuth_b_laser-azimuth_b_sync))-(int)last_delta_b)<4630){
-					printf("az B: %d, %d, %d\n",azimuth_b_sync,azimuth_b_laser,azimuth_b_laser-azimuth_b_sync );
+					//printf("az B: %d, %d, %d\n",azimuth_b_sync,azimuth_b_laser,azimuth_b_laser-azimuth_b_sync );
 					send_lh_packet(azimuth_b_sync,azimuth_b_laser,B,AZIMUTH);
 				}
 				last_delta_b = azimuth_b_laser-azimuth_b_sync;

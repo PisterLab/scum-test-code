@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\code.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\code.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Tue Oct 22 11:32:49 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Tue Oct 22 15:53:54 2019
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -839,17 +839,15 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[85]"></a>update_state_elevation</STRONG> (Thumb, 356 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+<P><STRONG><a name="[85]"></a>update_state_elevation</STRONG> (Thumb, 328 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 <LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
 </UL>
 <BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
 </UL>
 
-<P><STRONG><a name="[87]"></a>update_state_azimuth</STRONG> (Thumb, 366 bytes, Stack size 0 bytes, lighthouse.o(.text))
-<BR><BR>[Calls]<UL><LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
-<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
+<P><STRONG><a name="[87]"></a>update_state_azimuth</STRONG> (Thumb, 328 bytes, Stack size 0 bytes, lighthouse.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 <LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;send_lh_packet
 </UL>
 <BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state
@@ -871,8 +869,6 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_char_file
 </UL>
 <BR>[Called By]<UL><LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sync_pulse_width_compensate
-<LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_azimuth
-<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_state_elevation
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sram_test
 <LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_exit
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
