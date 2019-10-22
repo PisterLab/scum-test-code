@@ -176,7 +176,7 @@ int main(void) {
 	//test_LC_sweep_tx();
 	
 	ICER = 0xFFFF;
-	radio_rfOff();
+	//radio_rfOff();
 		// Reset RF Timer count register	
 	RFTIMER_REG__COUNTER = 0x0;	
 
