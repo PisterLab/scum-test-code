@@ -28,23 +28,26 @@ Project File Date:  10/21/2019
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
 compiling lighthouse.c...
-lighthouse.c(344): warning:  #111-D: statement is unreachable
-  					radio_txEnable();
-lighthouse.c: 1 warning, 0 errors
+compiling main.c...
+Int_Handlers.h(212): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+Int_Handlers.h(590): warning:  #177-D: variable "t" was declared but never referenced
+  	int t;
+main.c: 2 warnings, 0 errors
 linking...
 .\code.axf: Warning: L6305W: Image does not have an entry point. (Not specified or not set due to multiple choices.)
-Program Size: Code=15124 RO-data=328 RW-data=384 ZI-data=24384  
+Program Size: Code=15232 RO-data=328 RW-data=384 ZI-data=24384  
 Finished: 0 information, 1 warning and 0 error messages.
 After Build - User command #1: fromelf --bin code.axf -o code.bin
 After Build - User command #2: fromelf -cvf code.axf -o disasm.txt
-".\code.axf" - 0 Error(s), 2 Warning(s).
+".\code.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   C:\Users\pister-lab4\Documents\Brian\scum-test-code\RTE
   C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM0\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:00
 </pre>
 </body>
 </html>
