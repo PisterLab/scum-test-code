@@ -191,7 +191,7 @@ void optical_sfd_isr(){
         // It doesn't really work well yet so leave it commented
         //printf("Building channel table...");
         
-        //build_channel_table(LC_code);
+        //radio_build_channel_table(LC_code);
         
         //printf("done\r\n");
         

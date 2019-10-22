@@ -25,9 +25,6 @@ The target image running on OpenMote can be found at:
 
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
-    
-#define LC_CODE_RX      700 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
-#define LC_CODE_TX      707 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
 
 #define LENGTH_PACKET   125+LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_TX_PKT      30+LENGTH_CRC  ///< length of tx packet
@@ -48,9 +45,6 @@ typedef struct {
 } app_vars_t;
 
 app_vars_t app_vars;
-
-extern unsigned int RX_channel_codes[16];
-extern unsigned int TX_channel_codes[16];
 
 //=========================== prototypes ======================================
 
@@ -132,10 +126,8 @@ int main(void) {
     printf("Cal complete\r\n");
     
     //skip building a channel table for now; hardcode LC values
-    RX_channel_codes[0] = LC_CODE_RX; 
-    TX_channel_codes[0] = LC_CODE_TX;
 
-    printf("Listening for packets on ch %d (LC_code=%d)\r\n",CHANNEL,RX_channel_codes[CHANNEL-11]);
+    printf("Listening for packets on ch %d \r\n",CHANNEL);
 
     // First listen continuously for rx packet
     app_vars.doing_initial_packet_search = true;

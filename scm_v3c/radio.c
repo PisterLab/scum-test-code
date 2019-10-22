@@ -40,9 +40,6 @@ extern unsigned int RC2M_superfine;
 extern unsigned int RC2M_fine;
 extern unsigned int RC2M_coarse;
 
-extern unsigned int RX_channel_codes[16];
-extern unsigned int TX_channel_codes[16];
-
 signed int SFD_timestamp = 0;
 signed int SFD_timestamp_n_1 = 0;
 signed int timing_correction = 0;
@@ -72,6 +69,7 @@ unsigned short frequency_update_cooldown_timer;
 //=========================== definition ======================================
 
 #define MAXLENGTH_TRX_BUFFER    128     // 1B length, 125B data, 2B CRC
+#define NUM_CHANNELS            16
 
 //===== default crc check result and rssi value
 
@@ -81,10 +79,13 @@ unsigned short frequency_update_cooldown_timer;
 
 //===== for calibration
 
-#define  IF_FREQ_UPDATE_TIMEOUT  10
-#define  LO_FREQ_UPDATE_TIMEOUT  10
-#define  FILTER_WINDOWS_LEN      11
-#define  FIR_COEFF_SCALE         512 // determined by FIR_coeff
+#define IF_FREQ_UPDATE_TIMEOUT  10
+#define LO_FREQ_UPDATE_TIMEOUT  10
+#define FILTER_WINDOWS_LEN      11
+#define FIR_COEFF_SCALE         512 // determined by FIR_coeff
+
+#define LC_CODE_RX      700 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
+#define LC_CODE_TX      707 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
 
 //===== for recognizing panid
 
@@ -107,14 +108,23 @@ typedef struct {
                                                             ((aligned (4)));
     uint8_t             current_frequency;
     bool                crc_ok;
+    
+    uint32_t            rx_channel_codes[NUM_CHANNELS];
+    uint32_t            tx_channel_codes[NUM_CHANNELS];
 } radio_vars_t;
 
 radio_vars_t radio_vars;
 
 //=========================== prototypes ======================================
 
-void setFrequencyTX(uint8_t channel);
-void setFrequencyRX(uint8_t channel);
+void        setFrequencyTX(uint8_t channel);
+void        setFrequencyRX(uint8_t channel);
+
+uint32_t    build_RX_channel_table(uint32_t channel_11_LC_code);
+void        build_TX_channel_table(
+    uint32_t channel_11_LC_code, 
+    uint32_t count_LC_RX_ch11
+);
 
 //=========================== public ==========================================
 
@@ -123,6 +133,10 @@ void radio_init(void) {
 
     // clear variables
     memset(&radio_vars,0,sizeof(radio_vars_t));
+    
+    //skip building a channel table for now; hardcode LC values
+    radio_vars.tx_channel_codes[0] = LC_CODE_TX;
+    radio_vars.rx_channel_codes[0] = LC_CODE_RX;
 
     // Enable radio interrupts in NVIC
     ISER = 0x40;
@@ -361,12 +375,12 @@ void radio_frequency_housekeeping(){
         // For now, assume that TX/RX should both be updated, even though the IF information is only from the RX code
         if(frequency_update_cooldown_timer == frequency_update_rate){
             if(IF_est_filtered > 520){
-                RX_channel_codes[radio_vars.current_frequency - 11]++; 
-                TX_channel_codes[radio_vars.current_frequency - 11]++; 
+                radio_vars.rx_channel_codes[radio_vars.current_frequency - 11]++; 
+                radio_vars.tx_channel_codes[radio_vars.current_frequency - 11]++; 
             }
             if(IF_est_filtered < 480){
-                RX_channel_codes[radio_vars.current_frequency - 11]--; 
-                TX_channel_codes[radio_vars.current_frequency - 11]--; 
+                radio_vars.rx_channel_codes[radio_vars.current_frequency - 11]--; 
+                radio_vars.tx_channel_codes[radio_vars.current_frequency - 11]--; 
             }
             
             //printf("--%d - %d\r\n",IF_estimate,IF_est_filtered);
@@ -407,17 +421,174 @@ bool radio_getCrcOk(void){
 //=========================== private =========================================
 
 // SCM has separate setFrequency functions for RX and TX because of the way the
-// radio is built. The LO needs to be set to a different frequency for TX vs RX
+// radio is built. The LO needs to be set to a different frequency for TX vs RX.
 void setFrequencyRX(uint8_t channel){
     
     // Set LO code for RX channel
-    LC_monotonic(RX_channel_codes[channel-11]);
+    LC_monotonic(radio_vars.rx_channel_codes[channel-11]);
 }
 
 void setFrequencyTX(uint8_t channel){
     
     // Set LO code for TX channel
-    LC_monotonic(TX_channel_codes[channel-11]);
+    LC_monotonic(radio_vars.tx_channel_codes[channel-11]);
+}
+
+
+uint32_t build_RX_channel_table(uint32_t channel_11_LC_code){
+    
+    uint32_t    rdata_lsb,rdata_msb;
+    int32_t     i;
+    uint32_t    t;
+    uint32_t    count_LC[16];
+    uint32_t    count_targets[17];
+    
+    memset(&count_LC[0],0,sizeof(count_LC));
+    memset(&count_targets[0],0,sizeof(count_targets));
+    
+    radio_vars.rx_channel_codes[0] = channel_11_LC_code;
+    
+    i = 0;
+    while(i<16) {
+    
+        LC_monotonic(radio_vars.rx_channel_codes[i]);
+        //analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+        //analog_scan_chain_load_3B_fromFPGA();
+                    
+        // Reset all counters
+        ANALOG_CFG_REG__0 = 0x0000;
+        
+        // Enable all counters
+        ANALOG_CFG_REG__0 = 0x3FFF;    
+        
+        // Count for some arbitrary amount of time
+        for(t=1; t<16000; t++);
+        
+        // Disable all counters
+        ANALOG_CFG_REG__0 = 0x007F;
+
+        // Read count result
+        rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
+        rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
+        count_LC[i] = rdata_lsb + (rdata_msb << 16);
+    
+        count_targets[i+1] = ((961+(i+1)*2) * count_LC[0]) / 961;
+        
+        // Adjust LC_code to match new target
+        if(i>0){
+            
+            if(count_LC[i] < (count_targets[i] - 20)){
+                radio_vars.rx_channel_codes[i]++;
+            }
+            else{
+                radio_vars.rx_channel_codes[i+1] = radio_vars.rx_channel_codes[i] + 40;
+                i++;
+            }                    
+        }
+        
+        if(i==0){
+            radio_vars.rx_channel_codes[i+1] = radio_vars.rx_channel_codes[i] + 40;
+            i++;
+        }
+    }
+    
+    for(i=0; i<16; i++){
+//        printf(
+//            "\r\nRX ch=%d, count_LC=%d, count_targets=%d, rx_channel_codes=%d",
+//            i+11,count_LC[i],count_targets[i], radio_vars.rx_channel_codes[i]
+//        );
+    }
+    
+    return count_LC[0];
+}
+
+
+void build_TX_channel_table(unsigned int channel_11_LC_code, unsigned int count_LC_RX_ch11){
+    
+    unsigned int rdata_lsb,rdata_msb;
+    int t,i=0;
+    unsigned int count_LC[16] = {0};
+    unsigned int count_targets[17] = {0};
+    
+    unsigned short nums[16] = {802,904,929,269,949,434,369,578,455,970,139,297,587,109,373,159};
+    unsigned short dens[16] = {801,901,924,267,940,429,364,569,447,951,136,290,572,106,362,154};    
+        
+    
+    // Need to adjust here for shift from PA
+    radio_vars.tx_channel_codes[0] = channel_11_LC_code;
+    
+    
+    //for(i=0; i<16; i++){
+    while(i<16) {
+    
+        LC_monotonic(radio_vars.tx_channel_codes[i]);
+        //analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+        //analog_scan_chain_load_3B_fromFPGA();
+                    
+        // Reset all counters
+        ANALOG_CFG_REG__0 = 0x0000;
+        
+        // Enable all counters
+        ANALOG_CFG_REG__0 = 0x3FFF;    
+        
+        // Count for some arbitrary amount of time
+        for(t=1; t<16000; t++);
+        
+        // Disable all counters
+        ANALOG_CFG_REG__0 = 0x007F;
+
+        // Read count result
+        rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
+        rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
+        count_LC[i] = rdata_lsb + (rdata_msb << 16);
+        
+        // Until figure out why modulation spacing is only 800kHz, only set 400khz above RF channel
+        count_targets[i] = (nums[i] * count_LC_RX_ch11) / dens[i];
+        //count_targets[i] = ((24054 + i*50) * count_LC_RX_ch11) / 24025;
+        //count_targets[i] = ((24055 + i*50) * count_LC_RX_ch11) / 24025;
+        
+        if(count_LC[i] < (count_targets[i] - 5)){
+            radio_vars.tx_channel_codes[i]++;
+        }
+        else{
+            radio_vars.tx_channel_codes[i+1] = radio_vars.tx_channel_codes[i] + 40;
+            i++;
+        }
+    }
+    
+    //for(i=0; i<16; i++){
+    //    printf("\r\nTX ch=%d,  count_LC=%d,  count_targets=%d,  radio_vars.tx_channel_codes=%d",i+11,count_LC[i],count_targets[i],radio_vars.tx_channel_codes[i]);
+    //}
+    
+}
+
+void radio_build_channel_table(unsigned int channel_11_LC_code){
+    
+        unsigned int count_LC_RX_ch11;
+    
+        // Make sure in RX mode first
+    
+        count_LC_RX_ch11 = build_RX_channel_table(channel_11_LC_code);
+    
+        //printf("--\r\n");
+    
+        // Switch over to TX mode
+    
+        // Turn polyphase off for TX
+        clear_asc_bit(971);
+
+        // Hi-Z mixer wells for TX
+        set_asc_bit(298);
+        set_asc_bit(307);
+
+        // Analog scan chain setup for radio LDOs for RX
+        clear_asc_bit(504); // = gpio_pon_en_if
+        set_asc_bit(506); // = gpio_pon_en_lo
+        set_asc_bit(508); // = gpio_pon_en_pa
+
+        build_TX_channel_table(channel_11_LC_code,count_LC_RX_ch11);
+        
+        radio_rfOff();
 }
 
 //=========================== intertupt =======================================

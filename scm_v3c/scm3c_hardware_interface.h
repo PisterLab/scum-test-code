@@ -35,7 +35,4 @@ void set_IF_ZCC_clkdiv(unsigned int div_value);
 void set_IF_ZCC_early(unsigned int early_value);
 void initialize_mote(void);
 void set_sys_clk_secondary_freq(unsigned int coarse, unsigned int fine);
-unsigned int build_RX_channel_table(unsigned int channel_11_LC_code);
-void build_TX_channel_table(unsigned int channel_11_LC_code,unsigned int count_LC_RX_ch11);
-void build_channel_table(unsigned int channel_11_LC_code);
 unsigned int estimate_temperature_2M_32k(void);
