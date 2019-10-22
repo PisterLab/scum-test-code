@@ -1,11 +1,13 @@
-#include "memory_map.h"
 #include <stdio.h>
+#include <string.h>
+
+#include "memory_map.h"
 #include "scm3C_hardware_interface.h"
 #include "scm3_hardware_interface.h"
-#include "radio.h"
 #include "bucket_o_functions.h"
 
-#include <string.h>
+#include "radio.h"
+#include "scum_defs.h"
 
 //=========================== defines =========================================
 
@@ -26,18 +28,24 @@ extern unsigned int RC2M_superfine;
 extern unsigned int RC2M_fine;
 extern unsigned int RC2M_coarse;
 
-unsigned int num_32k_ticks_in_100ms;
-unsigned int num_2MRC_ticks_in_100ms;
-unsigned int num_IFclk_ticks_in_100ms;
-unsigned int num_LC_ch11_ticks_in_100ms;
-unsigned int num_HFclock_ticks_in_100ms;
+
 
 // Timer parameters 
 extern unsigned int packet_interval;
 
 typedef struct {
-    uint8_t optical_cal_iteration;
-    uint8_t optical_cal_finished;
+    uint8_t     optical_cal_iteration;
+    uint8_t     optical_cal_finished;
+    
+    uint32_t    num_32k_ticks_in_100ms;
+    uint32_t    num_2MRC_ticks_in_100ms;
+    uint32_t    num_IFclk_ticks_in_100ms;
+    uint32_t    num_LC_ch11_ticks_in_100ms;
+    uint32_t    num_HFclock_ticks_in_100ms;
+
+    // reference to calibrate
+    uint32_t    LC_target;
+    uint32_t    LC_code;
 } optical_vars_t;
 
 optical_vars_t optical_vars;
@@ -49,6 +57,12 @@ optical_vars_t optical_vars;
 void optical_init(void) {
     
     memset(&optical_vars, 0, sizeof(optical_vars_t));
+    
+    // Target radio LO freq = 2.4025G
+    // Divide ratio is currently 480*2
+    // Calibration counts for 100ms
+    optical_vars.LC_target  = REFERENCE_LC_TARGET;
+    optical_vars.LC_code    = DEFUALT_INIT_LC_CODE;
 }
 
 uint8_t optical_getCalibrationFinshed(void) {
@@ -132,9 +146,13 @@ void optical_sfd_isr(){
         set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
         
         // Do correction on LC
-        if(count_LC > (LC_target + 0)) LC_code -= 1;
-        if(count_LC < (LC_target - 0))    LC_code += 1;
-        LC_monotonic(LC_code);
+        if(count_LC > (optical_vars.LC_target + 0)) {
+            optical_vars.LC_code -= 1;
+        }
+        if(count_LC < (optical_vars.LC_target - 0)) {
+            optical_vars.LC_code += 1;
+        }
+        LC_monotonic(optical_vars.LC_code);
             
         // Do correction on 2M RC
         // Coarse step ~1100 counts, fine ~150 counts, superfine ~25
@@ -160,7 +178,7 @@ void optical_sfd_isr(){
     }
     
     // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
+    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine); 
      
     if(optical_vars.optical_cal_iteration == 25){
         // Disable this ISR
@@ -169,17 +187,17 @@ void optical_sfd_isr(){
         optical_vars.optical_cal_finished = 1;
         
         // Store the last count values
-        num_32k_ticks_in_100ms = count_32k;
-        num_2MRC_ticks_in_100ms = count_2M;
-        num_IFclk_ticks_in_100ms = count_IF;
-        num_LC_ch11_ticks_in_100ms = count_LC;
-        num_HFclock_ticks_in_100ms = count_HFclock;
+        optical_vars.num_32k_ticks_in_100ms = count_32k;
+        optical_vars.num_2MRC_ticks_in_100ms = count_2M;
+        optical_vars.num_IFclk_ticks_in_100ms = count_IF;
+        optical_vars.num_LC_ch11_ticks_in_100ms = count_LC;
+        optical_vars.num_HFclock_ticks_in_100ms = count_HFclock;
         
         // Update the expected packet rate based on the measured HF clock frequency
         // Have an estimate of how many 20MHz clock ticks there are in 100ms
         // But need to know how many 20MHz/40 = 500kHz ticks there are in 125ms (if doing 8 Hz packet rate)
         // (125 / 100) / 40 = 1/32
-        packet_interval = num_HFclock_ticks_in_100ms >> 5;
+        packet_interval = optical_vars.num_HFclock_ticks_in_100ms >> 5;
     
         // Debug prints
         //printf("LC_code=%d\r\n", LC_code);

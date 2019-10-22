@@ -4,15 +4,10 @@
 #include "bucket_o_functions.h"
 #include "radio.h"
 #include "rftimer.h"
+#include "scum_defs.h"
 
 extern unsigned int ASC[38];
 extern unsigned int cal_iteration;
-
-// Target radio LO freq = 2.4025G
-// Divide ratio is currently 480*2
-// Calibration counts for 100ms
-unsigned int LC_target = 250260;
-unsigned int LC_code = 698;
 
 // HF_CLOCK tuning settings
 unsigned int HF_CLOCK_fine = 17;
@@ -1098,7 +1093,7 @@ void initialize_mote(){
     set_asc_bit(1114);
         
     // Set initial LO frequency
-    LC_monotonic(LC_code);
+    LC_monotonic(DEFUALT_INIT_LC_CODE);
     
     // Init divider settings
     radio_init_divider(2000);

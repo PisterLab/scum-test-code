@@ -506,6 +506,11 @@
               <FileType>5</FileType>
               <FilePath>..\..\rftimer.h</FilePath>
             </File>
+            <File>
+              <FileName>scum_defs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\scum_defs.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
