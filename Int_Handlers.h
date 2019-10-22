@@ -261,7 +261,8 @@ void RF_ISR() {
 		//}
 		//printf("\n");
 		
-		GPIO_REG__OUTPUT &= ~(0x1);
+		// Set GPIO1 low to indicate RX is now done/off
+		GPIO_REG__OUTPUT &= ~(0x2);
 		
 		RX_DONE_timestamp = RFTIMER_REG__COUNTER;
 		
@@ -437,7 +438,7 @@ void RFTIMER_ISR() {
 	if (interrupt & 0x00000002){// printf("COMPARE1 MATCH\n");
 		
 	// Raise GPIO1 to indicate RX is on
-		GPIO_REG__OUTPUT |= 0x1;
+		GPIO_REG__OUTPUT |= 0x2;
 
 		// Turn on the analog part of RX
 		radio_rxEnable();
@@ -451,8 +452,9 @@ void RFTIMER_ISR() {
 	}
 	// Watchdog has expired - no packet received
 	if (interrupt & 0x00000008){// printf("COMPARE3 MATCH\n");
-					
-		GPIO_REG__OUTPUT &= ~(0x1);
+		
+		// Lower GPIO1 to indicate RX is off
+		GPIO_REG__OUTPUT &= ~(0x2);
 		
 		// Turn off the radio
 		radio_rfOff();
