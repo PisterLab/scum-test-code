@@ -1099,7 +1099,7 @@
         0x0000101c:    dbcc2c19    .,..    BLLE     0xff30c088 ; 0xff30c088
         0x00001020:    a091e7c9    ....    ADDSGE   lr,r1,r9,ASR #15
         0x00001024:    fafef002    ....    BLX      0xfffbd034 ; 0xfffbd034
-        0x00001028:    f9f2f001    ....    DCI      0xf9f2f001 ; ? Undefined
+        0x00001028:    ff2ef001    ....    DCI      0xff2ef001 ; ? Undefined
         0x0000102c:    f002a092    ....    DCI      0xf002a092 ; ? Undefined
         0x00001030:    a097faf9    ....    LDRSHGE  pc,[r7],r9 ; ?  
         0x00001034:    faf6f002    ....    BLX      0xffdbd044 ; 0xffdbd044

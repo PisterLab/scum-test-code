@@ -30,7 +30,7 @@ Section Cross References
     main.o(.text) refers to scm3_hardware_interface.o(.bss) for ASC
     main.o(.text) refers to scm3c_hardware_interface.o(.data) for packet_interval
     main.o(.text) refers to scm3c_hardware_interface.o(.text) for read_IF_estimate
-    main.o(.text) refers to lighthouse.o(.text) for classify_pulse
+    main.o(.text) refers to lighthouse.o(.text) for initialize_mote_lighthouse
     main.o(.text) refers to scm3c_hardware_interface.o(.bss) for RX_channel_codes
     retarget.o(.text) refers (Special) to use_no_semi_2.o(.text) for __use_no_semihosting
     retarget.o(.text) refers to noretval__2printf.o(.text) for __2printf

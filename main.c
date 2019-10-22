@@ -130,7 +130,7 @@ int main(void) {
 	// This function handles all the analog scan chain setup
 	//Do not call any other scm3C or scm3 hardware interface functions, they will mess up the analog scanchain functions
 	//This should be independent of all the random global variable settings 
-	initialize_mote();
+	initialize_mote_lighthouse();
 		
 	// Check CRC to ensure there were no errors during optical programming
 	printf("\n-------------------\n");
