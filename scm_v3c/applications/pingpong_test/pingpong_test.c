@@ -40,8 +40,13 @@ typedef struct {
             uint8_t         packet_len;
             int8_t          rxpk_rssi;
             uint8_t         rxpk_lqi;
+    
    volatile bool            rxpk_crc;
    volatile bool            doing_initial_packet_search;
+    
+   volatile uint32_t        IF_estimate;
+   volatile uint32_t        LQI_chip_errors;
+   volatile uint32_t        cdr_tau_value;
 } app_vars_t;
 
 app_vars_t app_vars;
@@ -178,7 +183,11 @@ void    cb_endFrame_tx(uint32_t timestamp){
     
     radio_rfOff();
     
-//    radio_frequency_housekeeping();
+//    radio_frequency_housekeeping(
+//        app_vars.IF_estimate,
+//        app_vars.LQI_chip_errors,
+//        app_vars.cdr_tau_value
+//    );
     
     radio_setFrequency(CHANNEL, FREQ_RX);
     radio_rxEnable();
@@ -227,6 +236,15 @@ void    cb_endFrame_rx(uint32_t timestamp){
                 app_vars.doing_initial_packet_search = false;
                 
             }
+            
+            // Only record IF estimate, LQI, and CDR tau for valid packets
+            app_vars.IF_estimate        = radio_getIFestimate();
+            app_vars.LQI_chip_errors    = radio_getLQIchipErrors();
+            
+            // Read the value of tau debug at end of packet
+            // Do this later in the ISR to make sure this register has settled before trying to read it
+            // (the register is on the adc clock domain)
+            app_vars.cdr_tau_value = radio_get_cdr_tau_value();
             
             // Prepare ack - for this demo code the contents are arbitrary
             // The OpenMote receiver is looking for 30B packets - still on channel 11

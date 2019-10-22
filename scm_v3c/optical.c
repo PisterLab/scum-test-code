@@ -25,10 +25,6 @@ extern unsigned int RC2M_superfine;
 extern unsigned int RC2M_fine;
 extern unsigned int RC2M_coarse;
 
-
-// Timer parameters 
-extern unsigned int packet_interval;
-
 typedef struct {
     uint8_t     optical_cal_iteration;
     uint8_t     optical_cal_finished;

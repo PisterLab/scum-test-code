@@ -5,7 +5,6 @@
 
 extern unsigned int ASC[38]; // initialize the scan chain in memory
 
-
 // -----------------------------------------------
 // scan chain setting modifications
 // -----------------------------------------------
@@ -16,7 +15,7 @@ void LC_FREQCHANGE(int coarse, int mid, int fine){
     //        coarse: 5-bit code (0-31) to control the ~15 MHz step frequency DAC
     //        mid: 5-bit code (0-31) to control the ~800 kHz step frequency DAC
     //        fine: 5-bit code (0-31) to control the ~100 kHz step frequency DAC
-    //  Outputs:
+    //    Outputs:
     //        none, it programs the LC radio frequency immediately
     
     // mask to ensure that the coarse, mid, and fine are actually 5-bit

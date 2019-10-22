@@ -10,28 +10,18 @@
 #include "rftimer.h"
 #include "bucket_o_functions.h"
 
+// raw_chip interrupt related
 unsigned int chips[100];
 unsigned int chip_index = 0;
 int raw_chips;
 int jj;
 unsigned int acfg3_val;
 
+extern unsigned int ASC[38];
+
 extern unsigned int IF_clk_target;
 extern unsigned int IF_coarse;
 extern unsigned int IF_fine;
-extern unsigned int ASC[38];
-
-unsigned int num_packets_received;
-unsigned int num_crc_errors;
-unsigned int wrong_lengths;
-unsigned int LQI_chip_errors;
-unsigned int num_valid_packets_received;
-unsigned int IF_estimate;
-
-unsigned int current_thresh = 0;
-extern unsigned int run_test_flag;
-extern unsigned int num_packets_to_test;
-signed short cdr_tau_value;
 
 extern unsigned int HF_CLOCK_fine;
 extern unsigned int HF_CLOCK_coarse;
@@ -39,31 +29,11 @@ extern unsigned int RC2M_superfine;
 extern unsigned int RC2M_fine;
 extern unsigned int RC2M_coarse;
 
-signed int SFD_timestamp = 0;
-signed int SFD_timestamp_n_1 = 0;
-signed int timing_correction = 0;
-extern unsigned short doing_initial_packet_search;
-
-// Timer parameters 
-extern unsigned int packet_interval;
-extern unsigned int radio_startup_time;
-extern unsigned int expected_RX_arrival;
-extern unsigned int ack_turnaround_time;
-extern unsigned int guard_time;
-extern unsigned short current_RF_channel;
-
-extern unsigned short do_debug_print;
-
 // These coefficients are used for filtering frequency feedback information
 // These are no necessarily the ideal values to use; situationally dependent
 unsigned char FIR_coeff[11] = {4,16,37,64,87,96,87,64,37,16,4};
 unsigned int IF_estimate_history[11] = {500,500,500,500,500,500,500,500,500,500};
 signed short cdr_tau_history[11] = {0};
-
-// How many packets must be received before adjusting RX clock rates
-// Should be at least as long as the FIR filters
-unsigned short frequency_update_rate = 15; 
-unsigned short frequency_update_cooldown_timer;
 
 //=========================== definition ======================================
 
@@ -78,13 +48,15 @@ unsigned short frequency_update_cooldown_timer;
 
 //===== for calibration
 
-#define IF_FREQ_UPDATE_TIMEOUT  10
-#define LO_FREQ_UPDATE_TIMEOUT  10
-#define FILTER_WINDOWS_LEN      11
-#define FIR_COEFF_SCALE         512 // determined by FIR_coeff
+#define IF_FREQ_UPDATE_TIMEOUT   10
+#define LO_FREQ_UPDATE_TIMEOUT   10
+#define FILTER_WINDOWS_LEN       11
+#define FIR_COEFF_SCALE          512 // determined by FIR_coeff
 
 #define LC_CODE_RX      700 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
 #define LC_CODE_TX      707 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
+
+#define FREQ_UPDATE_RATE        15
 
 //===== for recognizing panid
 
@@ -100,16 +72,20 @@ typedef struct {
     radio_capture_cbt   endFrame_tx_cb;
     radio_capture_cbt   startFrame_rx_cb;
     radio_capture_cbt   endFrame_rx_cb;
-    
-    uint8_t             radio_tx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
+            uint8_t     radio_tx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
                                                             ((aligned (4)));
-    uint8_t             radio_rx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
+            uint8_t     radio_rx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
                                                             ((aligned (4)));
-    uint8_t             current_frequency;
-    bool                crc_ok;
+            uint8_t     current_frequency;
+            bool        crc_ok;
+            
+            uint32_t    rx_channel_codes[NUM_CHANNELS];
+            uint32_t    tx_channel_codes[NUM_CHANNELS];
     
-    uint32_t            rx_channel_codes[NUM_CHANNELS];
-    uint32_t            tx_channel_codes[NUM_CHANNELS];
+    // How many packets must be received before adjusting RX clock rates
+    // Should be at least as long as the FIR filters
+    volatile uint16_t   frequency_update_rate;
+    volatile uint16_t   frequency_update_cooldown_timer;
 } radio_vars_t;
 
 radio_vars_t radio_vars;
@@ -136,6 +112,8 @@ void radio_init(void) {
     //skip building a channel table for now; hardcode LC values
     radio_vars.tx_channel_codes[0] = LC_CODE_TX;
     radio_vars.rx_channel_codes[0] = LC_CODE_RX;
+    
+    radio_vars.frequency_update_rate = FREQ_UPDATE_RATE;
 
     // Enable radio interrupts in NVIC
     ISER = 0x40;
@@ -280,7 +258,11 @@ void radio_rfOff(){
     ANALOG_CFG_REG__10 = 0x0000;
 }
 
-void radio_frequency_housekeeping(){
+void radio_frequency_housekeeping(
+    uint32_t IF_estimate,
+    uint32_t LQI_chip_errors,
+    int16_t cdr_tau_value
+) {
     
     signed int sum = 0;
     int jj;
@@ -293,7 +275,7 @@ void radio_frequency_housekeeping(){
     
     // When updating LO and IF clock frequncies, must wait long enough for the changes to propagate before changing again
     // Need to receive as many packets as there are taps in the FIR filter
-    frequency_update_cooldown_timer++;
+    radio_vars.frequency_update_cooldown_timer++;
     
     // FIR filter for cdr tau slope
     sum = 0;
@@ -328,7 +310,7 @@ void radio_frequency_housekeeping(){
     // The IF clock frequency steps are about 2000ppm, so make an adjustment only if the error is larger than 1000ppm
     // Must wait long enough between changes for FIR to settle (at least 10 packets)
     // Need to add some handling here in case the IF_fine code will rollover with this change (0 <= IF_fine <= 31)
-    if(frequency_update_cooldown_timer == frequency_update_rate){
+    if(radio_vars.frequency_update_cooldown_timer == radio_vars.frequency_update_rate){
         if(chip_rate_error_ppm_filtered > 1000) {
             set_IF_clock_frequency(IF_coarse, IF_fine++, 0);
         }
@@ -372,7 +354,7 @@ void radio_frequency_housekeeping(){
         // These hysteresis bounds (+/- X) have not been optimized
         // Must wait long enough between changes for FIR to settle (at least as many packets as there are taps in the FIR)
         // For now, assume that TX/RX should both be updated, even though the IF information is only from the RX code
-        if(frequency_update_cooldown_timer == frequency_update_rate){
+        if(radio_vars.frequency_update_cooldown_timer == radio_vars.frequency_update_rate){
             if(IF_est_filtered > 520){
                 radio_vars.rx_channel_codes[radio_vars.current_frequency - 11]++; 
                 radio_vars.tx_channel_codes[radio_vars.current_frequency - 11]++; 
@@ -384,7 +366,7 @@ void radio_frequency_housekeeping(){
             
             //printf("--%d - %d\r\n",IF_estimate,IF_est_filtered);
 
-            frequency_update_cooldown_timer = 0;
+            radio_vars.frequency_update_cooldown_timer = 0;
         }
     }
 }
@@ -415,6 +397,18 @@ void radio_disable_interrupts(void){
 
 bool radio_getCrcOk(void){
     return radio_vars.crc_ok;
+}
+
+uint32_t radio_getIFestimate(void){
+    return read_IF_estimate();
+}
+
+uint32_t radio_getLQIchipErrors(void){
+    return ANALOG_CFG_REG__21;
+}
+
+int16_t radio_get_cdr_tau_value(void){
+    return ANALOG_CFG_REG__25;
 }
 
 //=========================== private =========================================

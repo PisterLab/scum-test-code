@@ -33,12 +33,18 @@ void radio_enable_interrupts(void);
 void radio_disable_interrupts(void);
 
 //==== get/set
-bool radio_getCrcOk(void);
+bool        radio_getCrcOk(void);
+uint32_t    radio_getIFestimate(void);
+uint32_t    radio_getLQIchipErrors(void);
+int16_t     radio_get_cdr_tau_value(void);
 
 //==== frequency
-void radio_frequency_housekeeping(void);
+void radio_frequency_housekeeping(
+    uint32_t IF_estimate,
+    uint32_t LQI_chip_errors,
+    int16_t cdr_tau_value
+);
 void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx);
-
 void radio_build_channel_table(uint32_t channel_11_LC_code);
 
 //==== tx

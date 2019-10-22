@@ -7,7 +7,6 @@
 #include "rftimer.h"
 #include <string.h>
 
-extern unsigned short current_RF_channel;
 // ========================== definition ======================================
 
 #define MINIMUM_COMPAREVALE_ADVANCE  5
