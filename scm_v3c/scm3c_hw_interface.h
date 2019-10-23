@@ -62,7 +62,6 @@ void radio_enable_PA(void);
 void radio_enable_LO(void);
 void radio_enable_RX(void);
 void read_counters_3B(unsigned int* count_2M, unsigned int* count_LC, unsigned int* count_adc);
-void do_fake_cal(void);
 void packet_test_loop(unsigned int num_packets);
 void set_IF_stg3gm_ASC(unsigned int Igm, unsigned int Qgm);
 void set_IF_gain_ASC(unsigned int Igain, unsigned int Qgain);
@@ -87,7 +86,6 @@ unsigned int flip_lsb8(unsigned int in);
 void update_PN31_byte(unsigned int* current_lfsr);
 void set_asc_bit(unsigned int position);
 void clear_asc_bit(unsigned int position);
-
 
 //==== from bucket_o_functions.h
 

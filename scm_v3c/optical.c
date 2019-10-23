@@ -47,6 +47,10 @@ uint8_t optical_getCalibrationFinshed(void) {
     return optical_vars.optical_cal_finished;
 }
 
+void optical_enable(void){
+    ISER = 0x0800;
+}
+
 //=========================== interrupt =======================================
 
 // This interrupt goes off every time 32 new bits of data have been shifted into the optical register

@@ -125,7 +125,7 @@ int main(void) {
     ANALOG_CFG_REG__16 = 0x1;
     
     // Enable optical SFD interrupt for optical calibration
-    ISER = 0x0800;
+    optical_enable();
     
     // Wait for optical cal to finish
     while(optical_getCalibrationFinshed() == 0);

@@ -11,7 +11,9 @@
 
 //=========================== prototypes ======================================
 
+//==== admin
 void optical_init(void);
 uint8_t optical_getCalibrationFinshed(void);
+void optical_enable(void);
 
 #endif

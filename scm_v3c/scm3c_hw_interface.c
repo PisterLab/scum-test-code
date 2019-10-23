@@ -1445,7 +1445,6 @@ void set_asc_bit(unsigned int position){
     
     // Possibly more efficient
     //scm3c_hw_interface_vars.ASC[position/32] |= 1 << (position%32);
-
 }
 
 void clear_asc_bit(unsigned int position){
@@ -1457,9 +1456,7 @@ void clear_asc_bit(unsigned int position){
     scm3c_hw_interface_vars.ASC[index] &= ~(0x80000000 >> (position - (index << 5)));
     
     // Possibly more efficient
-    //scm3c_hw_interface_vars.ASC[position/32] &= ~(1 << (position%32));                
-
-
+    //scm3c_hw_interface_vars.ASC[position/32] &= ~(1 << (position%32));
 }
 
 
