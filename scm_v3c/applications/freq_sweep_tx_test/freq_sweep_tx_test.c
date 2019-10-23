@@ -25,7 +25,7 @@ side.
 #define LENGTH_PACKET       125+LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_TX_PKT          20+LENGTH_CRC  ///< length of tx packet
 #define CHANNEL             11             ///< 11=2.405GHz
-#define TIMER_PERIOD        1500           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD        2000           ///< 500 = 1ms@500kHz
 
 #define NUMPKT_PER_CFG      3
 #define STEPS_PER_CONFIG    32
@@ -136,10 +136,10 @@ int main(void) {
         for (cfg_coarse=0;cfg_coarse<STEPS_PER_CONFIG;cfg_coarse++){
             for (cfg_middle=0;cfg_middle<STEPS_PER_CONFIG;cfg_middle++){
                 for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine++){
-                    printf(
-                        "frame configured: cfg_coarse=%d, cfg_middle=%d, cfg_fine=%d\r\n", 
-                        cfg_coarse,cfg_middle,cfg_fine
-                    );
+//                    printf(
+//                        "coarse=%d, middle=%d, fine=%d\r\n", 
+//                        cfg_coarse,cfg_middle,cfg_fine
+//                    );
                     j = sizeof(payload_identity)-1;
                     app_vars.packet[j++] = '0' + cfg_coarse/10;
                     app_vars.packet[j++] = '0' + cfg_coarse%10;
