@@ -68,7 +68,7 @@ void initialize_mote_lighthouse(){
 	//GPO_enables(0xFFFF);
 	
 	//Set GPIOs except interrupts as outputs
-	GPO_enables(~0x0100);
+	GPO_enables(0x000F);
 
 	// Set HCLK source as HF_CLOCK
 	set_asc_bit(1147);
