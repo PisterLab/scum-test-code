@@ -3137,7 +3137,7 @@
         0x00002ff4:    e03d6023    #`=.    EORS     r6,sp,r3,LSR #32
         0x00002ff8:    000003e9    ....    ANDEQ    r0,r0,r9,ROR #7
         0x00002ffc:    522c0000    ..,R    EORPL    r0,r12,#0
-        0x00003000:    0000ffff    ....    STRDEQ   pc,r0,[r0],-pc ; ?  
+        0x00003000:    fffffeff    ....    DCI      0xfffffeff ; ? Undefined
         0x00003004:    00000229    )...    ANDEQ    r0,r0,r9,LSR #4
         0x00003008:    200052b8    .R.     STRHCS   r5,[r0],-r8 ; ?  
         0x0000300c:    fffc0000    ....    DCI      0xfffc0000 ; ? Undefined
