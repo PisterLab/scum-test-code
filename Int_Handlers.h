@@ -67,6 +67,7 @@ extern unsigned short current_RF_channel;
 
 extern unsigned short do_debug_print;
 
+static interrupt_state = 0;
 
 void UART_ISR(){	
 	static char i=0;
@@ -714,12 +715,20 @@ void INTERRUPT_GPIO3_ISR(){
 	printf("External Interrupt GPIO3 triggered\n");
 }
 void INTERRUPT_GPIO8_ISR(){
-	printf("External Interrupt GPIO8 triggered\n");
-	send_lh_packet(2,2, A, AZ);
+	ICPR = 0x0000;
+		if (interrupt_state == 0 ){		
+			printf("External Interrupt GPIO8 triggered\n");
+			send_lh_packet(2,2, A, AZIMUTH);
+			interrupt_state = 1;
+		}
 }
 void INTERRUPT_GPIO9_ISR(){
-	printf("External Interrupt GPIO9 triggered\n");
-	send_lh_packet(1, 1, A, AZ);
+	ICPR = 0x0000;
+	if(interrupt_state != 0){
+		printf("External Interrupt GPIO9 triggered\n");
+		send_lh_packet(1, 1, A, AZIMUTH);
+		interrupt_state = 0;
+	}
 }
 void INTERRUPT_GPIO10_ISR(){
 	printf("External Interrupt GPIO10 triggered\n");
