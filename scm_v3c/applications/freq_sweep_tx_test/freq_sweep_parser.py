@@ -70,7 +70,7 @@ if __name__ == '__main__':
                 'freq_offset':  [],
                 'linear_config':[]
             }
-            with open(file,'r') as lf:
+            with open(file,'rb') as lf:
                 for line in lf:
                     index = line.find('Ptest.')
                     if index != -1:
@@ -78,7 +78,7 @@ if __name__ == '__main__':
                         if freq_offset != None and linear_config != None:
                             data[file]['freq_offset'].append(freq_offset)
                             data[file]['linear_config'].append(linear_config)
-    
+                
     for key, item in data.items():
         fig, ax = plt.subplots(figsize=(16, 4))
         ax.scatter(
@@ -90,13 +90,13 @@ if __name__ == '__main__':
         ax.set_xlabel('coarse.middle.fine')
         
         
-        # x_s_lim   = 0
-        # x_e_lim   = NUM_CONFIG
-        # SCALE     = 1000
+        x_s_lim   = 0
+        x_e_lim   = NUM_CONFIG
+        SCALE     = 1000
         
-        x_s_lim   = 23*32*32
-        x_e_lim   = 30*32*32
-        SCALE     = 200
+        # x_s_lim   = 23*32*32
+        # x_e_lim   = 30*32*32
+        # SCALE     = 200
         
         ax.set_xlim(x_s_lim,x_e_lim)
         ax.set_ylim(-60,60)
