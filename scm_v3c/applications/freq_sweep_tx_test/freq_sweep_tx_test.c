@@ -149,6 +149,7 @@ int main(void) {
                     app_vars.packet[j++] = '.';
                     app_vars.packet[j++] = '0' + cfg_fine/10;
                     app_vars.packet[j++] = '0' + cfg_fine%10;
+                    app_vars.packet[j++] = '.';
                     
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         
