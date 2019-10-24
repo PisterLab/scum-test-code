@@ -179,7 +179,7 @@ int main(void) {
 	ICER = 0xFFFF;
 	
 	//enable gpio 8 and gpio 9 interrupts (interrupts 1 and 2)
-	//ISER = 0x6000;
+	ISER = 0x6000;
 	
 	
 		// Reset RF Timer count register	
