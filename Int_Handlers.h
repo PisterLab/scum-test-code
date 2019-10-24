@@ -716,11 +716,11 @@ void INTERRUPT_GPIO3_ISR(){
 }
 void INTERRUPT_GPIO8_ISR(){
 	ICPR = 0x0000;
-		if (interrupt_state == 0 ){		
+		//if (interrupt_state == 0 ){		
 			printf("External Interrupt GPIO8 triggered\n");
 			send_lh_packet(2,2, A, AZIMUTH);
 			interrupt_state = 1;
-		}
+		//}
 }
 void INTERRUPT_GPIO9_ISR(){
 	ICPR = 0x0000;
