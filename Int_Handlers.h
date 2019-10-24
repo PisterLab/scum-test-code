@@ -5,6 +5,7 @@
 #include "scm3_hardware_interface.h"
 #include "scum_radio_bsp.h"
 #include "bucket_o_functions.h"
+#include "lighthouse.h"
 
 extern char send_packet[127];
 extern char recv_packet[130];
@@ -714,9 +715,11 @@ void INTERRUPT_GPIO3_ISR(){
 }
 void INTERRUPT_GPIO8_ISR(){
 	printf("External Interrupt GPIO8 triggered\n");
+	send_lh_packet(2,2, A, AZ);
 }
 void INTERRUPT_GPIO9_ISR(){
 	printf("External Interrupt GPIO9 triggered\n");
+	send_lh_packet(1, 1, A, AZ);
 }
 void INTERRUPT_GPIO10_ISR(){
 	printf("External Interrupt GPIO10 triggered\n");

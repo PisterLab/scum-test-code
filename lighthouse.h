@@ -1,3 +1,6 @@
+#ifndef LIGHTHOUSE_HEADER
+#define LIGHTHOUSE_HEADER
+
 #include <stdint.h>
 #include <stdbool.h>
 typedef enum pulse_type_t{AZ=0,AZ_SKIP=1,EL=2,EL_SKIP=3,LASER=4,INVALID = 5} pulse_type_t;
@@ -38,9 +41,12 @@ void debounce_gpio(unsigned short gpio, unsigned short * deb_gpio, unsigned int 
 void initialize_mote_lighthouse(void);
 void radio_init_tx_lighthouse(uint8_t lo_supply_v, uint8_t lc_supply_c, uint8_t pa_supply_v, bool lo_cortex_ctrl, bool div_cortex_ctrl);
 void radio_init_rx_MF_lighthouse(void);
+void send_lh_packet(unsigned int sync_time, unsigned int laser_time, lh_id_t lighthouse, angle_type_t angle_type);
 
 //defines for initialization
 
 #define LC_CURRENT_LH 100
 #define PA_SUPPLY_LH 63
 #define LO_SUPPLY_LH 64
+
+#endif
