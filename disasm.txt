@@ -2916,8 +2916,8 @@
         0x00002c80:    2300fb0f    ...#    MOVCS    pc,#0xb0f ; ?  
         0x00002c84:    4619461a    .F.F    SADD16MI r4,r9,r10 ; ?  
         0x00002c88:    f7fe4618    .F..    DCI      0xf7fe4618 ; ? Undefined
-        0x00002c8c:    20fffab2    ...     LDRHCS   pc,[pc,#162] ; ?   ; [0x2d36] = 0x211f
-        0x00002c90:    f7fe3009    .0..    DCI      0xf7fe3009 ; ? Undefined ; ?  
+        0x00002c8c:    2061fab2    ..a     STRHTCS  pc,[r1],#-0xa2 ; ?  
+        0x00002c90:    f7fe00c0    ....    DCI      0xf7fe00c0 ; ? Undefined ; ?  
         0x00002c94:    200ffb82    ...     ANDCS    pc,pc,r2,LSL #23
         0x00002c98:    fb5ff7fe    .._.    BLX      0x1800c9a ; 0x1800c9a
         0x00002c9c:    309248d6    .H.0    LDRSBCC  r4,[r2],r6 ; ?  
