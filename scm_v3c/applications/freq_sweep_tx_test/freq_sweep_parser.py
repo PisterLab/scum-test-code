@@ -1,12 +1,13 @@
 import matplotlib 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
-matplotlib.rcParams.update({'font.size': 15})
+matplotlib.rcParams.update({'font.size': 12})
 
 # =========================== variables =======================================
 
-LOG_FILE                    = 'freq_sweep_output.txt'
+LOG_FILE_START                    = 'freq_sweep_output'
 
 
 NUM_PKT_PER_SETTING         = 3
@@ -17,7 +18,23 @@ DURATION_PER_PKT            = 0.005 # second
 NUM_CONFIG                  = 32*32*32
 RUNNING_DURATION            = NUM_CONFIG*DURATION_PER_PKT*NUM_PKT_PER_SETTING
 
-SCALE                       = 1000
+'''
+data = {
+    'channel_11':
+        {
+            'freq_offset'   : [],
+            'linear_confg'  : []
+        },
+    'channel_12':
+        {
+            'freq_offset'   : [],
+            'linear_confg'  : []
+        },
+        ...
+}
+'''
+# data structure
+data = {}
         
 # =========================== helper ===========================================
 
@@ -33,6 +50,7 @@ def converter_config_text_2_linear(text_config):
     freq_offset   = None
     try:
         ptest, coarse, middle, fine = text_config.split('.')
+        assert int(coarse) < 32 and int(middle) < 32 and int(fine) < 32
         linear_config = (int(coarse) << 10) | (int(middle) << 5) | int(fine)
         freq_offset   = int(ptest.split(' ')[0])
     except:
@@ -46,29 +64,50 @@ if __name__ == '__main__':
     freq_offset_data = []
     config_data      = []
 
-    with open(LOG_FILE,'r') as lf:
-        for line in lf:
-            index = line.find('Ptest.')
-            if index != -1:
-                freq_offset, linear_config = converter_config_text_2_linear(line)
-                if freq_offset != None and linear_config != None:
-                    freq_offset_data.append(freq_offset)
-                    config_data.append(linear_config)
-                    print freq_offset, linear_config
+    for file in os.listdir("./"):
+        if file.startswith(LOG_FILE_START) and file.endswith('.txt'):
+            data[file] = {
+                'freq_offset':  [],
+                'linear_config':[]
+            }
+            with open(file,'r') as lf:
+                for line in lf:
+                    index = line.find('Ptest.')
+                    if index != -1:
+                        freq_offset, linear_config = converter_config_text_2_linear(line)
+                        if freq_offset != None and linear_config != None:
+                            data[file]['freq_offset'].append(freq_offset)
+                            data[file]['linear_config'].append(linear_config)
     
-    fig, ax = plt.subplots()
-    ax.scatter(config_data, freq_offset_data, alpha=0.6)
+    for key, item in data.items():
+        fig, ax = plt.subplots(figsize=(16, 4))
+        ax.scatter(
+            item['linear_config'], item['freq_offset'],
+            label="channel {0}".format(key.split('_')[-1].split('.')[0])
+        )
     
-    ax.set_ylabel('FREQOFFSET on channel 11 (step 7800Hz)')
-    ax.set_xlabel('coarse.middle.fine')
-    
-    ax.set_xlim(0,NUM_CONFIG)
-    
-    xticks = [i*SCALE for i in range(NUM_CONFIG/SCALE)]
-    xlabel = [converter_config_linear_2_text(i*SCALE) for i in range(NUM_CONFIG/SCALE)]
-
-    ax.set_xticks(xticks)
-    ax.set_xticklabels(xlabel,rotation = 45)
-    
-    ax.grid(True)
-    plt.show()
+        ax.set_ylabel('FREQOFFSET (step 7800Hz)')
+        ax.set_xlabel('coarse.middle.fine')
+        
+        
+        # x_s_lim   = 0
+        # x_e_lim   = NUM_CONFIG
+        # SCALE     = 1000
+        
+        x_s_lim   = 23*32*32
+        x_e_lim   = 30*32*32
+        SCALE     = 200
+        
+        ax.set_xlim(x_s_lim,x_e_lim)
+        ax.set_ylim(-60,60)
+        
+        xticks = [x_s_lim+i*SCALE for i in range((x_e_lim-x_s_lim)/SCALE)]
+        xlabel = [converter_config_linear_2_text(i) for i in xticks]
+        
+        ax.set_xticks(xticks)
+        ax.set_xticklabels(xlabel,rotation = 45)
+        
+        ax.legend(markerscale=0.7, scatterpoints=1)
+        ax.grid(True)
+        plt.tight_layout()
+        plt.savefig("{0}.png".format(key.split('.')[0]))
