@@ -989,7 +989,7 @@
         0x00000e64:    f002a08b    ....    DCI      0xf002a08b ; ? Undefined
         0x00000e68:    486efab7    ..nH    STMDAMI  lr,{r0-r2,r4,r5,r7,r9,r11-pc}^ ; ?  
         0x00000e6c:    4929303f    ?0)I    STMDBMI  r9!,{r0-r5,r12,sp}
-        0x00000e70:    20036008    .`.     ANDCS    r6,r3,r8
+        0x00000e70:    200f6008    .`.     ANDCS    r6,pc,r8
         0x00000e74:    49270300    ..'I    STMDBMI  r7!,{r8,r9}
         0x00000e78:    60083980    .9.`    ANDVS    r3,r8,r0,LSL #19
         0x00000e7c:    21212000    . !!    MSRCS    CPSR_c,r0 ; ?  
