@@ -95,7 +95,7 @@ if __name__ == '__main__':
         SCALE     = 1000
         
         # x_s_lim   = 23*32*32
-        # x_e_lim   = 30*32*32
+        # x_e_lim   = 29*32*32
         # SCALE     = 200
         
         ax.set_xlim(x_s_lim,x_e_lim)
