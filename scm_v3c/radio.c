@@ -194,6 +194,12 @@ void radio_txNow(){
 void radio_rxEnable(){
     
     // Turn on LO, IF, and AUX LDOs via memory mapped register
+    
+    // Aux is inverted (0 = on)
+    // Memory-mapped LDO control
+    // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
+    // For MUX signals, '1' = FSM control, '0' = memory mapped control
+    // For EN signals, '1' = turn on LDO
     ANALOG_CFG_REG__10 = 0x0018;
     
     // Enable polyphase and mixers via memory-mapped I/O

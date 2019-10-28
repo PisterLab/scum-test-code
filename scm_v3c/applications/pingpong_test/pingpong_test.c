@@ -113,16 +113,10 @@ int main(void) {
     printf("Calibrating frequencies...\r\n");
     
     // Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
-    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
-    // Aux is inverted (0 = on)
-    // Memory-mapped LDO control
-    // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
-    // For MUX signals, '1' = FSM control, '0' = memory mapped control
-    // For EN signals, '1' = turn on LDO
-    ANALOG_CFG_REG__10 = 0x18;
     
-    // Enable polyphase and mixers via memory-mapped I/O (for receive mode)
-    ANALOG_CFG_REG__16 = 0x1;
+    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
+    // by calling radio rxEnable
+    radio_rxEnable();
     
     // Enable optical SFD interrupt for optical calibration
     optical_enable();
