@@ -129,11 +129,8 @@ def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.
             timeout=.5)
 
         # After programming, several lines are sent from SCM over UART
-        print(uart_ser.readline())
-        print(uart_ser.readline())
-        print(uart_ser.readline())
-        print(uart_ser.readline())
-        print(uart_ser.readline())
+        for _ in range(5):
+            print(uart_ser.readline())
 
         uart_ser.close()
 
