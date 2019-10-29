@@ -1,1 +1,0 @@
-void sara_start(void);
