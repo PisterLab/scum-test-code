@@ -68,10 +68,11 @@ int main(void) {
     
     memset(&app_vars,0,sizeof(app_vars_t));
     
-    scm3c_hw_interface_init();
-    optical_init();
-    radio_init();
-    rftimer_init();
+    printf("Initializing...");
+        
+    // Set up mote configuration
+    // This function handles all the analog scan chain setup
+    initialize_mote();
     
     radio_setStartFrameTxCb(cb_startFrame_tx);
     radio_setEndFrameTxCb(cb_endFrame_tx);
@@ -83,12 +84,6 @@ int main(void) {
     // Disable interrupts for the radio and rftimer
     radio_disable_interrupts();
     rftimer_disable_interrupts();
-    
-    printf("Initializing...");
-        
-    // Set up mote configuration
-    // This function handles all the analog scan chain setup
-    initialize_mote();
     
     // Check CRC to ensure there were no errors during optical programming
     printf("\r\n-------------------\r\n");

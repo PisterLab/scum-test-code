@@ -4,6 +4,7 @@
 #include "memory_map.h"
 #include "scm3c_hw_interface.h"
 #include "radio.h"
+#include "optical.h"
 #include "rftimer.h"
 #include "scum_defs.h"
 
@@ -1132,6 +1133,11 @@ void set_sys_clk_secondary_freq(unsigned int coarse, unsigned int fine){
 void initialize_mote(){
 
     int t;
+
+    scm3c_hw_interface_init();
+    optical_init();
+    radio_init();
+    rftimer_init();
     
     //--------------------------------------------------------
     // SCM3C Analog Scan Chain Initialization
