@@ -13,18 +13,6 @@ def syscall(cmd):
     print '>>> {0}'.format(cmd)
     os.system(cmd)
     
-# ==== variables
-    
-@pytest.fixture
-def serial_openmote():
-    port_openmote   = os.environ.get('PORT_OPENMOTE')
-    return serialReader(port_openmote, BAUDRATE_OPENMOTE)
-    
-@pytest.fixture
-def serial_scum():
-    port_scum       = os.environ.get('PORT_SCUM')
-    return serialReader(port_scum, BAUDRATE_SCUM)
-    
 # ==== tests
 
 def test_compilation():
@@ -32,7 +20,7 @@ def test_compilation():
     result = syscall("%KEIL_UV_DIR%\\UV4.exe -b scm_v3c\\applications\\freq_sweep_tx\\freq_sweep_tx.uvprojx")
     assert result == None
     
-def test_bootload(serial_openmote, serial_scum):
+def test_bootload():
     syscall("echo bootload...")
     
     result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\freq_sweep_tx\\freq_sweep_tx.bin")
