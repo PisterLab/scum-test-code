@@ -382,9 +382,9 @@
           <GroupName>app</GroupName>
           <Files>
             <File>
-              <FileName>freq_sweep_tx_test.c</FileName>
+              <FileName>freq_sweep_tx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\freq_sweep_tx_test.c</FilePath>
+              <FilePath>.\freq_sweep_tx.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -455,16 +455,6 @@
               <FileName>uart.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\uart.h</FilePath>
-            </File>
-            <File>
-              <FileName>clocks.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\clocks.c</FilePath>
-            </File>
-            <File>
-              <FileName>clocks.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\clocks.h</FilePath>
             </File>
             <File>
               <FileName>rftimer.c</FileName>
