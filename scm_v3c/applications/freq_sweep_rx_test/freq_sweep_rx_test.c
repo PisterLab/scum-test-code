@@ -160,6 +160,8 @@ int main(void) {
 
 void    cb_endFrame_rx(uint32_t timestamp){
     
+    uint8_t i;
+    
     radio_getReceivedFrame(
         &(app_vars.packet[0]),
         &app_vars.packet_len,
@@ -176,7 +178,11 @@ void    cb_endFrame_rx(uint32_t timestamp){
         app_vars.LQI_chip_errors    = radio_getLQIchipErrors();
         
         printf(
-            "pkt received .%d.%d.%d.\r\n",
+            "pkt received %c%c%c%c.%d.%d.%d.\r\n",
+            app_vars.packet[0],
+            app_vars.packet[1],
+            app_vars.packet[2],
+            app_vars.packet[3],
             app_vars.cfg_coarse,
             app_vars.cfg_middle,
             app_vars.cfg_fine
