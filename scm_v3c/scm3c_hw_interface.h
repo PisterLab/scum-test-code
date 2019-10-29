@@ -35,6 +35,8 @@ void scm3c_hw_interface_set_IF_clk_target(uint32_t value);
 void scm3c_hw_interface_set_IF_coarse(uint32_t value);
 void scm3c_hw_interface_set_IF_fine(uint32_t value);
 
+void scm3c_hw_interface_set_asc(uint32_t* asc_profile);
+
 //==== from scm3c_hardware_interface.h
 unsigned reverse(unsigned x);
 unsigned int crc32c(unsigned char *message, unsigned int length);

@@ -139,6 +139,14 @@ void scm3c_hw_interface_set_IF_fine(uint32_t value){
     scm3c_hw_interface_vars.IF_fine = value;
 }
 
+void scm3c_hw_interface_set_asc(uint32_t* asc_profile){
+    memcpy(
+        &scm3c_hw_interface_vars.ASC[0], 
+        asc_profile,
+        ASC_LEN*sizeof(uint32_t)
+    );
+}
+
 //==== from scm3c_hardware_interface.h
 
 // Reverses (reflects) bits in a 32-bit word.
