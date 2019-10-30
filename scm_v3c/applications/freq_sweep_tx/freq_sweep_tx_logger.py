@@ -75,11 +75,14 @@ if __name__ == '__main__':
     
     print "running for ", RUNNING_DURATION, 's...'
     
-    for progress in range(NUM_CONFIG):
+    # temp change for testing
+    time.sleep(5)
+    
+    # for progress in range(NUM_CONFIG):
         
-        time.sleep(DURATION_PER_PKT*NUM_PKT_PER_SETTING)
-        sys.stdout.write("{0}/{1}\r".format(progress+1, NUM_CONFIG))
-        sys.stdout.flush()
+        # time.sleep(DURATION_PER_PKT*NUM_PKT_PER_SETTING)
+        # sys.stdout.write("{0}/{1}\r".format(progress+1, NUM_CONFIG))
+        # sys.stdout.flush()
     
     serial_openmote.close()
     # serial_scum.close()
