@@ -4,9 +4,6 @@ import time
 
 # =========================== variables =======================================
 
-LOG_FILE                    = 'freq_sweep_output.txt'
-TARGET_STRING               = 'Ptest'
-
 # =========================== test ============================================
 
 def syscall(cmd):
@@ -36,9 +33,6 @@ def test_logData():
 
     result = syscall("python scm_v3c\\applications\\freq_sweep_tx\\freq_sweep_tx_logger.py")
     assert result == None
-    
-    with open(LOG_FILE,'rb') as f:
-        assert TARGET_STRING in f.read()
         
 def test_verifyResult():
 

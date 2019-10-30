@@ -98,7 +98,12 @@ if __name__ == '__main__':
                             data[file]['linear_config'].append(linear_config)
                             if rssi != None:
                                 data[file]['rssi'].append(rssi)
-                            
+                                
+    # validating the dataset
+    
+    for file, data in data.items():
+        assert (len(data['freq_offset'])>0 and len(data['linear_config'])>0)
+        
     for key, item in data.items():
         
         for item_key in item:
