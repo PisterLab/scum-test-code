@@ -186,7 +186,8 @@ void    cb_endFrame_rx(uint32_t timestamp){
         app_vars.LQI_chip_errors    = radio_getLQIchipErrors();
         
         printf(
-            "pkt received %c%c%c%c.%d.%d.%d\r\n",
+            "pkt received on ch%d %c%c%c%c.%d.%d.%d\r\n",
+            app_vars.packet[4],
             app_vars.packet[0],
             app_vars.packet[1],
             app_vars.packet[2],
