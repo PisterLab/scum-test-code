@@ -457,16 +457,6 @@
               <FilePath>..\..\uart.h</FilePath>
             </File>
             <File>
-              <FileName>clocks.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\clocks.c</FilePath>
-            </File>
-            <File>
-              <FileName>clocks.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\clocks.h</FilePath>
-            </File>
-            <File>
               <FileName>rftimer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\rftimer.c</FilePath>
