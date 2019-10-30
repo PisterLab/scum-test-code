@@ -10,6 +10,7 @@ matplotlib.rcParams.update({'font.size': 12})
 LOG_FILE_START                    = 'freq_sweep_rx_output'
 RSSI_READ_INDICATOR               = 'with_rssi'
 
+result_to_write                   = 'freq_sweep_rx_result.json'
 
 NUM_PKT_PER_SETTING         = 3
 
@@ -99,7 +100,16 @@ if __name__ == '__main__':
                                 data[file]['freq_offset'].append(freq_offset)
                             if rssi != None:
                                 data[file]['rssi'].append(rssi)
-                            
+                                
+    # validating the dataset
+    
+    for file, file_data in data.items():
+        assert len(file_data['linear_config'])>0
+        
+    # save data to file
+    with open(result_to_write,'w') as json_file:
+        json.dump(data,json_file)
+        
     for key, item in data.items():
         
         fig, ax = plt.subplots(figsize=(16, 4))
