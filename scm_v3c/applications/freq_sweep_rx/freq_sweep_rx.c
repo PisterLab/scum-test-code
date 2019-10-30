@@ -20,11 +20,11 @@ side.
 
 //=========================== defines =========================================
 
-#define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
-#define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
+#define CRC_VALUE           (*((unsigned int *) 0x0000FFFC))
+#define CODE_LENGTH         (*((unsigned int *) 0x0000FFF8))
     
-#define LENGTH_PACKET   125+LENGTH_CRC ///< maximum length is 127 bytes
-#define LEN_RX_PKT      20+LENGTH_CRC  ///< length of rx packet
+#define LENGTH_PACKET       125+LENGTH_CRC ///< maximum length is 127 bytes
+#define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
 
 #define TIMER_PERIOD        7500           ///< 500 = 1ms@500kHz
 
@@ -43,11 +43,11 @@ typedef struct {
     
     volatile    bool            rxpk_crc;
     volatile    bool            changeConfig;
+    volatile    bool            rxFrameStarted;
     
     volatile    uint32_t        IF_estimate;
     volatile    uint32_t        LQI_chip_errors;
     volatile    uint32_t        cdr_tau_value;
-    
     
                 uint8_t         cfg_coarse;
                 uint8_t         cfg_middle;
@@ -58,6 +58,7 @@ app_vars_t app_vars;
 
 //=========================== prototypes ======================================
 
+void     cb_startFrame_rx(uint32_t timestamp);
 void     cb_endFrame_rx(uint32_t timestamp);
 void     cb_timer(void);
 
@@ -80,6 +81,7 @@ int main(void) {
     // This function handles all the analog scan chain setup
     initialize_mote();
 
+    radio_setStartFrameRxCb(cb_startFrame_rx);
     radio_setEndFrameRxCb(cb_endFrame_rx);
     rftimer_set_callback(cb_timer);
     
@@ -140,7 +142,8 @@ int main(void) {
 //                    );
                     
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
-                        
+                        while(app_vars.rxFrameStarted == true);
+                        radio_rfOff();
                         LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_middle,app_vars.cfg_fine);
                         radio_rxEnable();
                         radio_rxNow();
@@ -157,6 +160,11 @@ int main(void) {
 //=========================== public ==========================================
 
 //=========================== private =========================================
+
+void     cb_startFrame_rx(uint32_t timestamp){
+    
+    app_vars.rxFrameStarted = true;
+}
 
 void    cb_endFrame_rx(uint32_t timestamp){
     
@@ -191,6 +199,8 @@ void    cb_endFrame_rx(uint32_t timestamp){
     
     radio_rxEnable();
     radio_rxNow();
+    
+    app_vars.rxFrameStarted = false;
     
 }
 
