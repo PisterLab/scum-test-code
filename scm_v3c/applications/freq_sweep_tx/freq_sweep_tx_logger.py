@@ -13,7 +13,7 @@ BAUDRATE_SCUM               = 19200
 pytest.output_openmote      = ''
 pytest.output_scum          = ''
 
-LOG_FILE                    = 'freq_sweep_output.txt'
+LOG_FILE                    = 'freq_sweep_output_with_rssi_channel_11.txt'
 
 
 NUM_PKT_PER_SETTING         = 3
