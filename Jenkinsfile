@@ -12,6 +12,7 @@ pipeline {
     post {
         always {
             junit 'report.xml'
+            archiveArtifacts artifacts: '*.png', onlyIfSuccessful: true
             cleanWs()
         }
     }
