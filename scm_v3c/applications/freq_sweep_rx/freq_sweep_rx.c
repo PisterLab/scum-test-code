@@ -33,8 +33,6 @@ side.
 
 //=========================== variables =======================================
 
-static const uint8_t payload_identity[] = "test.";
-
 typedef struct {
                 uint8_t         packet[LENGTH_PACKET];
                 uint8_t         packet_len;
