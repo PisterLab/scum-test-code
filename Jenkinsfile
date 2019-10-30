@@ -12,6 +12,7 @@ pipeline {
     post {
         always {
             junit 'report.xml'
+            cleanWs()
         }
     }
 }
