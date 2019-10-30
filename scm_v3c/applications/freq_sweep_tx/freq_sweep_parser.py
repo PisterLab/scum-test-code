@@ -2,6 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import json
 
 matplotlib.rcParams.update({'font.size': 12})
 
@@ -10,6 +11,7 @@ matplotlib.rcParams.update({'font.size': 12})
 LOG_FILE_START                    = 'freq_sweep_output'
 RSSI_READ_INDICATOR               = 'with_rssi'
 
+result_to_write                   = 'freq_sweep_tx_result.json'
 
 NUM_PKT_PER_SETTING         = 3
 
@@ -104,7 +106,9 @@ if __name__ == '__main__':
     for file, file_data in data.items():
         assert (len(file_data['freq_offset'])>0 and len(file_data['linear_config'])>0)
         
-    
+    # save data to file
+    with open(result_to_write,'w') as json_file:
+        json.dump(data,json_file)
         
     for key, item in data.items():
         
