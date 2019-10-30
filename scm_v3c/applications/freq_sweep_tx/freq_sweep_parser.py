@@ -101,8 +101,10 @@ if __name__ == '__main__':
                                 
     # validating the dataset
     
-    for file, data in data.items():
-        assert (len(data['freq_offset'])>0 and len(data['linear_config'])>0)
+    for file, file_data in data.items():
+        assert (len(file_data['freq_offset'])>0 and len(file_data['linear_config'])>0)
+        
+    
         
     for key, item in data.items():
         
