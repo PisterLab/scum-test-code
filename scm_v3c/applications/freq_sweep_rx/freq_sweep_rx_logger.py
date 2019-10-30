@@ -9,7 +9,7 @@ import sys
 
 BAUDRATE_SCUM               = 19200
 
-LOG_FILE                    = 'freq_sweep_rx_output_channel_11.txt'
+LOG_FILE                    = 'freq_sweep_rx_output.txt'
 
 TIMER_PERIOD                = 0.015
 NUM_CONFIG                  = 32*32*32
