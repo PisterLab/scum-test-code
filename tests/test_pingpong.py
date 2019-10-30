@@ -69,11 +69,18 @@ def test_compilation():
     assert result == None
     
 def test_bootload(serial_openmote, serial_scum):
-    syscall("echo bootload...")
+    print "start to bootload OpenMote..."
+    
+    result = syscall("python scm_v3c\\bootload\\cc2538-bsl.py  -e --bootloader-invert-lines -w -b 400000 -p %PORT_OPENMOTE% scm_v3c\\applications\\pingpong_test\\openmote-b-24ghz.ihex")
+    assert result == None
+    
+    print "connecting to the serial port of SCuM and OpenMote..."
     
     # starting logging the serial output
     serial_openmote.start()
     serial_scum.start()
+    
+    print "stat to bootload SCuM..."
     
     result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\pingpong_test\\pingpong_test.bin")
     assert result == None
@@ -92,12 +99,10 @@ def test_bootload(serial_openmote, serial_scum):
     
 
 def test_communication():
-    syscall("echo communication...")
+    print "start communication test..."
 
     assert 'Locked' in pytest.output_scum
     
-    syscall("echo SCuM Locked on the frequency of incoming single.")
+    print "SCuM Locked on the frequency of incoming single."
 
     assert 'Ptest' in pytest.output_openmote
-    
-    syscall("echo Frames sent by SCuM are received correctly by OpenMote.")
