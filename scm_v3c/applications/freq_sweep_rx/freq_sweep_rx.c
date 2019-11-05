@@ -176,6 +176,8 @@ void    cb_endFrame_rx(uint32_t timestamp){
         &app_vars.rxpk_rssi,
         &app_vars.rxpk_lqi
     );
+        
+    radio_rfOff();
     
     if(
         app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
@@ -195,6 +197,9 @@ void    cb_endFrame_rx(uint32_t timestamp){
             app_vars.cfg_mid,
             app_vars.cfg_fine
         );
+        
+        app_vars.packet_len = 0;
+        memset(&app_vars.packet[0],0,LENGTH_PACKET);
     }
     
     radio_rxEnable();
