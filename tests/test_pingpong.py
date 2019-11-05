@@ -66,13 +66,13 @@ def serial_scum():
 def test_compilation():
     syscall("echo compilation...")
     result = syscall("%KEIL_UV_DIR%\\UV4.exe -b scm_v3c\\applications\\pingpong_test\\pingpong_test.uvprojx")
-    assert result == None
+    assert result == 0
     
 def test_bootload(serial_openmote, serial_scum):
     print "start to bootload OpenMote..."
     
     result = syscall("python scm_v3c\\bootload\\cc2538-bsl.py  -e --bootloader-invert-lines -w -b 400000 -p %PORT_OPENMOTE% scm_v3c\\applications\\pingpong_test\\openmote-b-24ghz.ihex")
-    assert result == None
+    assert result == 0
     
     print "connecting to the serial port of SCuM and OpenMote..."
     
@@ -83,7 +83,7 @@ def test_bootload(serial_openmote, serial_scum):
     print "stat to bootload SCuM..."
     
     result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\pingpong_test\\pingpong_test.bin")
-    assert result == None
+    assert result == 0
     
     # waiting to let the code run for a while 
     time.sleep(10)
