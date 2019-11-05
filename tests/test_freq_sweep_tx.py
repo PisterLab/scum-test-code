@@ -38,7 +38,7 @@ def test_verifyResult():
 
     syscall("echo verify  OpenMote serial output...")
 
-    result = syscall("python scm_v3c\\applications\\freq_sweep_tx\\freq_sweep_parser.py")
+    result = syscall("python scm_v3c\\applications\\freq_sweep_tx\\freq_sweep_tx_parser.py")
     assert result == None
     
     syscall("echo Frequency Sweep Test complete!")
