@@ -8,7 +8,7 @@ import time
 
 def syscall(cmd):
     print '>>> {0}'.format(cmd)
-    os.system(cmd)
+    return os.system(cmd)
     
 # ==== tests
 
