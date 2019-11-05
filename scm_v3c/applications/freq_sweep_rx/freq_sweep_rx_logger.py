@@ -12,8 +12,9 @@ BAUDRATE_SCUM               = 19200
 LOG_FILE                    = 'freq_sweep_rx_output.txt'
 
 TIMER_PERIOD                = 0.015
+NUMPKT_PER_CFG              = 2
 NUM_CONFIG                  = 32*32*32
-RUNNING_DURATION            = NUM_CONFIG*TIMER_PERIOD
+RUNNING_DURATION            = NUM_CONFIG*TIMER_PERIOD*NUMPKT_PER_CFG
 
 # =========================== class ===========================================
 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     
     for progress in range(NUM_CONFIG):
         
-        time.sleep(TIMER_PERIOD)
+        time.sleep(TIMER_PERIOD*NUMPKT_PER_CFG)
         sys.stdout.write("{0}/{1}\r".format(progress+1, NUM_CONFIG))
         sys.stdout.flush()
     

@@ -28,7 +28,7 @@ side.
 
 #define TIMER_PERIOD        7500           ///< 500 = 1ms@500kHz
 
-#define NUMPKT_PER_CFG      3
+#define NUMPKT_PER_CFG      2
 #define STEPS_PER_CONFIG    32
 
 //=========================== variables =======================================
@@ -40,8 +40,10 @@ typedef struct {
                 uint8_t         rxpk_lqi;
     
     volatile    bool            rxpk_crc;
+    // a flag to mark when to change configure
     volatile    bool            changeConfig;
-    volatile    bool            rxFrameStarted;
+    // a flag to avoid change configure during receiving frame
+    volatile    bool            rxFrameStarted; 
     
     volatile    uint32_t        IF_estimate;
     volatile    uint32_t        LQI_chip_errors;
@@ -138,7 +140,6 @@ int main(void) {
 //                        "coarse=%d, middle=%d, fine=%d\r\n", 
 //                        app_vars.cfg_coarse,app_vars.cfg_middle,app_vars.cfg_fine
 //                    );
-                    
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         while(app_vars.rxFrameStarted == true);
                         radio_rfOff();
@@ -159,7 +160,7 @@ int main(void) {
 
 //=========================== private =========================================
 
-void     cb_startFrame_rx(uint32_t timestamp){
+void    cb_startFrame_rx(uint32_t timestamp){
     
     app_vars.rxFrameStarted = true;
 }
