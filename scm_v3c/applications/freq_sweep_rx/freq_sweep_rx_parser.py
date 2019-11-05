@@ -8,7 +8,7 @@ matplotlib.rcParams.update({'font.size': 12})
 
 # =========================== variables =======================================
 
-LOG_FILE_START                    = 'freq_sweep_rx_output'
+LOG_FILE_START                    = 'freq_sweep_rx_output_channel'
 RSSI_READ_INDICATOR               = 'with_rssi'
 
 result_to_write                   = 'freq_sweep_rx_result.json'
@@ -25,13 +25,11 @@ RUNNING_DURATION            = NUM_CONFIG*DURATION_PER_PKT*NUM_PKT_PER_SETTING
 data = {
     'channel_11':
         {
-            'freq_offset'   : [],
-            'linear_confg'  : []
+            'linear_confg'       : []
         },
     'channel_12':
         {
-            'freq_offset'   : [],
-            'linear_confg'  : []
+            'linear_confg'       : []
         },
         ...
 }
@@ -48,22 +46,16 @@ def converter_config_linear_2_text(linear_configure):
     output = "{0}.{1}.{2}".format(coarse, mid, fine)
     return output
     
-def converter_config_text_2_linear(text_config, has_rssi):
+def converter_config_text_2_linear(text_config):
     linear_config = None
-    freq_offset   = None
-    rssi          = None
+    channel       = None
     try:
-        if has_rssi:
-            ptest, coarse, mid, fine, rssi = text_config.split('.')
-            assert int(rssi)>-127
-        else:
-            ptest, coarse, mid, fine = text_config.split('.')
+        ptest, coarse, mid, fine = text_config.split('.')
         assert int(coarse) < 32 and int(mid) < 32 and int(fine) < 32
         linear_config = (int(coarse) << 10) | (int(mid) << 5) | int(fine)
-        freq_offset   = int(ptest.split(' ')[0])
     except:
         pass
-    return freq_offset, linear_config, rssi
+    return linear_config
     
 # ==== tests
 
@@ -74,19 +66,9 @@ if __name__ == '__main__':
 
     for file in os.listdir("./"):
         if file.startswith(LOG_FILE_START) and file.endswith('.txt'):
-            has_rssi = False
-            if RSSI_READ_INDICATOR in file:
-                has_rssi = True
-                data[file] = {
-                    'freq_offset':  [],
-                    'linear_config':[],
-                    'rssi':[]
-                }
-            else:
-                data[file] = {
-                    'freq_offset':  [],
-                    'linear_config':[]
-                }
+            data[file] = {
+                'linear_config'   :[]
+            }
             
             print "parsing {0}...".format(file)
             
@@ -94,13 +76,9 @@ if __name__ == '__main__':
                 for line in lf:
                     index = line.find('test.')
                     if index != -1:
-                        freq_offset, linear_config, rssi = converter_config_text_2_linear(line, has_rssi)
+                        linear_config = converter_config_text_2_linear(line)
                         if linear_config != None:
                             data[file]['linear_config'].append(linear_config)
-                            if freq_offset != None: 
-                                data[file]['freq_offset'].append(freq_offset)
-                            if rssi != None:
-                                data[file]['rssi'].append(rssi)
                                 
     # validating the dataset
     
@@ -115,25 +93,31 @@ if __name__ == '__main__':
         
         fig, ax = plt.subplots(figsize=(16, 4))
         
+        num_bins  = 32*32
+        x_s_lim   = 0
+        x_e_lim   = NUM_CONFIG
+        SCALE     = 1000
+        
+        # num_bins  = 32*32
+        # x_s_lim   = 23*32*32
+        # x_e_lim   = 29*32*32
+        # SCALE     = 200
+        
+        # num_bins  = 32
+        # x_s_lim   = 22*32*32
+        # x_e_lim   = 24*32*32
+        # SCALE     = 100
+        
+        
         ax.hist(
             item['linear_config'],
+            num_bins,
+            range=(x_s_lim,x_e_lim),
             label="channel {0}".format(key.split('_')[-1].split('.')[0])
         )
     
         ax.set_ylabel('num_pkt_received')
         ax.set_xlabel('coarse.mid.fine')
-        
-        x_s_lim   = 0
-        x_e_lim   = NUM_CONFIG
-        SCALE     = 1000
-        
-        # x_s_lim   = 23*32*32
-        # x_e_lim   = 29*32*32
-        # SCALE     = 200
-        
-        # x_s_lim   = 22*32*32
-        # x_e_lim   = 24*32*32
-        # SCALE     = 100
         
         ax.set_xlim(x_s_lim,x_e_lim)
         
