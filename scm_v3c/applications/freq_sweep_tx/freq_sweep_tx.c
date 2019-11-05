@@ -54,7 +54,7 @@ int main(void) {
     uint32_t calc_crc;
 
     uint8_t         cfg_coarse;
-    uint8_t         cfg_middle;
+    uint8_t         cfg_mid;
     uint8_t         cfg_fine;
     
     uint8_t         i;
@@ -123,18 +123,18 @@ int main(void) {
         
         // loop through all configuration
         for (cfg_coarse=0;cfg_coarse<STEPS_PER_CONFIG;cfg_coarse++){
-            for (cfg_middle=0;cfg_middle<STEPS_PER_CONFIG;cfg_middle++){
+            for (cfg_mid=0;cfg_mid<STEPS_PER_CONFIG;cfg_mid++){
                 for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine++){
 //                    printf(
 //                        "coarse=%d, middle=%d, fine=%d\r\n", 
-//                        cfg_coarse,cfg_middle,cfg_fine
+//                        cfg_coarse,cfg_mid,cfg_fine
 //                    );
                     j = sizeof(payload_identity)-1;
                     app_vars.packet[j++] = '0' + cfg_coarse/10;
                     app_vars.packet[j++] = '0' + cfg_coarse%10;
                     app_vars.packet[j++] = '.';
-                    app_vars.packet[j++] = '0' + cfg_middle/10;
-                    app_vars.packet[j++] = '0' + cfg_middle%10;
+                    app_vars.packet[j++] = '0' + cfg_mid/10;
+                    app_vars.packet[j++] = '0' + cfg_mid%10;
                     app_vars.packet[j++] = '.';
                     app_vars.packet[j++] = '0' + cfg_fine/10;
                     app_vars.packet[j++] = '0' + cfg_fine%10;
@@ -143,7 +143,7 @@ int main(void) {
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         
                         radio_loadPacket(app_vars.packet, LEN_TX_PKT);
-                        LC_FREQCHANGE(cfg_coarse,cfg_middle,cfg_fine);
+                        LC_FREQCHANGE(cfg_coarse,cfg_mid,cfg_fine);
                         radio_txEnable();
                         rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
                         app_vars.sendDone = false;

@@ -50,7 +50,7 @@ typedef struct {
     volatile    uint32_t        cdr_tau_value;
     
                 uint8_t         cfg_coarse;
-                uint8_t         cfg_middle;
+                uint8_t         cfg_mid;
                 uint8_t         cfg_fine;
 } app_vars_t;
 
@@ -134,16 +134,16 @@ int main(void) {
         
         // loop through all configuration
         for (app_vars.cfg_coarse=0;app_vars.cfg_coarse<STEPS_PER_CONFIG;app_vars.cfg_coarse++){
-            for (app_vars.cfg_middle=0;app_vars.cfg_middle<STEPS_PER_CONFIG;app_vars.cfg_middle++){
+            for (app_vars.cfg_mid=0;app_vars.cfg_mid<STEPS_PER_CONFIG;app_vars.cfg_mid++){
                 for (app_vars.cfg_fine=0;app_vars.cfg_fine<STEPS_PER_CONFIG;app_vars.cfg_fine++){
 //                    printf(
 //                        "coarse=%d, middle=%d, fine=%d\r\n", 
-//                        app_vars.cfg_coarse,app_vars.cfg_middle,app_vars.cfg_fine
+//                        app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
 //                    );
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         while(app_vars.rxFrameStarted == true);
                         radio_rfOff();
-                        LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_middle,app_vars.cfg_fine);
+                        LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine);
                         radio_rxEnable();
                         radio_rxNow();
                         rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
@@ -192,7 +192,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
             app_vars.packet[2],
             app_vars.packet[3],
             app_vars.cfg_coarse,
-            app_vars.cfg_middle,
+            app_vars.cfg_mid,
             app_vars.cfg_fine
         );
     }
