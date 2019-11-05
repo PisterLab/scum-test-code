@@ -12,7 +12,7 @@ BAUDRATE_SCUM               = 19200
 LOG_FILE                    = 'freq_sweep_rx_output.txt'
 
 TIMER_PERIOD                = 0.015
-NUMPKT_PER_CFG              = 2
+NUMPKT_PER_CFG              = 1
 NUM_CONFIG                  = 32*32*32
 RUNNING_DURATION            = NUM_CONFIG*TIMER_PERIOD*NUMPKT_PER_CFG
 

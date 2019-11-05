@@ -28,7 +28,7 @@ side.
 
 #define TIMER_PERIOD        7500           ///< 500 = 1ms@500kHz
 
-#define NUMPKT_PER_CFG      2
+#define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
 //=========================== variables =======================================
