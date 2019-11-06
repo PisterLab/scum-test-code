@@ -48,14 +48,14 @@
             <NotGenerated>0</NotGenerated>
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
-          <OutputDirectory>.\</OutputDirectory>
+          <OutputDirectory>.\Objects\</OutputDirectory>
           <OutputName>pingpong_test</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>0</CreateHexFile>
-          <DebugInformation>0</DebugInformation>
+          <CreateHexFile>1</CreateHexFile>
+          <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
-          <ListingPath>.\</ListingPath>
+          <ListingPath>.\Listings\</ListingPath>
           <HexFormatSelection>1</HexFormatSelection>
           <Merge32K>0</Merge32K>
           <CreateBatchFile>0</CreateBatchFile>
@@ -82,8 +82,8 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>1</RunUserProg2>
-            <UserProg1Name>fromelf --bin pingpong_test.axf -o pingpong_test.bin</UserProg1Name>
-            <UserProg2Name>python ..\..\bootload\bootload.py -i pingpong_test.bin</UserProg2Name>
+            <UserProg1Name>fromelf --bin .\Objects\pingpong_test.axf -o .\Objects\pingpong_test.bin</UserProg1Name>
+            <UserProg2Name>fromelf -cvf .\Objects\pingpong_test.axf -o .\Objects\disasm.txt</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
