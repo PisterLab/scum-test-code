@@ -8,7 +8,7 @@ matplotlib.rcParams.update({'font.size': 12})
 
 # =========================== variables =======================================
 
-LOG_FILE_START                    = 'freq_sweep_output'
+LOG_FILE_START                    = 'freq_sweep_tx_output'
 RSSI_READ_INDICATOR               = 'with_rssi'
 
 result_to_write                   = 'freq_sweep_tx_result.json'
