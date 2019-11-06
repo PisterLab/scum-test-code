@@ -65,7 +65,7 @@ def serial_scum():
 
 def test_compilation():
     syscall("echo compilation...")
-    result = syscall("%KEIL_UV_DIR%\\UV4.exe -b scm_v3c\\applications\\pingpong_test\\pingpong_test.uvprojx")
+    result = syscall("%KEIL_UV_DIR%\\UV4.exe -b scm_v3c\\applications\\pingpong_test\\pingpong_test.uvprojx -o \"output.txt\"")
     assert result == 0
     
 def test_bootload(serial_openmote, serial_scum):

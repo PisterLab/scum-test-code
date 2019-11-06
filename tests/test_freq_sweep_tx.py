@@ -14,7 +14,7 @@ def syscall(cmd):
 
 def test_compilation():
     syscall("echo compilation...")
-    result = syscall("%KEIL_UV_DIR%\\UV4.exe -b scm_v3c\\applications\\freq_sweep_tx\\freq_sweep_tx.uvprojx")
+    result = syscall("%KEIL_UV_DIR%\\UV4.exe -b scm_v3c\\applications\\freq_sweep_tx\\freq_sweep_tx.uvprojx -o \"output.txt\"")
     assert result == 0
     
 def test_bootload():
