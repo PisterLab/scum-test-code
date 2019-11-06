@@ -20,7 +20,7 @@ def test_compilation():
 def test_bootload():
     syscall("echo bootload SCuM...")
     
-    result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\freq_sweep_tx\\freq_sweep_tx.bin")
+    result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\freq_sweep_tx\\Objects\\freq_sweep_tx.bin")
     assert result == 0
     
     syscall("echo bootload OpenMote...")

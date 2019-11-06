@@ -82,7 +82,7 @@ def test_bootload(serial_openmote, serial_scum):
     
     print "stat to bootload SCuM..."
     
-    result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\pingpong_test\\pingpong_test.bin")
+    result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\pingpong_test\\Objects\\pingpong_test.bin")
     assert result == 0
     
     # waiting to let the code run for a while 
