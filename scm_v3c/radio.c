@@ -594,35 +594,51 @@ void radio_isr(void) {
     radio_vars.crc_ok   = true;
     if (error != 0) {
         
+#ifdef ENABLE_PRINTF
         printf("Radio ERROR\r\n");
+#endif
         
         if (error & 0x00000001) {
+#ifdef ENABLE_PRINTF
             printf("TX OVERFLOW ERROR\r\n");
+#endif
         }
         if (error & 0x00000002) {
+#ifdef ENABLE_PRINTF
             printf("TX CUTOFF ERROR\r\n");
+#endif
         }
         if (error & 0x00000004) {
+#ifdef ENABLE_PRINTF
             printf("RX OVERFLOW ERROR\r\n");
+#endif
         }
         
         if (error & 0x00000008) {
+#ifdef ENABLE_PRINTF
             printf("RX CRC ERROR\r\n");
+#endif
             radio_vars.crc_ok   = false;
         }
         if (error & 0x00000010) {
+#ifdef ENABLE_PRINTF
             printf("RX CUTOFF ERROR\r\n");
+#endif
         }
         
     }
     RFCONTROLLER_REG__ERROR_CLEAR = error;
     
     if (interrupt & 0x00000001) {
+#ifdef ENABLE_PRINTF
         printf("TX LOAD DONE\r\n");
+#endif
     }
     
     if (interrupt & 0x00000002) {
+#ifdef ENABLE_PRINTF
         printf("TX SFD DONE\r\n");
+#endif
         
         if (radio_vars.startFrame_tx_cb != 0) {
             radio_vars.startFrame_tx_cb(RFTIMER_REG__COUNTER);
@@ -630,7 +646,9 @@ void radio_isr(void) {
     }
     
     if (interrupt & 0x00000004){
+#ifdef ENABLE_PRINTF
         printf("TX SEND DONE\r\n");
+#endif
         
         if (radio_vars.endFrame_tx_cb != 0) {
             radio_vars.endFrame_tx_cb(RFTIMER_REG__COUNTER);
@@ -638,7 +656,9 @@ void radio_isr(void) {
     }
     
     if (interrupt & 0x00000008){
+#ifdef ENABLE_PRINTF
         printf("RX SFD DONE\r\n");
+#endif
         
         if (radio_vars.startFrame_rx_cb != 0) {
             radio_vars.startFrame_rx_cb(RFTIMER_REG__COUNTER);
@@ -646,8 +666,9 @@ void radio_isr(void) {
     }
     
     if (interrupt & 0x00000010) {
-        
+#ifdef ENABLE_PRINTF
         printf("RX DONE\r\n");
+#endif
         
         if (radio_vars.endFrame_rx_cb != 0) {
             radio_vars.endFrame_rx_cb(RFTIMER_REG__COUNTER);

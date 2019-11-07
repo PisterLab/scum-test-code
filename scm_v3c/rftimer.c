@@ -67,74 +67,106 @@ void rftimer_isr(void) {
     
     unsigned int interrupt = RFTIMER_REG__INT;
     
-    if (interrupt & 0x00000001){ 
+    if (interrupt & 0x00000001){
+#ifdef ENABLE_PRINTF
         printf("COMPARE0 MATCH\r\n");
+#endif
         if (rftimer_vars.rftimer_cb!=NULL) {
             rftimer_vars.rftimer_cb();
         }
     }
     
     if (interrupt & 0x00000002){
+#ifdef ENABLE_PRINTF
         printf("COMPARE1 MATCH\r\n");
+#endif
     }
     
     if (interrupt & 0x00000004){
+#ifdef ENABLE_PRINTF
         printf("COMPARE2 MATCH\r\n");
+#endif
     }
     
     // Watchdog has expired - no packet received
     if (interrupt & 0x00000008){
+#ifdef ENABLE_PRINTF
         printf("COMPARE3 MATCH\r\n");
+#endif
     }
     
     // Turn on transmitter to allow frequency to settle
     if (interrupt & 0x00000010){
+#ifdef ENABLE_PRINTF
         printf("COMPARE4 MATCH\r\n");
+#endif
     }
     
     // Transmit now
     if (interrupt & 0x00000020){
+#ifdef ENABLE_PRINTF
         printf("COMPARE5 MATCH\r\n");
+#endif
     }
     
     if (interrupt & 0x00000040) {
+#ifdef ENABLE_PRINTF
         printf("COMPARE6 MATCH\r\n");
+#endif
     }
     
     if (interrupt & 0x00000080) {
+#ifdef ENABLE_PRINTF
         printf("COMPARE7 MATCH\r\n");
+#endif
     }
     
     if (interrupt & 0x00000100) {
+#ifdef ENABLE_PRINTF
         printf("CAPTURE0 TRIGGERED AT: 0x%x\r\n", RFTIMER_REG__CAPTURE0);
+#endif
     }
     
     if (interrupt & 0x00000200) {
+#ifdef ENABLE_PRINTF
         printf("CAPTURE1 TRIGGERED AT: 0x%x\r\n", RFTIMER_REG__CAPTURE1);
+#endif
     }
     
     if (interrupt & 0x00000400) {
+#ifdef ENABLE_PRINTF
         printf("CAPTURE2 TRIGGERED AT: 0x%x\r\n", RFTIMER_REG__CAPTURE2);
+#endif
     }
     
     if (interrupt & 0x00000800) {
+#ifdef ENABLE_PRINTF
         printf("CAPTURE3 TRIGGERED AT: 0x%x\r\n", RFTIMER_REG__CAPTURE3);
+#endif
     }
     
     if (interrupt & 0x00001000) {
+#ifdef ENABLE_PRINTF
         printf("CAPTURE0 OVERFLOW AT: 0x%x\r\n", RFTIMER_REG__CAPTURE0);
+#endif
     }
     
     if (interrupt & 0x00002000) {
+#ifdef ENABLE_PRINTF
         printf("CAPTURE1 OVERFLOW AT: 0x%x\r\n", RFTIMER_REG__CAPTURE1);
+#endif
     }
     
     if (interrupt & 0x00004000) {
+#ifdef ENABLE_PRINTF
         printf("CAPTURE2 OVERFLOW AT: 0x%x\r\n", RFTIMER_REG__CAPTURE2);
+#endif
     }
     
     if (interrupt & 0x00008000) {
+#ifdef ENABLE_PRINTF
         printf("CAPTURE3 OVERFLOW AT: 0x%x\r\n", RFTIMER_REG__CAPTURE3);
+#endif
     }
     
     RFTIMER_REG__INT_CLEAR = interrupt;
