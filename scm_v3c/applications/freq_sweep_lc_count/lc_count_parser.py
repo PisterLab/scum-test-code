@@ -14,6 +14,8 @@ LC_COUNT_RX_LOG                    = 'freq_sweep_rx_lc_count.txt'
 result_to_write                    = 'freq_sweep_lc_count_result.json'
 
 NUM_CONFIG                  = 32*32*32
+LC_COUNT_SCALE              = 480*2/0.001
+
 
 # data structure
 data = {
@@ -55,7 +57,7 @@ if __name__ == '__main__':
                     linear_config, lc_count = converter_config_text_2_linear(line)
                     if linear_config != None and lc_count != None:
                         if data[file][linear_config] == 0:
-                            data[file][linear_config] = lc_count
+                            data[file][linear_config] = lc_count*LC_COUNT_SCALE
     
     # validating the dataset
     
@@ -80,7 +82,7 @@ if __name__ == '__main__':
         
         ax.plot(item, label=key)
     
-        ax.set_ylabel('lc_count')
+        ax.set_ylabel('Hz (converted from lc_count)')
         ax.set_xlabel('coarse.mid.fine')
         
         ax.set_xlim(x_s_lim,x_e_lim)
