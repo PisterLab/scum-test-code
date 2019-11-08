@@ -9,7 +9,7 @@ import sys
 BAUDRATE_OPENMOTE           = 115200
 BAUDRATE_SCUM               = 19200
 
-LOG_FILE                    = 'freq_sweep_tx_lc_count.txt'
+LOG_FILE                    = 'q3_freq_sweep_rx_lc_count.txt'
 
 #    4ms delay after sending each pkt (for file writing)
 TIMER_PERIOD                = 0.001 # second
@@ -59,7 +59,7 @@ class serialReader(threading.Thread):
 if __name__ == '__main__':
 
     port_scum       = os.environ.get('PORT_SCUM')
-    serial_scum     = serialReader(port_scum, BAUDRATE_SCUM, LOG_FILE)
+    serial_scum     = serialReader('COM13', BAUDRATE_SCUM, LOG_FILE)
     
     # starting logging the serial output
     serial_scum.start()

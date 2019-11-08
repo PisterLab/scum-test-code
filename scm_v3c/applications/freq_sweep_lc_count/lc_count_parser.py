@@ -19,8 +19,14 @@ LC_COUNT_SCALE              = 480*2/0.001
 
 # data structure
 data = {
-    LC_COUNT_TX_LOG: [0 for i in range(NUM_CONFIG)],
-    LC_COUNT_RX_LOG: [0 for i in range(NUM_CONFIG)],
+    'q3': {
+        'tx': [0 for i in range(NUM_CONFIG)],
+        'rx': [0 for i in range(NUM_CONFIG)],
+    },
+    'q8': {
+        'tx': [0 for i in range(NUM_CONFIG)],
+        'rx': [0 for i in range(NUM_CONFIG)],
+    }
 }
 
 # =========================== helper ===========================================
@@ -53,47 +59,52 @@ if __name__ == '__main__':
             print "parsing {0}...".format(file)
             
             with open(file,'rb') as lf:
+                board = file.split('_')[0]
+                name  = file.split('_')[3]
                 for line in lf:
                     linear_config, lc_count = converter_config_text_2_linear(line)
                     if linear_config != None and lc_count != None:
-                        if data[file][linear_config] == 0:
-                            data[file][linear_config] = lc_count*LC_COUNT_SCALE
+                        if data[board][name][linear_config] == 0:
+                            data[board][name][linear_config] = lc_count*LC_COUNT_SCALE
     
     # validating the dataset
     
-    for file, file_data in data.items():
-        for i in file_data:
-            assert i!=0
+    for board, file in data.items():
+        for name, file_data in file.items():
+            for i in file_data:
+                assert i!=0
         
     # save data to file
     with open(result_to_write,'w') as json_file:
         json.dump(data,json_file)
         
-    fig, ax = plt.subplots(figsize=(16, 4))
-    for key, item in data.items():
+    for board, file in data.items():
+        fig, ax = plt.subplots(figsize=(16, 9))
+        for key, item in file.items():
+            
+            x_s_lim   = 0
+            x_e_lim   = NUM_CONFIG
+            SCALE     = 32*32
+            
+            # x_s_lim   = 22*32*32
+            # x_e_lim   = 28*32*32
+            # SCALE     = 32
+            
+            ax.plot(item, label=key)
         
-        x_s_lim   = 0
-        x_e_lim   = NUM_CONFIG
-        SCALE     = 32*32
-        
-        # x_s_lim   = 22*32*32
-        # x_e_lim   = 28*32*32
-        # SCALE     = 32
-        
-        ax.plot(item, label=key)
-    
-        ax.set_ylabel('Hz (converted from lc_count)')
-        ax.set_xlabel('coarse.mid.fine')
-        
-        ax.set_xlim(x_s_lim,x_e_lim)
-        
-        xticks = [x_s_lim+i*SCALE for i in range((x_e_lim-x_s_lim)/SCALE)]
-        xlabel = [converter_config_linear_2_text(i) for i in xticks]
-        
-        ax.set_xticks(xticks)
-        ax.set_xticklabels(xlabel,rotation = 45)
-        
-        ax.legend(markerscale=0.7, scatterpoints=1)
-        ax.grid(True)
-    plt.tight_layout()
-    plt.show()
+            ax.set_ylabel('Hz (converted from lc_count)')
+            ax.set_xlabel('coarse.mid.fine')
+            
+            ax.set_xlim(x_s_lim,x_e_lim)
+            ax.set_ylim(2100000000,2600000000)
+            
+            xticks = [x_s_lim+i*SCALE for i in range((x_e_lim-x_s_lim)/SCALE)]
+            xlabel = [converter_config_linear_2_text(i) for i in xticks]
+            
+            ax.set_xticks(xticks)
+            ax.set_xticklabels(xlabel,rotation = 45)
+            
+            ax.legend(markerscale=0.7, scatterpoints=1)
+            ax.grid(True)
+        plt.tight_layout()
+        plt.savefig('{0}_freq_sweep_lc_count.png'.format(board))

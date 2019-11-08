@@ -30,7 +30,7 @@ side.
 
 // measure the LC_count at RX state by default
 // uncomment the following macro to change to measure at TX state
-#define FREQ_SWEEP_TX
+//#define FREQ_SWEEP_TX
 
 //=========================== variables =======================================
 
