@@ -175,11 +175,13 @@ void radio_loadPacket(uint8_t* packet, uint16_t len){
 // This should be done at least ~50 us before txNow()
 void radio_txEnable(){
     
+    // Turn on LO, PA, and AUX LDOs
+    
+    // Turn on DIV if need read LC_count
+    ANALOG_CFG_REG__10 = 0x0068;
+    
     // Turn off polyphase and disable mixer
     ANALOG_CFG_REG__16 = 0x6;
-    
-    // Turn on LO, PA, and AUX LDOs
-    ANALOG_CFG_REG__10 = 0x0028;
 }
 
 // Begin modulating the radio output for TX
@@ -195,12 +197,15 @@ void radio_rxEnable(){
     
     // Turn on LO, IF, and AUX LDOs via memory mapped register
     
+    // Turn on DIV on if need to read LC_div counter
+    
     // Aux is inverted (0 = on)
     // Memory-mapped LDO control
     // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
     // For MUX signals, '1' = FSM control, '0' = memory mapped control
     // For EN signals, '1' = turn on LDO
-    ANALOG_CFG_REG__10 = 0x0018;
+    
+    ANALOG_CFG_REG__10 = 0x0058;
     
     // Enable polyphase and mixers via memory-mapped I/O
     ANALOG_CFG_REG__16 = 0x1;
