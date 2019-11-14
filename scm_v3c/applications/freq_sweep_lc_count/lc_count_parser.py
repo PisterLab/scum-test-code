@@ -80,31 +80,39 @@ if __name__ == '__main__':
         
     for board, file in data.items():
         fig, ax = plt.subplots(figsize=(16, 9))
+                    
+        for i in range(16):
+            ax.plot(
+                [2405000000+i*5000000 for j in range(len(file[file.keys()[0]]))], 
+                '--',
+                label='ch{0}'.format(i+11)
+            )
         for key, item in file.items():
-            
-            x_s_lim   = 0
-            x_e_lim   = NUM_CONFIG
-            SCALE     = 32*32
-            
-            # x_s_lim   = 22*32*32
-            # x_e_lim   = 28*32*32
-            # SCALE     = 32
-            
             ax.plot(item, label=key)
         
-            ax.set_ylabel('Hz (converted from lc_count)')
-            ax.set_xlabel('coarse.mid.fine')
-            
-            ax.set_xlim(x_s_lim,x_e_lim)
-            ax.set_ylim(2100000000,2600000000)
-            
-            xticks = [x_s_lim+i*SCALE for i in range((x_e_lim-x_s_lim)/SCALE)]
-            xlabel = [converter_config_linear_2_text(i) for i in xticks]
-            
-            ax.set_xticks(xticks)
-            ax.set_xticklabels(xlabel,rotation = 45)
-            
-            ax.legend(markerscale=0.7, scatterpoints=1)
-            ax.grid(True)
-        plt.tight_layout()
+        
+        # x_s_lim   = 0
+        # x_e_lim   = NUM_CONFIG
+        # SCALE     = 32*32
+        
+        x_s_lim   = 22*32*32
+        x_e_lim   = 29*32*32
+        SCALE     = 32*32
+        
+        ax.set_ylabel('Hz (converted from lc_count)')
+        ax.set_xlabel('coarse.mid.fine')
+        
+        ax.set_xlim(x_s_lim,x_e_lim)
+        ax.set_ylim(2400000000,2500000000)
+        
+        xticks = [x_s_lim+i*SCALE for i in range((x_e_lim-x_s_lim)/SCALE)]
+        xlabel = [converter_config_linear_2_text(i) for i in xticks]
+        
+        ax.set_xticks(xticks)
+        ax.set_xticklabels(xlabel,rotation = 45)
+        
+        ax.set_title(board)
+        
+        ax.legend(markerscale=0.7, scatterpoints=1)
+        ax.grid(True)
         plt.savefig('{0}_freq_sweep_lc_count.png'.format(board))
