@@ -688,17 +688,29 @@ void OPTICAL_SFD_ISR(){
 		if(count_HFclock > 2003000) HF_CLOCK_fine++;
 		set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
 		
+		
+		// ------------------------------ PERFORM A COARSE SEARCH TO FIND CODES RELEVANT TO THE ISM BAND ------------------------------ //
 		if(coarse_code_search_state == 1) {
 			// the only thing that happens in this state is that coarse codes relevant for the 2.4 GHz ISM band are found
+			
 			LC_FREQCHANGE(coarse_code,15,15); // change it for the next count
 			
-			if ((count_LC*9600 > 2350000000) && (count_LC*9600 < 25200000)) {
+	
+			if ((count_LC > 244792) && (count_LC < 262500)) {
 				ism_coarse_codes[coarse_search_index] = coarse_code;
-				coarse_search_index++;
+				
+				printf("%d\n",count_LC);
+				printf("%d\n",coarse_code);
+				printf("%d\n",coarse_search_index);
+				printf("%d\n",ism_coarse_codes[coarse_search_index]);
+				
+				coarse_search_index++; // increment the array index		
 			}
 			coarse_code++; // increment the coarse code
+
 			
-			if (count_LC*9600 > 2520000000) {
+			
+			if (count_LC > 262500) {
 				coarse_code_search_state = 0; // if the ISM band has been eclipsed, no need to continue searching
 			}
 			
@@ -706,7 +718,11 @@ void OPTICAL_SFD_ISR(){
 				coarse_code_search_state = 0; // in the event that the final code is reached, give up, you cannot hit the far end of the ISM band
 			}
 		}
+		// ------------------------------ PERFORM A COARSE SEARCH TO FIND CODES RELEVANT TO THE ISM BAND ------------------------------ //
+
 		
+		
+		// --------------------------------------------------- LC MONOTONIC BUILDER --------------------------------------------------- //
 		if (mon_build_complete == 0) {
 			if (pass == 1) {
 				LC_monotonic(5*mid0-1,mid0,2000,30);
@@ -729,7 +745,6 @@ void OPTICAL_SFD_ISR(){
 				}
 			}
 		}
-		
 		if (mon_build_complete_coarse == 0) {
 			printf("%d",coarse0);
 			if (pass == 1) {
@@ -789,9 +804,9 @@ void OPTICAL_SFD_ISR(){
 	// Debugging output
 	//printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine);
 	//printf("countLC: %d, previous countLC: %d, mid0: %d, pass: %d\n",count_LC, previous_count_LC, mid0, pass);
-	printf("%d\n", count_LC);
+	//printf("%d\n", count_LC);
 	 
-	if(optical_cal_iteration == 5){
+	if(optical_cal_iteration == 20){
 		// Disable this ISR
 		ICER = 0x0800;
 		optical_cal_iteration = 0;

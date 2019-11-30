@@ -15,7 +15,7 @@
 #include "scum_radio_bsp.h"
 
 // # defines for calibration
-# define		EXECUTE_COARSE_ISM_SEARCH		0x1; // if this is set to 1, run the search for coarse codes throughout the ISM band
+# define		EXECUTE_COARSE_ISM_SEARCH		0x0; // if this is set to 1, run the search for coarse codes throughout the ISM band
 # define		EXECUTE_MONOTONIC						0x0; // if this is set to 1, run the LC_monotonic generating function in the optical ISR
 # define		COARSE_CODE_SEARCH_INIT			18;  // initial guess for low end of the ISM band
 
@@ -157,80 +157,61 @@ int main(void) {
 	// --------------------------------------  END OF INITIALIZATION -------------------------------------- //
 	// ---------------------------------------------------------------------------------------------------- //
 
-	
+	/*
 	// Enable optical SFD interrupt for optical calibration
 	ISER = 0x0800;
 	
 	// Wait for optical cal to finish
 	
 	// Set up initial variables for monotonic building
-	mon_build_complete = 1; mon_build_complete_coarse = 1; pass = 1; mid0 = 23; coarse0 = 142;
 	while(optical_cal_finished == 0);
 	optical_cal_finished = 0;
 	// FINISHED WITH OPTICAL CALIBRATION
+	*/
 
 	printf("Cal complete\n");
-	
-	//gen_test_ble_packet(packetBLE);
-	//for (i1=0; i1 < 16; byte_addr++, i1++) {
-  // 	printf("%X ",*byte_addr);
-	//}
-	//printf("\n");
-	
-	//for(t=0; t<71276; t++);
-	//write_imu_register(0x06,0x80); // reset the IMU
-	//for(t=0; t<100000; t++);
-	//write_imu_register(0x06,0x00);
-	
-	//x_accel = 0; y_accel = 0; z_accel = 0;
+			
+	x_accel = 0; y_accel = 0; z_accel = 0;
+	write_imu_register(0x06,0x00);
+	for(t=0; t<5000; t++);
 		
 while(1) {
-	
-	//spi_out = read_imu_register(0x00);
-	
-	//spi_chip_select();
-	//spi_write(0x80);
-	//spi_out = spi_read();
-	//spi_chip_deselect();
-	//test_imu_life();
-	
-	//write_imu_register(0x06,0x80);
-	//write_imu_register(0x06,0x00);
-	//spi_out = read_imu_register(0x31)
-	
-	//x_accel = read_acc_x();
-	//y_accel = read_acc_y();
-	//z_accel = read_acc_z();
-	
-	//printf("%d, %d, %d\n", x_accel, y_accel, z_accel);
 		
-	//printf("%X\n",read_imu_register(0x57));
-	//printf("%X\n",read_imu_register(0x58));
+	//initialize_mote();
 	
-	//write_imu_register(0x07,0x00);
 	
-	//printf("%X\n",read_acc_z());
-		
-	for(t=0; t<71276; t++);
+	x_accel = read_acc_x();
+	y_accel = read_acc_y();
+	z_accel = read_acc_z();
+				
+			
+	/*
+	// Memory-mapped LDO control
+	// ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
+	// For MUX signals, '1' = FSM control, '0' = memory mapped control
+	// For EN signals, '1' = turn on LDO
+	ANALOG_CFG_REG__10 = 0x00;
+	for(t=0; t<1000; t++);
+	ANALOG_CFG_REG__10 = 0x08;
+	for(t=0; t<500; t++);
+	ANALOG_CFG_REG__10 = 0x28;
+	for(t=0; t<4000; t++);
+	ANALOG_CFG_REG__10 = 0x00;
+	for(t=0; t<10000; t++);
+	ANALOG_CFG_REG__10 = 0x08;
+	for(t=0; t<500; t++);
+	ANALOG_CFG_REG__10 = 0x18;
+	for(t=0; t<2500; t++);
+	ANALOG_CFG_REG__10 = 0x00;
 	
-	// Disable all counters
-	ANALOG_CFG_REG__0 = 0x007F;
 	
-	// Read LC_div counter (via counter4)
-	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
-	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
-	count_LC = rdata_lsb + (rdata_msb << 16);
+	for(t=0;t<39;t++){
+		ASC[t] &= 0x00000000;
+	}
 	
-//	printf("%d \n",count_LC);
-	
-	load_tx_arb_fifo(packetBLE);
-	transmit_tx_arb_fifo();
-	
-	// Reset all counters
-	ANALOG_CFG_REG__0 = 0x0000;		
-	
-	// Enable all counters
-	ANALOG_CFG_REG__0 = 0x3FFF;
+	// Program analog scan chain
+	analog_scan_chain_write(&ASC[0]);
+	analog_scan_chain_load();*/
 	
 	
 	}

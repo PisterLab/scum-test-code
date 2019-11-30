@@ -13,10 +13,13 @@ import sys
 
 # Parameters
 # ---------------------------------------------------------------------
-com_port = '/dev/cu.usbmodem40722401' # programmer labeled 'Fil number 4' seems to work very nicely with boards #14 and #Q7 of 9
+#com_port = '/dev/cu.usbmodem40722401' # programmer labeled 'Fil number 4' seems to work very nicely with boards #14 and #Q7 of 9
 #com_port = '/dev/cu.usbmodem40954501' # programmer labeled 'Fil number 11' works well with the SARA boards
+#com_port = '/dev/cu.usbmodem39505101' # the "extra" programmer
+com_port = '/dev/cu.usbmodem47039201' # Titan's board :D
 
 binFilePath = "/Users/Filip/Dropbox/scum/scum-test-code/scm_v3c/code.bin"
+#binFilePath = "/Users/Filip/Dropbox/scum/scum-test-code/titan_binary/code.bin" # Titan's pre-compiled binary, see if this runs at all
 
 # 1 = use optical program mode
 # 0 = use wired 3-wire bus mode
@@ -88,7 +91,7 @@ if(boot_mode == 1):
 	ser.write(b'configopt\n')
 	ser.write(b'80\n')	
 	ser.write(b'80\n')
-	ser.write(b'8\n')
+	ser.write(b'4\n')
 	ser.write(b'80\n')
 	
     # Encode the payload into 4B5B for optical transmission
