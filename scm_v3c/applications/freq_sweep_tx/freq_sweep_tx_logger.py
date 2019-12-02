@@ -24,8 +24,6 @@ DURATION_PER_PKT            = 0.005 # second
 NUM_CONFIG                  = 32*32*32
 RUNNING_DURATION            = NUM_CONFIG*DURATION_PER_PKT*NUM_PKT_PER_SETTING
 
-SCALE                       = 100
-
 # =========================== class ===========================================
 
 class serialReader(threading.Thread):
@@ -77,10 +75,10 @@ if __name__ == '__main__':
     
     print "running for ", RUNNING_DURATION, 's...'
     
-    for progress in range(NUM_CONFIG/SCALE):
+    for progress in range(NUM_CONFIG):
         
-        time.sleep(DURATION_PER_PKT*NUM_PKT_PER_SETTING*SCALE)
-        sys.stdout.write("{0}/{1}\r".format((progress+1)*SCALE, NUM_CONFIG))
+        time.sleep(DURATION_PER_PKT*NUM_PKT_PER_SETTING)
+        sys.stdout.write("{0}/{1}\r".format((progress+1), NUM_CONFIG))
         sys.stdout.flush()
     
     serial_openmote.close()
