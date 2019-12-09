@@ -1201,20 +1201,29 @@ void initialize_mote(){
 	init_ldo_control();
 
 	// Set LDO reference voltages
-	// set_VDDD_LDO_voltage(0);
+	//set_VDDD_LDO_voltage(0);//sets it max
+	//set_VDDD_LDO_voltage(127);
 	//set_AUX_LDO_voltage(0);
 	set_ALWAYSON_LDO_voltage(0);
+	//Enables GPO
+	//GPO_enables(0x00FF);
+	GPO_enables(0xFFFF);
+	//Enables GPI
+	//GPI_enables(0x0F00);
+	GPI_enables(0x0000);
 		
 	// Select banks for GPIO inputs
-	GPI_control(1,1,1,2);// this setups up GPIO loopback with 3 and 1 setups the Interrupts
+	GPI_control(0,0,0,3);// this setups up GPIO loopback with 3 and 1 setups the Interrupts
 	
 	// // Select banks for GPIO outputs
-	GPO_control(6,6,6,6);
+	//GPO_control(6,6,6,6);
+	GPO_control(10,6,6,10);
 	
 	// // Set all GPIOs as outputs
-	GPI_enables(0xFFFF);// Shutting off all GPIOs that are not being used to prevent leakage	
+	//GPI_enables(0x0000);// Shutting off all GPIOs that are not being used to prevent leakage	
 	//GPIO7=Sets sensor but needs to be turned off, GPIO6=CLK, GPIO5= D1, GPIO4=D2, 
-	GPO_enables(0x0000);
+//	GPO_enables(0x00F0);
+
 
 
 	// Set initial coarse/fine on HF_CLOCK

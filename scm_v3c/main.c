@@ -64,6 +64,9 @@ unsigned short do_debug_print = 0;
 
 int main(void) {
 	int t;
+	int i;
+	int r=0;
+	int periodCounts=49500, toggles =400;
 	unsigned int calc_crc;
 	char out_string[10];
 	// Set up mote configuration
@@ -98,32 +101,51 @@ int main(void) {
 		printf("Cal complete\n");
 	}
 	
-	printf("%x\n",get_GPO_enables());
-	printf("%x\n",get_GPI_enables());
 	
-	//GPIO9_interrupt_disable();
-	GPIO3_interrupt_enable();
-	while(1)
-	{
-		
-		//printf("GPO enables: %x\n",get_GPO_enables());
-		//printf("GPI enables: %x\n",get_GPI_enables());
-		for(t=0;t<100000000;t++);
-	}
-	
-//	GPIO_REG__INPUT=0x0000;
-//	GPIO_REG__OUTPUT=0x0000;
-//	sprintf(out_string, "%d", GPIO_REG__INPUT);
-//	printf("out_string = %s", out_string);
-//	while(1)
-//	//if (~(GPIO_REG__INPUT^0x0000))// all the values should be zero since the GPIs are disabled except for 
+//testZappy2(1000);
+//while(1)
 //	{
-//	 for(t=0;t<10000;t++);
-//		if(GPIO_REG__INPUT!=0xFF1F)
+
+//		if(!(~(0xFDFF | (~(GPIO_REG__INPUT) & ~(0xFDFF))))&&r!=1)//checks if GPIO9 is low and that you are in state one
 //		{
-//			printf("made it mama\n");
+//			//printf("%x\n", GPIO_REG__INPUT);
+//			printf("state1\n");
+//			sara_start(toggles,periodCounts);
+//			r=1;
+//			while(!(~(0xFDFF | (~(GPIO_REG__INPUT) & ~(0xFDFF)))))//waits until GPIO9 goes to zero
+//			{
+//					 for(t=0;t<10000;t++);
+//			}
 //		}
-	//}
 
+//		if(!(~(0xFDFF | (~(GPIO_REG__INPUT) & ~(0xFDFF))))&&r==1)//checks if GPIO9 is low and you are in state 2
+//		{
+//			GPIO_REG__OUTPUT=GPIO_REG__OUTPUT & 0xFFCF;//should set GPIO4 and 5 to zero.
+//			i=0;
+//			while(i<12)  { 
+//					if(i<12)
+//					{
+//							GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+//							for(t=0;t<periodCounts;t++);
+//					}
+//					i=i+1;
+//			}
+//			r=0;
+//			printf("state2\n");
+//			while(!(~(0xFDFF | (~(GPIO_REG__INPUT) & ~(0xFDFF)))))//waits until GPIO9 goes to zero
+//			{
+//					 for(t=0;t<10000;t++);
+//			}
+//		}
+//	}
 
+printf("I am alive :D\n");
+while(1)
+{
+	for(t=0;t<periodCounts;t++);
+	GPIO_REG__OUTPUT=0x0000;
+	//printf("I am alive :D\n");
+	for(t=0;t<periodCounts;t++);
+	GPIO_REG__OUTPUT=0xFFFF;
+}
 }

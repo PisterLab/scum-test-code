@@ -63,7 +63,7 @@ def demo_gpio_control(uart_port):
 
 
 if __name__ == "__main__":
-	programmer_port = "COM14"
+	programmer_port = "COM5"
 	scm_port = "COM13"
 #								file_binary="./ALLGPIOToggle.bin",
 	# Programs SCM

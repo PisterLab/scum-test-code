@@ -3,7 +3,7 @@
 #include "Memory_Map.h"
 #include "scm3_hardware_interface.h"
 #include "scm3C_hardware_interface.h"
-void sara_start(unsigned int toggles)
+void sara_start(unsigned int toggles,unsigned int periodCounts)
 {	
 	unsigned int i=1;
 	unsigned int t;
@@ -12,29 +12,98 @@ void sara_start(unsigned int toggles)
 
 	i=1;
 	x=1;
-	GPIO_REG__OUTPUT = 0x0010;
+	GPIO_REG__OUTPUT = 0x0010;//starts the first toggle
+	//I consider it a toggle when any of the two signals generate a one
 
-	while(x<2*toggles+1)  { //LOOP
-		if(i<11)
+	while(x<toggles)  { //LOOP
+		if(i<16)
 		{
 				GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+				for(t=0;t<periodCounts;t++);
 		}
 		else
-		{
-				GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFF8F); // toggles all first three bits
-				i=1;
+		{		
+				if ((GPIO_REG__OUTPUT | 0xFFEF)==0xFFFF)//if GPIO4 is high toggle GPIO5
+				{
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFF9F); // toggles GPIO6 and GPIO5
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFAF); //toggles GPIO6 & 4
+						for(t=0;t<periodCounts;t++);
+				}
+				else
+				{
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFAF); // toggles GPIO6 and GPIO5
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFF9F); //toggles GPIO6 & 4
+						for(t=0;t<periodCounts;t++);
+				}
+				
+				i=0;
 				x++;
 		}
 		i=i+1;
 
 	}	
 	
-	while(i<11)  { //LOOP
+	while(i<11)  { 
 		if(i<11)
 		{
 				GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+				for(t=0;t<periodCounts;t++);
 		}
 		i=i+1;
+	}	
+	//I'm going to set GPIO 4, and 5 stay high.
+	GPIO_REG__OUTPUT = GPIO_REG__OUTPUT | 0x0030; 
+	i=0;
+	while(i<12)  { 
+	if(i<12)
+	{
+			GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+			for(t=0;t<periodCounts;t++);
+	}
+	i=i+1;
+	}	
+}
+void testZappy2(unsigned int periodCounts)
+{
+	unsigned int i=0, t=0;
+	GPIO_REG__OUTPUT = 0x0010;//starts the first toggle
+	//I consider it a toggle when any of the two signals generate a one
+	while(1)  { //LOOP
+		if(i<41)
+		{
+				GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+				for(t=0;t<periodCounts;t++);
+		}
+		else
+		{		
+			GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFF8F); // toggles GPIO 4, 5, and 6.
+			for(t=0;t<periodCounts;t++);
+			i=0;
+		}
+		i=i+1;
+
 	}	
 	
 }

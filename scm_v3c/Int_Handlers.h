@@ -708,6 +708,7 @@ void OPTICAL_SFD_ISR(){
 		// Fine DAC step size is about 6000 counts
 		if(count_HFclock < 1997000) HF_CLOCK_fine--;
 		if(count_HFclock > 2003000) HF_CLOCK_fine++;
+		//printf("%d", count_HFclock);	
 		set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
 		
 		// Do correction on LC
@@ -742,7 +743,9 @@ void OPTICAL_SFD_ISR(){
 	// printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,LC_code,count_IF,IF_fine); 
 	 
 	//printf("%d\n",count_LC);
-	if(optical_cal_iteration == 25){
+	//printf("%d",optical_cal_iteration);
+
+	if(optical_cal_iteration == 14){
 		// Disable this ISR
 		ICER = 0x0800;
 		optical_cal_iteration = 0;
