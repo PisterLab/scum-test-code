@@ -127,13 +127,13 @@ if __name__ == '__main__':
             ax.set_ylabel(item_key)
             ax.set_xlabel('coarse.mid.fine')
             
-            x_s_lim   = 0
-            x_e_lim   = NUM_CONFIG
-            SCALE     = 1000
+            # x_s_lim   = 0
+            # x_e_lim   = NUM_CONFIG
+            # SCALE     = 1000
             
-            # x_s_lim   = 23*32*32
-            # x_e_lim   = 29*32*32
-            # SCALE     = 200
+            x_s_lim   = 22*32*32
+            x_e_lim   = 29*32*32
+            SCALE     = 200
             
             ax.set_xlim(x_s_lim,x_e_lim)
             

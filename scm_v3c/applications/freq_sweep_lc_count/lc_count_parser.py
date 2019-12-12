@@ -95,15 +95,15 @@ if __name__ == '__main__':
         # x_e_lim   = NUM_CONFIG
         # SCALE     = 32*32
         
-        x_s_lim   = 22*32*32
-        x_e_lim   = 29*32*32
-        SCALE     = 32*32
+        x_s_lim   = 24*32*32 - 32
+        x_e_lim   = 25*32*32 + 32
+        SCALE     = 32
         
         ax.set_ylabel('Hz (converted from lc_count)')
         ax.set_xlabel('coarse.mid.fine')
         
         ax.set_xlim(x_s_lim,x_e_lim)
-        ax.set_ylim(2400000000,2500000000)
+        ax.set_ylim(2400000000,2450000000)
         
         xticks = [x_s_lim+i*SCALE for i in range((x_e_lim-x_s_lim)/SCALE)]
         xlabel = [converter_config_linear_2_text(i) for i in xticks]
@@ -113,6 +113,6 @@ if __name__ == '__main__':
         
         ax.set_title(board)
         
-        ax.legend(markerscale=0.7, scatterpoints=1)
+        ax.legend(markerscale=0.7, scatterpoints=1, loc=2)
         ax.grid(True)
         plt.savefig('{0}_freq_sweep_lc_count.png'.format(board))

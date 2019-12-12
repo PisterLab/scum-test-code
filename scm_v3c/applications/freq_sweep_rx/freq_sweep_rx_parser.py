@@ -91,15 +91,15 @@ if __name__ == '__main__':
         
         fig, ax = plt.subplots(figsize=(16, 4))
         
-        num_bins  = 32*32
-        x_s_lim   = 0
-        x_e_lim   = NUM_CONFIG
-        SCALE     = 1000
-        
         # num_bins  = 32*32
-        # x_s_lim   = 23*32*32
-        # x_e_lim   = 29*32*32
-        # SCALE     = 200
+        # x_s_lim   = 0
+        # x_e_lim   = NUM_CONFIG
+        # SCALE     = 1000
+        
+        num_bins  = 32*32
+        x_s_lim   = 22*32*32
+        x_e_lim   = 29*32*32
+        SCALE     = 32*32
         
         # num_bins  = 32
         # x_s_lim   = 22*32*32
