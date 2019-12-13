@@ -101,51 +101,19 @@ int main(void) {
 		printf("Cal complete\n");
 	}
 	
-	
-//testZappy2(1000);
-//while(1)
-//	{
-
-//		if(!(~(0xFDFF | (~(GPIO_REG__INPUT) & ~(0xFDFF))))&&r!=1)//checks if GPIO9 is low and that you are in state one
-//		{
-//			//printf("%x\n", GPIO_REG__INPUT);
-//			printf("state1\n");
-//			sara_start(toggles,periodCounts);
-//			r=1;
-//			while(!(~(0xFDFF | (~(GPIO_REG__INPUT) & ~(0xFDFF)))))//waits until GPIO9 goes to zero
-//			{
-//					 for(t=0;t<10000;t++);
-//			}
-//		}
-
-//		if(!(~(0xFDFF | (~(GPIO_REG__INPUT) & ~(0xFDFF))))&&r==1)//checks if GPIO9 is low and you are in state 2
-//		{
-//			GPIO_REG__OUTPUT=GPIO_REG__OUTPUT & 0xFFCF;//should set GPIO4 and 5 to zero.
-//			i=0;
-//			while(i<12)  { 
-//					if(i<12)
-//					{
-//							GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
-//							for(t=0;t<periodCounts;t++);
-//					}
-//					i=i+1;
-//			}
-//			r=0;
-//			printf("state2\n");
-//			while(!(~(0xFDFF | (~(GPIO_REG__INPUT) & ~(0xFDFF)))))//waits until GPIO9 goes to zero
-//			{
-//					 for(t=0;t<10000;t++);
-//			}
-//		}
-//	}
-
-printf("I am alive :D\n");
 while(1)
 {
-	for(t=0;t<periodCounts;t++);
-	GPIO_REG__OUTPUT=0x0000;
-	//printf("I am alive :D\n");
-	for(t=0;t<periodCounts;t++);
-	GPIO_REG__OUTPUT=0xFFFF;
-}
+	//3.5 kHz at (x, 1)
+	//2.5 Hz at (x, 10k)
+	//96 Hz at (x, 250)
+	// 300 toggles (300, x)
+	sara_start(300,250); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
+	//GPIO_REG__OUTPUT=0x0000;
+	sara_release(250);
+	for(t=0;t<10000000;t++);
+}	
+
+
+
+
 }

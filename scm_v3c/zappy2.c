@@ -85,6 +85,22 @@ void sara_start(unsigned int toggles,unsigned int periodCounts)
 	i=i+1;
 	}	
 }
+
+void sara_release(unsigned int periodCounts)
+{
+	int i, t;
+	GPIO_REG__OUTPUT = 0x0000; 
+	i=0;
+	while(i<12)  { 
+	if(i<12)
+	{
+			GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+			for(t=0;t<periodCounts;t++);
+	}
+	i=i+1;
+	}	
+}
+	
 void testZappy2(unsigned int periodCounts)
 {
 	unsigned int i=0, t=0;

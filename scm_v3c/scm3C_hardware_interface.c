@@ -295,21 +295,21 @@ void init_ldo_control(void){
 	// Analog scan chain setup for radio LDOs
 	// Memory mapped control signals from the cortex are connected to fsm_pon signals
 	clear_asc_bit(501); // = scan_pon_if
-	set_asc_bit(502); // = scan_pon_lo
+	clear_asc_bit(502); // = scan_pon_lo
 	clear_asc_bit(503); // = scan_pon_pa
 	clear_asc_bit(504); // = gpio_pon_en_if
-	set_asc_bit(505); // = fsm_pon_en_if
+	clear_asc_bit(505); // = fsm_pon_en_if
 	clear_asc_bit(506); // = gpio_pon_en_lo
-	set_asc_bit(507); // = fsm_pon_en_lo 
+	clear_asc_bit(507); // = fsm_pon_en_lo 
 	clear_asc_bit(508); // = gpio_pon_en_pa
-	set_asc_bit(509); // = fsm_pon_en_pa
-	set_asc_bit(510); // = master_ldo_en_if
-	set_asc_bit(511); // = master_ldo_en_lo
-	set_asc_bit(512); // = master_ldo_en_pa
-	set_asc_bit(513); // = scan_pon_div
+	clear_asc_bit(509); // = fsm_pon_en_pa
+	clear_asc_bit(510); // = master_ldo_en_if
+	clear_asc_bit(511); // = master_ldo_en_lo
+	clear_asc_bit(512); // = master_ldo_en_pa
+	clear_asc_bit(513); // = scan_pon_div
 	clear_asc_bit(514); // = gpio_pon_en_div
-	set_asc_bit(515); // = fsm_pon_en_div
-	set_asc_bit(516); // = master_ldo_en_div
+	clear_asc_bit(515); // = fsm_pon_en_div
+	clear_asc_bit(516); // = master_ldo_en_div
 
 	// AUX LDO Control:
 	// ASC<914> chooses whether ASC<916> or analog_cfg<167> controls LDO
@@ -867,7 +867,7 @@ void radio_init_rx_ZCC(){
 	set_IF_comparator_trim_I(0,10);
 
 	// Set LDO reference voltage
-	set_IF_LDO_voltage(0);
+	set_IF_LDO_voltage(127);
 
 	// Set RST_B to analog_cfg[75]
 	set_asc_bit(240);
@@ -1201,13 +1201,13 @@ void initialize_mote(){
 	init_ldo_control();
 
 	// Set LDO reference voltages
-	//set_VDDD_LDO_voltage(0);//sets it max
-	//set_VDDD_LDO_voltage(127);
-	//set_AUX_LDO_voltage(0);
-	set_ALWAYSON_LDO_voltage(0);
+	set_VDDD_LDO_voltage(127);//sets it max
+	set_VDDD_LDO_voltage(127);
+	set_AUX_LDO_voltage(127);
+	set_ALWAYSON_LDO_voltage(127);
 	//Enables GPO
 	//GPO_enables(0x00FF);
-	GPO_enables(0xFFFF);
+	GPO_enables(0x0070);
 	//Enables GPI
 	//GPI_enables(0x0F00);
 	GPI_enables(0x0000);
@@ -1217,7 +1217,7 @@ void initialize_mote(){
 	
 	// // Select banks for GPIO outputs
 	//GPO_control(6,6,6,6);
-	GPO_control(10,6,6,10);
+	GPO_control(6,6,6,6);
 	
 	// // Set all GPIOs as outputs
 	//GPI_enables(0x0000);// Shutting off all GPIOs that are not being used to prevent leakage	
@@ -1247,6 +1247,17 @@ void initialize_mote(){
 	set_asc_bit(44);
 	set_asc_bit(43);
 	set_asc_bit(42);
+	
+	//set_asc_bit(50);
+	//set_asc_bit(51);
+	//clear_asc_bit(52); // inverted
+	//set_asc_bit(53);
+	//set_asc_bit(54);
+	//set_asc_bit(55);
+	//set_asc_bit(56);
+	//set_asc_bit(57);
+
+	
 	
 	// Set 2M RC as source for chip CLK
 	set_asc_bit(1156);

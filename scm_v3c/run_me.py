@@ -16,13 +16,13 @@ from sensor_adc.adc_fsm import *
 from sensor_adc.data_handling import *
 
 if __name__ == "__main__":
-    programmer_port = "COM14"
-    scm_port = "COM13"
+    programmer_port = "COM5"
+    scm_port = "COM16"
    
     # Programming SCM 
     if True:
         program_cortex_specs = dict(teensy_port=programmer_port,
-                                    uart_port=scm_port,
+                                    uart_port=None, #scm_port,
                                     file_binary='./code.bin',
                                     boot_mode='optical',
                                     skip_reset=False,
