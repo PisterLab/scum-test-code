@@ -86,6 +86,90 @@ void sara_start(unsigned int toggles,unsigned int periodCounts)
 	}	
 }
 
+void sara_start2(unsigned int toggles,unsigned int periodCounts)
+{	
+	unsigned int i=1;
+	unsigned int t;
+	unsigned int x=1;
+	
+
+	i=1;
+	x=1;
+	GPIO_REG__OUTPUT = 0x0100;//starts the first toggle
+	//I consider it a toggle when any of the two signals generate a one
+
+	while(x<toggles)  { //LOOP
+		if(i<16)
+		{
+				GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+				for(t=0;t<periodCounts;t++);
+		}
+		else
+		{		
+				if ((GPIO_REG__OUTPUT | 0xFEFF)==0xFFFF)//if GPIO4 is high toggle GPIO5
+				{
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFEBF); // toggles GPIO6 and GPIO8
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFDBF); //toggles GPIO6 & 9
+						for(t=0;t<periodCounts;t++);
+				}
+				else
+				{
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFDBF); // toggles GPIO6 and GPIO9
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+						i++;
+						for(t=0;t<periodCounts;t++);
+						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFEBF); //toggles GPIO6 & 8
+						for(t=0;t<periodCounts;t++);
+				}
+				
+				i=0;
+				x++;
+		}
+		i=i+1;
+
+	}	
+	
+	while(i<11)  { 
+		if(i<11)
+		{
+				GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+				for(t=0;t<periodCounts;t++);
+		}
+		i=i+1;
+	}	
+	//I'm going to set GPIO 4, and 5 stay high.
+	GPIO_REG__OUTPUT = GPIO_REG__OUTPUT | 0x0300; 
+	i=0;
+	while(i<12)  { 
+	if(i<12)
+	{
+			GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFFBF); //toggles only clock GPIO 6
+			for(t=0;t<periodCounts;t++);
+	}
+	i=i+1;
+	}	
+}
+
+
 void sara_release(unsigned int periodCounts)
 {
 	int i, t;

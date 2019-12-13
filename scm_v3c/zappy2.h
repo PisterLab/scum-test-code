@@ -1,5 +1,6 @@
 void sara_start(unsigned int toggles, unsigned int periodCounts);
-void sara_release(unsigned int periodCounts)
+void sara_start2(unsigned int toggles,unsigned int periodCounts);
+void sara_release(unsigned int periodCounts);
 void testZappy2(unsigned int periodCounts);
 void GPIO9_interrupt_enable(void);
 void GPIO9_interrupt_disable(void);
