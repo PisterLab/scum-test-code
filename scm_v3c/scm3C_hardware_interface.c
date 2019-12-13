@@ -1207,7 +1207,7 @@ void initialize_mote(){
 	set_ALWAYSON_LDO_voltage(127);
 	//Enables GPO
 	//GPO_enables(0x00FF);
-	GPO_enables(0x0070);
+	GPO_enables(0x0370);
 	//Enables GPI
 	//GPI_enables(0x0F00);
 	GPI_enables(0x0000);

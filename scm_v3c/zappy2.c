@@ -12,7 +12,8 @@ void sara_start(unsigned int toggles,unsigned int periodCounts)
 
 	i=1;
 	x=1;
-	GPIO_REG__OUTPUT = 0x0010;//starts the first toggle
+	//GPIO_REG__OUTPUT = 0x0010;//starts the first toggle
+	GPIO_REG__OUTPUT=GPIO_REG__OUTPUT | 0x0010;
 	//I consider it a toggle when any of the two signals generate a one
 
 	while(x<toggles)  { //LOOP
@@ -95,7 +96,8 @@ void sara_start2(unsigned int toggles,unsigned int periodCounts)
 
 	i=1;
 	x=1;
-	GPIO_REG__OUTPUT = 0x0100;//starts the first toggle
+	GPIO_REG__OUTPUT=GPIO_REG__OUTPUT | 0x0100;
+	//GPIO_REG__OUTPUT = 0x0100;//starts the first toggle
 	//I consider it a toggle when any of the two signals generate a one
 
 	while(x<toggles)  { //LOOP
@@ -106,7 +108,7 @@ void sara_start2(unsigned int toggles,unsigned int periodCounts)
 		}
 		else
 		{		
-				if ((GPIO_REG__OUTPUT | 0xFEFF)==0xFFFF)//if GPIO4 is high toggle GPIO5
+				if ((GPIO_REG__OUTPUT | 0xFDFF)==0xFFFF)//if GPIO9 is high toggle GPIO8
 				{
 						GPIO_REG__OUTPUT = ~(GPIO_REG__OUTPUT ^ 0xFEBF); // toggles GPIO6 and GPIO8
 						i++;
@@ -156,7 +158,7 @@ void sara_start2(unsigned int toggles,unsigned int periodCounts)
 		}
 		i=i+1;
 	}	
-	//I'm going to set GPIO 4, and 5 stay high.
+	//I'm going to set GPIO 8, and 9 stay high.
 	GPIO_REG__OUTPUT = GPIO_REG__OUTPUT | 0x0300; 
 	i=0;
 	while(i<12)  { 
