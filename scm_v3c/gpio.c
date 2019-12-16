@@ -12,6 +12,7 @@ void gpio_init(void){
     GPIO_REG__OUTPUT    &= ~0xFFFF; // all PINS low at initial
 }
 
+// frame
 void gpio_1_set(void){
     GPIO_REG__OUTPUT    |=  0x0002;
 }
@@ -22,6 +23,7 @@ void gpio_1_toggle(void){
     GPIO_REG__OUTPUT    ^=  0x0002;
 }
 
+// isr
 void gpio_2_set(void){
     GPIO_REG__OUTPUT    |=  0x0004;
 }
@@ -32,6 +34,7 @@ void gpio_2_toggle(void){
     GPIO_REG__OUTPUT    ^=  0x0004;
 }
 
+// slot
 void gpio_3_set(void){
     GPIO_REG__OUTPUT    |=  0x0008;
 }
@@ -42,6 +45,7 @@ void gpio_3_toggle(void){
     GPIO_REG__OUTPUT    ^=  0x0008;
 }
 
+// fsm
 void gpio_4_set(void){
     GPIO_REG__OUTPUT    |=  0x0010;
 }
@@ -52,6 +56,7 @@ void gpio_4_toggle(void){
     GPIO_REG__OUTPUT    ^=  0x0010;
 }
 
+// task
 void gpio_5_set(void){
     GPIO_REG__OUTPUT    |=  0x0020;
 }
@@ -62,6 +67,7 @@ void gpio_5_toggle(void){
     GPIO_REG__OUTPUT    ^=  0x0020;
 }
 
+// radio
 void gpio_6_set(void){
     GPIO_REG__OUTPUT    |=  0x0040;
 }

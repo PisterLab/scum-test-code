@@ -12,6 +12,7 @@ for each 16 channel with a quick_cal box.
 #include "rftimer.h"
 #include "radio.h"
 #include "optical.h"
+#include "gpio.h"
 
 //=========================== defines =========================================
 
@@ -22,17 +23,22 @@ for each 16 channel with a quick_cal box.
 #define NUM_CHANNELS        16
 #define SLOTFRAME_LEN       16
 
+#define NUM_SAMPLES         100
+
 #define MAX_PKT_LEN         125+LENGTH_CRC
-#define PKT_TX_LEN          2+LENGTH_CRC
+#define TARGET_PKT_LEN      2+LENGTH_CRC
 
 // timing
 #define SLOT_DURATION       500000  ///< 500 = 1ms@500kHz
-#define SUB_SLOT_DURATION   400     ///< 305 = 610us@500kHz
+#define SUB_SLOT_DURATION   305     ///< 305 = 610us@500kHz
+#define TXOFFSET            191     ///< measured, 382us
 
 // frequency settings
 #define SYNC_FREQ_START     22*32*32
 #define FREQ_RANGE          2*32*32
 #define SWEEP_STEP          2
+#define NUM_PKT_PER_SLOT    32*32
+
 #define COARSE_MASK         (0x001f<<10)
 #define COARSE_OFFSET       10
 #define MID_MASK            (0x001f<<5)
@@ -50,8 +56,10 @@ typedef enum{
 
 typedef enum{
     S_IDLE              = 0,
-    S_LISTENING         = 1,
-    S_RECEIVING         = 2,
+    S_LISTEN_FOR_DATA   = 1,
+    S_LISTEN_FOR_ACK    = 2,
+    S_RECEIVING_DATA    = 3,
+    S_RECEIVING_ACK     = 4,
     S_RXPROC            = 3,
     S_DATA_SENDING      = 4,
     S_ACK_SENDING       = 5,
@@ -71,12 +79,16 @@ typedef struct {
     uint16_t    freq_setting_tx[NUM_CHANNELS];
     uint16_t    freq_setting_rx[NUM_CHANNELS];
     
+    uint8_t     sample_index;
+    uint16_t    freq_setting_sample[NUM_SAMPLES];
+    
     uint16_t    freq_setting_index;
     uint16_t    current_freq_setting;
     
     bool        isSync;                // is synchronized?
     uint8_t     currentSlotOffset;
-    uint32_t    slotRerference;        // the timer read when slot timer fired
+    uint32_t    slotReference;        // the timer read when slot timer fired
+    uint32_t    lastCaptureTime;       // time stampe of receiving frame
     
     type_t      type;                  // tx or rx, used in start/end Frame ISR
     state_t     state;                 // radio state
@@ -88,6 +100,9 @@ typedef struct {
     
     uint8_t     packet[MAX_PKT_LEN];
     uint8_t     pkt_len;
+     int8_t     rxpk_rssi;
+    uint8_t     rxpk_lqi;
+       bool     rxpk_crc;
 } app_vars_t;
 
 app_vars_t app_vars;
@@ -98,6 +113,8 @@ void    cb_startFrame(uint32_t timestamp);
 void    cb_endFrame(uint32_t timestamp);
 void    cb_slot_timer(void);
 void    cb_calc_process_timer(void);
+
+void    synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum);
 
 //=========================== main ============================================
 
@@ -163,6 +180,8 @@ int main(void) {
     printf("Cal complete\r\n");
     
     app_vars.currentSlotOffset = SLOTFRAME_LEN - 1;
+    app_vars.freq_setting_index   = 0;
+    app_vars.current_freq_setting = SYNC_FREQ_START;
     
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
@@ -179,19 +198,161 @@ int main(void) {
 
 //=========================== private =========================================
 
+//==== sync
+
+void synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum){
+
+    uint32_t slot_boudary;
+
+    // synchronize currentslotoffset
+    app_vars.currentSlotOffset = pkt_channel-SYNC_CHANNEL;
+
+    // synchronize to slot boudary
+    rftimer_disable_interrupts();
+    slot_boudary = capturedTime - pkt_seqNum*SUB_SLOT_DURATION - TXOFFSET;
+    rftimer_set_callback(cb_slot_timer);
+    rftimer_setCompareIn(slot_boudary+SLOT_DURATION);
+
+    app_vars.isSync = true;
+}
+
+//==== isr
 
 void    cb_startFrame(uint32_t timestamp){
     
+    app_vars.lastCaptureTime = timestamp;
+    
+    switch(app_vars.type){
+    case T_TX:
+        
+    break;
+    case T_RX:
+        
+        switch(app_vars.state){
+        case S_LISTEN_FOR_DATA:
+            app_vars.state = S_RECEIVING_DATA;
+        break;
+        case S_LISTEN_FOR_ACK:
+            app_vars.state = S_RECEIVING_ACK;
+        break;
+        default:
+            // something goes wrong
+        break;
+        }
+        
+    break;
+    default:
+        
+    break;
+    }
 }
 
 void    cb_endFrame(uint32_t timestamp){
     
+    bool        isValidFrame;
+    uint8_t     pkt_channel;
+    uint16_t    pkt_seqNum;
+    
+    radio_rfOff();
+    
+    switch(app_vars.type){
+    case T_TX:
+    
+        app_vars.type = T_RX;
+    
+        LC_FREQCHANGE(
+            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] & COARSE_MASK) >> COARSE_OFFSET,
+            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &    MID_MASK) >>    MID_OFFSET,
+            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &   FINE_MASK) >>   FINE_OFFSET
+        );
+        radio_rxEnable();
+        radio_rxNow();
+    
+        app_vars.state = S_LISTEN_FOR_ACK;
+    break;
+    case T_RX:
+        
+        memset(app_vars.packet,0,MAX_PKT_LEN);
+
+        // get packet from radio
+        radio_getReceivedFrame(
+            app_vars.packet,
+            &app_vars.pkt_len,
+            sizeof(app_vars.packet),
+            &app_vars.rxpk_rssi,
+            &app_vars.rxpk_lqi
+        );
+
+        // check the frame is valid or not
+
+        isValidFrame = false;
+
+        if (app_vars.pkt_len == TARGET_PKT_LEN){
+
+            pkt_channel = (app_vars.packet[0] & 0xf0)>>4;
+            pkt_seqNum  = ((uint16_t)(app_vars.packet[0] & 0x0f))<<8 |
+                           (uint16_t)(app_vars.packet[1]);
+            if (
+                pkt_channel>=11 &&
+                pkt_channel<=26 &&
+                pkt_seqNum<NUM_PKT_PER_SLOT
+            ){
+                isValidFrame = true;
+            }
+        }
+        
+        if (isValidFrame){
+            if (app_vars.isSync){
+                switch(app_vars.state){
+                case S_RECEIVING_DATA:
+                    
+                    // doing calibration on rx channel
+                    
+                    app_vars.freq_setting_sample[app_vars.sample_index++] = \
+                        app_vars.current_freq_setting;
+                    
+                    app_vars.state = S_IDLE;
+                    
+                break;
+                case S_RECEIVING_ACK:
+                    
+                    // doing calibration on tx channel
+                    
+                    app_vars.freq_setting_sample[app_vars.sample_index++] = \
+                        app_vars.current_freq_setting;
+                    
+                    app_vars.state = S_IDLE;
+                    
+                break;
+                default:
+                    
+                break;
+                }
+            } else {
+                
+                // synchronize to the network
+                synchronize(app_vars.lastCaptureTime, pkt_channel, pkt_seqNum);
+                
+                app_vars.state = S_IDLE;
+                
+            }
+        } else {
+            app_vars.state = S_IDLE;
+        }
+        
+    break;
+    default:
+        
+    break;
+    }
 }
 
 void    cb_slot_timer(void) {
     
-    app_vars.slotRerference = rftimer_readCounter();
-    rftimer_setCompareIn(app_vars.slotRerference+SLOT_DURATION);
+    gpio_3_toggle();
+    
+    app_vars.slotReference = rftimer_readCounter();
+    rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
     
     app_vars.currentSlotOffset = \
         (app_vars.currentSlotOffset+1) % SLOTFRAME_LEN;
@@ -215,11 +376,12 @@ void    cb_slot_timer(void) {
                 
             } else {
                 
-                
                 app_vars.channel_to_calc = \
                     app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
                 
                 app_vars.freq_setting_index   = 0;
+                app_vars.current_freq_setting = 
+                        app_vars.freq_setting_rx[app_vars.currentSlotOffset];
                 cb_calc_process_timer();
             }
             
@@ -260,43 +422,52 @@ void    cb_slot_timer(void) {
         
         app_vars.type = T_RX;
         
-        app_vars.freq_setting_index   = 0;
-        app_vars.current_freq_setting = SYNC_FREQ_START;
-        
         cb_calc_process_timer();
     }
 }
 
 void    cb_calc_process_timer(void) {
     
-    app_vars.freq_setting_index += 1;
+    gpio_4_toggle();
     
-    if (app_vars.freq_setting_index>FREQ_RANGE/SWEEP_STEP){
+    app_vars.freq_setting_index = 1+app_vars.freq_setting_index;
+    
+    if (app_vars.isSync && app_vars.freq_setting_index>FREQ_RANGE/SWEEP_STEP){
         rftimer_disable_interrupts();
         rftimer_set_callback(cb_slot_timer);
-        rftimer_setCompareIn(app_vars.slotRerference + SLOT_DURATION);
+        rftimer_setCompareIn(app_vars.slotReference + SLOT_DURATION);
     } else {
         rftimer_disable_interrupts();
         rftimer_set_callback(cb_calc_process_timer);
+        
+        if (
+            rftimer_readCounter()+ SUB_SLOT_DURATION - 
+            (
+                app_vars.slotReference + 
+                    app_vars.freq_setting_index*SUB_SLOT_DURATION
+            ) <= SUB_SLOT_DURATION
+        ) {
+            // slotReference is not changed
+            
+        } else {
+            // slotReference is updated
+            
+            app_vars.freq_setting_index = 0;
+        }
+        
         rftimer_setCompareIn(
-            app_vars.slotRerference +     \
+            app_vars.slotReference +     \
             app_vars.freq_setting_index*SUB_SLOT_DURATION
         );
     }
     
     radio_rfOff();
-    app_vars.current_freq_setting += SWEEP_STEP;
-    LC_FREQCHANGE(
-        (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
-        (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
-        (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
-    );
     
     switch(app_vars.type){
         
     case T_TX:
         
-        if (app_vars.current_freq_setting>SYNC_FREQ_START+FREQ_RANGE){
+        if (app_vars.current_freq_setting<SYNC_FREQ_START-FREQ_RANGE){
             if (app_vars.isSync) {
                 // freq_sweep is done, calculate the freq_setting
                 // todo
@@ -305,15 +476,22 @@ void    cb_calc_process_timer(void) {
                 // something goes wrong
             }
         } else {
-            app_vars.pkt_len = PKT_TX_LEN;
+            app_vars.current_freq_setting -= SWEEP_STEP;
+            LC_FREQCHANGE(
+                (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+            );
+            app_vars.pkt_len = TARGET_PKT_LEN;
             radio_loadPacket(app_vars.packet, app_vars.pkt_len);
             radio_txEnable();
             radio_txNow();
+            
+            app_vars.state = S_DATA_SEND;
         }
     
     break;
     case T_RX:
-
     
         if (app_vars.current_freq_setting>SYNC_FREQ_START+FREQ_RANGE){
             if (app_vars.isSync) {
@@ -323,11 +501,20 @@ void    cb_calc_process_timer(void) {
             } else {
                 // doesn't receive a valid frame during one slot to sync
                 
-                // wait next slot to repeat
+                app_vars.current_freq_setting = SYNC_FREQ_START;
             }
         } else {
+            
+            app_vars.current_freq_setting += SWEEP_STEP;
+            LC_FREQCHANGE(
+                (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+            );
             radio_rxEnable();
             radio_rxNow();
+            
+            app_vars.state = S_LISTEN_FOR_DATA;
         }
 
     break;

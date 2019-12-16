@@ -4,6 +4,7 @@
 #include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
+#include "gpio.h"
 
 // ========================== definition ======================================
 
@@ -66,6 +67,8 @@ void rftimer_disable_interrupts(void){
 void rftimer_isr(void) {
     
     unsigned int interrupt = RFTIMER_REG__INT;
+    
+    gpio_2_set();
     
     if (interrupt & 0x00000001){
 #ifdef ENABLE_PRINTF
@@ -170,4 +173,6 @@ void rftimer_isr(void) {
     }
     
     RFTIMER_REG__INT_CLEAR = interrupt;
+    
+    gpio_2_clr();
 }

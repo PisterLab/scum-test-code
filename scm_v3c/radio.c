@@ -7,6 +7,7 @@
 #include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
+#include "gpio.h"
 
 // raw_chip interrupt related
 unsigned int chips[100];
@@ -616,6 +617,8 @@ void radio_isr(void) {
     unsigned int interrupt = RFCONTROLLER_REG__INT;
     unsigned int error     = RFCONTROLLER_REG__ERROR;
     
+    gpio_2_set();
+    
     radio_vars.crc_ok   = true;
     if (error != 0) {
         
@@ -701,6 +704,8 @@ void radio_isr(void) {
     }
     
     RFCONTROLLER_REG__INT_CLEAR = interrupt;
+    
+    gpio_2_clr();
 }
 
 
