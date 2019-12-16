@@ -618,6 +618,7 @@ void radio_isr(void) {
     unsigned int error     = RFCONTROLLER_REG__ERROR;
     
     gpio_2_set();
+    gpio_6_set();
     
     radio_vars.crc_ok   = true;
     if (error != 0) {
@@ -706,6 +707,7 @@ void radio_isr(void) {
     RFCONTROLLER_REG__INT_CLEAR = interrupt;
     
     gpio_2_clr();
+    gpio_6_clr();
 }
 
 

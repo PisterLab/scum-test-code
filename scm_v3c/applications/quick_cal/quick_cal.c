@@ -60,13 +60,13 @@ typedef enum{
     S_LISTEN_FOR_ACK    = 2,
     S_RECEIVING_DATA    = 3,
     S_RECEIVING_ACK     = 4,
-    S_RXPROC            = 3,
-    S_DATA_SENDING      = 4,
-    S_ACK_SENDING       = 5,
-    S_DATA_SENDDONE     = 6,
-    S_ACK_SENDDONE      = 7,
-    S_DATA_SEND         = 8,
-    S_ACK_SEND          = 9,
+    S_RXPROC            = 6,
+    S_DATA_SENDING      = 7,
+    S_ACK_SENDING       = 8,
+    S_DATA_SENDDONE     = 9,
+    S_ACK_SENDDONE      = 10,
+    S_DATA_SEND         = 11,
+    S_ACK_SEND          = 12,
 }state_t;
 
 typedef struct {
@@ -186,7 +186,6 @@ int main(void) {
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
     
-    app_vars.current_freq_setting = SYNC_FREQ_START;
     rftimer_setCompareIn(rftimer_readCounter()+SLOT_DURATION);
 
     while(1){
@@ -272,6 +271,8 @@ void    cb_endFrame(uint32_t timestamp){
     break;
     case T_RX:
         
+        gpio_7_toggle();
+        
         memset(app_vars.packet,0,MAX_PKT_LEN);
 
         // get packet from radio
@@ -342,7 +343,7 @@ void    cb_endFrame(uint32_t timestamp){
         
     break;
     default:
-        
+        printf("wrong state: type=%d, state=%d\r\n",app_vars.type, app_vars.state);
     break;
     }
 }
@@ -440,24 +441,8 @@ void    cb_calc_process_timer(void) {
         rftimer_disable_interrupts();
         rftimer_set_callback(cb_calc_process_timer);
         
-        if (
-            rftimer_readCounter()+ SUB_SLOT_DURATION - 
-            (
-                app_vars.slotReference + 
-                    app_vars.freq_setting_index*SUB_SLOT_DURATION
-            ) <= SUB_SLOT_DURATION
-        ) {
-            // slotReference is not changed
-            
-        } else {
-            // slotReference is updated
-            
-            app_vars.freq_setting_index = 0;
-        }
-        
         rftimer_setCompareIn(
-            app_vars.slotReference +     \
-            app_vars.freq_setting_index*SUB_SLOT_DURATION
+            rftimer_readCounter() + SUB_SLOT_DURATION
         );
     }
     
@@ -492,34 +477,50 @@ void    cb_calc_process_timer(void) {
     
     break;
     case T_RX:
-    
-        if (app_vars.current_freq_setting>SYNC_FREQ_START+FREQ_RANGE){
-            if (app_vars.isSync) {
-                // freq_sweep is done, calculate the freq_setting
-                // todo
-                
+        
+        switch(app_vars.state){
+        case S_IDLE:
+        case S_LISTEN_FOR_DATA:
+            if (app_vars.current_freq_setting>SYNC_FREQ_START+FREQ_RANGE){
+                if (app_vars.isSync) {
+                    // freq_sweep is done, calculate the freq_setting
+                    // todo
+                    
+                } else {
+                    // doesn't receive a valid frame during one slot to sync
+                    
+                    gpio_5_toggle();
+                    
+                    app_vars.current_freq_setting = SYNC_FREQ_START;
+                }
             } else {
-                // doesn't receive a valid frame during one slot to sync
                 
-                app_vars.current_freq_setting = SYNC_FREQ_START;
+                app_vars.current_freq_setting += SWEEP_STEP;
+                LC_FREQCHANGE(
+                    (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                    (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                    (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                );
+                radio_rxEnable();
+                radio_rxNow();
+                
+                app_vars.state = S_LISTEN_FOR_DATA;
             }
-        } else {
+        break;
+        case S_RECEIVING_DATA:
+            // do nothing
+        
+            gpio_7_toggle();
             
-            app_vars.current_freq_setting += SWEEP_STEP;
-            LC_FREQCHANGE(
-                (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
-                (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
-                (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
-            );
-            radio_rxEnable();
-            radio_rxNow();
-            
-            app_vars.state = S_LISTEN_FOR_DATA;
+        break;
+        default:
+            // wrong state
+        break;
         }
 
     break;
     default:
-        // wrong state
+        // wrong type
     break;
     }
 }
