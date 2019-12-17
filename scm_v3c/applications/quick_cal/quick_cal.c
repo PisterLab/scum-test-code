@@ -31,7 +31,7 @@ for each 16 channel with a quick_cal box.
 // timing
 #define SLOT_DURATION       500000  ///< 500 = 1ms@500kHz
 #define TARGET_PKT_INTERVAL 305     ///< 305 = 610us@500kHz
-#define SUB_SLOT_DURATION   460     ///< 305 = 610us@500kHz
+#define SUB_SLOT_DURATION   450     ///< 305 = 610us@500kHz
 #define TXOFFSET            191     ///< measured, 382us
 #define WD_DATA_SENDDONE    100     ///>measured,  161us  100 = 200us@500kHz
 
@@ -325,7 +325,12 @@ void    cb_endFrame(uint32_t timestamp){
                     
                     rftimer_disable_interrupts();
                     rftimer_set_callback(cb_calc_process_timer);
-                    rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+                
+                    if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
+                        rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+                    } else {
+                        rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
+                    }
                 
                     gpio_1_toggle();
                     
@@ -338,10 +343,14 @@ void    cb_endFrame(uint32_t timestamp){
                         
                     } else {
                     
-                        // doing calibration on rx channel
+                        // doing calibration on rx channel if haven't yet
                         
-                        app_vars.freq_setting_sample[app_vars.sample_index++] = \
-                            app_vars.current_freq_setting;
+                        if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0){
+                                                    
+                            app_vars.freq_setting_sample[app_vars.sample_index++] = \
+                                app_vars.current_freq_setting;
+                        }
+
                     }
                     
                     app_vars.state = S_IDLE;
@@ -395,6 +404,8 @@ void    cb_slot_timer(void) {
     
     app_vars.currentSlotOffset = \
         (app_vars.currentSlotOffset+1) % SLOTFRAME_LEN;
+    
+    app_vars.state = S_IDLE;
     
     if (app_vars.isSync){
         
@@ -485,11 +496,26 @@ void    cb_slot_timer(void) {
                 } else {
                     
                     if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0){
-                    
+                        
+                        // doing freq_sweep for target channel
+                        
                         app_vars.current_freq_setting = 
                             app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
                     } else {
                         // channel rx_(11+currentSlotOffset) found already
+                        
+                        app_vars.current_freq_setting = app_vars.freq_setting_rx[app_vars.currentSlotOffset];
+                        LC_FREQCHANGE(
+                            (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                        );
+                        radio_rxEnable();
+                        radio_rxNow();
+                        
+                        app_vars.state = S_LISTEN_FOR_DATA;
+                        
+                        return;
                     }
                 }
             }
@@ -507,8 +533,9 @@ void    cb_slot_timer(void) {
 
 void    cb_calc_process_timer(void) {
     
-    uint8_t i;
-    uint8_t last_sample;
+    uint8_t     i;
+    uint8_t     last_sample;
+    uint32_t    start_frequency;
     
     gpio_4_toggle();
     
@@ -555,8 +582,20 @@ void    cb_calc_process_timer(void) {
         switch(app_vars.state){
         case S_IDLE:
         case S_LISTEN_FOR_DATA:
+            
+            // get start frequncy to sweep
+            
+            if (app_vars.isSync){
+                if (app_vars.currentSlotOffset==0){
+                    start_frequency = SYNC_FREQ_START;
+                } else {
+                    start_frequency = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
+                }
+            } else {
+                start_frequency = SYNC_FREQ_START;
+            }
 
-            if (app_vars.current_freq_setting>SYNC_FREQ_START+FREQ_RANGE){
+            if (app_vars.current_freq_setting>start_frequency+FREQ_RANGE){
                 if (app_vars.isSync) {
                     // freq_sweep is done, calculate the freq_setting
                     
@@ -565,7 +604,7 @@ void    cb_calc_process_timer(void) {
                     rftimer_setCompareIn(app_vars.slotReference + SLOT_DURATION);
                     
                     last_sample = 0;
-                                        
+                                    
                     gpio_5_toggle();
                     
                     if (app_vars.freq_setting_sample[0]!=0){
@@ -587,7 +626,7 @@ void    cb_calc_process_timer(void) {
                                 break;
                             }
                         }
-                        printf("last_sample=%d rx_%d=%d\r\n",
+                        printf("num_sample=%d rx_%d=%d\r\n",
                             last_sample,
                             app_vars.currentSlotOffset+SYNC_CHANNEL, 
                             app_vars.freq_setting_rx[app_vars.currentSlotOffset]
