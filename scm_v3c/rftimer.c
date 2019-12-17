@@ -51,6 +51,10 @@ uint32_t rftimer_readCounter(void){
 }
 
 void rftimer_enable_interrupts(void){
+    
+    // clear pending bit first
+    rftimer_clear_interrupts();
+    
     // enable compare interrupt (this also cancels any pending interrupts)
     RFTIMER_REG__COMPARE0_CONTROL   = RFTIMER_COMPARE_ENABLE |   \
                                       RFTIMER_COMPARE_INTERRUPT_ENABLE;
@@ -58,8 +62,13 @@ void rftimer_enable_interrupts(void){
 }
 
 void rftimer_disable_interrupts(void){
-    RFTIMER_REG__COMPARE0_CONTROL = 0x0;
+    // disable compare interrupt
+    RFTIMER_REG__COMPARE0_CONTROL = 0x0000;
     ICER = 0x80;
+}
+
+void rftimer_clear_interrupts(void){
+    RFTIMER_REG__INT_CLEAR = 0x0001;
 }
 
 // ========================== interrupt =======================================
