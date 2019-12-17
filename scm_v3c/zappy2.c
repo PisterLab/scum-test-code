@@ -14,6 +14,7 @@ void sara_start(unsigned int toggles,unsigned int periodCounts)
 	x=1;
 	//GPIO_REG__OUTPUT = 0x0010;//starts the first toggle
 	GPIO_REG__OUTPUT=GPIO_REG__OUTPUT | 0x0010;
+	GPIO_REG__OUTPUT=GPIO_REG__OUTPUT & 0xFFDF;
 	//I consider it a toggle when any of the two signals generate a one
 
 	while(x<toggles)  { //LOOP
@@ -97,6 +98,7 @@ void sara_start2(unsigned int toggles,unsigned int periodCounts)
 	i=1;
 	x=1;
 	GPIO_REG__OUTPUT=GPIO_REG__OUTPUT | 0x0100;
+	GPIO_REG__OUTPUT=GPIO_REG__OUTPUT & 0xFDFF;
 	//GPIO_REG__OUTPUT = 0x0100;//starts the first toggle
 	//I consider it a toggle when any of the two signals generate a one
 

@@ -1201,7 +1201,7 @@ void initialize_mote(){
 	init_ldo_control();
 
 	// Set LDO reference voltages
-	set_VDDD_LDO_voltage(127);//sets it max
+	//set_VDDD_LDO_voltage(127);//sets it max
 	set_VDDD_LDO_voltage(127);
 	set_AUX_LDO_voltage(127);
 	set_ALWAYSON_LDO_voltage(127);
@@ -1239,60 +1239,67 @@ void initialize_mote(){
 	set_asc_bit(553);
 	
 	// HF_CLOCK will be trimmed to 20MHz, so set RFTimer div value to 40 to get 500kHz (inverted, so 1101 0111)
-	set_asc_bit(49);
-	set_asc_bit(48);
-	clear_asc_bit(47);
-	set_asc_bit(46);
-	clear_asc_bit(45);
-	set_asc_bit(44);
-	set_asc_bit(43);
-	set_asc_bit(42);
+//	set_asc_bit(49);
+//	set_asc_bit(48);
+//	clear_asc_bit(47);
+//	set_asc_bit(46);
+//	clear_asc_bit(45);
+//	set_asc_bit(44);
+//	set_asc_bit(43);
+//	set_asc_bit(42);
 	
-	//set_asc_bit(50);
-	//set_asc_bit(51);
-	//clear_asc_bit(52); // inverted
-	//set_asc_bit(53);
-	//set_asc_bit(54);
-	//set_asc_bit(55);
-	//set_asc_bit(56);
-	//set_asc_bit(57);
+//	set_asc_bit(50);
+//	set_asc_bit(51);
+//	clear_asc_bit(52); // inverted
+//	set_asc_bit(53);
+//	set_asc_bit(54);
+//	set_asc_bit(55);
+//	set_asc_bit(56);
+//	set_asc_bit(57);
 
+//	clear_asc_bit(50);
+//	clear_asc_bit(51);
+//	set_asc_bit(52); // inverted
+//	clear_asc_bit(53);
+//	clear_asc_bit(54);
+//	clear_asc_bit(55);
+//	clear_asc_bit(56);
+//	clear_asc_bit(57);
 	
-	
-	// Set 2M RC as source for chip CLK
-	set_asc_bit(1156);
-	
-	// Enable 32k for cal
-	set_asc_bit(623);
-	
-	// Enable passthrough on chip CLK divider
-	set_asc_bit(41);
-	
-	// Init counter setup - set all to analog_cfg control
-	// ASC[0] is leftmost
-	//ASC[0] |= 0x6F800000; 
-	for(t=2; t<9; t++) set_asc_bit(t);	
-		
-	// Init RX
-	radio_init_rx_MF();
-		
-	// Init TX
-	radio_init_tx();
-		
-	// Set initial IF ADC clock frequency
-	set_IF_clock_frequency(IF_coarse, IF_fine, 0);
+//	// Set 2M RC as source for chip CLK
+//	set_asc_bit(1156);
+//	
+//	// Enable 32k for cal
+//	set_asc_bit(623);
+//	
+//	// Enable passthrough on chip CLK divider
+//	set_asc_bit(41);
+//	
+//	// Init counter setup - set all to analog_cfg control
+//	// ASC[0] is leftmost
+//	//ASC[0] |= 0x6F800000; 
+//	for(t=2; t<9; t++) set_asc_bit(t);	
+//		
+//	// Init RX
+//	radio_init_rx_MF();
+//		
+//	// Init TX
+//	radio_init_tx();
+//		
+//	// Set initial IF ADC clock frequency
+//	set_IF_clock_frequency(IF_coarse, IF_fine, 0);
 
-	// Set initial TX clock frequency
-	set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
+//	// Set initial TX clock frequency
+//	set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
 
-	// Turn on RC 2M for cal
-	set_asc_bit(1114);
-		
-	// Set initial LO frequency
-	LC_monotonic(LC_code);
-	
-	// Init divider settings
-	radio_init_divider(2000);
+//	// Turn on RC 2M for cal
+//	set_asc_bit(1114);
+//		
+//	// Set initial LO frequency
+//	LC_monotonic(LC_code);
+//	
+//	// Init divider settings
+//	radio_init_divider(2000);
 
 	// SENSOR ADC INITIALIZATION
 	if (0) {
