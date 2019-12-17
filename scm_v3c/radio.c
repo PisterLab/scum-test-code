@@ -662,6 +662,8 @@ void radio_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("TX LOAD DONE\r\n");
 #endif
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000001;
     }
     
     if (interrupt & 0x00000002) {
@@ -672,6 +674,8 @@ void radio_isr(void) {
         if (radio_vars.startFrame_tx_cb != 0) {
             radio_vars.startFrame_tx_cb(RFTIMER_REG__COUNTER);
         }
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000002;
     }
     
     if (interrupt & 0x00000004){
@@ -682,6 +686,8 @@ void radio_isr(void) {
         if (radio_vars.endFrame_tx_cb != 0) {
             radio_vars.endFrame_tx_cb(RFTIMER_REG__COUNTER);
         }
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000004;
     }
     
     if (interrupt & 0x00000008){
@@ -692,6 +698,8 @@ void radio_isr(void) {
         if (radio_vars.startFrame_rx_cb != 0) {
             radio_vars.startFrame_rx_cb(RFTIMER_REG__COUNTER);
         }
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000008;
     }
     
     if (interrupt & 0x00000010) {
@@ -702,9 +710,11 @@ void radio_isr(void) {
         if (radio_vars.endFrame_rx_cb != 0) {
             radio_vars.endFrame_rx_cb(RFTIMER_REG__COUNTER);
         }
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000010;
     }
     
-    RFCONTROLLER_REG__INT_CLEAR = interrupt;
+//    RFCONTROLLER_REG__INT_CLEAR = interrupt;
     
     gpio_2_clr();
     gpio_6_clr();
