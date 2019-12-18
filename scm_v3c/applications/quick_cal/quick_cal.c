@@ -31,7 +31,7 @@ for each 16 channel with a quick_cal box.
 // timing
 #define SLOT_DURATION       500000  ///< 500 = 1ms@500kHz
 #define TARGET_PKT_INTERVAL 305     ///< 305 = 610us@500kHz
-#define SUB_SLOT_DURATION   450     ///< 305 = 610us@500kHz
+#define SUB_SLOT_DURATION   400     ///< 305 = 610us@500kHz
 #define TXOFFSET            191     ///< measured, 382us
 #define WD_DATA_SENDDONE    100     ///>measured,  161us  100 = 200us@500kHz
 
@@ -301,34 +301,49 @@ void    cb_endFrame(uint32_t timestamp){
 
         // check the frame is valid or not
 
-        isValidFrame = false;
+        isValidFrame = true;
 
         if (app_vars.pkt_len == TARGET_PKT_LEN){
 
-            pkt_channel = (app_vars.packet[0] & 0xf0)>>4;
+            pkt_channel = SYNC_CHANNEL+((app_vars.packet[0] & 0xf0)>>4);
             pkt_seqNum  = ((uint16_t)(app_vars.packet[0] & 0x0f))<<8 |
                            (uint16_t)(app_vars.packet[1]);
-            if (
-                pkt_channel>=11 &&
-                pkt_channel<=26 &&
-                pkt_seqNum<NUM_PKT_PER_SLOT
-            ){
-                isValidFrame = true;
+            
+            if (pkt_seqNum>=NUM_PKT_PER_SLOT){
+                isValidFrame = false;
             }
+            
+            if (app_vars.isSync){
+                if ((pkt_channel - SYNC_CHANNEL)!= app_vars.currentSlotOffset){
+                    isValidFrame = false;
+                }
+            } else {
+                if (pkt_channel != SYNC_CHANNEL){
+                    isValidFrame = false;
+                }
+            }
+        } else {
+            
+            isValidFrame = false;
         }
         
         if (isValidFrame){
+            
+            gpio_8_toggle();
+            
             if (app_vars.isSync){
                 
                 switch(app_vars.state){
                 case S_RECEIVING_DATA:
                     
                     rftimer_disable_interrupts();
-                    rftimer_set_callback(cb_calc_process_timer);
                 
                     if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
+                        
+                        rftimer_set_callback(cb_calc_process_timer);
                         rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
                     } else {
+                        rftimer_set_callback(cb_slot_timer);
                         rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
                     }
                 
@@ -346,7 +361,7 @@ void    cb_endFrame(uint32_t timestamp){
                         // doing calibration on rx channel if haven't yet
                         
                         if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0){
-                                                    
+                        
                             app_vars.freq_setting_sample[app_vars.sample_index++] = \
                                 app_vars.current_freq_setting;
                         }
@@ -376,7 +391,13 @@ void    cb_endFrame(uint32_t timestamp){
                 }
             } else {
                 
-                printf("channel=%d, seqNum=%d\r\n", pkt_channel, pkt_seqNum);
+                printf(
+                    "channel=%d, seqNum=%d coarse=%d, mid=%d, fine=%d\r\n", 
+                    pkt_channel, pkt_seqNum, 
+                    (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                    (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                    (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                );
                 
                 // synchronize to the network
                 synchronize(app_vars.lastCaptureTime, pkt_channel, pkt_seqNum);
@@ -599,6 +620,8 @@ void    cb_calc_process_timer(void) {
                 if (app_vars.isSync) {
                     // freq_sweep is done, calculate the freq_setting
                     
+                    radio_rfOff();
+                    
                     rftimer_disable_interrupts();
                     rftimer_set_callback(cb_slot_timer);
                     rftimer_setCompareIn(app_vars.slotReference + SLOT_DURATION);
@@ -626,11 +649,16 @@ void    cb_calc_process_timer(void) {
                                 break;
                             }
                         }
-                        printf("num_sample=%d rx_%d=%d\r\n",
+                        printf("num_sample=%d rx_%d= corase=%d, mid=%d, fine=%d\r\n",
                             last_sample,
                             app_vars.currentSlotOffset+SYNC_CHANNEL, 
-                            app_vars.freq_setting_rx[app_vars.currentSlotOffset]
+                            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &   FINE_MASK) >>   FINE_OFFSET
+                            
                         );
+                    } else {
+                        printf("no sample found??\r\n");
                     }
                     
                 } else {
@@ -681,11 +709,18 @@ void cb_timeout_error(void){
     // change state
     app_vars.state = S_IDLE;
     
-    // skip one setting
-    app_vars.freq_setting_index    = 1+app_vars.freq_setting_index;
-    app_vars.current_freq_setting += SWEEP_STEP;
-
-    // schedule next sub slot
-    rftimer_set_callback(cb_calc_process_timer);
-    rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+    if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
+        
+        // skip one setting
+        app_vars.freq_setting_index    = 1+app_vars.freq_setting_index;
+        app_vars.current_freq_setting += SWEEP_STEP;
+        
+        // schedule next sub slot
+        rftimer_set_callback(cb_calc_process_timer);
+        rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+    } else {
+        // schedule next slot
+        rftimer_set_callback(cb_slot_timer);
+        rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
+    }
 }
