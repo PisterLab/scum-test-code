@@ -36,7 +36,8 @@ for each 16 channel with a quick_cal box.
 #define WD_DATA_SENDDONE    100     ///>measured,  161us  100 = 200us@500kHz
 
 // frequency settings
-#define SYNC_FREQ_START     22*32*32
+#define SYNC_FREQ_START_RX  22*32*32
+#define SYNC_FREQ_START_TX  22*32*32
 #define FREQ_RANGE          2*32*32
 #define SWEEP_STEP          2
 //#define NUM_PKT_PER_SLOT    32*32
@@ -48,6 +49,8 @@ for each 16 channel with a quick_cal box.
 #define MID_OFFSET          5
 #define FINE_MASK           (0x001f)
 #define FINE_OFFSET         0
+
+#define MAGIC_BYTE          0xCF    // Crystal Free
 
 //=========================== variables =======================================
 
@@ -185,7 +188,7 @@ int main(void) {
     
     app_vars.currentSlotOffset = SLOTFRAME_LEN - 1;
     app_vars.freq_setting_index   = 0;
-    app_vars.current_freq_setting = SYNC_FREQ_START;
+    app_vars.current_freq_setting = SYNC_FREQ_START_RX;
     
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
@@ -365,7 +368,6 @@ void    cb_endFrame(uint32_t timestamp){
                             app_vars.freq_setting_sample[app_vars.sample_index++] = \
                                 app_vars.current_freq_setting;
                         }
-
                     }
                     
                     app_vars.state = S_IDLE;
@@ -418,6 +420,10 @@ void    cb_endFrame(uint32_t timestamp){
 
 void    cb_slot_timer(void) {
     
+    uint8_t temp;
+    bool    tx_ch_11_to_25_done;
+    uint8_t i;
+    
     gpio_3_toggle();
     
     app_vars.slotReference = rftimer_readCounter();
@@ -430,14 +436,18 @@ void    cb_slot_timer(void) {
     
     if (app_vars.isSync){
         
-        if (app_vars.freq_setting_rx_done){
+        // sync'ed
+        
+        if (app_vars.currentSlotOffset==0){
             
-            app_vars.packet[0] = 0xCA;
-            app_vars.packet[1] = 0xFE;
+            // sync'ed
+            // slot 0 
             
-            if (app_vars.currentSlotOffset==0){
+            if (app_vars.freq_setting_rx_done){
                 
-                // skip slot 0 as all motes are listening on ch11 except root
+                // sync'ed
+                // slot 0
+                // freq_setting_RX_done is TRUE
                 
                 // re-sync
                 app_vars.type = T_RX;
@@ -453,33 +463,13 @@ void    cb_slot_timer(void) {
                 
                 app_vars.state = S_LISTEN_FOR_DATA;
                 
-                return;
-                
             } else {
                 
-                app_vars.type = T_TX;
+                // sync'ed
+                // slot 0
+                // freq_setting_RX_done is FALSE
                 
-                app_vars.channel_to_calc = \
-                    app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
-                
-                app_vars.freq_setting_index   = 0;
-                app_vars.current_freq_setting = 
-                        app_vars.freq_setting_rx[app_vars.currentSlotOffset];
-                cb_calc_process_timer();
-            }
-            
-        } else {
-            
-            // sweep frequency setting to find one Rx channel
-             
-            app_vars.type = T_RX; 
-            
-            app_vars.channel_to_calc = \
-                app_vars.currentSlotOffset + SYNC_CHANNEL;
-            
-            if (app_vars.currentSlotOffset==0){
-                
-                if (app_vars.freq_setting_rx[0]!=0){
+                if (app_vars.freq_setting_rx[0] != 0){
                 
                     // channel rx_11 found already
                     
@@ -495,22 +485,119 @@ void    cb_slot_timer(void) {
                     
                     app_vars.state = S_LISTEN_FOR_DATA;
                     
-                    return;
                 } else {
+                    
+                    app_vars.type = T_RX; 
+            
+                    app_vars.channel_to_calc = app_vars.currentSlotOffset + SYNC_CHANNEL;
                     
                     // channel rx_11 not found, setup freq sweep process
                     
                     app_vars.freq_setting_index   = 0;
-                    app_vars.current_freq_setting = SYNC_FREQ_START;
+                    app_vars.current_freq_setting = SYNC_FREQ_START_RX;
+                    
+                    app_vars.freq_setting_index   = 0;
+                    cb_calc_process_timer();
+                }
+            }
+        } else {
+            
+            // sync'ed
+            // slot 1 - 15
+            
+            if (app_vars.freq_setting_rx_done){
+                
+                // sync'ed
+                // slot 1 - 15
+                // freq_setting_RX_done is TRUE
+                
+                app_vars.type = T_TX;
+                
+                app_vars.packet[0] = app_vars.currentSlotOffset << 4;
+                app_vars.packet[1] = MAGIC_BYTE;
+                
+                if (app_vars.freq_setting_tx_done){
+                    
+                    // sync'ed
+                    // slot 1 - 15
+                    // freq_setting_RX_done is TRUE
+                    // freq_setting_TX_done is TRUE
+                    
+                    app_vars.current_freq_setting = app_vars.freq_setting_tx[app_vars.currentSlotOffset-1];
+                    LC_FREQCHANGE(
+                        (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                        (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                        (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                    );
+                    app_vars.pkt_len = TARGET_PKT_LEN;
+                    radio_loadPacket(app_vars.packet, app_vars.pkt_len);
+                    radio_txEnable();
+                    radio_txNow();
+                    
+                } else {
+                    
+                    // sync'ed
+                    // slot 1 - 15
+                    // freq_setting_RX_done is TRUE
+                    // freq_setting_TX_done is FALSE
+                    
+                    if (app_vars.currentSlotOffset==1){
+                        
+                        // sync'ed
+                        // slot 1
+                        // freq_setting_RX_done is TRUE
+                        // freq_setting_TX_done is FALSE
+                        
+                        // check whether channel 11-25 settings are recorded
+                        
+                        tx_ch_11_to_25_done = true;
+                        for (i=0;i<15;i++){
+                            if (app_vars.freq_setting_tx[i]==0){
+                                tx_ch_11_to_25_done = false;
+                                break;
+                            }
+                        }
+                        
+                        if (tx_ch_11_to_25_done){
+                            // calculate for channel 26
+                            app_vars.channel_to_calc = 26;
+                            
+                            // start with tx freq_setting of channel 25
+                            app_vars.current_freq_setting = app_vars.freq_setting_tx[14];
+                        } else {
+                            app_vars.channel_to_calc = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
+                            app_vars.current_freq_setting = SYNC_FREQ_START_TX;
+                        }
+                    } else {
+                        
+                        // sync'ed
+                        // slot 2 - 15
+                        // freq_setting_RX_done is TRUE
+                        // freq_setting_TX_done is FALSE
+                        
+                        app_vars.channel_to_calc = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
+                        app_vars.current_freq_setting = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
+                    }
+                    
+                    app_vars.freq_setting_index   = 0;
+                    cb_calc_process_timer();
                 }
             } else {
                 
+                // sync'ed
+                // slot 1 - 15
+                // freq_setting_RX_done is FALSE
+                
+                app_vars.type = T_RX;
+                
                 if (app_vars.freq_setting_rx[app_vars.currentSlotOffset-1]==0){
-                    // the previous frequency is unknown
+                    // The previous frequency is unknown
                     
-                    // don't performance frequency sweep
+                    // Don't performance frequency sweep
                     
                     // something goes wrong
+                    
+                    printf("current slot=%d: previous frequency is unknonw \r\n",app_vars.currentSlotOffset);
                     
                     return;
                     
@@ -519,9 +606,11 @@ void    cb_slot_timer(void) {
                     if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0){
                         
                         // doing freq_sweep for target channel
+                        app_vars.channel_to_calc        = app_vars.currentSlotOffset + SYNC_CHANNEL;
+                        app_vars.freq_setting_index     = 0;
+                        app_vars.current_freq_setting   = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
+                        cb_calc_process_timer();
                         
-                        app_vars.current_freq_setting = 
-                            app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
                     } else {
                         // channel rx_(11+currentSlotOffset) found already
                         
@@ -535,19 +624,18 @@ void    cb_slot_timer(void) {
                         radio_rxNow();
                         
                         app_vars.state = S_LISTEN_FOR_DATA;
-                        
-                        return;
                     }
                 }
             }
-            
-            app_vars.freq_setting_index   = 0;
-            cb_calc_process_timer();
         }
     } else {
         
+        // de-sync
+        
         app_vars.type = T_RX;
         
+        app_vars.freq_setting_index     = 0;
+        app_vars.current_freq_setting   = SYNC_FREQ_START_RX;
         cb_calc_process_timer();
     }
 }
@@ -560,64 +648,44 @@ void    cb_calc_process_timer(void) {
     
     gpio_4_toggle();
     
+    // increment freq_setting index
     app_vars.freq_setting_index = 1+app_vars.freq_setting_index;
     
+    // reschedule sub calc_process
     rftimer_disable_interrupts();
     rftimer_set_callback(cb_calc_process_timer);
-    rftimer_setCompareIn(
-        rftimer_readCounter() + SUB_SLOT_DURATION
-    );
+    rftimer_setCompareIn(rftimer_readCounter() + SUB_SLOT_DURATION);
     
     switch(app_vars.type){
         
-    case T_TX:
+        case T_TX:
+            
+            // swept 2 coarse setting already?
         
-        if (app_vars.current_freq_setting<SYNC_FREQ_START-FREQ_RANGE){
-            if (app_vars.isSync) {
-                // freq_sweep is done, calculate the freq_setting
-                
-                radio_rfOff();
-                // todo
-                
-            } else {
-                // something goes wrong
-            }
-        } else {
-            app_vars.current_freq_setting -= SWEEP_STEP;
-            LC_FREQCHANGE(
-                (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
-                (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
-                (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
-            );
-            app_vars.pkt_len = TARGET_PKT_LEN;
-            radio_loadPacket(app_vars.packet, app_vars.pkt_len);
-            radio_txEnable();
-            radio_txNow();
-            
-            app_vars.state = S_DATA_SEND;
-        }
-    
-    break;
-    case T_RX:
-        
-        switch(app_vars.state){
-        case S_IDLE:
-        case S_LISTEN_FOR_DATA:
-            
-            // get start frequncy to sweep
-            
             if (app_vars.isSync){
-                if (app_vars.currentSlotOffset==0){
-                    start_frequency = SYNC_FREQ_START;
+                if (app_vars.currentSlotOffset == 1){
+                    if (app_vars.channel_to_calc == 26){
+                        start_frequency = app_vars.freq_setting_rx[15];
+                    } else {
+                        start_frequency = SYNC_FREQ_START_TX;
+                    }
                 } else {
-                    start_frequency = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
+                    if (app_vars.currentSlotOffset == 0){
+                        printf("TX freq_sweep_done abnormally on slot 0!\r\n");
+                    } else {
+                        start_frequency = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
+                    }
                 }
             } else {
-                start_frequency = SYNC_FREQ_START;
+                printf("trying to calibrate tx freq_setting when de-sync!!\r\n");
             }
-
-            if (app_vars.current_freq_setting>start_frequency+FREQ_RANGE){
+        
+            // check if 2 coarse freq_sweep is done
+            
+            if (app_vars.current_freq_setting<app_vars.freq_setting_tx[app_vars.currentSlotOffset]-FREQ_RANGE){
+                
                 if (app_vars.isSync) {
+                    
                     // freq_sweep is done, calculate the freq_setting
                     
                     radio_rfOff();
@@ -627,15 +695,129 @@ void    cb_calc_process_timer(void) {
                     rftimer_setCompareIn(app_vars.slotReference + SLOT_DURATION);
                     
                     last_sample = 0;
-                                    
+                    
                     gpio_5_toggle();
                     
+                    // check if there is freq_setting sample recorded
+                    
                     if (app_vars.freq_setting_sample[0]!=0){
+                        
+                        // found at least one setting sample
+                        
                         for (i=0;i<NUM_SAMPLES;i++){
                             
                             if (app_vars.freq_setting_sample[i]!=0){
                                 last_sample++;
                             } else {
+                                
+                                // no more freq setting samples
+                                
+                                // take the median freq_setting
+                                app_vars.freq_setting_tx[app_vars.currentSlotOffset] \
+                                    = app_vars.freq_setting_sample[last_sample/2];
+                                
+                                app_vars.sample_index = 0;
+                                memset(
+                                    app_vars.freq_setting_sample,
+                                    0,
+                                    sizeof(app_vars.freq_setting_sample)
+                                );
+                                break;
+                            }
+                        }
+                        
+                        // check whether all rx freq_settings are recorded
+                        app_vars.freq_setting_tx_done = true;
+                        for (i=0;i<SLOTFRAME_LEN;i++){
+                            if (app_vars.freq_setting_tx[i]==0){
+                                app_vars.freq_setting_tx_done = false;
+                                break;
+                            }
+                        }
+                        
+                        printf("num_sample=%d rx_%d= corase=%d, mid=%d, fine=%d\r\n",
+                            last_sample,
+                            app_vars.currentSlotOffset-1+SYNC_CHANNEL, 
+                            (app_vars.freq_setting_tx[app_vars.currentSlotOffset] & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.freq_setting_tx[app_vars.currentSlotOffset] &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.freq_setting_tx[app_vars.currentSlotOffset] &   FINE_MASK) >>   FINE_OFFSET
+                            
+                        );
+                    } else {
+                        printf("no sample found??\r\n");
+                    }
+                } else {
+                    printf("trying to calibrate tx freq_setting when de-sync!!\r\n");
+                }
+            } else {
+                
+                switch(app_vars.state){
+                    case S_RECEIVING_ACK:
+                        gpio_7_toggle();
+                    break;
+                    default:
+                        app_vars.current_freq_setting += SWEEP_STEP;
+                        LC_FREQCHANGE(
+                            (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                        );
+                        app_vars.pkt_len = TARGET_PKT_LEN;
+                        radio_loadPacket(app_vars.packet, app_vars.pkt_len);
+                        radio_txEnable();
+                        radio_txNow();
+                        
+                        app_vars.state = S_DATA_SEND;
+                    break;
+                }
+            }
+        break;
+        case T_RX:
+            
+            // determine the start_frequency according to slotoffset
+        
+            if (app_vars.isSync){
+                if (app_vars.currentSlotOffset==0){
+                    start_frequency = SYNC_FREQ_START_RX;
+                } else {
+                    start_frequency = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
+                }
+            } else {
+                start_frequency = SYNC_FREQ_START_RX;
+            }
+            
+            // check if 2 coarse freq_sweep is done
+            
+            if (app_vars.current_freq_setting>start_frequency+FREQ_RANGE){
+                
+                if (app_vars.isSync) {
+                    
+                    // freq_sweep is done, calculate the freq_setting
+                    
+                    radio_rfOff();
+                    
+                    rftimer_disable_interrupts();
+                    rftimer_set_callback(cb_slot_timer);
+                    rftimer_setCompareIn(app_vars.slotReference + SLOT_DURATION);
+                    
+                    last_sample = 0;
+                    
+                    gpio_5_toggle();
+                    
+                    // check if there is freq_setting sample recorded
+                    
+                    if (app_vars.freq_setting_sample[0]!=0){
+                        
+                        // found at least one setting sample
+                        
+                        for (i=0;i<NUM_SAMPLES;i++){
+                            
+                            if (app_vars.freq_setting_sample[i]!=0){
+                                last_sample++;
+                            } else {
+                                
+                                // no more freq setting samples
+                                
                                 // take the median freq_setting
                                 app_vars.freq_setting_rx[app_vars.currentSlotOffset] \
                                     = app_vars.freq_setting_sample[last_sample/2];
@@ -649,6 +831,16 @@ void    cb_calc_process_timer(void) {
                                 break;
                             }
                         }
+                        
+                        // check whether all rx freq_settings are recorded
+                        app_vars.freq_setting_rx_done = true;
+                        for (i=0;i<SLOTFRAME_LEN;i++){
+                            if (app_vars.freq_setting_rx[i]==0){
+                                app_vars.freq_setting_rx_done = false;
+                                break;
+                            }
+                        }
+                            
                         printf("num_sample=%d rx_%d= corase=%d, mid=%d, fine=%d\r\n",
                             last_sample,
                             app_vars.currentSlotOffset+SYNC_CHANNEL, 
@@ -662,39 +854,42 @@ void    cb_calc_process_timer(void) {
                     }
                     
                 } else {
-                    // doesn't receive a valid frame during one slot to sync
                     
-                    app_vars.current_freq_setting = SYNC_FREQ_START;
+                    // not sync'ed
+                    
+                    // continous sweeping the frequency
+                    
+                    app_vars.current_freq_setting = SYNC_FREQ_START_RX;
                 }
             } else {
                 
-                app_vars.current_freq_setting += SWEEP_STEP;
-                LC_FREQCHANGE(
-                    (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
-                    (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
-                    (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
-                );
-                radio_rxEnable();
-                radio_rxNow();
-                
-                app_vars.state = S_LISTEN_FOR_DATA;
+                switch(app_vars.state){
+                    case S_IDLE:
+                    case S_LISTEN_FOR_DATA:
+                        app_vars.current_freq_setting += SWEEP_STEP;
+                        LC_FREQCHANGE(
+                            (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                        );
+                        radio_rxEnable();
+                        radio_rxNow();
+                        
+                        app_vars.state = S_LISTEN_FOR_DATA;
+                    break;
+                    case S_RECEIVING_DATA:
+                        gpio_7_toggle();
+                    break;
+                    default:
+                        // something wrong
+                        printf("wrong state in calc_process!\r\n");
+                    break;
+                }
             }
         break;
-        case S_RECEIVING_DATA:
-            // do nothing
-        
-            gpio_7_toggle();
-            
-        break;
         default:
-            // wrong state
+            // wrong type
         break;
-        }
-
-    break;
-    default:
-        // wrong type
-    break;
     }
 }
 
