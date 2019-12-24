@@ -229,38 +229,38 @@ void    cb_startFrame(uint32_t timestamp){
     app_vars.lastCaptureTime = timestamp;
     
     switch(app_vars.type){
-    case T_TX:
-        
-    break;
-    case T_RX:
-        
-        switch(app_vars.state){
-        case S_LISTEN_FOR_DATA:
-            app_vars.state = S_RECEIVING_DATA;
-        
-            // set watch dog
-            rftimer_disable_interrupts();
-            rftimer_set_callback(cb_timeout_error);
-            rftimer_setCompareIn(rftimer_readCounter()+WD_DATA_SENDDONE);
-        
+        case T_TX:
+            
         break;
-        case S_LISTEN_FOR_ACK:
-            app_vars.state = S_RECEIVING_ACK;
-        
-            // set watch dog
-            rftimer_disable_interrupts();
-            rftimer_set_callback(cb_timeout_error);
-            rftimer_setCompareIn(rftimer_readCounter()+WD_DATA_SENDDONE);
+        case T_RX:
+            
+            switch(app_vars.state){
+            case S_LISTEN_FOR_DATA:
+                app_vars.state = S_RECEIVING_DATA;
+            
+                // set watch dog
+                rftimer_disable_interrupts();
+                rftimer_set_callback(cb_timeout_error);
+                rftimer_setCompareIn(rftimer_readCounter()+WD_DATA_SENDDONE);
+            
+            break;
+            case S_LISTEN_FOR_ACK:
+                app_vars.state = S_RECEIVING_ACK;
+            
+                // set watch dog
+                rftimer_disable_interrupts();
+                rftimer_set_callback(cb_timeout_error);
+                rftimer_setCompareIn(rftimer_readCounter()+WD_DATA_SENDDONE);
+            break;
+            default:
+                // something goes wrong
+            break;
+            }
+            
         break;
         default:
-            // something goes wrong
+            
         break;
-        }
-        
-    break;
-    default:
-        
-    break;
     }
 }
 
@@ -269,6 +269,7 @@ void    cb_endFrame(uint32_t timestamp){
     bool        isValidFrame;
     uint8_t     pkt_channel;
     uint16_t    pkt_seqNum;
+    uint8_t     setting_index;
     
     radio_rfOff();
     
@@ -277,10 +278,12 @@ void    cb_endFrame(uint32_t timestamp){
     
         app_vars.type = T_RX;
     
+        setting_index = app_vars.channel_to_calc-SYNC_CHANNEL;
+    
         LC_FREQCHANGE(
-            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] & COARSE_MASK) >> COARSE_OFFSET,
-            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &    MID_MASK) >>    MID_OFFSET,
-            (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &   FINE_MASK) >>   FINE_OFFSET
+            (app_vars.freq_setting_rx[setting_index] & COARSE_MASK) >> COARSE_OFFSET,
+            (app_vars.freq_setting_rx[setting_index] &    MID_MASK) >>    MID_OFFSET,
+            (app_vars.freq_setting_rx[setting_index] &   FINE_MASK) >>   FINE_OFFSET
         );
         radio_rxEnable();
         radio_rxNow();
