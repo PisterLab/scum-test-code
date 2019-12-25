@@ -685,7 +685,7 @@ void    cb_calc_process_timer(void) {
         
             // check if 2 coarse freq_sweep is done
             
-            if (app_vars.current_freq_setting<app_vars.freq_setting_tx[app_vars.currentSlotOffset]-FREQ_RANGE){
+            if (app_vars.current_freq_setting>start_frequency+FREQ_RANGE){
                 
                 if (app_vars.isSync) {
                     
