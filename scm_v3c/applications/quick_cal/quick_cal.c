@@ -115,15 +115,15 @@ app_vars_t app_vars;
 
 //=========================== prototypes ======================================
 
-void    cb_startFrame(uint32_t timestamp);
-void    cb_endFrame(uint32_t timestamp);
+void    cb_startFrame_rx(uint32_t timestamp);
+void    cb_endFrame_rx(uint32_t timestamp);
+void    cb_startFrame_tx(uint32_t timestamp);
+void    cb_endFrame_tx(uint32_t timestamp);
 void    cb_slot_timer(void);
 void    cb_sweep_process_timer(void);
 void    cb_timeout_error(void);
 
 void    synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum);
-
-void    delay();
 
 //=========================== main ============================================
 
@@ -144,8 +144,10 @@ int main(void) {
     // This function handles all the analog scan chain setup
     initialize_mote();
 
-    radio_setStartFrameRxCb(cb_startFrame);
-    radio_setEndFrameRxCb(cb_endFrame);
+    radio_setStartFrameRxCb(cb_startFrame_rx);
+    radio_setEndFrameRxCb(cb_endFrame_rx);
+    radio_setStartFrameTxCb(cb_startFrame_tx);
+    radio_setEndFrameTxCb(cb_endFrame_tx);
     rftimer_set_callback(cb_slot_timer);
     
     // Disable interrupts for the radio and rftimer
@@ -205,14 +207,6 @@ int main(void) {
 
 //=========================== private =========================================
 
-//==== help
-
-void delay() {
-    uint32_t i;
-    
-    for (i=0;i<0x0fff;i++);
-}
-
 //==== sync
 
 void synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum){
@@ -233,205 +227,200 @@ void synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum
 
 //==== isr
 
-void    cb_startFrame(uint32_t timestamp){
+//---- startFrame
+void    cb_startFrame_tx(uint32_t timestamp){
+    
+    app_vars.lastCaptureTime = timestamp;
+}
+
+void    cb_startFrame_rx(uint32_t timestamp){
     
     app_vars.lastCaptureTime = timestamp;
     
-    switch(app_vars.type){
-        case T_TX:
-            
+    switch(app_vars.state){
+        case S_LISTEN_FOR_DATA:
+            app_vars.state = S_RECEIVING_DATA;
+        
+            // set watch dog
+            rftimer_disable_interrupts();
+            rftimer_set_callback(cb_timeout_error);
+            rftimer_setCompareIn(rftimer_readCounter()+WD_DATA_SENDDONE);
+        
         break;
-        case T_RX:
-            
-            switch(app_vars.state){
-            case S_LISTEN_FOR_DATA:
-                app_vars.state = S_RECEIVING_DATA;
-            
-                // set watch dog
-                rftimer_disable_interrupts();
-                rftimer_set_callback(cb_timeout_error);
-                rftimer_setCompareIn(rftimer_readCounter()+WD_DATA_SENDDONE);
-            
-            break;
-            case S_LISTEN_FOR_ACK:
-                app_vars.state = S_RECEIVING_ACK;
-            
-                // set watch dog
-                rftimer_disable_interrupts();
-                rftimer_set_callback(cb_timeout_error);
-                rftimer_setCompareIn(rftimer_readCounter()+WD_DATA_SENDDONE);
-            break;
-            default:
-                // something goes wrong
-            break;
-            }
-            
+        case S_LISTEN_FOR_ACK:
+            app_vars.state = S_RECEIVING_ACK;
+        
+            // set watch dog
+            rftimer_disable_interrupts();
+            rftimer_set_callback(cb_timeout_error);
+            rftimer_setCompareIn(rftimer_readCounter()+WD_DATA_SENDDONE);
         break;
         default:
-            
+            // something goes wrong
+            printf("unexpected state=%d at startFrame_rx!!\r\n");
         break;
     }
 }
 
-void    cb_endFrame(uint32_t timestamp){
+//---- endFrame
+void    cb_endFrame_tx(uint32_t timestamp){
+    
+    uint8_t     setting_index;
+    
+    radio_rfOff();
+
+    app_vars.type = T_RX;
+
+    setting_index = app_vars.channel_to_calibrate-SYNC_CHANNEL;
+
+    LC_FREQCHANGE(
+        (app_vars.freq_setting_rx[setting_index] & COARSE_MASK) >> COARSE_OFFSET,
+        (app_vars.freq_setting_rx[setting_index] &    MID_MASK) >>    MID_OFFSET,
+        (app_vars.freq_setting_rx[setting_index] &   FINE_MASK) >>   FINE_OFFSET
+    );
+    radio_rxEnable();
+    radio_rxNow();
+
+    // set watch dog
+    rftimer_disable_interrupts();
+    rftimer_set_callback(cb_timeout_error);
+    rftimer_setCompareIn(rftimer_readCounter()+WD_RECEIVING_ACK);
+
+    app_vars.state = S_LISTEN_FOR_ACK;
+}
+
+void    cb_endFrame_rx(uint32_t timestamp){
     
     bool        isValidFrame;
     uint8_t     pkt_channel;
     uint16_t    pkt_seqNum;
-    uint8_t     setting_index;
     
     radio_rfOff();
     
-    switch(app_vars.type){
-    case T_TX:
+    gpio_7_toggle();
     
-        app_vars.type = T_RX;
-    
-        setting_index = app_vars.channel_to_calibrate-SYNC_CHANNEL;
-    
-        LC_FREQCHANGE(
-            (app_vars.freq_setting_rx[setting_index] & COARSE_MASK) >> COARSE_OFFSET,
-            (app_vars.freq_setting_rx[setting_index] &    MID_MASK) >>    MID_OFFSET,
-            (app_vars.freq_setting_rx[setting_index] &   FINE_MASK) >>   FINE_OFFSET
-        );
-        radio_rxEnable();
-        radio_rxNow();
-    
-        // set watch dog
-        rftimer_disable_interrupts();
-        rftimer_set_callback(cb_timeout_error);
-        rftimer_setCompareIn(rftimer_readCounter()+WD_RECEIVING_ACK);
-    
-        app_vars.state = S_LISTEN_FOR_ACK;
-    break;
-    case T_RX:
+    memset(app_vars.packet,0,MAX_PKT_LEN);
+
+    // get packet from radio
+    radio_getReceivedFrame(
+        app_vars.packet,
+        &app_vars.pkt_len,
+        sizeof(app_vars.packet),
+        &app_vars.rxpk_rssi,
+        &app_vars.rxpk_lqi
+    );
+
+    // check the frame is valid or not
+
+    isValidFrame = true;
+
+    if (app_vars.pkt_len == TARGET_PKT_LEN){
+
+        pkt_channel = SYNC_CHANNEL+((app_vars.packet[0] & 0xf0)>>4);
+        pkt_seqNum  = ((uint16_t)(app_vars.packet[0] & 0x0f))<<8 |
+                       (uint16_t)(app_vars.packet[1]);
         
-        gpio_7_toggle();
-        
-        memset(app_vars.packet,0,MAX_PKT_LEN);
-
-        // get packet from radio
-        radio_getReceivedFrame(
-            app_vars.packet,
-            &app_vars.pkt_len,
-            sizeof(app_vars.packet),
-            &app_vars.rxpk_rssi,
-            &app_vars.rxpk_lqi
-        );
-
-        // check the frame is valid or not
-
-        isValidFrame = true;
-
-        if (app_vars.pkt_len == TARGET_PKT_LEN){
-
-            pkt_channel = SYNC_CHANNEL+((app_vars.packet[0] & 0xf0)>>4);
-            pkt_seqNum  = ((uint16_t)(app_vars.packet[0] & 0x0f))<<8 |
-                           (uint16_t)(app_vars.packet[1]);
-            
-            if (pkt_seqNum>=NUM_PKT_PER_SLOT){
-                isValidFrame = false;
-            }
-            
-            if (app_vars.isSync){
-                if ((pkt_channel - SYNC_CHANNEL)!= app_vars.currentSlotOffset){
-                    isValidFrame = false;
-                }
-            } else {
-                if (pkt_channel != SYNC_CHANNEL){
-                    isValidFrame = false;
-                }
-            }
-        } else {
-            
+        if (pkt_seqNum>=NUM_PKT_PER_SLOT){
             isValidFrame = false;
         }
         
-        if (isValidFrame){
+        if (app_vars.isSync){
+            if ((pkt_channel - SYNC_CHANNEL)!= app_vars.currentSlotOffset){
+                isValidFrame = false;
+            }
+        } else {
+            if (pkt_channel != SYNC_CHANNEL){
+                isValidFrame = false;
+            }
+        }
+    } else {
+        
+        isValidFrame = false;
+    }
+    
+    if (isValidFrame){
+        
+        gpio_8_toggle();
+        
+        if (app_vars.isSync){
             
-            gpio_8_toggle();
+            switch(app_vars.state){
+            case S_RECEIVING_DATA:
+                
+                rftimer_disable_interrupts();
             
-            if (app_vars.isSync){
-                
-                switch(app_vars.state){
-                case S_RECEIVING_DATA:
+                if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
                     
-                    rftimer_disable_interrupts();
-                
-                    if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
-                        
-                        rftimer_set_callback(cb_sweep_process_timer);
-                        rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
-                    } else {
-                        rftimer_set_callback(cb_slot_timer);
-                        rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
-                    }
-                
-                    gpio_1_toggle();
-                    
-                    if (
-                        app_vars.currentSlotOffset==0   &&
-                        app_vars.freq_setting_rx[0] != 0
-                    ) {
-                        // resynchronize
-                        synchronize(app_vars.lastCaptureTime, pkt_channel, pkt_seqNum);
-                        
-                    } else {
-                    
-                        // doing calibration on rx channel if haven't yet
-                        
-                        if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0){
-                        
-                            app_vars.freq_setting_sample[app_vars.sample_index++] = \
-                                app_vars.current_freq_setting;
-                        }
-                    }
-                    
-                    app_vars.state = S_IDLE;
-                    
-                break;
-                case S_RECEIVING_ACK:
-                    
-                    rftimer_disable_interrupts();
                     rftimer_set_callback(cb_sweep_process_timer);
                     rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
-                    
-                    // doing calibration on tx channel
-                    
-                    app_vars.freq_setting_sample[app_vars.sample_index++] = \
-                        app_vars.current_freq_setting;
-                    
-                    app_vars.state = S_IDLE;
-                    
-                break;
-                default:
-                    printf("Unexpected state=%d at endFrame ISR!\r\n",app_vars.state);
-                break;
+                } else {
+                    rftimer_set_callback(cb_slot_timer);
+                    rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
                 }
-            } else {
+            
+                gpio_1_toggle();
                 
-                printf(
-                    "channel=%d, seqNum=%d coarse=%d, mid=%d, fine=%d\r\n", 
-                    pkt_channel, pkt_seqNum, 
-                    (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
-                    (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
-                    (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
-                );
+                if (
+                    app_vars.currentSlotOffset==0   &&
+                    app_vars.freq_setting_rx[0] != 0
+                ) {
+                    // resynchronize
+                    synchronize(app_vars.lastCaptureTime, pkt_channel, pkt_seqNum);
+                    
+                } else {
                 
-                // synchronize to the network
-                synchronize(app_vars.lastCaptureTime, pkt_channel, pkt_seqNum);
+                    // doing calibration on rx channel if haven't yet
+                    
+                    if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0){
+                    
+                        app_vars.freq_setting_sample[app_vars.sample_index++] = \
+                            app_vars.current_freq_setting;
+                    }
+                }
                 
                 app_vars.state = S_IDLE;
                 
+            break;
+            case S_RECEIVING_ACK:
+                
+                rftimer_disable_interrupts();
+                rftimer_set_callback(cb_sweep_process_timer);
+                rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+                
+                // doing calibration on tx channel
+                
+                app_vars.freq_setting_sample[app_vars.sample_index++] = \
+                    app_vars.current_freq_setting;
+                
+                app_vars.state = S_IDLE;
+                
+            break;
+            default:
+                printf("Unexpected state=%d at endFrame ISR!\r\n",app_vars.state);
+            break;
             }
+        } else {
+                
+            printf(
+                "channel=%d, seqNum=%d coarse=%d, mid=%d, fine=%d\r\n", 
+                pkt_channel, pkt_seqNum, 
+                (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+            );
+            
+            // synchronize to the network
+            synchronize(app_vars.lastCaptureTime, pkt_channel, pkt_seqNum);
+            
+            app_vars.state = S_IDLE;
+            
         }
-    break;
-    default:
-        printf("wrong state: type=%d, state=%d\r\n",app_vars.type, app_vars.state);
-    break;
     }
 }
 
+//==== timer
+
+//---- slot timer
 void    cb_slot_timer(void) {
     
     uint8_t temp;
@@ -544,8 +533,6 @@ void    cb_slot_timer(void) {
                     app_vars.pkt_len = TARGET_PKT_LEN;
                     radio_loadPacket(app_vars.packet, app_vars.pkt_len);
                     radio_txEnable();
-                    // some delay to wait radio turnning up
-                    delay();
                     radio_txNow();
                     
                 } else {
@@ -651,6 +638,7 @@ void    cb_slot_timer(void) {
     }
 }
 
+//---- subslot timer
 void    cb_sweep_process_timer(void) {
     
     uint8_t     i;
@@ -775,8 +763,6 @@ void    cb_sweep_process_timer(void) {
                         app_vars.pkt_len = TARGET_PKT_LEN;
                         radio_loadPacket(app_vars.packet, app_vars.pkt_len);
                         radio_txEnable();
-                        // some delay to wait radio turn on
-                        delay();
                         radio_txNow();
                         
                         app_vars.state = S_DATA_SEND;
@@ -909,6 +895,9 @@ void    cb_sweep_process_timer(void) {
 }
 
 void cb_timeout_error(void){
+    
+    gpio_5_toggle();
+    
     // timeout happens
     
     rftimer_disable_interrupts();
@@ -945,6 +934,7 @@ void cb_timeout_error(void){
                     rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
                 }
             }
+            app_vars.type = T_TX;
         break;
         case S_RECEIVING_DATA:
             // calibrate for rx channel
