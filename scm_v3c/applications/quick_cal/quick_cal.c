@@ -99,7 +99,7 @@ typedef struct {
     type_t      type;                  // tx or rx, used in start/end Frame ISR
     state_t     state;                 // radio state
     
-    uint8_t     channel_to_calc;
+    uint8_t     channel_to_calibrate;
     
     bool        freq_setting_rx_done;  // TRUE when all 16 rx settings are found
     bool        freq_setting_tx_done;  // TRUE when all 16 tx settings are found
@@ -118,7 +118,7 @@ app_vars_t app_vars;
 void    cb_startFrame(uint32_t timestamp);
 void    cb_endFrame(uint32_t timestamp);
 void    cb_slot_timer(void);
-void    cb_calc_process_timer(void);
+void    cb_sweep_process_timer(void);
 void    cb_timeout_error(void);
 
 void    synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum);
@@ -278,7 +278,7 @@ void    cb_endFrame(uint32_t timestamp){
     
         app_vars.type = T_RX;
     
-        setting_index = app_vars.channel_to_calc-SYNC_CHANNEL;
+        setting_index = app_vars.channel_to_calibrate-SYNC_CHANNEL;
     
         LC_FREQCHANGE(
             (app_vars.freq_setting_rx[setting_index] & COARSE_MASK) >> COARSE_OFFSET,
@@ -346,7 +346,7 @@ void    cb_endFrame(uint32_t timestamp){
                 
                     if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
                         
-                        rftimer_set_callback(cb_calc_process_timer);
+                        rftimer_set_callback(cb_sweep_process_timer);
                         rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
                     } else {
                         rftimer_set_callback(cb_slot_timer);
@@ -379,7 +379,7 @@ void    cb_endFrame(uint32_t timestamp){
                 case S_RECEIVING_ACK:
                     
                     rftimer_disable_interrupts();
-                    rftimer_set_callback(cb_calc_process_timer);
+                    rftimer_set_callback(cb_sweep_process_timer);
                     rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
                     
                     // doing calibration on tx channel
@@ -492,7 +492,7 @@ void    cb_slot_timer(void) {
                     
                     app_vars.type = T_RX; 
             
-                    app_vars.channel_to_calc = app_vars.currentSlotOffset + SYNC_CHANNEL;
+                    app_vars.channel_to_calibrate = app_vars.currentSlotOffset + SYNC_CHANNEL;
                     
                     // channel rx_11 not found, setup freq sweep process
                     
@@ -500,7 +500,7 @@ void    cb_slot_timer(void) {
                     app_vars.current_freq_setting = SYNC_FREQ_START_RX;
                     
                     app_vars.freq_setting_index   = 0;
-                    cb_calc_process_timer();
+                    cb_sweep_process_timer();
                 }
             }
         } else {
@@ -563,12 +563,12 @@ void    cb_slot_timer(void) {
                         
                         if (tx_ch_11_to_25_done){
                             // calculate for channel 26
-                            app_vars.channel_to_calc = 26;
+                            app_vars.channel_to_calibrate = 26;
                             
                             // start with tx freq_setting of channel 25
                             app_vars.current_freq_setting = app_vars.freq_setting_tx[14];
                         } else {
-                            app_vars.channel_to_calc = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
+                            app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
                             app_vars.current_freq_setting = SYNC_FREQ_START_TX;
                         }
                     } else {
@@ -578,12 +578,12 @@ void    cb_slot_timer(void) {
                         // freq_setting_RX_done is TRUE
                         // freq_setting_TX_done is FALSE
                         
-                        app_vars.channel_to_calc = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
+                        app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
                         app_vars.current_freq_setting = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
                     }
                     
                     app_vars.freq_setting_index   = 0;
-                    cb_calc_process_timer();
+                    cb_sweep_process_timer();
                 }
             } else {
                 
@@ -609,10 +609,10 @@ void    cb_slot_timer(void) {
                     if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0){
                         
                         // doing freq_sweep for target channel
-                        app_vars.channel_to_calc        = app_vars.currentSlotOffset + SYNC_CHANNEL;
+                        app_vars.channel_to_calibrate        = app_vars.currentSlotOffset + SYNC_CHANNEL;
                         app_vars.freq_setting_index     = 0;
                         app_vars.current_freq_setting   = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
-                        cb_calc_process_timer();
+                        cb_sweep_process_timer();
                         
                     } else {
                         // channel rx_(11+currentSlotOffset) found already
@@ -639,11 +639,11 @@ void    cb_slot_timer(void) {
         
         app_vars.freq_setting_index     = 0;
         app_vars.current_freq_setting   = SYNC_FREQ_START_RX;
-        cb_calc_process_timer();
+        cb_sweep_process_timer();
     }
 }
 
-void    cb_calc_process_timer(void) {
+void    cb_sweep_process_timer(void) {
     
     uint8_t     i;
     uint8_t     last_sample;
@@ -656,7 +656,7 @@ void    cb_calc_process_timer(void) {
     
     // reschedule sub calc_process
     rftimer_disable_interrupts();
-    rftimer_set_callback(cb_calc_process_timer);
+    rftimer_set_callback(cb_sweep_process_timer);
     rftimer_setCompareIn(rftimer_readCounter() + SUB_SLOT_DURATION);
     
     switch(app_vars.type){
@@ -667,7 +667,7 @@ void    cb_calc_process_timer(void) {
         
             if (app_vars.isSync){
                 if (app_vars.currentSlotOffset == 1){
-                    if (app_vars.channel_to_calc == 26){
+                    if (app_vars.channel_to_calibrate == 26){
                         start_frequency = app_vars.freq_setting_rx[15];
                     } else {
                         start_frequency = SYNC_FREQ_START_TX;
@@ -914,7 +914,7 @@ void cb_timeout_error(void){
         app_vars.current_freq_setting += SWEEP_STEP;
         
         // schedule next sub slot
-        rftimer_set_callback(cb_calc_process_timer);
+        rftimer_set_callback(cb_sweep_process_timer);
         rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
     } else {
         // schedule next slot
