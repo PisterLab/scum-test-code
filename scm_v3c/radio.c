@@ -232,7 +232,7 @@ void radio_rxEnable(){
     ANALOG_CFG_REG__16 = 0x1;
     
     // Where packet will be stored in memory
-    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);;
+    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);
     
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = RF_RESET;
@@ -268,6 +268,9 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
 }
 
 void radio_rfOff(){
+    
+    // reset state machine first
+    radio_reset();
     
     // Hold digital baseband in reset
     ANALOG_CFG_REG__4 = 0x2000;

@@ -75,9 +75,11 @@ void rftimer_clear_interrupts(void){
 
 void rftimer_isr(void) {
     
-    unsigned int interrupt = RFTIMER_REG__INT;
-    
+    uint16_t interrupt;
+        
     gpio_2_set();
+    
+    interrupt = RFTIMER_REG__INT;
     
     if (interrupt & 0x00000001){
 #ifdef ENABLE_PRINTF
