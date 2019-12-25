@@ -34,6 +34,7 @@ for each 16 channel with a quick_cal box.
 #define SUB_SLOT_DURATION   400     ///< 305 = 610us@500kHz
 #define TXOFFSET            191     ///< measured, 382us
 #define WD_DATA_SENDDONE    100     ///>measured,  161us  100 = 200us@500kHz
+#define WD_RECEIVING_ACK    250     ///>measured,  412us  250 = 500us@500kHz
 
 // frequency settings
 #define SYNC_FREQ_START_RX  22*32*32
@@ -88,7 +89,6 @@ typedef struct {
     uint8_t     sample_index;
     uint16_t    freq_setting_sample[NUM_SAMPLES];
     
-    uint16_t    freq_setting_index;
     uint16_t    current_freq_setting;
     
     bool        isSync;                // is synchronized?
@@ -122,6 +122,8 @@ void    cb_sweep_process_timer(void);
 void    cb_timeout_error(void);
 
 void    synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum);
+
+void    delay();
 
 //=========================== main ============================================
 
@@ -187,7 +189,6 @@ int main(void) {
     printf("Cal complete\r\n");
     
     app_vars.currentSlotOffset = SLOTFRAME_LEN - 1;
-    app_vars.freq_setting_index   = 0;
     app_vars.current_freq_setting = SYNC_FREQ_START_RX;
     
     // Enable interrupts for the radio FSM
@@ -203,6 +204,14 @@ int main(void) {
 //=========================== public ==========================================
 
 //=========================== private =========================================
+
+//==== help
+
+void delay() {
+    uint32_t i;
+    
+    for (i=0;i<0x0fff;i++);
+}
 
 //==== sync
 
@@ -287,6 +296,11 @@ void    cb_endFrame(uint32_t timestamp){
         );
         radio_rxEnable();
         radio_rxNow();
+    
+        // set watch dog
+        rftimer_disable_interrupts();
+        rftimer_set_callback(cb_timeout_error);
+        rftimer_setCompareIn(rftimer_readCounter()+WD_RECEIVING_ACK);
     
         app_vars.state = S_LISTEN_FOR_ACK;
     break;
@@ -391,7 +405,7 @@ void    cb_endFrame(uint32_t timestamp){
                     
                 break;
                 default:
-                    
+                    printf("Unexpected state=%d at endFrame ISR!\r\n",app_vars.state);
                 break;
                 }
             } else {
@@ -410,10 +424,7 @@ void    cb_endFrame(uint32_t timestamp){
                 app_vars.state = S_IDLE;
                 
             }
-        } else {
-            app_vars.state = S_IDLE;
         }
-        
     break;
     default:
         printf("wrong state: type=%d, state=%d\r\n",app_vars.type, app_vars.state);
@@ -496,10 +507,8 @@ void    cb_slot_timer(void) {
                     
                     // channel rx_11 not found, setup freq sweep process
                     
-                    app_vars.freq_setting_index   = 0;
                     app_vars.current_freq_setting = SYNC_FREQ_START_RX;
                     
-                    app_vars.freq_setting_index   = 0;
                     cb_sweep_process_timer();
                 }
             }
@@ -535,6 +544,8 @@ void    cb_slot_timer(void) {
                     app_vars.pkt_len = TARGET_PKT_LEN;
                     radio_loadPacket(app_vars.packet, app_vars.pkt_len);
                     radio_txEnable();
+                    // some delay to wait radio turnning up
+                    delay();
                     radio_txNow();
                     
                 } else {
@@ -582,7 +593,6 @@ void    cb_slot_timer(void) {
                         app_vars.current_freq_setting = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
                     }
                     
-                    app_vars.freq_setting_index   = 0;
                     cb_sweep_process_timer();
                 }
             } else {
@@ -609,8 +619,7 @@ void    cb_slot_timer(void) {
                     if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0){
                         
                         // doing freq_sweep for target channel
-                        app_vars.channel_to_calibrate        = app_vars.currentSlotOffset + SYNC_CHANNEL;
-                        app_vars.freq_setting_index     = 0;
+                        app_vars.channel_to_calibrate   = app_vars.currentSlotOffset + SYNC_CHANNEL;
                         app_vars.current_freq_setting   = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
                         cb_sweep_process_timer();
                         
@@ -637,7 +646,6 @@ void    cb_slot_timer(void) {
         
         app_vars.type = T_RX;
         
-        app_vars.freq_setting_index     = 0;
         app_vars.current_freq_setting   = SYNC_FREQ_START_RX;
         cb_sweep_process_timer();
     }
@@ -650,9 +658,6 @@ void    cb_sweep_process_timer(void) {
     uint32_t    start_frequency;
     
     gpio_4_toggle();
-    
-    // increment freq_setting index
-    app_vars.freq_setting_index = 1+app_vars.freq_setting_index;
     
     // reschedule sub calc_process
     rftimer_disable_interrupts();
@@ -755,10 +760,12 @@ void    cb_sweep_process_timer(void) {
             } else {
                 
                 switch(app_vars.state){
+                    case S_DATA_SEND:
+                    case S_LISTEN_FOR_ACK:
                     case S_RECEIVING_ACK:
                         gpio_7_toggle();
                     break;
-                    default:
+                    case S_IDLE:
                         app_vars.current_freq_setting += SWEEP_STEP;
                         LC_FREQCHANGE(
                             (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
@@ -768,9 +775,14 @@ void    cb_sweep_process_timer(void) {
                         app_vars.pkt_len = TARGET_PKT_LEN;
                         radio_loadPacket(app_vars.packet, app_vars.pkt_len);
                         radio_txEnable();
+                        // some delay to wait radio turn on
+                        delay();
                         radio_txNow();
                         
                         app_vars.state = S_DATA_SEND;
+                    break;
+                    default:
+                        printf("Unexpected state at subslot: state=%d\r\n", app_vars.state);
                     break;
                 }
             }
@@ -904,21 +916,56 @@ void cb_timeout_error(void){
     // turn off radio
     radio_rfOff();
     
+    switch(app_vars.state){
+        case S_RECEIVING_ACK:
+        case S_LISTEN_FOR_ACK:
+            // calibrate for tx channel
+            if (app_vars.currentSlotOffset==0){
+                printf("Timeout for waiting ack on slot 0!\r\n");
+            } else {
+                if (
+                    (
+                        app_vars.channel_to_calibrate==26 && 
+                        app_vars.freq_setting_tx[15]==0
+                    ) || 
+                    (
+                        app_vars.channel_to_calibrate!=26 && 
+                        app_vars.freq_setting_tx[app_vars.currentSlotOffset-1]==0
+                    )
+                ){
+                    // skip one setting
+                    app_vars.current_freq_setting += SWEEP_STEP;
+                    
+                    // schedule next sub slot
+                    rftimer_set_callback(cb_sweep_process_timer);
+                    rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+                } else {
+                    // schedule next slot
+                    rftimer_set_callback(cb_slot_timer);
+                    rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
+                }
+            }
+        break;
+        case S_RECEIVING_DATA:
+            // calibrate for rx channel
+            if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
+                // skip one setting
+                app_vars.current_freq_setting += SWEEP_STEP;
+                
+                // schedule next sub slot
+                rftimer_set_callback(cb_sweep_process_timer);
+                rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+            } else {
+                // schedule next slot
+                rftimer_set_callback(cb_slot_timer);
+                rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
+            }
+        break;
+        default:
+            printf("Unexpected state=%d at timeout ISR!\r\n",app_vars.state);
+        break;
+    }
+    
     // change state
     app_vars.state = S_IDLE;
-    
-    if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
-        
-        // skip one setting
-        app_vars.freq_setting_index    = 1+app_vars.freq_setting_index;
-        app_vars.current_freq_setting += SWEEP_STEP;
-        
-        // schedule next sub slot
-        rftimer_set_callback(cb_sweep_process_timer);
-        rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
-    } else {
-        // schedule next slot
-        rftimer_set_callback(cb_slot_timer);
-        rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
-    }
 }
