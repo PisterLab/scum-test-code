@@ -34,13 +34,17 @@ for each 16 channel with a quick_cal box.
 #define SUB_SLOT_DURATION   400     ///< 305 = 610us@500kHz
 #define TXOFFSET            191     ///< measured, 382us
 #define WD_DATA_SENDDONE    100     ///>measured,  161us  100 = 200us@500kHz
-#define WD_RECEIVING_ACK    250     ///>measured,  412us  250 = 500us@500kHz
+#define WD_RECEIVING_ACK    300     ///>measured,  412us  250 = 600us@500kHz
 
 // frequency settings
 #define SYNC_FREQ_START_RX  23*32*32
+#define FREQ_RANGE_RX       32*32
+#define SWEEP_STEP_RX       1
+
 #define SYNC_FREQ_START_TX  23*32*32
-#define FREQ_RANGE          32*32
-#define SWEEP_STEP          2
+#define FREQ_RANGE_TX       32*32
+#define SWEEP_STEP_TX       3
+
 //#define NUM_PKT_PER_SLOT    32*32
 #define NUM_PKT_PER_SLOT    (SLOT_DURATION/TARGET_PKT_INTERVAL-2)
 
@@ -211,7 +215,9 @@ int main(void) {
 //====  delay
 void    delay(void){
     uint16_t i;
-    for (i=0;i<0x0ff;i++);
+    // works,           0x1f, 0x0f
+    // doesn't work     when comment out
+    for (i=0;i<0x001f;i++);
 }
 
 //==== sync
@@ -701,7 +707,7 @@ void    cb_sweep_process_timer(void) {
         
             // check if 2 coarse freq_sweep is done
             
-            if (app_vars.current_freq_setting>start_frequency+FREQ_RANGE){
+            if (app_vars.current_freq_setting>start_frequency+FREQ_RANGE_TX){
                 
                 if (app_vars.isSync) {
                     
@@ -754,7 +760,7 @@ void    cb_sweep_process_timer(void) {
                             }
                         }
                         
-                        printf("num_sample=%d tx_%d= corase=%d, mid=%d, fine=%d\r\n",
+                        printf("num=%d tx%d c=%d m=%d f=%d\r\n",
                             last_sample,
                             app_vars.channel_to_calibrate, 
                             (app_vars.freq_setting_tx[app_vars.channel_to_calibrate-SYNC_CHANNEL] & COARSE_MASK) >> COARSE_OFFSET,
@@ -763,7 +769,7 @@ void    cb_sweep_process_timer(void) {
                             
                         );
                     } else {
-                        printf("no sample found??\r\n");
+                        printf("tx=%d no sample found??\r\n", app_vars.channel_to_calibrate);
                     }
                 } else {
                     printf("trying to calibrate tx freq_setting when de-sync!!\r\n");
@@ -777,7 +783,7 @@ void    cb_sweep_process_timer(void) {
                         gpio_7_toggle();
                     break;
                     case S_IDLE:
-                        app_vars.current_freq_setting += SWEEP_STEP;
+                        app_vars.current_freq_setting += SWEEP_STEP_TX;
                         LC_FREQCHANGE(
                             (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
                             (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
@@ -815,7 +821,7 @@ void    cb_sweep_process_timer(void) {
             
             // check if 2 coarse freq_sweep is done
             
-            if (app_vars.current_freq_setting>start_frequency+FREQ_RANGE){
+            if (app_vars.current_freq_setting>start_frequency+FREQ_RANGE_RX){
                 
                 if (app_vars.isSync) {
                     
@@ -867,8 +873,8 @@ void    cb_sweep_process_timer(void) {
                                 break;
                             }
                         }
-                            
-                        printf("num_sample=%d rx_%d= corase=%d, mid=%d, fine=%d\r\n",
+                        
+                        printf("num=%d rx%d c=%d m=%d f=%d\r\n",
                             last_sample,
                             app_vars.currentSlotOffset+SYNC_CHANNEL, 
                             (app_vars.freq_setting_rx[app_vars.currentSlotOffset] & COARSE_MASK) >> COARSE_OFFSET,
@@ -877,7 +883,7 @@ void    cb_sweep_process_timer(void) {
                             
                         );
                     } else {
-                        printf("no sample found??\r\n");
+                        printf("rx_%d, no sample found??\r\n", app_vars.currentSlotOffset+SYNC_CHANNEL);
                     }
                     
                 } else {
@@ -893,7 +899,7 @@ void    cb_sweep_process_timer(void) {
                 switch(app_vars.state){
                     case S_IDLE:
                     case S_LISTEN_FOR_DATA:
-                        app_vars.current_freq_setting += SWEEP_STEP;
+                        app_vars.current_freq_setting += SWEEP_STEP_RX;
                         LC_FREQCHANGE(
                             (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
                             (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
@@ -948,9 +954,6 @@ void cb_timeout_error(void){
                         app_vars.freq_setting_tx[app_vars.currentSlotOffset-1]==0
                     )
                 ){
-                    // skip one setting
-                    app_vars.current_freq_setting += SWEEP_STEP;
-                    
                     // schedule next sub slot
                     rftimer_set_callback(cb_sweep_process_timer);
                     rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
@@ -965,8 +968,6 @@ void cb_timeout_error(void){
         case S_RECEIVING_DATA:
             // calibrate for rx channel
             if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
-                // skip one setting
-                app_vars.current_freq_setting += SWEEP_STEP;
                 
                 // schedule next sub slot
                 rftimer_set_callback(cb_sweep_process_timer);
