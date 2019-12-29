@@ -8,7 +8,8 @@
 
 // ========================== definition ======================================
 
-#define MINIMUM_COMPAREVALE_ADVANCE  5
+#define MINIMUM_COMPAREVALE_ADVANCE     5
+#define LARGEST_INTERVAL                0xffff
 
 // ========================== variable ========================================
 
@@ -42,6 +43,27 @@ void rftimer_set_callback(rftimer_cbt cb){
 void rftimer_setCompareIn(uint32_t val){
     
     rftimer_enable_interrupts();
+    
+    // A timer scheudled in the past
+    
+    //Note: this is a hack!!
+    //  since the timer counter overflow after hitting the MAX_COUNT,
+    //      theoritically, there is no way to find a timer is scheduled 
+    //      in the past or in the future. However, if we know the LARGEST_INTERVAL
+    //      between each two adjacent timers:
+    //      if the val - current count < largest interval:
+    //          it's a timer scheduled in the future
+    //      else:
+    //          it's a timer scheduled in the past
+    //          manually trigger an interrupt
+    //      LARGEST_INTERVAL is application defined value.
+    
+    if ((val & RFTIMER_MAX_COUNT)-RFTIMER_REG__COUNTER<LARGEST_INTERVAL){
+        
+    } else {
+        // seems doesn't work?
+        RFTIMER_REG__INT = 0x0001;
+    }
     
     RFTIMER_REG__COMPARE0           = val & RFTIMER_MAX_COUNT;
 }
