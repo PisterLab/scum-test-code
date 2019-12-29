@@ -270,7 +270,7 @@ uint16_t find_freq_settings(uint16_t* samples, uint8_t length, uint8_t continous
     uint8_t num_coarse_samples;
     uint8_t num_mid_samples;
     uint8_t max_num_samples;
-    uint16_t target_coarse_samples[NUM_SAMPLES/2];
+    uint16_t target_coarse_samples[NUM_SAMPLES];
     uint16_t target_mid_samples[NUM_MID_SETTINGS];
     
     max_num_samples = 0;
@@ -322,7 +322,7 @@ uint16_t find_freq_settings(uint16_t* samples, uint8_t length, uint8_t continous
     num_mid_samples = 1;
     target_mid = (target_coarse_samples[0] & MID_MASK )>> MID_OFFSET;
     
-    for (i=1;i<NUM_MID_SETTINGS;i++){
+    for (i=1;i<NUM_SAMPLES;i++){
         
         if (target_coarse_samples[i]!=0){
             if (((target_coarse_samples[i] & MID_MASK )>> MID_OFFSET)==target_mid){
@@ -670,12 +670,22 @@ void    cb_slot_timer(void) {
                 
                 app_vars.type = T_TX;
                 
-                if (app_vars.freq_setting_tx_done){
+                if (
+                    (
+                        app_vars.currentSlotOffset   != 1   &&
+                        app_vars.freq_setting_tx[app_vars.currentSlotOffset-1]!=0
+                    ) ||
+                    (
+                        app_vars.currentSlotOffset   == 1 &&
+                        app_vars.freq_setting_tx[0]  != 0 &&
+                        app_vars.freq_setting_tx[15] != 0
+                    )
+                ){
                     
                     // sync'ed
                     // slot 1 - 15
                     // freq_setting_RX_done is TRUE
-                    // freq_setting_TX_done is TRUE
+                    // freq_setting_TX_done is TRUE or the setting is found already
                     
                     // for changing frequency after senddone frame
                     app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
@@ -1099,6 +1109,11 @@ void cb_timeout_error(void){
                     rftimer_set_callback(cb_sweep_process_timer);
                     rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
                 } else {
+                    
+                    // clear the selected tx frequency settings
+//                    app_vars.freq_setting_tx[app_vars.channel_to_calibrate-SYNC_CHANNEL]=0;
+//                    app_vars.freq_setting_tx_done = false;
+                    
                     // schedule next slot
                     rftimer_set_callback(cb_slot_timer);
                     rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
