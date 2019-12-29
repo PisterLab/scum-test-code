@@ -29,21 +29,21 @@ for each 16 channel with a quick_cal box.
 #define TARGET_PKT_LEN      2+LENGTH_CRC
 
 // timing
-#define SLOT_DURATION       500000  ///< 500 = 1ms@500kHz
-#define TARGET_PKT_INTERVAL 305     ///< 305 = 610us@500kHz
-#define SUB_SLOT_DURATION   400     ///< 305 = 610us@500kHz
-#define TXOFFSET            191     ///< measured, 382us
-#define WD_DATA_SENDDONE    100     ///>measured,  161us  100 = 200us@500kHz
-#define WD_RECEIVING_ACK    300     ///>measured,  412us  250 = 600us@500kHz
+#define SLOT_DURATION       1500000  ///< 500 = 1ms@500kHz
+#define TARGET_PKT_INTERVAL 305      ///< 305 = 610us@500kHz
+#define SUB_SLOT_DURATION   400      ///< 305 = 610us@500kHz
+#define TXOFFSET            191      ///< measured, 382us
+#define WD_DATA_SENDDONE    100      ///>measured,  161us  100 = 200us@500kHz
+#define WD_RECEIVING_ACK    300      ///>measured,  412us  250 = 600us@500kHz
 
 // frequency settings
 #define SYNC_FREQ_START_RX  23*32*32
-#define FREQ_RANGE_RX       32*32
+#define FREQ_RANGE_RX       2*32*32
 #define SWEEP_STEP_RX       1
 
 #define SYNC_FREQ_START_TX  23*32*32
 #define FREQ_RANGE_TX       32*32
-#define SWEEP_STEP_TX       3
+#define SWEEP_STEP_TX       1
 
 // calculate frequency settings
 
@@ -98,6 +98,8 @@ typedef struct {
     uint8_t     sample_index;
     uint16_t    freq_setting_sample[NUM_SAMPLES];
     
+    uint16_t    pre_coarse_setting;
+    uint16_t    pre_mid_setting;
     uint16_t    current_freq_setting;
     
     bool        isSync;                // is synchronized?
@@ -249,49 +251,112 @@ void synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum
 /**
     Algorithm to find frequency setting among frequency samples.
  
-    1. find the a sequence of samples that increments by 1 in the samples set.
-    
-    2. If the sequency length reach to CONTINOUS_NUM_SAMPLES
-            return the median sample value of this sequence
-        else:
-            keep looking for such sequency length
-    3. If not find sequency length larger than CONTINOUS_NUM_SAMPLES
-            return the median of whole sample set
-*/
+    1. group the setting samples by coarse first
 
+    2. pick the group with larger number of samples,called "target_coarse_samples"
+
+    3. group target_coarse_samples setting by mid
+
+    4. pick the group with larger number of samples, called "target_mid_samples"
+
+    5. pickt the median of "target_mid_samples" as the target frequency setting
+*/
+#define NUM_MID_SETTINGS    32
 uint16_t find_freq_settings(uint16_t* samples, uint8_t length, uint8_t continous_sample_size){
     uint8_t i;
-    uint16_t previous_sample;
-    uint8_t num_continous_samples;
     
-    num_continous_samples = 0;
+    uint8_t target_coarse;
+    uint8_t target_mid;
+    uint8_t num_coarse_samples;
+    uint8_t num_mid_samples;
+    uint8_t max_num_samples;
+    uint16_t target_coarse_samples[NUM_SAMPLES/2];
+    uint16_t target_mid_samples[NUM_MID_SETTINGS];
     
-    previous_sample = 0;
+    max_num_samples = 0;
+    if (samples[0] == 0) {
+        return 0;
+    }
     
-    for (i=0;i<length;i++){
+    memset(&target_coarse_samples[0],0,sizeof(target_coarse_samples));
+    
+    num_coarse_samples = 1;
+    target_coarse = (samples[0] & COARSE_MASK )>> COARSE_OFFSET;
+    
+    for (i=1;i<length;i++){
         
         if (samples[i]!=0){
-            if (previous_sample==0){
-                previous_sample = samples[i];
+            if (((samples[i] & COARSE_MASK )>> COARSE_OFFSET)==target_coarse){
+                num_coarse_samples++;
             } else {
-                if (samples[i]-previous_sample==1){
-                    num_continous_samples++;
+                if (max_num_samples==0){
+                    max_num_samples = num_coarse_samples;
+                    memcpy(&target_coarse_samples[0], &samples[i-max_num_samples], num_coarse_samples*sizeof(uint16_t));
                 } else {
-                    if (num_continous_samples>=continous_sample_size){
-                        return samples[i-num_continous_samples/2];
+                    if (num_coarse_samples>max_num_samples){
+                        max_num_samples = num_coarse_samples;
+                        // copy the samples of the coarse to the target buffer
+                        memcpy(&target_coarse_samples[0], &samples[i-max_num_samples], num_coarse_samples*sizeof(uint16_t));
+                    } else {
+                        num_coarse_samples = 0;
                     }
-                    num_continous_samples = 0;
                 }
-                previous_sample = app_vars.freq_setting_sample[i];
+                num_coarse_samples = 1;
+                target_coarse      = (samples[i] & COARSE_MASK )>> COARSE_OFFSET;
             }
         } else {
-            
             // no more freq setting samples
-            
-            // take the median freq_settings
-            return samples[i/2];
+            if (max_num_samples==0){
+                max_num_samples = num_coarse_samples;
+                memcpy(&target_coarse_samples[0], &samples[i-max_num_samples], num_coarse_samples*sizeof(uint16_t));
+            }
+            break;
         }
     }
+    
+    // the target sample setting is in target_coarse_sample
+    
+    memset(&target_mid_samples[0],0,sizeof(target_mid_samples));
+    
+    max_num_samples = 0;
+    num_mid_samples = 1;
+    target_mid = (target_coarse_samples[0] & MID_MASK )>> MID_OFFSET;
+    
+    for (i=1;i<NUM_MID_SETTINGS;i++){
+        
+        if (target_coarse_samples[i]!=0){
+            if (((target_coarse_samples[i] & MID_MASK )>> MID_OFFSET)==target_mid){
+                num_mid_samples++;
+            } else {
+                if (max_num_samples==0){
+                    max_num_samples = num_mid_samples;
+                    memcpy(&target_mid_samples[0], &target_coarse_samples[i-max_num_samples], num_mid_samples*sizeof(uint16_t));
+                } else {
+                    if (num_mid_samples>max_num_samples){
+                        max_num_samples = num_mid_samples;
+                        // copy the samples of the coarse to the target buffer
+                        memcpy(&target_mid_samples[0], &target_coarse_samples[i-max_num_samples], num_mid_samples*sizeof(uint16_t));
+                    }
+                }
+                num_mid_samples = 1;
+                target_mid      = (target_coarse_samples[i] & MID_MASK )>> MID_OFFSET;
+            }
+        } else {
+            // no more freq setting samples
+            
+            
+            if (max_num_samples==0){
+                max_num_samples = num_mid_samples;
+                memcpy(&target_mid_samples[0], &target_coarse_samples[i-max_num_samples], num_mid_samples*sizeof(uint16_t));
+            }
+            break;
+        }
+    }
+    
+    // the target sample setting is in target_mid_sample
+    
+    // chose the median one
+    return target_mid_samples[max_num_samples/2];
 }
 
 //==== isr
@@ -326,7 +391,7 @@ void    cb_startFrame_rx(uint32_t timestamp){
         break;
         default:
             // something goes wrong
-            printf("unexpected state=%d at startFrame_rx!!\r\n");
+            printf("unexpected state=%d at startFrame_rx!!\r\n", app_vars.state);
         break;
     }
 }
@@ -424,8 +489,6 @@ void    cb_endFrame_rx(uint32_t timestamp){
                     rftimer_set_callback(cb_slot_timer);
                     rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
                 }
-            
-                gpio_1_toggle();
                 
                 if (
                     app_vars.currentSlotOffset==0   &&
@@ -570,6 +633,8 @@ void    cb_slot_timer(void) {
                     // channel rx_11 not found, setup freq sweep process
                     
                     app_vars.current_freq_setting = SYNC_FREQ_START_RX;
+                    app_vars.pre_coarse_setting   = (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET;
+                    app_vars.pre_mid_setting      = (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET;
                     
                     cb_sweep_process_timer();
                 }
@@ -611,6 +676,9 @@ void    cb_slot_timer(void) {
                     // slot 1 - 15
                     // freq_setting_RX_done is TRUE
                     // freq_setting_TX_done is TRUE
+                    
+                    // for changing frequency after senddone frame
+                    app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
                     
                     app_vars.current_freq_setting = app_vars.freq_setting_tx[app_vars.currentSlotOffset-1];
                     LC_FREQCHANGE(
@@ -679,7 +747,8 @@ void    cb_slot_timer(void) {
                             app_vars.current_freq_setting = app_vars.freq_setting_tx[app_vars.currentSlotOffset-2];
                         }
                     }
-                    
+                    app_vars.pre_coarse_setting     = (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET;
+                    app_vars.pre_mid_setting      = (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET;
                     cb_sweep_process_timer();
                 }
             } else {
@@ -708,6 +777,8 @@ void    cb_slot_timer(void) {
                         // doing freq_sweep for target channel
                         app_vars.channel_to_calibrate   = app_vars.currentSlotOffset + SYNC_CHANNEL;
                         app_vars.current_freq_setting   = app_vars.freq_setting_rx[app_vars.currentSlotOffset-1];
+                        app_vars.pre_coarse_setting     = (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET;
+                        app_vars.pre_mid_setting        = (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET;
                         cb_sweep_process_timer();
                         
                     } else {
@@ -734,6 +805,8 @@ void    cb_slot_timer(void) {
         app_vars.type = T_RX;
         
         app_vars.current_freq_setting   = SYNC_FREQ_START_RX;
+        app_vars.pre_coarse_setting     = (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET;
+        app_vars.pre_mid_setting        = (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET;
         cb_sweep_process_timer();
     }
 }
@@ -792,8 +865,6 @@ void    cb_sweep_process_timer(void) {
                     rftimer_set_callback(cb_slot_timer);
                     rftimer_setCompareIn(app_vars.slotReference + SLOT_DURATION);
                     
-                    gpio_5_toggle();
-                    
                     // check if there is freq_setting sample recorded
                     
                     if (app_vars.freq_setting_sample[0]!=0){
@@ -837,6 +908,16 @@ void    cb_sweep_process_timer(void) {
                     printf("trying to calibrate tx freq_setting when de-sync!!\r\n");
                 }
             } else {
+                
+                if (app_vars.pre_coarse_setting != ((app_vars.current_freq_setting & COARSE_MASK)>> COARSE_OFFSET)){
+                    app_vars.pre_coarse_setting  = (app_vars.current_freq_setting & COARSE_MASK)>> COARSE_OFFSET;
+                    gpio_1_toggle();
+                }
+                
+                if (app_vars.pre_mid_setting != ((app_vars.current_freq_setting & MID_MASK)>> MID_OFFSET)){
+                    app_vars.pre_mid_setting  = (app_vars.current_freq_setting & MID_MASK)>> MID_OFFSET;
+                    gpio_5_toggle();
+                }
                 
                 switch(app_vars.state){
                     case S_DATA_SEND:
@@ -895,8 +976,6 @@ void    cb_sweep_process_timer(void) {
                     rftimer_set_callback(cb_slot_timer);
                     rftimer_setCompareIn(app_vars.slotReference + SLOT_DURATION);
                     
-                    gpio_5_toggle();
-                    
                     // check if there is freq_setting sample recorded
                     
                     if (app_vars.freq_setting_sample[0]!=0){
@@ -950,6 +1029,16 @@ void    cb_sweep_process_timer(void) {
                 }
             } else {
                 
+                if (app_vars.pre_coarse_setting != ((app_vars.current_freq_setting & COARSE_MASK)>> COARSE_OFFSET)){
+                    app_vars.pre_coarse_setting  = (app_vars.current_freq_setting & COARSE_MASK)>> COARSE_OFFSET;
+                    gpio_1_toggle();
+                }
+                
+                if (app_vars.pre_mid_setting != ((app_vars.current_freq_setting & MID_MASK)>> MID_OFFSET)){
+                    app_vars.pre_mid_setting  = (app_vars.current_freq_setting & MID_MASK)>> MID_OFFSET;
+                    gpio_5_toggle();
+                }
+                
                 switch(app_vars.state){
                     case S_IDLE:
                     case S_LISTEN_FOR_DATA:
@@ -981,8 +1070,6 @@ void    cb_sweep_process_timer(void) {
 }
 
 void cb_timeout_error(void){
-    
-    gpio_5_toggle();
     
     // timeout happens
     
