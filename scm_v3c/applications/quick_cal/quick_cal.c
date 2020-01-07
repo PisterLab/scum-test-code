@@ -97,6 +97,7 @@ typedef struct {
     
     uint8_t     sample_index;
     uint16_t    freq_setting_sample[NUM_SAMPLES];
+     int8_t     freq_offset[NUM_SAMPLES];
     
     uint16_t    pre_coarse_setting;
     uint16_t    pre_mid_setting;
@@ -136,7 +137,16 @@ void    cb_timeout_error(void);
 
 void    synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum);
 void    delay();
-uint16_t    find_freq_settings(uint16_t* freq_setting_samples, uint8_t length, uint8_t continous_sample_size);
+uint16_t    find_freq_rx_settings(
+    uint16_t* freq_setting_samples,
+    uint8_t length,
+    uint8_t continous_sample_size
+);
+uint16_t    find_freq_tx_settings(
+    uint16_t* freq_setting_samples,
+    int8_t* freq_offset,
+    uint8_t length
+);
 
 //=========================== main ============================================
 
@@ -249,7 +259,7 @@ void synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum
 //==== calcuate the freqency setting
 
 /**
-    Algorithm to find frequency setting among frequency samples.
+    Algorithm to find frequency rx setting among frequency samples.
  
     1. group the setting samples by coarse first
 
@@ -262,7 +272,11 @@ void synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum
     5. pickt the median of "target_mid_samples" as the target frequency setting
 */
 #define NUM_MID_SETTINGS    32
-uint16_t find_freq_settings(uint16_t* samples, uint8_t length, uint8_t continous_sample_size){
+uint16_t find_freq_rx_settings(
+    uint16_t* samples,
+    uint8_t length,
+    uint8_t continous_sample_size
+){
     uint8_t i;
     
     uint8_t target_coarse;
@@ -357,6 +371,56 @@ uint16_t find_freq_settings(uint16_t* samples, uint8_t length, uint8_t continous
     
     // chose the median one
     return target_mid_samples[max_num_samples/2];
+}
+
+/**
+    Algorithm to find frequency tx setting among frequency samples.
+ 
+    Use the one with smallest freq_offset;
+*/
+#define PERFECT_FREQ_OFFSET 2
+uint16_t find_freq_tx_settings(
+    uint16_t* samples,
+    int8_t* freq_offset,
+    uint8_t length
+){
+    uint8_t i;
+    uint8_t minimal_offset;
+    uint8_t offset;
+    uint8_t target_index;
+    
+    if (samples[0] == 0) {
+        return 0;
+    }
+    
+    if (PERFECT_FREQ_OFFSET>freq_offset[0]){
+        minimal_offset = PERFECT_FREQ_OFFSET - freq_offset[0];
+    } else {
+        minimal_offset = freq_offset[0]-PERFECT_FREQ_OFFSET;
+    }
+    target_index = 0;
+    
+//    printf("%d ",freq_offset[0]);
+    for (i=1;i<length;i++){
+        
+        if (samples[i]!=0){
+//            printf("%d ",freq_offset[i]);
+            if (PERFECT_FREQ_OFFSET>freq_offset[i]){
+                offset = PERFECT_FREQ_OFFSET - freq_offset[i];
+            } else {
+                offset = freq_offset[i]-PERFECT_FREQ_OFFSET;
+            }
+            if (offset<minimal_offset){
+                target_index = i;
+                minimal_offset = offset;
+            }
+        } else {
+            // no more freq setting samples
+            break;
+        }
+    }
+//    printf("minimal=%d\r\n",freq_offset[target_index]);
+    return samples[target_index];
 }
 
 //==== isr
@@ -525,8 +589,11 @@ void    cb_endFrame_rx(uint32_t timestamp){
                 
                 // doing calibration on tx channel
                 
-                app_vars.freq_setting_sample[app_vars.sample_index++] = \
+                app_vars.freq_setting_sample[app_vars.sample_index] = \
                     app_vars.current_freq_setting;
+                app_vars.freq_offset[app_vars.sample_index]         = \
+                    app_vars.packet[1];
+                app_vars.sample_index++;
                 
                 app_vars.state = S_IDLE;
                 
@@ -880,10 +947,10 @@ void    cb_sweep_process_timer(void) {
                     if (app_vars.freq_setting_sample[0]!=0){
                         
                         app_vars.freq_setting_tx[app_vars.channel_to_calibrate-SYNC_CHANNEL] = \
-                            find_freq_settings(
-                                    app_vars.freq_setting_sample, 
-                                    NUM_SAMPLES,
-                                    CONTINOUS_NUM_SAMPLES_TX
+                            find_freq_tx_settings(
+                                    app_vars.freq_setting_sample,
+                                    app_vars.freq_offset,
+                                    NUM_SAMPLES
                                 );
                         
                         // found at least one setting sample
@@ -904,7 +971,7 @@ void    cb_sweep_process_timer(void) {
                             }
                         }
                         
-                        printf("tx%d c=%d m=%d f=%d\r\n",
+                        printf("tx%d %d.%d.%d\r\n",
                             app_vars.channel_to_calibrate, 
                             (app_vars.freq_setting_tx[app_vars.channel_to_calibrate-SYNC_CHANNEL] & COARSE_MASK) >> COARSE_OFFSET,
                             (app_vars.freq_setting_tx[app_vars.channel_to_calibrate-SYNC_CHANNEL] &    MID_MASK) >>    MID_OFFSET,
@@ -993,7 +1060,7 @@ void    cb_sweep_process_timer(void) {
                         // found at least one setting sample
                         
                         app_vars.freq_setting_rx[app_vars.currentSlotOffset] = \
-                            find_freq_settings(
+                            find_freq_rx_settings(
                                 app_vars.freq_setting_sample, 
                                 NUM_SAMPLES,
                                 CONTINOUS_NUM_SAMPLES_RX
@@ -1018,7 +1085,7 @@ void    cb_sweep_process_timer(void) {
                             }
                         }
                         
-                        printf("rx%d c=%d m=%d f=%d\r\n",
+                        printf("rx%d %d.%d.%d\r\n",
                             app_vars.currentSlotOffset+SYNC_CHANNEL, 
                             (app_vars.freq_setting_rx[app_vars.currentSlotOffset] & COARSE_MASK) >> COARSE_OFFSET,
                             (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &    MID_MASK) >>    MID_OFFSET,
