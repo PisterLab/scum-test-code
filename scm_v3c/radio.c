@@ -256,7 +256,10 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
                             uint8_t* pLqi) {
    
     //===== rssi
-    *pRssi          = RSSI_REF_READ_VALUE-read_RSSI()+RSSI_REFERENCE;
+    *pRssi          = read_RSSI()+RSSI_REFERENCE;
+                                
+    //===== lqi
+    *pLqi           = read_LQI();
     
     //===== length
     *pLenRead       = radio_vars.radio_rx_buffer[0];

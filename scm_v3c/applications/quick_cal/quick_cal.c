@@ -107,7 +107,7 @@ typedef struct {
     
     bool        isSync;                // is synchronized?
     uint8_t     currentSlotOffset;
-    uint32_t    slotReference;        // the timer read when slot timer fired
+    uint32_t    slotReference;         // the timer read when slot timer fired
     uint32_t    lastCaptureTime;       // time stampe of receiving frame
     
     type_t      type;                  // tx or rx, used in start/end Frame ISR
@@ -123,9 +123,11 @@ typedef struct {
      int8_t     rxpk_rssi;
     uint8_t     rxpk_lqi;
        bool     rxpk_crc;
-       
+    
+    // statistic
     uint8_t     tx_counter;
     uint8_t     tx_success;
+    uint8_t     lqi_history[MAX_TRANSMISSION];
 } app_vars_t;
 
 app_vars_t app_vars;
@@ -141,7 +143,7 @@ void    cb_sweep_process_timer(void);
 void    cb_timeout_error(void);
 
 void    synchronize(uint32_t capturedTime, uint8_t pkt_channel, uint16_t pkt_seqNum);
-void    delay();
+
 uint16_t    find_freq_rx_settings(
     uint16_t* freq_setting_samples,
     uint8_t length,
@@ -152,6 +154,9 @@ uint16_t    find_freq_tx_settings(
     int8_t* freq_offset,
     uint8_t length
 );
+
+void    delay();
+uint8_t  average(uint8_t* samples, uint8_t sample_size);
 
 //=========================== main ============================================
 
@@ -241,6 +246,18 @@ void    delay(void){
     // works,           0x1f, 0x0f
     // doesn't work     when comment out
     for (i=0;i<0x001f;i++);
+}
+
+uint8_t    average(uint8_t* samples, uint8_t sample_size){
+    uint8_t i;
+    uint16_t sum;
+    
+    sum = 0;
+    for (i=0;i<sample_size;i++){
+        sum += samples[i];
+    }
+    
+    return (uint8_t)(sum/sample_size);
 }
 
 //==== sync
@@ -503,6 +520,9 @@ void    cb_endFrame_rx(uint32_t timestamp){
     gpio_7_toggle();
     
     memset(app_vars.packet,0,MAX_PKT_LEN);
+    
+    app_vars.rxpk_rssi = 0;
+    app_vars.rxpk_lqi  = 0;
 
     // get packet from radio
     radio_getReceivedFrame(
@@ -541,25 +561,26 @@ void    cb_endFrame_rx(uint32_t timestamp){
         isValidFrame = false;
     }
     
-    if (isValidFrame){
+    if (app_vars.isSync){
         
-        gpio_8_toggle();
-        
-        if (app_vars.isSync){
+        switch(app_vars.state){
+        case S_RECEIVING_DATA:
             
-            switch(app_vars.state){
-            case S_RECEIVING_DATA:
+            rftimer_disable_interrupts();
+        
+            if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
                 
-                rftimer_disable_interrupts();
+                rftimer_set_callback(cb_sweep_process_timer);
+                rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+            } else {
+                
+                rftimer_set_callback(cb_slot_timer);
+                rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
+            }
             
-                if (app_vars.freq_setting_rx[app_vars.currentSlotOffset]==0) {
-                    
-                    rftimer_set_callback(cb_sweep_process_timer);
-                    rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
-                } else {
-                    rftimer_set_callback(cb_slot_timer);
-                    rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
-                }
+            if (isValidFrame){
+                
+                gpio_8_toggle();
                 
                 if (
                     app_vars.currentSlotOffset==0   &&
@@ -578,17 +599,22 @@ void    cb_endFrame_rx(uint32_t timestamp){
                             app_vars.current_freq_setting;
                     }
                 }
+            }
+            
+            app_vars.state = S_IDLE;
+            
+        break;
+        case S_RECEIVING_ACK:
+            
+            rftimer_disable_interrupts();
+            if (app_vars.freq_setting_tx[app_vars.channel_to_calibrate-SYNC_CHANNEL]==0) {
                 
-                app_vars.state = S_IDLE;
+                rftimer_set_callback(cb_sweep_process_timer);
+                rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
                 
-            break;
-            case S_RECEIVING_ACK:
-                
-                rftimer_disable_interrupts();
-                if (app_vars.freq_setting_tx[app_vars.channel_to_calibrate-SYNC_CHANNEL]==0) {
+                if (isValidFrame) {
                     
-                    rftimer_set_callback(cb_sweep_process_timer);
-                    rftimer_setCompareIn(rftimer_readCounter()+SUB_SLOT_DURATION);
+                    gpio_8_toggle();
                     
                     // doing calibration on tx channel
                 
@@ -597,50 +623,64 @@ void    cb_endFrame_rx(uint32_t timestamp){
                     app_vars.freq_offset[app_vars.sample_index]         = \
                         app_vars.packet[1];
                     app_vars.sample_index++;
-                } else {
+                }
+            } else {
+                
+                rftimer_set_callback(cb_slot_timer);
+                rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
+                
+                
+                app_vars.tx_counter++;
+                if (isValidFrame) {
                     
-                    rftimer_set_callback(cb_slot_timer);
-                    rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
-                    
-                    app_vars.tx_counter++;
-                    if (app_vars.tx_counter>MAX_TRANSMISSION){
-                        app_vars.tx_counter = 0;
-                        printf("ch%d, pdr=%d%%\r\n",
-                            app_vars.channel_to_calibrate, 
-                            app_vars.tx_success
-                        );
-                        app_vars.tx_success = 0;
-                    } else {
-                        app_vars.tx_success++;
-                        // for changing frequency after sendDone frame
-                        app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
-                        
-                        app_vars.current_freq_setting = app_vars.freq_setting_tx[app_vars.currentSlotOffset-1];
-                        LC_FREQCHANGE(
-                            (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
-                            (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
-                            (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
-                        );
-                        app_vars.pkt_len = TARGET_PKT_LEN;
-                        
-                        app_vars.packet[0] = (app_vars.currentSlotOffset << 4) | ((uint8_t)(MAGIC_BYTE>>8) & 0x0F);
-                        app_vars.packet[1] = (uint8_t)MAGIC_BYTE;
-                        radio_loadPacket(app_vars.packet, app_vars.pkt_len);
-                        radio_txEnable();
-                        delay();
-                        radio_txNow();
-                    }
+                    gpio_8_toggle();
+
+                    app_vars.lqi_history[app_vars.tx_success] = app_vars.rxpk_lqi;
+                    app_vars.tx_success++;
                 }
                 
-                app_vars.state = S_IDLE;
-                
-            break;
-            default:
-                printf("Unexpected state=%d at endFrame ISR!\r\n",app_vars.state);
-            break;
+                if (app_vars.tx_counter==MAX_TRANSMISSION){
+                    app_vars.tx_counter = 0;
+                    printf("ch%d, pdr=%d%% lqi=%d\r\n",
+                        app_vars.channel_to_calibrate, 
+                        app_vars.tx_success,
+                        average(app_vars.lqi_history, app_vars.tx_success)
+                    );
+                    app_vars.tx_success = 0;
+                    memset(&app_vars.lqi_history[0], 0, MAX_TRANSMISSION);
+                } else {
+                    // for changing frequency after sendDone frame
+                    app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
+                    
+                    app_vars.current_freq_setting = app_vars.freq_setting_tx[app_vars.currentSlotOffset-1];
+                    LC_FREQCHANGE(
+                        (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                        (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                        (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                    );
+                    app_vars.pkt_len = TARGET_PKT_LEN;
+                    
+                    app_vars.packet[0] = (app_vars.currentSlotOffset << 4) | ((uint8_t)(MAGIC_BYTE>>8) & 0x0F);
+                    app_vars.packet[1] = (uint8_t)MAGIC_BYTE;
+                    radio_loadPacket(app_vars.packet, app_vars.pkt_len);
+                    radio_txEnable();
+                    delay();
+                    radio_txNow();
+                }
             }
-        } else {
-                
+            
+            app_vars.state = S_IDLE;
+            
+        break;
+        default:
+            printf("Unexpected state=%d at endFrame ISR!\r\n",app_vars.state);
+        break;
+        }
+    } else {
+        if (
+            isValidFrame        &&
+            pkt_channel==SYNC_CHANNEL
+        ){
             printf(
                 "channel=%d, seqNum=%d coarse=%d, mid=%d, fine=%d\r\n", 
                 pkt_channel, pkt_seqNum, 
@@ -651,7 +691,6 @@ void    cb_endFrame_rx(uint32_t timestamp){
             
             // synchronize to the network
             synchronize(app_vars.lastCaptureTime, pkt_channel, pkt_seqNum);
-            
             app_vars.state = S_IDLE;
         }
     }
@@ -1142,11 +1181,13 @@ void    cb_sweep_process_timer(void) {
                 }
             } else {
                 
+                // debugging
                 if (app_vars.pre_coarse_setting != ((app_vars.current_freq_setting & COARSE_MASK)>> COARSE_OFFSET)){
                     app_vars.pre_coarse_setting  = (app_vars.current_freq_setting & COARSE_MASK)>> COARSE_OFFSET;
                     gpio_1_toggle();
                 }
                 
+                // debugging
                 if (app_vars.pre_mid_setting != ((app_vars.current_freq_setting & MID_MASK)>> MID_OFFSET)){
                     app_vars.pre_mid_setting  = (app_vars.current_freq_setting & MID_MASK)>> MID_OFFSET;
                     gpio_5_toggle();
@@ -1222,13 +1263,15 @@ void cb_timeout_error(void){
                     rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
                     
                     app_vars.tx_counter++;
-                    if (app_vars.tx_counter>MAX_TRANSMISSION){
+                    if (app_vars.tx_counter==MAX_TRANSMISSION){
                         app_vars.tx_counter = 0;
-                        printf("ch%d, pdr=%d%%\r\n",
+                        printf("ch%d, pdr=%d%% lqi=%i\r\n",
                             app_vars.channel_to_calibrate, 
-                            app_vars.tx_success
+                            app_vars.tx_success,
+                            average(app_vars.lqi_history, app_vars.tx_success)
                         );
                         app_vars.tx_success = 0;
+                        memset(&app_vars.lqi_history[0], 0, sizeof(app_vars.lqi_history));
                     } else {
                         // for changing frequency after senddone frame
                         app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
