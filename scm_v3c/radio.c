@@ -407,18 +407,6 @@ void radio_enable_interrupts(){
     
     // Enable radio interrupts in NVIC
     ISER = 0x40;
-    
-    // Enable all interrupts and pulses to radio timer
-    //RFCONTROLLER_REG__INT_CONFIG = 0x3FF;   
-        
-    // Enable TX_SEND_DONE, RX_SFD_DONE, RX_DONE
-    RFCONTROLLER_REG__INT_CONFIG = 0x1C;
-    
-    // Enable all errors
-    //RFCONTROLLER_REG__ERROR_CONFIG = 0x1F;  
-    
-    // Enable only the RX CRC error
-    RFCONTROLLER_REG__ERROR_CONFIG = 0x8;    //0x10; x10 is wrong? 
 }
 
 void radio_disable_interrupts(void){
