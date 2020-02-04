@@ -97,7 +97,7 @@ int main(void) {
 	}
 
 	
-
+printf("hellow world");
 
 	while(1) {
 		for(t=0; t<10000; t++);
