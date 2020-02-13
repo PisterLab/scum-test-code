@@ -17,12 +17,21 @@ typedef struct {
             uint8_t     AdvA[ADVA_LENGTH];
             uint8_t     channel;
 
+            // BLE packet contents enable.
+            // The total data length cannot exceed 31 bytes.
+            bool        name_tx_en;
+            bool        lc_freq_codes_tx_en;
+            bool        counters_tx_en;
+            bool        temp_tx_en;
+            bool        data_tx_en;
+
             // BLE packet data.
             char        name[NAME_LENGTH];
             uint16_t    lc_freq_codes;
             uint32_t    count_2M;
             uint32_t    count_32k;
             double      temp;
+            uint8_t     data[CUSTOM_DATA_LENGTH];
 } ble_vars_t;
 
 ble_vars_t ble_vars;
@@ -50,6 +59,7 @@ void ble_init(void) {
     ble_vars.channel = 37;
 
     // Set default name.
+    ble_vars.name_tx_en = true;
     ble_vars.name[0] = 'S';
     ble_vars.name[1] = 'C';
     ble_vars.name[2] = 'U';
@@ -87,11 +97,53 @@ void ble_gen_packet(void) {
         pdu_crc[j++] = flipChar(ble_vars.AdvA[k]);
     }
 
-    pdu_crc[j++] = NAME_HEADER;
-    pdu_crc[j++] = NAME_GAP_CODE;
+    if (ble_vars.name_tx_en) {
+        pdu_crc[j++] = NAME_HEADER;
+        pdu_crc[j++] = NAME_GAP_CODE;
 
-    for (k = 0; k < NAME_LENGTH; ++k) {
-        pdu_crc[j++] = flipChar(ble_vars.name[k]);
+        for (k = 0; k < NAME_LENGTH; ++k) {
+            pdu_crc[j++] = flipChar(ble_vars.name[k]);
+        }
+    }
+
+    if (ble_vars.lc_freq_codes_tx_en) {
+        pdu_crc[j++] = LC_FREQCODES_HEADER;
+        pdu_crc[j++] = LC_FREQCODES_GAP_CODE;
+
+        pdu_crc[j++] = flipChar((ble_vars.lc_freq_codes >> 8) & 0xFF); // LC freq codes MSB
+        pdu_crc[j++] = flipChar(ble_vars.lc_freq_codes & 0xFF);        // LC freq codes LSB
+    }
+
+    if (ble_vars.counters_tx_en) {
+        pdu_crc[j++] = COUNTERS_HEADER;
+        pdu_crc[j++] = COUNTERS_GAP_CODE;
+
+        pdu_crc[j++] = flipChar((ble_vars.count_2M >> 24) & 0xFF);  // count_2M MSB
+        pdu_crc[j++] = flipChar((ble_vars.count_2M >> 16) & 0xFF);
+        pdu_crc[j++] = flipChar((ble_vars.count_2M >> 8) & 0xFF);
+        pdu_crc[j++] = flipChar(ble_vars.count_2M & 0xFF);          // count_2M LSB
+
+        pdu_crc[j++] = flipChar((ble_vars.count_32k >> 24) & 0xFF); // count_32k MSB
+        pdu_crc[j++] = flipChar((ble_vars.count_32k >> 16) & 0xFF);
+        pdu_crc[j++] = flipChar((ble_vars.count_32k >> 8) & 0xFF);
+        pdu_crc[j++] = flipChar(ble_vars.count_32k & 0xFF);         // count_32k LSB
+    }
+
+    if (ble_vars.temp_tx_en) {
+        double temp_kelvin = ble_vars.temp + 273.15; // Temperature in Kelvin
+        int temp_payload = 100 * temp_kelvin + 1;    // Floating point error
+
+        pdu_crc[j++] = flipChar((temp_payload >> 8) & 0xFF); // Temperature MSB
+        pdu_crc[j++] = flipChar(temp_payload & 0xFF);        // Temperature LSB
+    }
+
+    if (ble_vars.data_tx_en) {
+        pdu_crc[j++] = CUSTOM_DATA_HEADER;
+        pdu_crc[j++] = CUSTOM_DATA_GAP_CODE;
+
+        for (k = 0; k < CUSTOM_DATA_LENGTH; ++k) {
+            pdu_crc[j++] = flipChar(ble_vars.data[k]);
+        }
     }
 
     for (j = 0; j < PDU_LENGTH; ++j) {
@@ -168,6 +220,51 @@ void ble_set_AdvA(uint8_t *AdvA) {
 
 void ble_set_channel(uint8_t channel) {
     ble_vars.channel = channel;
+}
+
+
+void ble_set_name_tx_en(bool name_tx_en) {
+    ble_vars.name_tx_en = name_tx_en;
+}
+
+void ble_set_name(char *name) {
+    memcpy(ble_vars.name, name, NAME_LENGTH);
+}
+
+void ble_set_lc_freq_codes_tx_en(bool lc_freq_codes_tx_en) {
+    ble_vars.lc_freq_codes_tx_en = lc_freq_codes_tx_en;
+}
+
+void ble_set_lc_freq_codes(uint16_t lc_freq_codes) {
+    ble_vars.lc_freq_codes = lc_freq_codes;
+}
+
+void ble_set_counters_tx_en(bool counters_tx_en) {
+    ble_vars.counters_tx_en = counters_tx_en;
+}
+
+void ble_set_count_2M(uint32_t count_2M) {
+    ble_vars.count_2M = count_2M;
+}
+
+void ble_set_count_32k(uint32_t count_32k) {
+    ble_vars.count_32k = count_32k;
+}
+
+void ble_set_temp_tx_en(bool temp_tx_en) {
+    ble_vars.temp_tx_en = temp_tx_en;
+}
+
+void ble_set_temp(double temp) {
+    ble_vars.temp = temp;
+}
+
+void ble_set_data_tx_en(bool data_tx_en) {
+    ble_vars.data_tx_en = data_tx_en;
+}
+
+void ble_set_data(uint8_t *data) {
+    memcpy(ble_vars.data, data, CUSTOM_DATA_LENGTH);
 }
 
 void ble_init_tx(void) {

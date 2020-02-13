@@ -19,8 +19,6 @@
 #define LENGTH_PACKET       125 + LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_RX_PKT          20 + LENGTH_CRC  ///< length of rx packet
 
-#define BLE_LENGTH_PACKET   31               ///< maxium length is 31 bytes
-
 #define TIMER_PERIOD        2500             ///< 500 = 1ms@500kHz
 #define BLE_TX_PERIOD       50
 
@@ -53,9 +51,6 @@ typedef struct {
                 uint8_t         tx_mid;
                 uint8_t         tx_fine;
 
-                uint8_t         ble_packet[BLE_LENGTH_PACKET];
-                uint8_t         ble_packet_len;
-
                 uint8_t         rx_iteration;
 } app_vars_t;
 
@@ -77,7 +72,6 @@ int main(void) {
     uint8_t         j;
     uint8_t         offset;
     int             t;
-    int             rx_fine;
 
     memset(&app_vars, 0, sizeof(app_vars_t));
 
@@ -151,7 +145,7 @@ int main(void) {
     // Configure coarse, mid, and fine codes for RX.
     app_vars.rx_coarse = 23;
     app_vars.rx_mid = 10;
-    app_vars.rx_fine = 15;
+    app_vars.rx_fine = 18;
 
     // Configure coarse, mid, and fine codes for TX.
 #if BLE_CALIBRATE_LC
@@ -168,17 +162,15 @@ int main(void) {
     ble_gen_test_packet();
 
     while (1) {
-        for (rx_fine = 12; rx_fine < 20; ++rx_fine) {
-            printf("Receiving on %u %u %u\n", app_vars.rx_coarse, app_vars.rx_mid, rx_fine);
-            while (app_vars.rxFrameStarted);
-            radio_rfOff();
-            LC_FREQCHANGE(app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
-            radio_rxEnable();
-            radio_rxNow();
-            rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD);
-            app_vars.changeConfig = false;
-            while (!app_vars.changeConfig);
-        }
+        printf("Receiving on %u %u %u\n", app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
+        while (app_vars.rxFrameStarted);
+        radio_rfOff();
+        LC_FREQCHANGE(app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
+        radio_rxEnable();
+        radio_rxNow();
+        rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD);
+        app_vars.changeConfig = false;
+        while (!app_vars.changeConfig);
     }
 }
 
@@ -223,8 +215,8 @@ void    cb_endFrame_rx(uint32_t timestamp){
             app_vars.rx_fine
         );
 
-        app_vars.ble_packet_len = 4;
-        memcpy(&app_vars.ble_packet[0], &app_vars.packet[0], 4);
+        ble_set_data(app_vars.packet);
+        ble_set_data_tx_en(true);
 
         app_vars.packet_len = 0;
         memset(&app_vars.packet[0], 0, LENGTH_PACKET);
