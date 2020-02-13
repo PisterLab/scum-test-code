@@ -114,10 +114,6 @@ int main(void) {
 
     // Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
 
-    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
-    // by calling radio rxEnable
-    radio_rxEnable();
-
 #if BLE_CALIBRATE_LC
     optical_enableLCCalibration();
 
@@ -131,6 +127,10 @@ int main(void) {
     optical_setLCTarget(250020);
 #endif
 
+    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
+    // by calling radio rxEnable
+    radio_rxEnable();
+
     // Enable optical SFD interrupt for optical calibration
     optical_enable();
 
@@ -138,6 +138,9 @@ int main(void) {
     while(!optical_getCalibrationFinished());
 
     printf("Cal complete\r\n");
+
+    // Disable static divider to save power
+	divProgram(480, 0, 0);
 
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
@@ -155,7 +158,7 @@ int main(void) {
 #else
     // CHANGE THESE VALUES AFTER LC CALIBRATION.
     app_vars.tx_coarse = 23;
-    app_vars.tx_mid = 11;
+    app_vars.tx_mid = 12;
     app_vars.tx_fine = 15;
 #endif
 
