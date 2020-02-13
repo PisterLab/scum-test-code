@@ -174,12 +174,12 @@ void radio_loadPacket(uint8_t* packet, uint16_t len){
 // Turn on the radio for transmit
 // This should be done at least ~50 us before txNow()
 void radio_txEnable(){
-    
-    // Turn off polyphase and disable mixer
-    ANALOG_CFG_REG__16 = 0x6;
-    
+
     // Turn on LO, PA, and AUX LDOs
     ANALOG_CFG_REG__10 = 0x0028;
+
+    // Turn off polyphase and disable mixer
+    ANALOG_CFG_REG__16 = 0x6;
 }
 
 // Begin modulating the radio output for TX
@@ -206,7 +206,7 @@ void radio_rxEnable(){
     ANALOG_CFG_REG__16 = 0x1;
     
     // Where packet will be stored in memory
-    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);;
+    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);
     
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = RF_RESET;

@@ -7,7 +7,7 @@
 
 // ========================== definition ======================================
 
-#define MINIMUM_COMPAREVALE_ADVANCE  5
+#define MINIMUM_COMPAREVALUE_ADVANCE  5
 
 // ========================== variable ========================================
 

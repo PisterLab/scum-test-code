@@ -3,6 +3,7 @@
 
 #include "memory_map.h"
 #include "scm3c_hw_interface.h"
+#include "ble.h"
 #include "radio.h"
 #include "optical.h"
 #include "rftimer.h"
@@ -845,7 +846,7 @@ void radio_init_rx_MF(){
     // Enable both polyphase and mixers via memory mapped IO (...001 = 0x1)
     // To disable both you would invert these values (...110 = 0x6)
     ANALOG_CFG_REG__16 = 0x1;
-        
+
 }
 
 // Must set IF clock frequency AFTER calling this function
@@ -982,7 +983,7 @@ void radio_init_tx(){
 void radio_init_divider(unsigned int div_value){
     
     // Set divider LDO value to max
-    set_DIV_supply(40,0);
+    set_DIV_supply(63,0);
 
     // Set prescaler to div-by-2
     prescaler(4);
@@ -1138,6 +1139,7 @@ void initialize_mote(){
     optical_init();
     radio_init();
     rftimer_init();
+    ble_init();
     
     //--------------------------------------------------------
     // SCM3C Analog Scan Chain Initialization
@@ -1227,7 +1229,7 @@ void initialize_mote(){
     set_asc_bit(1114);
         
     // Set initial LO frequency
-    LC_monotonic(DEFUALT_INIT_LC_CODE);
+    LC_FREQCHANGE(DEFAULT_INIT_LC_COARSE, DEFAULT_INIT_LC_MID, DEFAULT_INIT_LC_FINE);
     
     // Init divider settings
     radio_init_divider(2000);
@@ -1471,6 +1473,14 @@ void clear_asc_bit(unsigned int position){
     
     // Possibly more efficient
     //scm3c_hw_interface_vars.ASC[position/32] &= ~(1 << (position%32));
+}
+
+void dump_asc(void){
+
+    unsigned int i;
+    for (i = 0; i < ASC_LEN; ++i){
+        printf("ASC[%u] = 0x%x\n", i, scm3c_hw_interface_vars.ASC[i]);
+    }
 }
 
 
