@@ -158,11 +158,9 @@ int main(void) {
 #else
     // CHANGE THESE VALUES AFTER LC CALIBRATION.
     app_vars.tx_coarse = 23;
-    app_vars.tx_mid = 12;
+    app_vars.tx_mid = 11;
     app_vars.tx_fine = 15;
 #endif
-
-    ble_gen_test_packet();
 
     while (1) {
         printf("Receiving on %u %u %u\n", app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
@@ -238,6 +236,8 @@ void    cb_timer(void) {
     app_vars.rx_iteration = (app_vars.rx_iteration + 1) % BLE_TX_PERIOD;
 
     if (app_vars.rx_iteration == 0) {
+        ble_gen_packet();
+
 #if BLE_SWEEP_FINE
         for (tx_fine = 0; tx_fine < 32; ++tx_fine) {
             LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, tx_fine);
