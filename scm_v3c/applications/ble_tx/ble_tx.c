@@ -114,7 +114,7 @@ int main(void) {
 #else
     // CHANGE THESE VALUES AFTER LC CALIBRATION.
     app_vars.tx_coarse = 23;
-    app_vars.tx_mid = 12;
+    app_vars.tx_mid = 11;
     app_vars.tx_fine = 15;
 #endif
 

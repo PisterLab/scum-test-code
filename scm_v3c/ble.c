@@ -314,8 +314,8 @@ void ble_init_tx(void) {
     set_LC_current(127);
 
     // Set LDO voltages for PA and LO.
-    // set_PA_supply(63);
-    // set_LO_supply(127,0);
+    set_PA_supply(127);
+    set_LO_supply(63,0);
 
     // Program analog scan chain.
     analog_scan_chain_write();
@@ -370,7 +370,7 @@ void ble_init_rx(void) {
     // To disable both you would invert these values (...110 = 0x6).
     ANALOG_CFG_REG__16 = 0x1;
 
-	// Program analog scan chain.
+    // Program analog scan chain.
     analog_scan_chain_write();
     analog_scan_chain_load();
 }
@@ -385,6 +385,9 @@ void ble_transmit(void) {
 
     // Turn on LO, PA, and DIV.
     ANALOG_CFG_REG__10 = 0x0068;
+
+    // Wait for DIV to turn on.
+    for (t = 0; t < 50; ++t);
 
     // Send the packet.
     transmit_tx_arb_fifo();
