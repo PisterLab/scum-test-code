@@ -118,7 +118,7 @@ int main(void) {
     app_vars.tx_fine = 15;
 #endif
 
-    ble_gen_test_packet();
+    ble_gen_packet();
 
     while (1) {
         rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD);

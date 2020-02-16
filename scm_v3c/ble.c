@@ -133,6 +133,9 @@ void ble_gen_packet(void) {
         double temp_kelvin = ble_vars.temp + 273.15; // Temperature in Kelvin
         int temp_payload = 100 * temp_kelvin + 1;    // Floating point error
 
+        pdu_crc[j++] = TEMP_HEADER;
+        pdu_crc[j++] = TEMP_GAP_CODE;
+
         pdu_crc[j++] = flipChar((temp_payload >> 8) & 0xFF); // Temperature MSB
         pdu_crc[j++] = flipChar(temp_payload & 0xFF);        // Temperature LSB
     }
@@ -170,9 +173,7 @@ void ble_gen_packet(void) {
         }
     }
 
-    for (j = 0; j < PDU_LENGTH + CRC_LENGTH; ++j) {
-        ble_vars.packet[i++] = pdu_crc[j];
-    }
+    memcpy(&ble_vars.packet[i], pdu_crc, PDU_LENGTH + CRC_LENGTH);
 }
 
 void ble_gen_test_packet(void) {
@@ -210,12 +211,7 @@ void ble_gen_test_packet(void) {
 }
 
 void ble_set_AdvA(uint8_t *AdvA) {
-    ble_vars.AdvA[0] = AdvA[0];
-    ble_vars.AdvA[1] = AdvA[1];
-    ble_vars.AdvA[2] = AdvA[2];
-    ble_vars.AdvA[3] = AdvA[3];
-    ble_vars.AdvA[4] = AdvA[4];
-    ble_vars.AdvA[5] = AdvA[5];
+    memcpy(ble_vars.AdvA, AdvA, ADVA_LENGTH);
 }
 
 void ble_set_channel(uint8_t channel) {
