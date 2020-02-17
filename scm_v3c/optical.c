@@ -221,8 +221,6 @@ void optical_sfd_isr(){
                     ++optical_vars.cal_LC_coarse;
                     if (optical_vars.cal_LC_coarse > LC_CAL_COARSE_MAX) {
                         optical_vars.optical_LC_cal_finished = true;
-                        // Turn off divider.
-                        divProgram(480,0,0);
                         printf("coarse: %u, mid: %u, fine: %u\n", optical_vars.LC_coarse, optical_vars.LC_mid, optical_vars.LC_fine);
                     }
                 }

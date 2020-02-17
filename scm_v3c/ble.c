@@ -218,7 +218,6 @@ void ble_set_channel(uint8_t channel) {
     ble_vars.channel = channel;
 }
 
-
 void ble_set_name_tx_en(bool name_tx_en) {
     ble_vars.name_tx_en = name_tx_en;
 }

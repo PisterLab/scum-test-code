@@ -19,7 +19,7 @@
 #define LENGTH_PACKET       125 + LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_RX_PKT          20 + LENGTH_CRC  ///< length of rx packet
 
-#define TIMER_PERIOD        2500             ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD        7500             ///< 500 = 1ms@500kHz
 #define BLE_TX_PERIOD       50
 
 #define BLE_CALIBRATE_LC    false
@@ -114,11 +114,15 @@ int main(void) {
 
     // Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
 
+    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
+    // by calling radio rxEnable
+    radio_rxEnable();
+
 #if BLE_CALIBRATE_LC
     optical_enableLCCalibration();
 
-    // Turn on LO, DIV, PA
-    ANALOG_CFG_REG__10 = 0x68;
+    // Turn on LO, DIV, PA, and IF
+    ANALOG_CFG_REG__10 = 0x78;
 
     // Turn off polyphase and disable mixer
     ANALOG_CFG_REG__16 = 0x6;
@@ -126,10 +130,6 @@ int main(void) {
     // For TX, LC target freq = 2.402G - 0.25M = 2.40175 GHz.
     optical_setLCTarget(250020);
 #endif
-
-    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
-    // by calling radio rxEnable
-    radio_rxEnable();
 
     // Enable optical SFD interrupt for optical calibration
     optical_enable();
