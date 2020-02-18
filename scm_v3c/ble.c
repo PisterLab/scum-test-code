@@ -381,7 +381,7 @@ void ble_transmit(void) {
     // Turn on LO, PA, and DIV.
     ANALOG_CFG_REG__10 = 0x0068;
 
-    // Wait for DIV to turn on.
+    // Wait for LDOs to turn on.
     for (t = 0; t < 50; ++t);
 
     // Send the packet.

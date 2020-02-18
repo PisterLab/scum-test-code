@@ -20,10 +20,10 @@
 #define LEN_RX_PKT          20 + LENGTH_CRC  ///< length of rx packet
 
 #define TIMER_PERIOD        7500             ///< 500 = 1ms@500kHz
-#define BLE_TX_PERIOD       50
+#define BLE_TX_PERIOD       10
 
 #define BLE_CALIBRATE_LC    false
-#define BLE_SWEEP_FINE      true
+#define BLE_SWEEP_FINE      false
 
 //=========================== variables =======================================
 
@@ -159,7 +159,7 @@ int main(void) {
     // CHANGE THESE VALUES AFTER LC CALIBRATION.
     app_vars.tx_coarse = 23;
     app_vars.tx_mid = 11;
-    app_vars.tx_fine = 15;
+    app_vars.tx_fine = 23;
 #endif
 
     while (1) {
@@ -230,7 +230,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
 }
 
 void    cb_timer(void) {
-    int tx_fine, t;
+    int tx_fine, t, i;
     app_vars.changeConfig = true;
 
     app_vars.rx_iteration = (app_vars.rx_iteration + 1) % BLE_TX_PERIOD;
@@ -249,13 +249,15 @@ void    cb_timer(void) {
             ble_transmit();
         }
 #else
-        LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
-        printf("Transmitting on %u %u %u\n", app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
+        for (i = 0; i < 5; ++i) {
+            LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
+            printf("Transmitting on %u %u %u\n", app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
 
-        // Wait for frequency to settle.
-        for (t = 0; t < 5000; ++t);
+            // Wait for frequency to settle.
+            for (t = 0; t < 5000; ++t);
 
-        ble_transmit();
+            ble_transmit();
+        }
 #endif
     }
 }

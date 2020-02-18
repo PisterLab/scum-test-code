@@ -115,7 +115,7 @@ int main(void) {
     // CHANGE THESE VALUES AFTER LC CALIBRATION.
     app_vars.tx_coarse = 23;
     app_vars.tx_mid = 11;
-    app_vars.tx_fine = 15;
+    app_vars.tx_fine = 23;
 #endif
 
     ble_gen_packet();
