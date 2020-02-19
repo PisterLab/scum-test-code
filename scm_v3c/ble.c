@@ -389,7 +389,8 @@ void ble_transmit(void) {
 
     // Wait for transmission to finish.
     // Don't know if there is some way to know when this has finished or just busy wait (?).
-    for (t = 0; t < 20000; ++t);
+    // This was determined empirically using trial and error.
+    for (t = 0; t < 1000; ++t);
 
     radio_rfOff();
 }
