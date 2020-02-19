@@ -85,8 +85,8 @@ int main(void) {
 #if BLE_CALIBRATE_LC
     optical_enableLCCalibration();
 
-    // Turn on LO, DIV, PA
-    ANALOG_CFG_REG__10 = 0x68;
+    // Turn on LO, DIV, PA, and IF
+    ANALOG_CFG_REG__10 = 0x78;
 
     // Turn off polyphase and disable mixer
     ANALOG_CFG_REG__16 = 0x6;
