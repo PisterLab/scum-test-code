@@ -24,6 +24,7 @@
 
 #define BLE_CALIBRATE_LC    false
 #define BLE_SWEEP_FINE      false
+#define BLE_NUM_REPEAT      1                // Number of times to repeat packet when not sweeping
 
 //=========================== variables =======================================
 
@@ -249,7 +250,7 @@ void    cb_timer(void) {
             ble_transmit();
         }
 #else
-        for (i = 0; i < 5; ++i) {
+        for (i = 0; i < BLE_NUM_REPEAT; ++i) {
             LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
             printf("Transmitting on %u %u %u\n", app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
 
