@@ -56,6 +56,7 @@ def converter_config_text_2_linear(text_config, has_rssi):
         if has_rssi:
             ptest, coarse, mid, fine, rssi = text_config.split('.')
             assert int(rssi)>-127
+            rssi = int(rssi)
         else:
             ptest, coarse, mid, fine = text_config.split('.')
         assert int(coarse) < 32 and int(mid) < 32 and int(fine) < 32
@@ -127,13 +128,13 @@ if __name__ == '__main__':
             ax.set_ylabel(item_key)
             ax.set_xlabel('coarse.mid.fine')
             
-            x_s_lim   = 0
-            x_e_lim   = NUM_CONFIG
-            SCALE     = 1000
+            # x_s_lim   = 0
+            # x_e_lim   = NUM_CONFIG
+            # SCALE     = 1000
             
-            # x_s_lim   = 23*32*32
-            # x_e_lim   = 29*32*32
-            # SCALE     = 200
+            x_s_lim   = 22*32*32
+            x_e_lim   = 29*32*32
+            SCALE     = 200
             
             ax.set_xlim(x_s_lim,x_e_lim)
             
