@@ -36,11 +36,6 @@ def test_bootload():
     
     result = syscall("python scm_v3c\\bootload\\bootload.py -tp %PORT_TEENSY% -i scm_v3c\\applications\\freq_sweep_lc_count\\Objects\\freq_sweep_lc_count.bin")
     assert result == 0
-    
-    syscall("echo bootload OpenMote...")
-    
-    result = syscall("python scm_v3c\\bootload\\cc2538-bsl.py  -e --bootloader-invert-lines -w -b 400000 -p %PORT_OPENMOTE% scm_v3c\\applications\\freq_sweep_lc_count\\openmote-b-24ghz.ihex")
-    assert result == 0
 
 def test_logData():
     syscall("echo log output from OpenMote serial port...")
