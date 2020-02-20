@@ -40,7 +40,7 @@
 // Custom data.
 #define CUSTOM_DATA_LENGTH    4
 #define CUSTOM_DATA_HEADER    0xA0 // Custom data is 5 bytes long (1 byte GAP code + 4 bytes data).
-#define CUSTOM_DATA_GAP_CODE  0x83 // Custom GAP code for custom data (0xC1 LSB first) - same as temperature.
+#define CUSTOM_DATA_GAP_CODE  0xC3 // Custom GAP code for custom data (0xC3 LSB first).
 
 #define ADVA_LENGTH           6    // Advertiser address is 6 bytes long.
 #define PDU_LENGTH            39   // 2 byte PDU header + 37 bytes PDU.
