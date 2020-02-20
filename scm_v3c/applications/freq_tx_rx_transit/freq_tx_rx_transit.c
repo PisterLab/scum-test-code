@@ -18,12 +18,19 @@ turn radio from tx to rx or rx to tx.
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
 
 #define LENGTH_PACKET       125+LENGTH_CRC ///< maximum length is 127 bytes
-#define LEN_TX_PKT          2+LENGTH_CRC  ///< length of tx packet
+#define LEN_TX_PKT          90+LENGTH_CRC  ///< length of tx packet
 #define CHANNEL             11             ///< 11=2.405GHz
-#define TIMER_PERIOD        500            ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD        3500           ///< 3500 =  7ms@500kHz
+#define TIMER_TIMEOUT       2000            ///<2000 =  4ms@500kHz
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
+
+typedef enum {
+    IDLE    = 0,
+    RX      = 1,
+    TIMEOUT = 2,
+}state_t;
 
 //=========================== variables =======================================
 
@@ -36,6 +43,7 @@ typedef struct {
                 uint8_t         packet_len;
     volatile    bool            sendDone;
     volatile    bool            receiveDone;
+                state_t         state;
 } app_vars_t;
 
 app_vars_t app_vars;
@@ -57,7 +65,7 @@ int main(void) {
     uint8_t         cfg_fine;
     
     uint8_t         i;
-    uint8_t         j;
+    uint16_t         j;
     uint16_t        k;
     uint8_t         offset;
     
@@ -125,30 +133,33 @@ int main(void) {
         gpio_1_toggle();
         
         // loop through all configuration
-        for (cfg_coarse=23;cfg_coarse<25;cfg_coarse++){
-            for (cfg_mid=0;cfg_mid<STEPS_PER_CONFIG;cfg_mid++){
-                for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine++){
+//        for (cfg_coarse=23;cfg_coarse<25;cfg_coarse++){
+//            for (cfg_mid=0;cfg_mid<STEPS_PER_CONFIG;cfg_mid++){
+//                for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine++){
 //                    printf(
 //                        "coarse=%d, middle=%d, fine=%d\r\n", 
 //                        cfg_coarse,cfg_mid,cfg_fine
 //                    );
-                    j = 0;
+                    for(j=0;j<0xffff;j++);
                     app_vars.packet[0] = 0;
                     app_vars.packet[1] = 0xcf;
+                    radio_rfOff();
                     
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         for(k=0;k<0x1ff;k++);
                         radio_loadPacket(app_vars.packet, LEN_TX_PKT);
-                        LC_FREQCHANGE(cfg_coarse,cfg_mid,cfg_fine);
+                        LC_FREQCHANGE(23,27,26);
                         radio_txEnable();
                         app_vars.sendDone = false;
+                        app_vars.receiveDone=false;
+                        for(k=0;k<0x1ff;k++);
                         radio_txNow();
                         while (app_vars.sendDone==false);
                         while (app_vars.receiveDone==false);
                     }
-                }
-            }
-        }
+//                }
+//            }
+//        }
     }
 }
 
@@ -160,6 +171,10 @@ void    cb_endFrame_rx(uint32_t timestamp){
     
     app_vars.receiveDone = true;
     
+    radio_rfOff();
+    
+    rftimer_disable_interrupts();
+    
     radio_getReceivedFrame(
         &(app_vars.packet[0]),
         &app_vars.packet_len,
@@ -168,7 +183,6 @@ void    cb_endFrame_rx(uint32_t timestamp){
         &app_vars.rxpk_lqi
     );
     
-    radio_rfOff();
     
     if(
         app_vars.packet_len == LEN_TX_PKT && (radio_getCrcOk())
@@ -187,17 +201,36 @@ void    cb_endFrame_tx(uint32_t timestamp){
     
     app_vars.sendDone = true;
     
-    LC_FREQCHANGE(24,8,18);
-    radio_rxEnable();
-    radio_rxNow();
+    app_vars.state = RX;
     
     rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
 }
 
 void    cb_timer(void) {
     
-    radio_rfOff();
+    uint16_t k;
     
-    app_vars.receiveDone = true;
+    if (app_vars.state==RX) {
+        
+        LC_FREQCHANGE(24,8,21);
+        radio_rxEnable();
+        for(k=0;k<0x1ff;k++);
+        radio_rxNow();
+        
+        app_vars.state=TIMEOUT;
+        
+        rftimer_setCompareIn(rftimer_readCounter()+TIMER_TIMEOUT);
+    } else {
+        if (app_vars.state==TIMEOUT){
+            
+            radio_rfOff();
+            
+            app_vars.receiveDone = true;
+            
+            app_vars.state=IDLE;
+        } else {
+            printf("something wrong!\r\n");
+        }
+    }
 }
 
