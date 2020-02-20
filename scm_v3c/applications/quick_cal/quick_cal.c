@@ -33,7 +33,7 @@ for each 16 channel with a quick_cal box.
 #define TARGET_PKT_INTERVAL 305      ///< 305 = 610us@500kHz
 #define SUB_SLOT_DURATION   400      ///< 305 = 610us@500kHz
 #define TXOFFSET            191      ///< measured, 382us
-#define WD_DATA_SENDDONE    100      ///>measured,  161us  100 = 200us@500kHz
+#define WD_DATA_SENDDONE    150      ///>measured,  161us  100 = 200us@500kHz
 #define WD_RECEIVING_ACK    300      ///>measured,  412us  250 = 600us@500kHz
 
 // frequency settings
@@ -62,7 +62,7 @@ for each 16 channel with a quick_cal box.
 
 #define MAGIC_BYTE          0x0FFF
 
-#define MAX_TRANSMISSION    100
+#define MAX_TRANSMISSION    1000
 
 //=========================== variables =======================================
 
@@ -125,8 +125,8 @@ typedef struct {
        bool     rxpk_crc;
     
     // statistic
-    uint8_t     tx_counter;
-    uint8_t     tx_success;
+    uint16_t    tx_counter;
+    uint16_t    tx_success;
     uint8_t     lqi_history[MAX_TRANSMISSION];
 } app_vars_t;
 
@@ -515,6 +515,14 @@ void    cb_endFrame_rx(uint32_t timestamp){
     uint8_t     pkt_channel;
     uint16_t    pkt_seqNum;
     
+    if (
+        app_vars.state != S_RECEIVING_DATA && 
+        app_vars.state != S_RECEIVING_ACK
+    ) {
+        printf("Unexpected state=%d at endFrame ISR!\r\n",app_vars.state);
+        return;
+    }
+    
     radio_rfOff();
     
     gpio_7_toggle();
@@ -589,6 +597,32 @@ void    cb_endFrame_rx(uint32_t timestamp){
                     // resynchronize
                     synchronize(app_vars.lastCaptureTime, pkt_channel, pkt_seqNum);
                     
+                    
+                    if (
+                        app_vars.currentSlotOffset==0 &&
+                        app_vars.freq_setting_tx_done
+                    ){
+                        
+                        app_vars.type = T_TX;
+                        
+                        
+                        // for changing frequency after senddone frame
+                        app_vars.channel_to_calibrate = SLOTFRAME_LEN-1 + SYNC_CHANNEL;
+                        
+                        app_vars.current_freq_setting = app_vars.freq_setting_tx[SLOTFRAME_LEN-1];
+                        LC_FREQCHANGE(
+                            (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                        );
+                        app_vars.pkt_len   = TARGET_PKT_LEN;
+                        app_vars.packet[0] = (app_vars.currentSlotOffset << 4) | ((uint8_t)(MAGIC_BYTE>>8) & 0x0F);
+                        app_vars.packet[1] = (uint8_t)MAGIC_BYTE;
+                        radio_loadPacket(app_vars.packet, app_vars.pkt_len);
+                        radio_txEnable();
+                        delay();
+                        radio_txNow();
+                    }
                 } else {
                 
                     // doing calibration on rx channel if haven't yet
@@ -629,7 +663,6 @@ void    cb_endFrame_rx(uint32_t timestamp){
                 rftimer_set_callback(cb_slot_timer);
                 rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
                 
-                
                 app_vars.tx_counter++;
                 if (isValidFrame) {
                     
@@ -637,11 +670,13 @@ void    cb_endFrame_rx(uint32_t timestamp){
 
                     app_vars.lqi_history[app_vars.tx_success] = app_vars.rxpk_lqi;
                     app_vars.tx_success++;
+                } else {
+                    printf("not ValidFrame %x %x slot=%d len=%d\r\n",app_vars.packet[0], app_vars.packet[1], app_vars.currentSlotOffset, app_vars.pkt_len);
                 }
                 
                 if (app_vars.tx_counter==MAX_TRANSMISSION){
                     app_vars.tx_counter = 0;
-                    printf("ch%d, pdr=%d%% lqi=%d\r\n",
+                    printf("ch%d, num_recv=%d lqi=%d\r\n",
                         app_vars.channel_to_calibrate, 
                         app_vars.tx_success,
                         average(app_vars.lqi_history, app_vars.tx_success)
@@ -649,15 +684,32 @@ void    cb_endFrame_rx(uint32_t timestamp){
                     app_vars.tx_success = 0;
                     memset(&app_vars.lqi_history[0], 0, MAX_TRANSMISSION);
                 } else {
-                    // for changing frequency after sendDone frame
-                    app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
                     
-                    app_vars.current_freq_setting = app_vars.freq_setting_tx[app_vars.currentSlotOffset-1];
-                    LC_FREQCHANGE(
-                        (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
-                        (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
-                        (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
-                    );
+                    if ( app_vars.currentSlotOffset==0 ){
+                        
+                        // sending frame on channel 26
+                        
+                        // for changing frequency after senddone frame
+                        app_vars.channel_to_calibrate = SLOTFRAME_LEN-1 + SYNC_CHANNEL;
+                        
+                        app_vars.current_freq_setting = app_vars.freq_setting_tx[SLOTFRAME_LEN-1];
+                        LC_FREQCHANGE(
+                            (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                        );
+                    } else {
+                        
+                        // for changing frequency after sendDone frame
+                        app_vars.channel_to_calibrate = app_vars.currentSlotOffset-1 + SYNC_CHANNEL;
+                        
+                        app_vars.current_freq_setting = app_vars.freq_setting_tx[app_vars.currentSlotOffset-1];
+                        LC_FREQCHANGE(
+                            (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                        );
+                    }
                     app_vars.pkt_len = TARGET_PKT_LEN;
                     
                     app_vars.packet[0] = (app_vars.currentSlotOffset << 4) | ((uint8_t)(MAGIC_BYTE>>8) & 0x0F);
@@ -986,7 +1038,7 @@ void    cb_sweep_process_timer(void) {
                 if (app_vars.currentSlotOffset == 1){
                     // slot 1
                     if (app_vars.channel_to_calibrate == 26){
-                        start_frequency = app_vars.freq_setting_rx[15];
+                        start_frequency = app_vars.freq_setting_tx[14];
                     } else {
                         start_frequency = SYNC_FREQ_START_TX;
                     }
@@ -1160,8 +1212,9 @@ void    cb_sweep_process_timer(void) {
                             }
                         }
                         
-                        printf("rx%d %d.%d.%d\r\n",
-                            app_vars.currentSlotOffset+SYNC_CHANNEL, 
+                        printf("rx%d %d (%d.%d.%d)\r\n",
+                            app_vars.currentSlotOffset+SYNC_CHANNEL,
+                            app_vars.freq_setting_rx[app_vars.currentSlotOffset],                            
                             (app_vars.freq_setting_rx[app_vars.currentSlotOffset] & COARSE_MASK) >> COARSE_OFFSET,
                             (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &    MID_MASK) >>    MID_OFFSET,
                             (app_vars.freq_setting_rx[app_vars.currentSlotOffset] &   FINE_MASK) >>   FINE_OFFSET
@@ -1237,7 +1290,47 @@ void cb_timeout_error(void){
         case S_LISTEN_FOR_ACK:
             // calibrate for tx channel
             if (app_vars.currentSlotOffset==0){
-                printf("Timeout for waiting ack on slot 0!\r\n");
+                
+                if (
+                    app_vars.channel_to_calibrate==26 && 
+                    app_vars.freq_setting_tx[15]!=0
+                ){
+                    // schedule next slot
+                    rftimer_set_callback(cb_slot_timer);
+                    rftimer_setCompareIn(app_vars.slotReference+SLOT_DURATION);
+
+                    app_vars.tx_counter++;
+                    if (app_vars.tx_counter==MAX_TRANSMISSION){
+                        app_vars.tx_counter = 0;
+                        printf("ch%d, num_recv=%d lqi=%i\r\n",
+                            app_vars.channel_to_calibrate, 
+                            app_vars.tx_success,
+                            average(app_vars.lqi_history, app_vars.tx_success)
+                        );
+                        app_vars.tx_success = 0;
+                        memset(&app_vars.lqi_history[0], 0, sizeof(app_vars.lqi_history));
+                    } else {
+                        // for changing frequency after senddone frame
+                        app_vars.channel_to_calibrate = SLOTFRAME_LEN-1 + SYNC_CHANNEL;
+                        
+                        app_vars.current_freq_setting = app_vars.freq_setting_tx[SLOTFRAME_LEN-1];
+                        LC_FREQCHANGE(
+                            (app_vars.current_freq_setting & COARSE_MASK) >> COARSE_OFFSET,
+                            (app_vars.current_freq_setting &    MID_MASK) >>    MID_OFFSET,
+                            (app_vars.current_freq_setting &   FINE_MASK) >>   FINE_OFFSET
+                        );
+                        app_vars.pkt_len = TARGET_PKT_LEN;
+                        app_vars.packet[0] = (app_vars.currentSlotOffset << 4) | ((uint8_t)(MAGIC_BYTE>>8) & 0x0F);
+                        app_vars.packet[1] = (uint8_t)MAGIC_BYTE;
+                        radio_loadPacket(app_vars.packet, app_vars.pkt_len);
+                        radio_txEnable();
+                        delay();
+                        radio_txNow();
+                    }
+                } else {
+                
+                    printf("Timeout for waiting ack on slot 0 when tx26 is unknown!\r\n");
+                }
             } else {
                 if (
                     (
@@ -1265,7 +1358,7 @@ void cb_timeout_error(void){
                     app_vars.tx_counter++;
                     if (app_vars.tx_counter==MAX_TRANSMISSION){
                         app_vars.tx_counter = 0;
-                        printf("ch%d, pdr=%d%% lqi=%i\r\n",
+                        printf("ch%d, num_recv=%d lqi=%i\r\n",
                             app_vars.channel_to_calibrate, 
                             app_vars.tx_success,
                             average(app_vars.lqi_history, app_vars.tx_success)
