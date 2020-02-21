@@ -19,8 +19,8 @@
 #define LENGTH_PACKET       125 + LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_RX_PKT          20 + LENGTH_CRC  ///< length of rx packet
 
-#define TIMER_PERIOD        7500             ///< 500 = 1ms@500kHz
-#define BLE_TX_PERIOD       10
+#define TIMER_PERIOD        200000            ///< 500 = 1ms@500kHz
+#define BLE_TX_PERIOD       1
 
 #define BLE_CALIBRATE_LC    false
 #define BLE_SWEEP_FINE      false
@@ -148,8 +148,8 @@ int main(void) {
 
     // Configure coarse, mid, and fine codes for RX.
     app_vars.rx_coarse = 23;
-    app_vars.rx_mid = 10;
-    app_vars.rx_fine = 18;
+    app_vars.rx_mid = 11;
+    app_vars.rx_fine = 19;
 
     // Configure coarse, mid, and fine codes for TX.
 #if BLE_CALIBRATE_LC
