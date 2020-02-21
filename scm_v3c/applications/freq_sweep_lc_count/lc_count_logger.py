@@ -1,4 +1,3 @@
-import pytest
 import os
 import time
 import serial
@@ -10,19 +9,14 @@ import sys
 BAUDRATE_OPENMOTE           = 115200
 BAUDRATE_SCUM               = 19200
 
-pytest.output_openmote      = ''
-pytest.output_scum          = ''
-
-LOG_FILE                    = 'freq_sweep_tx_output_with_rssi_channel_11.txt'
-
-
-NUM_PKT_PER_SETTING         = 3
+LOG_FILE                    = 'freq_sweep_rx_lc_count.txt'
 
 #    4ms delay after sending each pkt (for file writing)
-# 0.76ms for sending 22 bytes pkt
-DURATION_PER_PKT            = 0.005 # second
+TIMER_PERIOD                = 0.001 # second
 NUM_CONFIG                  = 32*32*32
-RUNNING_DURATION            = NUM_CONFIG*DURATION_PER_PKT*NUM_PKT_PER_SETTING
+NUM_SAMPLE                  = 10
+RUNNING_DURATION            = NUM_CONFIG*TIMER_PERIOD*NUM_SAMPLE
+
 
 # =========================== class ===========================================
 
@@ -64,22 +58,21 @@ class serialReader(threading.Thread):
 
 if __name__ == '__main__':
 
-    port_openmote   = os.environ.get('PORT_OPENMOTE')
     port_scum       = os.environ.get('PORT_SCUM')
-    serial_openmote = serialReader(port_openmote, BAUDRATE_OPENMOTE, LOG_FILE)
-    # serial_scum     = serialReader(port_scum, BAUDRATE_SCUM, LOG_FILE)
+    serial_scum     = serialReader(port_scum, BAUDRATE_SCUM, LOG_FILE)
     
     # starting logging the serial output
-    serial_openmote.start()
-    # serial_scum.start()
+    serial_scum.start()
     
     print "running for ", RUNNING_DURATION, 's...'
     
     for progress in range(NUM_CONFIG):
         
-        time.sleep(DURATION_PER_PKT*NUM_PKT_PER_SETTING)
+        time.sleep(TIMER_PERIOD*NUM_SAMPLE)
         sys.stdout.write("{0}/{1}\r".format((progress+1), NUM_CONFIG))
         sys.stdout.flush()
     
-    serial_openmote.close()
-    # serial_scum.close()
+    # wait for 10 seconds more
+    time.sleep(10)
+    
+    serial_scum.close()
