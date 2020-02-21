@@ -122,11 +122,11 @@ int main(void) {
 #if BLE_CALIBRATE_LC
     optical_enableLCCalibration();
 
+    // Turn on LDOs for calibration
+    radio_txEnable();
+
     // Turn on LO, DIV, PA, and IF
     ANALOG_CFG_REG__10 = 0x78;
-
-    // Turn off polyphase and disable mixer
-    ANALOG_CFG_REG__16 = 0x6;
 
     // For TX, LC target freq = 2.402G - 0.25M = 2.40175 GHz.
     optical_setLCTarget(250020);

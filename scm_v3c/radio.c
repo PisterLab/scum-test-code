@@ -23,14 +23,25 @@ signed short cdr_tau_history[11] = {0};
 
 //=========================== definition ======================================
 
+#define DIV_ON
+
 #define MAXLENGTH_TRX_BUFFER    128     // 1B length, 125B data, 2B CRC
 #define NUM_CHANNELS            16
 
-//===== default crc check result and rssi value
+// per SCuM user guide section 19.1:
+//    The RSSI value corresponds to the
+//    gain setting after Automatic Gain Control has settled and has a maximum
+//    value of 63, which roughly corresponds to an input power of = -85 dBm. For
+//    every unit value below 63, the received signal amplitude has increased by
+//    approximately 1 dB.
 
-#define DEFAULT_CRC_CHECK        01     // this is an arbitrary value for now
-#define DEFAULT_RSSI            -50     // this is an arbitrary value for now
-#define DEFAULT_FREQ             11     // use the channel 11 for now
+#define RSSI_REFERENCE          -85
+#define RSSI_REF_READ_VALUE      63
+
+//===== default crc check result
+
+#define DEFAULT_CRC_CHECK        01     // this is an arbitrary value for now 
+#define DEFAULT_FREQ             11     // use the channel 11 for now 
 
 //===== for calibration
 
@@ -173,10 +184,15 @@ void radio_loadPacket(uint8_t* packet, uint16_t len){
 
 // Turn on the radio for transmit
 // This should be done at least ~50 us before txNow()
-void radio_txEnable(){
-
+void radio_txEnable(){    
+    // Turn on LO, PA, and AUX LDOs
+#ifdef DIV_ON
+    // Turn on DIV to read LC_count
+    ANALOG_CFG_REG__10 = 0x0068;
+#else
     // Turn on LO, PA, and AUX LDOs
     ANALOG_CFG_REG__10 = 0x0028;
+#endif
 
     // Turn off polyphase and disable mixer
     ANALOG_CFG_REG__16 = 0x6;
@@ -195,12 +211,18 @@ void radio_rxEnable(){
     
     // Turn on LO, IF, and AUX LDOs via memory mapped register
     
+    // Turn on DIV to read LC_div counter
+    
     // Aux is inverted (0 = on)
     // Memory-mapped LDO control
     // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
     // For MUX signals, '1' = FSM control, '0' = memory mapped control
     // For EN signals, '1' = turn on LDO
+#ifdef DIV_ON
+    ANALOG_CFG_REG__10 = 0x0058;
+#else
     ANALOG_CFG_REG__10 = 0x0018;
+#endif
     
     // Enable polyphase and mixers via memory-mapped I/O
     ANALOG_CFG_REG__16 = 0x1;
@@ -230,7 +252,7 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
                             uint8_t* pLqi) {
    
     //===== rssi
-    *pRssi          = DEFAULT_RSSI;
+    *pRssi          = RSSI_REF_READ_VALUE-read_RSSI()+RSSI_REFERENCE;
     
     //===== length
     *pLenRead       = radio_vars.radio_rx_buffer[0];
