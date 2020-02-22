@@ -16,14 +16,14 @@ from bootload import *
 
 
 if __name__ == "__main__":
-	programmer_port = "COM22"
-	scm_port = "COM29"
+	programmer_port = "COM16"
+	scm_port = "COM12"
 
 	# Program SCM
 	if True:
 		program_cortex_specs = dict(teensy_port=programmer_port,
-								uart_port=scm_port,
-								file_binary="./code.bin",
+								uart_port=None, #scm_port,
+								file_binary="./code.bin", #"./AllGPIOToggle.bin",#
 								boot_mode="optical",
 								skip_reset=False,
 								insert_CRC=True,
