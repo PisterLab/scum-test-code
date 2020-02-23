@@ -148,8 +148,8 @@ int main(void) {
 
     // Configure coarse, mid, and fine codes for RX.
     app_vars.rx_coarse = 23;
-    app_vars.rx_mid = 11;
-    app_vars.rx_fine = 19;
+    app_vars.rx_mid = 15;
+    app_vars.rx_fine = 15;
 
     // Configure coarse, mid, and fine codes for TX.
 #if BLE_CALIBRATE_LC
