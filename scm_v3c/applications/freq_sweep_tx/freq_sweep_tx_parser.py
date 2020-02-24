@@ -56,6 +56,7 @@ def converter_config_text_2_linear(text_config, has_rssi):
         if has_rssi:
             ptest, coarse, mid, fine, rssi = text_config.split('.')
             assert int(rssi)>-127
+            rssi = int(rssi)
         else:
             ptest, coarse, mid, fine = text_config.split('.')
         assert int(coarse) < 32 and int(mid) < 32 and int(fine) < 32
