@@ -19,7 +19,7 @@
 #define LENGTH_PACKET       125 + LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_RX_PKT          20 + LENGTH_CRC  ///< length of rx packet
 
-#define TIMER_PERIOD        200000            ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD        200000           ///< 500 = 1ms@500kHz
 #define BLE_TX_PERIOD       1
 
 #define BLE_CALIBRATE_LC    false
@@ -52,7 +52,7 @@ typedef struct {
                 uint8_t         tx_mid;
                 uint8_t         tx_fine;
 
-                uint8_t         rx_iteration;
+                uint16_t        rx_iteration;
 } app_vars_t;
 
 app_vars_t app_vars;
@@ -62,6 +62,8 @@ app_vars_t app_vars;
 void     cb_startFrame_rx(uint32_t timestamp);
 void     cb_endFrame_rx(uint32_t timestamp);
 void     cb_timer(void);
+void     receive_154_packet(void);
+void     transmit_ble_packet(void);
 
 //=========================== main ============================================
 
@@ -164,15 +166,15 @@ int main(void) {
 #endif
 
     while (1) {
-        printf("Receiving on %u %u %u\n", app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
-        while (app_vars.rxFrameStarted);
-        radio_rfOff();
-        LC_FREQCHANGE(app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
-        radio_rxEnable();
-        radio_rxNow();
+        receive_154_packet();
         rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD);
         app_vars.changeConfig = false;
         while (!app_vars.changeConfig);
+
+        ++app_vars.rx_iteration;
+        if (app_vars.rx_iteration % BLE_TX_PERIOD == 0) {
+            transmit_ble_packet();
+        }
     }
 }
 
@@ -231,34 +233,42 @@ void    cb_endFrame_rx(uint32_t timestamp){
 }
 
 void    cb_timer(void) {
-    int tx_fine, t, i;
     app_vars.changeConfig = true;
+}
 
-    app_vars.rx_iteration = (app_vars.rx_iteration + 1) % BLE_TX_PERIOD;
+void    receive_154_packet(void) {
+    printf("Receiving on %u %u %u\n", app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
+    while (app_vars.rxFrameStarted);
+    radio_rfOff();
+    LC_FREQCHANGE(app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
+    radio_rxEnable();
+    radio_rxNow();
+}
 
-    if (app_vars.rx_iteration == 0) {
-        ble_gen_packet();
+void    transmit_ble_packet(void) {
+    int i, t, tx_fine;
+
+    ble_gen_packet();
 
 #if BLE_SWEEP_FINE
-        for (tx_fine = 0; tx_fine < 32; ++tx_fine) {
-            LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, tx_fine);
-            printf("Transmitting on %u %u %u\n", app_vars.tx_coarse, app_vars.tx_mid, tx_fine);
+    for (tx_fine = 0; tx_fine < 32; ++tx_fine) {
+        LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, tx_fine);
+        printf("Transmitting on %u %u %u\n", app_vars.tx_coarse, app_vars.tx_mid, tx_fine);
 
-            // Wait for frequency to settle.
-            for (t = 0; t < 5000; ++t);
+        // Wait for frequency to settle.
+        for (t = 0; t < 5000; ++t);
 
-            ble_transmit();
-        }
-#else
-        for (i = 0; i < BLE_NUM_REPEAT; ++i) {
-            LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
-            printf("Transmitting on %u %u %u\n", app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
-
-            // Wait for frequency to settle.
-            for (t = 0; t < 5000; ++t);
-
-            ble_transmit();
-        }
-#endif
+        ble_transmit();
     }
+#else
+    for (i = 0; i < BLE_NUM_REPEAT; ++i) {
+        LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
+        printf("Transmitting on %u %u %u\n", app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
+
+        // Wait for frequency to settle.
+        for (t = 0; t < 5000; ++t);
+
+        ble_transmit();
+    }
+#endif
 }

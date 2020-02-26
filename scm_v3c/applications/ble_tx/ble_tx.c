@@ -36,6 +36,7 @@ app_vars_t app_vars;
 //=========================== prototypes ======================================
 
 void     cb_timer(void);
+void     transmit_ble_packet(void);
 
 //=========================== main ============================================
 
@@ -121,6 +122,7 @@ int main(void) {
     ble_gen_packet();
 
     while (1) {
+        transmit_ble_packet();
         rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD);
         app_vars.txNext = false;
         while (!app_vars.txNext);
@@ -132,8 +134,11 @@ int main(void) {
 //=========================== private =========================================
 
 void    cb_timer(void) {
-    int tx_fine, t;
     app_vars.txNext = true;
+}
+
+void transmit_ble_packet(void) {
+    int t, tx_fine;
 
 #if BLE_SWEEP_FINE
     for (tx_fine = 0; tx_fine < 32; ++tx_fine) {
