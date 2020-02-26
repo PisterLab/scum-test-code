@@ -121,7 +121,7 @@ int main(void) {
     optical_enable();
     
     // Wait for optical cal to finish
-    while(optical_getCalibrationFinshed() == 0);
+    while(optical_getCalibrationFinished() == 0);
 
     printf("Cal complete\r\n");
     
