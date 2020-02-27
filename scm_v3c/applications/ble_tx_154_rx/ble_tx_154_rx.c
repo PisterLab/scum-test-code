@@ -131,7 +131,7 @@ int main(void) {
     ANALOG_CFG_REG__10 = 0x78;
 
     // For TX, LC target freq = 2.402G - 0.25M = 2.40175 GHz.
-    optical_setLCTarget(250020);
+    optical_setLCTarget(250182);
 #endif
 
     // Enable optical SFD interrupt for optical calibration
