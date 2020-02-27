@@ -38,7 +38,13 @@ def test_bootload():
     assert result == 0
 
 def test_logData():
-    pass
-    
+    syscall("echo logging SCuM output...")
+
+    result = syscall("python scm_v3c\\applications\\ble_tx_154_rx\\ble_tx_154_rx_logger.py")
+    assert result == 0
+
 def test_verifyResult():
-    pass
+    result = syscall("python scm_v3c\\applications\\ble_tx_154_rx\\ble_tx_154_rx_parser.py")
+    assert result == 0
+
+    syscall("echo BLE TX 15.4 RX Test complete!")
