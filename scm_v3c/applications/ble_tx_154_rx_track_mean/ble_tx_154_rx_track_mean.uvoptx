@@ -22,7 +22,7 @@
   </DaveTm>
 
   <Target>
-    <TargetName>ble_tx_154_rx_track</TargetName>
+    <TargetName>ble_tx_154_rx_track_mean</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
@@ -182,8 +182,8 @@
       <tvExp>1</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\ble_tx_154_rx_track.c</PathWithFileName>
-      <FilenameWithoutPath>ble_tx_154_rx_track.c</FilenameWithoutPath>
+      <PathWithFileName>.\ble_tx_154_rx_track_mean.c</PathWithFileName>
+      <FilenameWithoutPath>ble_tx_154_rx_track_mean.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

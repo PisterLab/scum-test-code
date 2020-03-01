@@ -1,6 +1,7 @@
 /**
 \brief This program lets SCuM receive 15.4 packets and broadcast them as a BLE packet.
-It tracks the RX frequency to set the TX frequency settings.
+It tracks the RX frequency by averaging over received packets in a a range around the current
+fine code. It then finds the difference in the RX fine code and adjusts the TX fine code.
 */
 
 #include <string.h>
