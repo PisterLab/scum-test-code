@@ -4,10 +4,12 @@
 #include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
+#include "gpio.h"
 
 // ========================== definition ======================================
 
-#define MINIMUM_COMPAREVALUE_ADVANCE  5
+#define MINIMUM_COMPAREVALUE_ADVANCE    5
+#define LARGEST_INTERVAL                0xffff
 
 // ========================== variable ========================================
 
@@ -42,6 +44,27 @@ void rftimer_setCompareIn(uint32_t val){
     
     rftimer_enable_interrupts();
     
+    // A timer scheudled in the past
+    
+    //Note: this is a hack!!
+    //  since the timer counter overflow after hitting the MAX_COUNT,
+    //      theoritically, there is no way to find a timer is scheduled 
+    //      in the past or in the future. However, if we know the LARGEST_INTERVAL
+    //      between each two adjacent timers:
+    //      if the val - current count < largest interval:
+    //          it's a timer scheduled in the future
+    //      else:
+    //          it's a timer scheduled in the past
+    //          manually trigger an interrupt
+    //      LARGEST_INTERVAL is application defined value.
+    
+    if ((val & RFTIMER_MAX_COUNT)-RFTIMER_REG__COUNTER<LARGEST_INTERVAL){
+        
+    } else {
+        // seems doesn't work?
+        RFTIMER_REG__INT = 0x0001;
+    }
+    
     RFTIMER_REG__COMPARE0           = val & RFTIMER_MAX_COUNT;
 }
 
@@ -50,6 +73,10 @@ uint32_t rftimer_readCounter(void){
 }
 
 void rftimer_enable_interrupts(void){
+    
+    // clear pending bit first
+    rftimer_clear_interrupts();
+    
     // enable compare interrupt (this also cancels any pending interrupts)
     RFTIMER_REG__COMPARE0_CONTROL   = RFTIMER_COMPARE_ENABLE |   \
                                       RFTIMER_COMPARE_INTERRUPT_ENABLE;
@@ -57,15 +84,24 @@ void rftimer_enable_interrupts(void){
 }
 
 void rftimer_disable_interrupts(void){
-    RFTIMER_REG__COMPARE0_CONTROL = 0x0;
+    // disable compare interrupt
+    RFTIMER_REG__COMPARE0_CONTROL = 0x0000;
     ICER = 0x80;
+}
+
+void rftimer_clear_interrupts(void){
+    RFTIMER_REG__INT_CLEAR = 0x0001;
 }
 
 // ========================== interrupt =======================================
 
 void rftimer_isr(void) {
     
-    unsigned int interrupt = RFTIMER_REG__INT;
+    uint16_t interrupt;
+        
+    gpio_2_set();
+    
+    interrupt = RFTIMER_REG__INT;
     
     if (interrupt & 0x00000001){
 #ifdef ENABLE_PRINTF
@@ -170,4 +206,6 @@ void rftimer_isr(void) {
     }
     
     RFTIMER_REG__INT_CLEAR = interrupt;
+    
+    gpio_2_clr();
 }
