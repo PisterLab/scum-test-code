@@ -982,7 +982,7 @@ void radio_init_tx(){
 void radio_init_divider(unsigned int div_value){
     
     // Set divider LDO value to max
-    set_DIV_supply(40,0);
+    set_DIV_supply(63,0);
 
     // Set prescaler to div-by-2
     prescaler(4);
