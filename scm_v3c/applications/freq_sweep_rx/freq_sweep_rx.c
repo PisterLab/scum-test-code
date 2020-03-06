@@ -168,7 +168,8 @@ void    cb_startFrame_rx(uint32_t timestamp){
 void    cb_endFrame_rx(uint32_t timestamp){
     
     uint8_t i;
-    
+    uint32_t IF_estimate, LQI_chip_errors;
+
     radio_getReceivedFrame(
         &(app_vars.packet[0]),
         &app_vars.packet_len,
@@ -176,15 +177,19 @@ void    cb_endFrame_rx(uint32_t timestamp){
         &app_vars.rxpk_rssi,
         &app_vars.rxpk_lqi
     );
-        
+
+    // Read IF estimate, and LQI
+    IF_estimate       = radio_getIFestimate();
+    LQI_chip_errors   = radio_getLQIchipErrors();
+
     radio_rfOff();
     
     if(
         app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
     ){
         // Only record IF estimate, LQI, and CDR tau for valid packets
-        app_vars.IF_estimate        = radio_getIFestimate();
-        app_vars.LQI_chip_errors    = radio_getLQIchipErrors();
+        app_vars.IF_estimate        = IF_estimate;
+        app_vars.LQI_chip_errors    = LQI_chip_errors;
         
         printf(
             "pkt received on ch%d %c%c%c%c.%d.%d.%d\r\n",
