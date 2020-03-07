@@ -26,9 +26,7 @@ fine code. It then finds the difference in the RX fine code and adjusts the TX f
 #define BLE_TX_PERIOD       1
 #define BLE_CALIBRATE_LC    false
 
-#define CALIBRATE_PERIOD    20
-#define CALIBRATE_RX_DIFF   5 / 2            ///< calibrate up to +-2 fine codes
-#define CALIBRATE_MIN_SUCCESS 10             ///< total number of received frames for calibration success
+#define CALIBRATE_PERIOD    2
 
 //=========================== variables =======================================
 
@@ -179,7 +177,7 @@ int main(void) {
         while (!app_vars.changeConfig);
 
         ++app_vars.rx_iteration;
-        if (false && (app_vars.rx_iteration % BLE_TX_PERIOD == 0)) {
+        if ((app_vars.rx_iteration % BLE_TX_PERIOD == 0)) {
             transmit_ble_packet();
         }
         if (app_vars.rx_iteration % CALIBRATE_PERIOD == 0) {
@@ -209,7 +207,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
         &app_vars.rxpk_lqi
     );
 
-    // Read IF estimate, and LQI
+    // Read IF estimate and LQI chip errors
     IF_estimate       = radio_getIFestimate();
     LQI_chip_errors   = radio_getLQIchipErrors();
 
@@ -218,7 +216,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
     if (
         app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
     ) {
-        // Only record IF estimate, LQI, and CDR tau for valid packets
+        // Only record IF estimate, LQI chip errors, and CDR tau for valid packets
         app_vars.IF_estimate        = IF_estimate;
         app_vars.LQI_chip_errors    = LQI_chip_errors;
 

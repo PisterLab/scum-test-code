@@ -280,6 +280,7 @@ int radio_update_IF_estimate(uint32_t IF_estimate, uint32_t LQI_chip_errors) {
     int sum = 0;
     int i;
 
+    // Only make adjustments when the chip error rate is <10% (this value was picked as an arbitrary choice)
     if (LQI_chip_errors < 25) {
         // When updating LO and IF clock frequncies, must wait long enough for the changes to propagate before changing again
         // Need to receive as many packets as there are taps in the FIR filter
@@ -475,7 +476,7 @@ uint32_t radio_getIFestimate(void){
 }
 
 uint32_t radio_getLQIchipErrors(void){
-    return ANALOG_CFG_REG__21;
+    return read_LQI();
 }
 
 int16_t radio_get_cdr_tau_value(void){
