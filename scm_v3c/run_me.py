@@ -16,14 +16,14 @@ from bootload import *
 
 
 if __name__ == "__main__":
-	programmer_port = "COM16"
-	scm_port = "COM12"
+	programmer_port = "COM18"
+	scm_port = "COM19"
 
 	# Program SCM
 	if True:
 		program_cortex_specs = dict(teensy_port=programmer_port,
-								uart_port=None, #scm_port,
-								file_binary="./code.bin", #"./AllGPIOToggle.bin",#
+								uart_port= None, #scm_port, #
+								file_binary="./code.bin", #"./AllGPIOToggle.bin",#s
 								boot_mode="optical",
 								skip_reset=False,
 								insert_CRC=True,
@@ -67,7 +67,7 @@ if __name__ == "__main__":
 	read_mode = 'uart'
 
 	### Running a spot check with the ADC ###
-	if False:
+	if True: #False:#
 		test_adc_spot_specs = dict(
 			port=scm_port,
 			control_mode=control_mode,
