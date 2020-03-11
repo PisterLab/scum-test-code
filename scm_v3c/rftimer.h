@@ -21,7 +21,6 @@ void     rftimer_set_callback(rftimer_cbt cb);
 uint32_t rftimer_readCounter(void);
 void     rftimer_enable_interrupts(void);
 void     rftimer_disable_interrupts(void);
-void     rftimer_clear_interrupts(void);
 
 void     rftimer_isr(void);
 

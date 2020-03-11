@@ -26,7 +26,7 @@ side.
 #define LENGTH_PACKET       125+LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
 
-#define TIMER_PERIOD        7500           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD        7500           ///< 500 = 1ms@500kHz //7500 = 15 ms
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
@@ -133,13 +133,16 @@ int main(void) {
     while(1){
         
         // loop through all configuration
-        for (app_vars.cfg_coarse=0;app_vars.cfg_coarse<STEPS_PER_CONFIG;app_vars.cfg_coarse++){
-            for (app_vars.cfg_mid=0;app_vars.cfg_mid<STEPS_PER_CONFIG;app_vars.cfg_mid++){
-                for (app_vars.cfg_fine=0;app_vars.cfg_fine<STEPS_PER_CONFIG;app_vars.cfg_fine++){
-//                    printf(
-//                        "coarse=%d, middle=%d, fine=%d\r\n", 
-//                        app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
-//                    );
+        for (app_vars.cfg_coarse=23;app_vars.cfg_coarse<24;app_vars.cfg_coarse++){
+						printf("coarse=%d\r\n", app_vars.cfg_coarse);
+            for (app_vars.cfg_mid=0;app_vars.cfg_mid<7;app_vars.cfg_mid++){
+                for (app_vars.cfg_fine=25;app_vars.cfg_fine<32;app_vars.cfg_fine++){
+									// golden board: 21 30 29
+									// titan's board: 23 3 31
+                    //printf(
+                    //    "coarse=%d, middle=%d, fine=%d\r\n", 
+                    //    app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
+                    //);
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         while(app_vars.rxFrameStarted == true);
                         radio_rfOff();
@@ -186,9 +189,9 @@ void    cb_endFrame_rx(uint32_t timestamp){
         app_vars.IF_estimate        = radio_getIFestimate();
         app_vars.LQI_chip_errors    = radio_getLQIchipErrors();
         
-        printf(
-            "pkt received on ch%d %c%c%c%c.%d.%d.%d\r\n",
-            app_vars.packet[4],
+        //printf(
+        //    "pkt received on ch%d %c%c%c%c.%d.%d.%d\r\n",
+				printf("Packet num %d. Packet contents 1-3: %d %d %d coarse: %d\tmid: %d\tfine: %d\n",
             app_vars.packet[0],
             app_vars.packet[1],
             app_vars.packet[2],

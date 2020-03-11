@@ -11,6 +11,10 @@
 
 //=========================== prototypes ======================================
 
+// austin
+void low_power_mode(void);
+void normal_power_mode(void);
+
 //==== admin
 void scm3c_hw_interface_init(void);
 

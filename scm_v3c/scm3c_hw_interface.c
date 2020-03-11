@@ -55,6 +55,39 @@ scm3c_hw_interface_vars_t scm3c_hw_interface_vars;
 
 //=========================== public ==========================================
 
+// austin
+void update_scan_chain() {
+	analog_scan_chain_write();
+	analog_scan_chain_load();
+}
+
+void low_power_mode(void) {
+	set_asc_bit(50);
+	set_asc_bit(51);
+	clear_asc_bit(52);
+	set_asc_bit(53);
+	set_asc_bit(54);
+	set_asc_bit(55);
+	set_asc_bit(56);
+	set_asc_bit(57);
+	
+	update_scan_chain();
+}
+
+void normal_power_mode(void) {
+	clear_asc_bit(50);
+	clear_asc_bit(51);
+	clear_asc_bit(52);
+	clear_asc_bit(53);
+	clear_asc_bit(54);
+	clear_asc_bit(55);
+	clear_asc_bit(56);
+	clear_asc_bit(57);
+	
+	update_scan_chain();
+}
+
+
 //==== admin
 
 void scm3c_hw_interface_init(void){
@@ -982,7 +1015,7 @@ void radio_init_tx(){
 void radio_init_divider(unsigned int div_value){
     
     // Set divider LDO value to max
-    set_DIV_supply(63,0);
+    set_DIV_supply(40,0);
 
     // Set prescaler to div-by-2
     prescaler(4);
@@ -1146,7 +1179,7 @@ void initialize_mote(){
     init_ldo_control();
 
     // Set LDO reference voltages
-    // set_VDDD_LDO_voltage(0);
+    set_VDDD_LDO_voltage(65);
     // set_AUX_LDO_voltage(0);
     // set_ALWAYSON_LDO_voltage(0);
         

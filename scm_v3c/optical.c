@@ -212,9 +212,13 @@ void optical_sfd_isr(){
     }
     
     // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine); 
+    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine);
+		//printf("HF coarse: %d HF fine: %d LC code: %d RC2M_coarse: %d RC2M_fine: %d RC2M_superfine: %d RC2M_coarse: %d RC2M_fine: %d RC2M_superfine: %d IF_coarse: %d IF_fine: %d IF_coarse: %d IF_fine: %d \n",
+		//	HF_CLOCK_coarse, HF_CLOCK_fine, optical_vars.LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine, IF_coarse, IF_fine);
      
     if(optical_vars.optical_cal_iteration == 25){
+				printf("int HF_coarse = %d;\nint HF_fine = %d;\nint LC_code = %d;\nint RC2M_coarse = %d;\nint RC2M_fine = %d;\nint RC2M_superfine = %d;\nint IF_coarse = %d;\nint IF_fine = %d;\n",
+					HF_CLOCK_coarse, HF_CLOCK_fine, optical_vars.LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
         // Disable this ISR
         ICER = 0x0800;
         optical_vars.optical_cal_iteration = 0;

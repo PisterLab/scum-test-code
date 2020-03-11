@@ -7,7 +7,6 @@
 #include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
-#include "gpio.h"
 
 // raw_chip interrupt related
 unsigned int chips[100];
@@ -24,25 +23,14 @@ signed short cdr_tau_history[11] = {0};
 
 //=========================== definition ======================================
 
-#define DIV_ON
-
 #define MAXLENGTH_TRX_BUFFER    128     // 1B length, 125B data, 2B CRC
 #define NUM_CHANNELS            16
 
-// per SCuM user guide section 19.1:
-//    The RSSI value corresponds to the
-//    gain setting after Automatic Gain Control has settled and has a maximum
-//    value of 63, which roughly corresponds to an input power of = -85 dBm. For
-//    every unit value below 63, the received signal amplitude has increased by
-//    approximately 1 dB.
+//===== default crc check result and rssi value
 
-#define RSSI_REFERENCE          -85
-#define RSSI_REF_READ_VALUE      63
-
-//===== default crc check result
-
-#define DEFAULT_CRC_CHECK        01     // this is an arbitrary value for now 
-#define DEFAULT_FREQ             11     // use the channel 11 for now 
+#define DEFAULT_CRC_CHECK        01     // this is an arbitrary value for now
+#define DEFAULT_RSSI            -50     // this is an arbitrary value for now
+#define DEFAULT_FREQ             11     // use the channel 11 for now
 
 //===== for calibration
 
@@ -187,19 +175,11 @@ void radio_loadPacket(uint8_t* packet, uint16_t len){
 // This should be done at least ~50 us before txNow()
 void radio_txEnable(){
     
-    // Turn on LO, PA, and AUX LDOs
-    
-#ifdef DIV_ON
-    
-    // Turn on DIV if need read LC_count
-    ANALOG_CFG_REG__10 = 0x0068;
-#else
-    // Turn on LO, PA, and AUX LDOs
-    ANALOG_CFG_REG__10 = 0x0028;
-#endif
-    
     // Turn off polyphase and disable mixer
     ANALOG_CFG_REG__16 = 0x6;
+    
+    // Turn on LO, PA, and AUX LDOs
+    ANALOG_CFG_REG__10 = 0x0028;
 }
 
 // Begin modulating the radio output for TX
@@ -215,24 +195,18 @@ void radio_rxEnable(){
     
     // Turn on LO, IF, and AUX LDOs via memory mapped register
     
-    // Turn on DIV on if need to read LC_div counter
-    
     // Aux is inverted (0 = on)
     // Memory-mapped LDO control
     // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
     // For MUX signals, '1' = FSM control, '0' = memory mapped control
     // For EN signals, '1' = turn on LDO
-#ifdef DIV_ON
-    ANALOG_CFG_REG__10 = 0x0058;
-#else
     ANALOG_CFG_REG__10 = 0x0018;
-#endif
     
     // Enable polyphase and mixers via memory-mapped I/O
     ANALOG_CFG_REG__16 = 0x1;
     
     // Where packet will be stored in memory
-    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);
+    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);;
     
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = RF_RESET;
@@ -256,10 +230,7 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
                             uint8_t* pLqi) {
    
     //===== rssi
-    *pRssi          = read_RSSI()+RSSI_REFERENCE;
-                                
-    //===== lqi
-    *pLqi           = read_LQI();
+    *pRssi          = DEFAULT_RSSI;
     
     //===== length
     *pLenRead       = radio_vars.radio_rx_buffer[0];
@@ -271,9 +242,6 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
 }
 
 void radio_rfOff(){
-    
-    // reset state machine first
-    radio_reset();
     
     // Hold digital baseband in reset
     ANALOG_CFG_REG__4 = 0x2000;
@@ -407,6 +375,18 @@ void radio_enable_interrupts(){
     
     // Enable radio interrupts in NVIC
     ISER = 0x40;
+    
+    // Enable all interrupts and pulses to radio timer
+    //RFCONTROLLER_REG__INT_CONFIG = 0x3FF;   
+        
+    // Enable TX_SEND_DONE, RX_SFD_DONE, RX_DONE
+    RFCONTROLLER_REG__INT_CONFIG = 0x1C;
+    
+    // Enable all errors
+    //RFCONTROLLER_REG__ERROR_CONFIG = 0x1F;  
+    
+    // Enable only the RX CRC error
+    RFCONTROLLER_REG__ERROR_CONFIG = 0x8;    //0x10; x10 is wrong? 
 }
 
 void radio_disable_interrupts(void){
@@ -611,9 +591,6 @@ void radio_isr(void) {
     unsigned int interrupt = RFCONTROLLER_REG__INT;
     unsigned int error     = RFCONTROLLER_REG__ERROR;
     
-    gpio_2_set();
-    gpio_6_set();
-    
     radio_vars.crc_ok   = true;
     if (error != 0) {
         
@@ -656,8 +633,6 @@ void radio_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("TX LOAD DONE\r\n");
 #endif
-        
-        RFCONTROLLER_REG__INT_CLEAR |= 0x00000001;
     }
     
     if (interrupt & 0x00000002) {
@@ -668,8 +643,6 @@ void radio_isr(void) {
         if (radio_vars.startFrame_tx_cb != 0) {
             radio_vars.startFrame_tx_cb(RFTIMER_REG__COUNTER);
         }
-        
-        RFCONTROLLER_REG__INT_CLEAR |= 0x00000002;
     }
     
     if (interrupt & 0x00000004){
@@ -680,8 +653,6 @@ void radio_isr(void) {
         if (radio_vars.endFrame_tx_cb != 0) {
             radio_vars.endFrame_tx_cb(RFTIMER_REG__COUNTER);
         }
-        
-        RFCONTROLLER_REG__INT_CLEAR |= 0x00000004;
     }
     
     if (interrupt & 0x00000008){
@@ -692,8 +663,6 @@ void radio_isr(void) {
         if (radio_vars.startFrame_rx_cb != 0) {
             radio_vars.startFrame_rx_cb(RFTIMER_REG__COUNTER);
         }
-        
-        RFCONTROLLER_REG__INT_CLEAR |= 0x00000008;
     }
     
     if (interrupt & 0x00000010) {
@@ -704,14 +673,9 @@ void radio_isr(void) {
         if (radio_vars.endFrame_rx_cb != 0) {
             radio_vars.endFrame_rx_cb(RFTIMER_REG__COUNTER);
         }
-        
-        RFCONTROLLER_REG__INT_CLEAR |= 0x00000010;
     }
     
-//    RFCONTROLLER_REG__INT_CLEAR = interrupt;
-    
-    gpio_2_clr();
-    gpio_6_clr();
+    RFCONTROLLER_REG__INT_CLEAR = interrupt;
 }
 
 
