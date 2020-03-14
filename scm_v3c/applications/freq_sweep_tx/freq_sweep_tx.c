@@ -64,6 +64,15 @@ int main(void) {
     uint8_t         j;
     uint8_t         offset;
 		uint8_t					counter;
+	
+		 int HF_coarse = 3;
+		int HF_fine = 26;
+		int LC_code = 721;
+		int RC2M_coarse = 25;
+		int RC2M_fine = 14;
+		int RC2M_superfine = 16;
+		int IF_coarse = 22;
+		int IF_fine = 41;
 		
 		counter = 0;
     
@@ -95,9 +104,11 @@ int main(void) {
         while(1);
     }
 		
+
 		// manual_calibrate(3,21,721,24,17,16,22,13); // manual calibration codes for USB power
 		// manual_calibrate(3,26,721,25,14,16,22,39); // manual calibration codes for keithley 1.86V
-    optical_calibrate();
+    manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+		//optical_calibrate();
     
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
@@ -106,13 +117,13 @@ int main(void) {
         
 		if (1) { // fixed frequency mode
 			cfg_coarse_start = 22;
-			cfg_mid_start = 16; //on 14 off 15 --14
+			cfg_mid_start = 21; //on 14 off 15 --14
 			cfg_fine_start = 0; //on 5 off 6 -- 20
 			cfg_coarse_stop = cfg_coarse_start + 1;
 			cfg_mid_stop = cfg_mid_start + 1;
 			cfg_fine_stop = cfg_fine_start + 1;
 		} else { // sweep mode
-			cfg_coarse_start = 21;
+			cfg_coarse_start = 22;
 			cfg_mid_start = 0;
 			cfg_fine_start = 0;
 			cfg_coarse_stop = 23;
@@ -129,10 +140,10 @@ int main(void) {
         // loop through all configuration
         for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse++){
             for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
-                for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 10){
+                for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 5){
 									// titan: 22 20 4 on usb power; 22 13 25 on keithley 1.5V; 22 21 10 on keithley 1.86V // on solar 22 17 0
 										int q;
-										//for (q = 0; q < 100000; q++) {}			 // 400000 for scum on solar
+										for (q = 0; q < 200000; q++) {}			 // 400000 for scum on solar
                     
 										printf(
 											"coarse=%d, middle=%d, fine=%d\r\n", 
