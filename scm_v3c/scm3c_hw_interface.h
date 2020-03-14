@@ -14,6 +14,8 @@
 // austin
 void low_power_mode(void);
 void normal_power_mode(void);
+void optical_calibrate(void);
+void manual_calibrate(int HF_coarse, int HF_fine, int LC_code, int RC2M_coarse, int RC2M_fine, int RC2M_superfine, int IF_coarse, int IF_fine);
 
 //==== admin
 void scm3c_hw_interface_init(void);

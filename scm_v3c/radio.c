@@ -212,6 +212,28 @@ void radio_rxEnable(){
     RFCONTROLLER_REG__CONTROL = RF_RESET;
 }
 
+// Experimental radio rx enable function for disabling certain features in hopes of lowing optical power
+void radio_rxEnableOptical() {
+		printf("Optical radio enable!\r\n");
+		// Turn on LO, IF, and AUX LDOs via memory mapped register
+    
+    // Aux is inverted (0 = on)
+    // Memory-mapped LDO control
+    // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
+    // For MUX signals, '1' = FSM control, '0' = memory mapped control
+    // For EN signals, '1' = turn on LDO
+    ANALOG_CFG_REG__10 = 0x0000; // IF_EN, LO_EN are needed
+    
+    // Enable polyphase and mixers via memory-mapped I/O
+    //ANALOG_CFG_REG__16 = 0x1; // this doesn't need to be on, but has no impact on current draw
+    
+    // Where packet will be stored in memory
+    //DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);;
+    
+    // Reset radio FSM
+    //RFCONTROLLER_REG__CONTROL = RF_RESET;
+}
+
 // Radio will begin searching for start of packet
 void radio_rxNow(){
     

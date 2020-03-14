@@ -89,6 +89,7 @@ void optical_sfd_isr(){
     uint32_t IF_clk_target;
     uint32_t IF_coarse;
     uint32_t IF_fine;
+		uint32_t i;
     
     HF_CLOCK_fine       = scm3c_hw_interface_get_HF_CLOCK_fine();
     HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
@@ -210,14 +211,20 @@ void optical_sfd_isr(){
         analog_scan_chain_write();
         analog_scan_chain_load();    
     }
-    
+		
+		// Turn off the radio: experimental
+		//radio_rfOff();
+		//for (t = 0; t < 10000; t++) {}
+		//radio_rxEnableOptical();
+		
+//    
     // Debugging output
     printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine);
 		//printf("HF coarse: %d HF fine: %d LC code: %d RC2M_coarse: %d RC2M_fine: %d RC2M_superfine: %d RC2M_coarse: %d RC2M_fine: %d RC2M_superfine: %d IF_coarse: %d IF_fine: %d IF_coarse: %d IF_fine: %d \n",
 		//	HF_CLOCK_coarse, HF_CLOCK_fine, optical_vars.LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine, IF_coarse, IF_fine);
      
     if(optical_vars.optical_cal_iteration == 25){
-				printf("int HF_coarse = %d;\nint HF_fine = %d;\nint LC_code = %d;\nint RC2M_coarse = %d;\nint RC2M_fine = %d;\nint RC2M_superfine = %d;\nint IF_coarse = %d;\nint IF_fine = %d;\n",
+				printf("int HF_coarse = %u;\nint HF_fine = %u;\nint LC_code = %u;\nint RC2M_coarse = %u;\nint RC2M_fine = %u;\nint RC2M_superfine = %u;\nint IF_coarse = %u;\nint IF_fine = %u;\n",
 					HF_CLOCK_coarse, HF_CLOCK_fine, optical_vars.LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
         // Disable this ISR
         ICER = 0x0800;

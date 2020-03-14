@@ -53,36 +53,17 @@ int main(void) {
     
     uint32_t calc_crc;
 
-    uint8_t         cfg_coarse;
-    uint8_t         cfg_mid;
-    uint8_t         cfg_fine;
+		uint8_t         cfg_coarse_start;
+    uint8_t         cfg_mid_start;
+    uint8_t         cfg_fine_start;
+		uint8_t         cfg_coarse_stop;
+    uint8_t         cfg_mid_stop;
+    uint8_t         cfg_fine_stop;
     
     uint8_t         i;
     uint8_t         j;
     uint8_t         offset;
 		uint8_t					counter;
-	
-		/*
-		// manual calibration codes for usb power
-		int HF_coarse = 3; 
-		int HF_fine = 21;
-		int LC_code = 721; 
-		int RC2M_coarse = 24;
-		int RC2M_fine = 17; 
-		int RC2M_superfine = 16;
-		int IF_coarse = 22; 
-		int IF_fine = 13; 
-		*/
-		
-		// manual calibration codes for keithley 1.86V
-		int HF_coarse = 3;
-		int HF_fine = 26;
-		int LC_code = 721;
-		int RC2M_coarse = 25;
-		int RC2M_fine = 14;
-		int RC2M_superfine = 16;
-		int IF_coarse = 22;
-		int IF_fine = 39;
 		
 		counter = 0;
     
@@ -113,133 +94,55 @@ int main(void) {
         printf("\r\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\r\n");
         while(1);
     }
-    
-    // Debug output
-    //printf("\r\nCode length is %u bytes",code_length); 
-    //printf("\r\nCRC calculated by SCM is: 0x%X",calc_crc);    
-    
-    //printf("done\r\n");
-    
-    
-    
-    // Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
-    // After bootloading the next thing that happens is frequency calibration using optical
-    //printf("Calibrating frequencies...\r\n");
 		
-    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
-    // by calling radio rxEnable
-    //radio_rxEnable();
-    //ANALOG_CFG_REG__10 = 0x0018;
-		//RFCONTROLLER_REG__CONTROL = RF_RESET;
-    // Enable optical SFD interrupt for optical calibration
-    //optical_enable();
-    
-    // Wait for optical cal to finish
-    //while(optical_getCalibrationFinshed() == 0);
-		
-		/*
-		HF coarse: 3
-		HF fine: 31
-		LC code: 712 
-		RC2M_coarse: 35
-		RC2M_fine: 15
-		RC2M_superfine: 15
-		RC2M_coarse: 35
-		RC2M_fine: 15 
-		RC2M_superfine: 15
-		IF_coarse: 22
-		IF_fine: 32
-		IF_coarse: 22 
-		IF_fine: 32 
-
-		scm3c_hw_interface_set_HF_CLOCK_coarse(HF_CLOCK_coarse);
-    scm3c_hw_interface_set_HF_CLOCK_fine(HF_CLOCK_fine); //21
-		LC_monotonic(optical_vars.LC_code);
-		set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
-		scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
-		scm3c_hw_interface_set_RC2M_fine(RC2M_fine);
-		scm3c_hw_interface_set_RC2M_superfine(RC2M_superfine);
-		set_IF_clock_frequency(IF_coarse, IF_fine, 0);
-		scm3c_hw_interface_set_IF_coarse(IF_coarse);
-		scm3c_hw_interface_set_IF_fine(IF_fine);
-		analog_scan_chain_write();
-		analog_scan_chain_load();
-		*/
-		
-		/*
-		scm3c_hw_interface_set_HF_CLOCK_coarse(3);
-    scm3c_hw_interface_set_HF_CLOCK_fine(31); //21
-		LC_monotonic(712);
-		set_2M_RC_frequency(31, 31, 35, 15, 15);
-		scm3c_hw_interface_set_RC2M_coarse(35);
-		scm3c_hw_interface_set_RC2M_fine(15);
-		scm3c_hw_interface_set_RC2M_superfine(15);
-		set_IF_clock_frequency(22, 32, 0);
-		scm3c_hw_interface_set_IF_coarse(22);
-		scm3c_hw_interface_set_IF_fine(32);
-		analog_scan_chain_write();
-		analog_scan_chain_load();
-		*/
-		
-		
-		printf("using manually set optical calibration settings\n");
-		
-		scm3c_hw_interface_set_HF_CLOCK_coarse(HF_coarse);
-    scm3c_hw_interface_set_HF_CLOCK_fine(HF_fine); //21
-		LC_monotonic(LC_code);
-		set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
-		scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
-		scm3c_hw_interface_set_RC2M_fine(RC2M_fine);
-		scm3c_hw_interface_set_RC2M_superfine(RC2M_superfine);
-		set_IF_clock_frequency(IF_coarse, IF_fine, 0);
-		scm3c_hw_interface_set_IF_coarse(IF_coarse);
-		scm3c_hw_interface_set_IF_fine(IF_fine);
-		analog_scan_chain_write();
-		analog_scan_chain_load();
-		
-
-    printf("Cal complete\r\n");
+		// manual_calibrate(3,21,721,24,17,16,22,13); // manual calibration codes for USB power
+		// manual_calibrate(3,26,721,25,14,16,22,39); // manual calibration codes for keithley 1.86V
+    optical_calibrate();
     
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
     
-    // configure 
-		
-
-    while(1){
+    // configure freq sweep
         
-        memcpy(&app_vars.packet[0],&payload_identity[0],sizeof(payload_identity)-1);
+		if (1) { // fixed frequency mode
+			cfg_coarse_start = 22;
+			cfg_mid_start = 16; //on 14 off 15 --14
+			cfg_fine_start = 0; //on 5 off 6 -- 20
+			cfg_coarse_stop = cfg_coarse_start + 1;
+			cfg_mid_stop = cfg_mid_start + 1;
+			cfg_fine_stop = cfg_fine_start + 1;
+		} else { // sweep mode
+			cfg_coarse_start = 21;
+			cfg_mid_start = 0;
+			cfg_fine_start = 0;
+			cfg_coarse_stop = 23;
+			cfg_mid_stop = STEPS_PER_CONFIG;
+			cfg_fine_stop = STEPS_PER_CONFIG;
+		}
+		
+    while(1){
+				uint8_t         cfg_coarse;
+				uint8_t         cfg_mid;
+				uint8_t         cfg_fine;
+        //memcpy(&app_vars.packet[0],&payload_identity[0],sizeof(payload_identity)-1);
         
         // loop through all configuration
-        for (cfg_coarse=22;cfg_coarse<23;cfg_coarse++){
-            for (cfg_mid=17;cfg_mid<18;cfg_mid++){
-                for (cfg_fine=0;cfg_fine<1;cfg_fine += 5){
+        for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse++){
+            for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
+                for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 10){
 									// titan: 22 20 4 on usb power; 22 13 25 on keithley 1.5V; 22 21 10 on keithley 1.86V // on solar 22 17 0
 										int q;
-										for (q = 0; q < 400000; q++) {}
-										
-										//cfg_coarse = 22;
-										//cfg_mid = 15;
-										//cfg_fine = 14;
-                    printf(
-                        "coarse=%d, middle=%d, fine=%d\r\n", 
-                        cfg_coarse,cfg_mid,cfg_fine
+										//for (q = 0; q < 100000; q++) {}			 // 400000 for scum on solar
+                    
+										printf(
+											"coarse=%d, middle=%d, fine=%d\r\n", 
+											cfg_coarse,cfg_mid,cfg_fine
                     );
                     j = sizeof(payload_identity)-1;
 										app_vars.packet[0] = counter++;
 										app_vars.packet[1] = cfg_coarse;
 										app_vars.packet[2] = cfg_mid;
 										app_vars.packet[3] = cfg_fine;
-										
-                    //app_vars.packet[j++] = '0' + cfg_coarse/10;
-                    //app_vars.packet[j++] = '0' + cfg_coarse%10;
-                    //app_vars.packet[j++] = '.';
-                    //app_vars.packet[j++] = '0' + cfg_mid/10;
-                    //app_vars.packet[j++] = '0' + cfg_mid%10;
-                    //app_vars.packet[j++] = '.';
-                    //app_vars.packet[j++] = '0' + cfg_fine/10;
-                    //app_vars.packet[j++] = '0' + cfg_fine%10;
-                    //app_vars.packet[j++] = '.';
                     
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         
@@ -251,8 +154,6 @@ int main(void) {
 											
                         while (app_vars.sendDone==false);
                     }
-										
-										
                 }
             }
         }

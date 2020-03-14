@@ -57,34 +57,78 @@ scm3c_hw_interface_vars_t scm3c_hw_interface_vars;
 
 // austin
 void update_scan_chain() {
-	analog_scan_chain_write();
-	analog_scan_chain_load();
+		analog_scan_chain_write();
+		analog_scan_chain_load();
 }
 
+// lowers clock frequency to 700kHz
 void low_power_mode(void) {
-	set_asc_bit(50);
-	set_asc_bit(51);
-	clear_asc_bit(52);
-	set_asc_bit(53);
-	set_asc_bit(54);
-	set_asc_bit(55);
-	set_asc_bit(56);
-	set_asc_bit(57);
-	
-	update_scan_chain();
+		set_asc_bit(50);
+		set_asc_bit(51);
+		clear_asc_bit(52);
+		set_asc_bit(53);
+		set_asc_bit(54);
+		set_asc_bit(55);
+		set_asc_bit(56);
+		set_asc_bit(57);
+		
+		update_scan_chain();
 }
 
+// raises clock frequency to 5MHz
 void normal_power_mode(void) {
-	clear_asc_bit(50);
-	clear_asc_bit(51);
-	clear_asc_bit(52);
-	clear_asc_bit(53);
-	clear_asc_bit(54);
-	clear_asc_bit(55);
-	clear_asc_bit(56);
-	clear_asc_bit(57);
+		clear_asc_bit(50);
+		clear_asc_bit(51);
+		clear_asc_bit(52);
+		clear_asc_bit(53);
+		clear_asc_bit(54);
+		clear_asc_bit(55);
+		clear_asc_bit(56);
+		clear_asc_bit(57);
+		
+		update_scan_chain();
+}
+
+// performs the setup needed for optical calibration
+void optical_calibrate(void) {
+		// Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
+		// After bootloading the next thing that happens is frequency calibration using optical
+		printf("Calibrating frequencies...\r\n");
+		
+		// For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
+		// by calling radio rxEnable
+		radio_rxEnable();
+		//radio_rxEnableOptical();
+		//ANALOG_CFG_REG__10 = 0x0018;
+		//RFCONTROLLER_REG__CONTROL = RF_RESET;
+		// Enable optical SFD interrupt for optical calibration
+		
+		optical_enable();
 	
-	update_scan_chain();
+		// Wait for optical cal to finish
+    while(optical_getCalibrationFinshed() == 0);
+		
+    printf("Optical calibration complete\r\n");
+}
+
+// performs the manual calibration given parameters
+void manual_calibrate(int HF_coarse, int HF_fine, int LC_code, int RC2M_coarse, int RC2M_fine, int RC2M_superfine, int IF_coarse, int IF_fine) {
+		printf("using manually set optical calibration settings\n");
+		
+		scm3c_hw_interface_set_HF_CLOCK_coarse(HF_coarse);
+		scm3c_hw_interface_set_HF_CLOCK_fine(HF_fine); //21
+		//LC_monotonic(LC_code);
+		set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
+		scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
+		scm3c_hw_interface_set_RC2M_fine(RC2M_fine);
+		scm3c_hw_interface_set_RC2M_superfine(RC2M_superfine);
+		set_IF_clock_frequency(IF_coarse, IF_fine, 0);
+		scm3c_hw_interface_set_IF_coarse(IF_coarse);
+		scm3c_hw_interface_set_IF_fine(IF_fine);
+		
+		update_scan_chain();
+	
+		printf("Manual calibration complete\r\n");
 }
 
 
@@ -1187,7 +1231,7 @@ void initialize_mote(){
     GPI_control(0,0,0,0);
     
     // Select banks for GPIO outputs
-    GPO_control(6,6,6,0);
+    GPO_control(10,10,10,10);
     
     // Set all GPIOs as outputs
     GPI_enables(0x0000);    

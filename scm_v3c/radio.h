@@ -21,6 +21,9 @@ typedef void  (*radio_capture_cbt)(uint32_t timestamp);
 
 //=========================== prototypes ======================================
 
+// austin
+void radio_rxEnableOptical();
+
 //==== admin
 void radio_init(void);
 void radio_setStartFrameTxCb(radio_capture_cbt cb);
