@@ -26,7 +26,7 @@ fine code. It then finds the difference in the RX fine code and adjusts the TX f
 #define BLE_TX_PERIOD       1
 #define BLE_CALIBRATE_LC    false
 
-#define CALIBRATE_PERIOD    20
+#define CALIBRATE_PERIOD    10
 #define CALIBRATE_RX_DIFF   5 / 2            ///< calibrate up to +-2 fine codes
 #define CALIBRATE_MIN_SUCCESS 10             ///< total number of received frames for calibration success
 
@@ -314,7 +314,7 @@ void    calibrate_fine_code(void) {
     printf("Cumulative fines: %u, received frames: %u\n", cumulative_fines, received_frames);
 
     if (received_frames >= CALIBRATE_MIN_SUCCESS) {
-        app_vars.rx_fine = cumulative_fines / received_frames;
+        app_vars.rx_fine = (uint8_t) ((((double) cumulative_fines) / received_frames) + 0.5);
         diff_fine = (int) app_vars.rx_fine - current_fine;
         app_vars.tx_fine += diff_fine;
         printf("Diff fine: %d, RX fine: %u, TX fine: %u\n", diff_fine, app_vars.rx_fine, app_vars.tx_fine);
