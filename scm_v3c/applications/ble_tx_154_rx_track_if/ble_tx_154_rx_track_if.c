@@ -57,6 +57,9 @@ typedef struct {
                 uint16_t        rx_iteration;
                 bool            rx_received;
                 uint8_t         rx_num_received;
+
+                int             IF_offset;
+                int             IF_offset_prev;
 } app_vars_t;
 
 app_vars_t app_vars;
@@ -282,16 +285,15 @@ void transmit_ble_packet(void) {
 
 void    calibrate_fine_code(void) {
     if (radio_get_IF_estimate_ready()) {
-        int IF_offset = radio_get_IF_estimate();
+        int diff;
 
-        if (IF_offset < -20) {
-            --app_vars.rx_fine;
-            --app_vars.tx_fine;
-        } else if (IF_offset > 20) {
-            ++app_vars.rx_fine;
-            ++app_vars.tx_fine;
-        }
-        printf("IF offset: %d, ", IF_offset);
+        app_vars.IF_offset_prev = app_vars.IF_offset;
+        app_vars.IF_offset = radio_get_IF_estimate();
+
+        diff = app_vars.IF_offset / 12; // empiracally tuned
+        app_vars.rx_fine += diff;
+        app_vars.tx_fine += diff;
+        printf("IF offset: %d, previous IF offset: %d, ", app_vars.IF_offset, app_vars.IF_offset_prev);
     }
 
     printf("RX fine: %u, TX fine: %u\n", app_vars.rx_fine, app_vars.tx_fine);
