@@ -133,16 +133,16 @@ int main(void) {
     while(1){
         
         // loop through all configuration
-        for (app_vars.cfg_coarse=23;app_vars.cfg_coarse<24;app_vars.cfg_coarse++){
-						printf("coarse=%d\r\n", app_vars.cfg_coarse);
-            for (app_vars.cfg_mid=0;app_vars.cfg_mid<7;app_vars.cfg_mid++){
-                for (app_vars.cfg_fine=25;app_vars.cfg_fine<32;app_vars.cfg_fine++){
+        for (app_vars.cfg_coarse=21;app_vars.cfg_coarse<23;app_vars.cfg_coarse++){
+						//printf("coarse=%d\r\n", app_vars.cfg_coarse);
+            for (app_vars.cfg_mid=0;app_vars.cfg_mid<32;app_vars.cfg_mid++){
+                for (app_vars.cfg_fine=0;app_vars.cfg_fine<32;app_vars.cfg_fine++){
 									// golden board: 21 30 29
 									// titan's board: 23 3 31
-                    //printf(
-                    //    "coarse=%d, middle=%d, fine=%d\r\n", 
-                    //    app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
-                    //);
+                    printf(
+                        "coarse=%d, middle=%d, fine=%d\r\n", 
+                        app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
+                    );
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         while(app_vars.rxFrameStarted == true);
                         radio_rfOff();
