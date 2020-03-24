@@ -67,6 +67,13 @@ void     cb_timer(void);
 int main(void) {
     
     uint32_t calc_crc;
+	
+		uint8_t         cfg_coarse_start;
+    uint8_t         cfg_mid_start;
+    uint8_t         cfg_fine_start;
+		uint8_t         cfg_coarse_stop;
+    uint8_t         cfg_mid_stop;
+    uint8_t         cfg_fine_stop;
     
     uint8_t         i;
     uint8_t         j;
@@ -130,13 +137,30 @@ int main(void) {
     
     // configure 
 
+		//22 23 14
+		
+		if (1) { // fixed frequency mode
+			cfg_coarse_start = 22;
+			cfg_mid_start = 23;
+			cfg_fine_start = 14;
+			cfg_coarse_stop = cfg_coarse_start + 1;
+			cfg_mid_stop = cfg_mid_start + 1;
+			cfg_fine_stop = cfg_fine_start + 1;
+		} else { // sweep mode
+			cfg_coarse_start = 22;
+			cfg_mid_start = 0;
+			cfg_fine_start = 0;
+			cfg_coarse_stop = 23;
+			cfg_mid_stop = STEPS_PER_CONFIG;
+			cfg_fine_stop = STEPS_PER_CONFIG;
+		}
+		
     while(1){
-        
         // loop through all configuration
-        for (app_vars.cfg_coarse=21;app_vars.cfg_coarse<23;app_vars.cfg_coarse++){
-						//printf("coarse=%d\r\n", app_vars.cfg_coarse);
-            for (app_vars.cfg_mid=0;app_vars.cfg_mid<32;app_vars.cfg_mid++){
-                for (app_vars.cfg_fine=0;app_vars.cfg_fine<32;app_vars.cfg_fine++){
+        for (app_vars.cfg_coarse=cfg_coarse_start;app_vars.cfg_coarse<cfg_coarse_stop;app_vars.cfg_coarse++){
+						//printf("coarse=%d\r\n", cfg_coarse);
+            for (app_vars.cfg_mid=cfg_mid_start;app_vars.cfg_mid<cfg_mid_stop;app_vars.cfg_mid += 1){
+                for (app_vars.cfg_fine=cfg_fine_start;app_vars.cfg_fine<cfg_fine_stop;app_vars.cfg_fine += 1){
 									// golden board: 21 30 29
 									// titan's board: 23 3 31
                     printf(
