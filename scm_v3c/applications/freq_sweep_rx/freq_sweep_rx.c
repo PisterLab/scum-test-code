@@ -31,6 +31,11 @@ side.
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
+#define SHOULD_SWEEP				1 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
+#define FIXED_LC_COARSE			22
+#define FIXED_LC_MID				23
+#define FIXED_LC_FINE				14
+
 //=========================== variables =======================================
 
 typedef struct {
@@ -136,13 +141,11 @@ int main(void) {
     radio_enable_interrupts();
     
     // configure 
-
-		//22 23 14
 		
-		if (1) { // fixed frequency mode
-			cfg_coarse_start = 22;
-			cfg_mid_start = 23;
-			cfg_fine_start = 14;
+		if (SHOULD_SWEEP == 0) { // fixed frequency mode
+			cfg_coarse_start = FIXED_LC_COARSE;
+			cfg_mid_start = FIXED_LC_MID;
+			cfg_fine_start = FIXED_LC_FINE;
 			cfg_coarse_stop = cfg_coarse_start + 1;
 			cfg_mid_stop = cfg_mid_start + 1;
 			cfg_fine_stop = cfg_fine_start + 1;
