@@ -13,6 +13,11 @@ typedef enum {
    FREQ_RX                        = 0x02,
 } radio_freq_t;
 
+typedef enum {
+	RX = 0,
+	TX = 1
+} radio_mode_t;
+
 //=========================== typedef =========================================
 
 typedef void  (*radio_capture_cbt)(uint32_t timestamp);
@@ -27,8 +32,6 @@ void cb_endFrame_tx(uint32_t timestamp);
 void cb_startFrame_rx(uint32_t timestamp);
 void cb_endFrame_rx(uint32_t timestamp);
 void cb_timer(void);
-void sweep_send_packet(void);
-void sweep_receive_packet(void);
 void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine);
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine);
 

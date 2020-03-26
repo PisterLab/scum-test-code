@@ -51,28 +51,13 @@ signed short cdr_tau_history[11] = {0};
 #define  PANID_HBYTE_PKT_INDEX   0x05
 #define  DEFAULT_PANID           0xcafe
 
-// austin
+//===== tx/rx parameters
 
 #define LEN_TX_PKT          20+LENGTH_CRC  ///< length of tx packet
 #define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
 #define CHANNEL             11             ///< 11=2.405GHz
 #define TIMER_PERIOD_TX        2000           ///< 500 = 1ms@500kHz
 #define TIMER_PERIOD_RX        3000           ///< 500 = 1ms@500kHz
-
-#define SHOULD_SWEEP_RX				0 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
-#define FIXED_LC_COARSE_RX			22 //22
-#define FIXED_LC_MID_RX				22 //25
-#define FIXED_LC_FINE_RX				22 //2
-
-#define SHOULD_SWEEP_TX				0 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
-#define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			  23
-#define FIXED_LC_FINE_TX				4
-
-#define NUMPKT_PER_CFG      1
-#define STEPS_PER_CONFIG    32
-
-#define SOLAR_MODE					0 // 1 if on solar, 0 if on power supply/usb
 
 //=========================== variables =======================================
 
@@ -150,150 +135,50 @@ void radio_setCallbacks() { // rx_callback is custom callback so that user can g
 	rftimer_set_callback(cb_timer); // see if we can have two callbacks that we switch between based on rx/tx
 }
 
-void sweep_send_packet(void) {
-		uint8_t         cfg_coarse_start;
-    uint8_t         cfg_mid_start;
-    uint8_t         cfg_fine_start;
-		uint8_t         cfg_coarse_stop;
-    uint8_t         cfg_mid_stop;
-    uint8_t         cfg_fine_stop;
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
+	tx_rx_mode = 0;
 	
-		tx_rx_mode = 0;
-	
-		if (SHOULD_SWEEP_TX == 0) { // fixed frequency mode
-			cfg_coarse_start = FIXED_LC_COARSE_TX;
-			cfg_mid_start = FIXED_LC_MID_TX;
-			cfg_fine_start = FIXED_LC_FINE_TX;
-			cfg_coarse_stop = cfg_coarse_start + 1;
-			cfg_mid_stop = cfg_mid_start + 1;
-			cfg_fine_stop = cfg_fine_start + 1;
-		} else { // sweep mode
-			cfg_coarse_start = 22;
-			cfg_mid_start = 20;
-			cfg_fine_start = 0;
-			cfg_coarse_stop = 23;
-			cfg_mid_stop = STEPS_PER_CONFIG;
-			cfg_fine_stop = STEPS_PER_CONFIG;
-		}
-		
-    while(1){
-				uint8_t         cfg_coarse;
-				uint8_t         cfg_mid;
-				uint8_t         cfg_fine;
-        
-        // loop through all configuration
-        for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse++){
-            for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
-                for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 1){
-										int q;
-										int i;
-										//for (q = 0; q < 200000; q++) {}			 // 200000 for scum on solar
-                    
-										printf(
-											"coarse=%d, middle=%d, fine=%d\r\n", 
-											cfg_coarse,cfg_mid,cfg_fine
-                    );
-										app_vars_tx.packet[0] = packet_counter++;
-										app_vars_tx.packet[1] = cfg_coarse;
-										app_vars_tx.packet[2] = cfg_mid;
-										app_vars_tx.packet[3] = cfg_fine;
-                    
-                    for (i=0;i<NUMPKT_PER_CFG;i++) {                  
-                        radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);
-                        LC_FREQCHANGE(cfg_coarse,cfg_mid,cfg_fine);
-                        radio_txEnable();
-                        rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
-                        app_vars_tx.sendDone = false;
-											
-                        while (app_vars_tx.sendDone==false);
-                    }
-                }
-            }
-        }
-    }
+	app_vars_tx.packet[0] = packet_counter++;
+	app_vars_tx.packet[1] = coarse;
+	app_vars_tx.packet[2] = mid;
+	app_vars_tx.packet[3] = fine;
+
+	radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);
+	LC_FREQCHANGE(coarse, mid, fine);
+	radio_txEnable();
+	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
+	app_vars_tx.sendDone = false;
+
+	while (app_vars_tx.sendDone==false);
 }
 
-void sweep_receive_packet(void) {
-		uint8_t         cfg_coarse_start;
-    uint8_t         cfg_mid_start;
-    uint8_t         cfg_fine_start;
-		uint8_t         cfg_coarse_stop;
-    uint8_t         cfg_mid_stop;
-    uint8_t         cfg_fine_stop;
+void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
+	tx_rx_mode = 1;
 	
-		tx_rx_mode = 1;
+	app_vars_rx.cfg_coarse = coarse;
+	app_vars_rx.cfg_mid = mid;
+	app_vars_rx.cfg_fine = fine;
 	
-	  if (SHOULD_SWEEP_RX == 0) { // fixed frequency mode
-			cfg_coarse_start = FIXED_LC_COARSE_RX;
-			cfg_mid_start = FIXED_LC_MID_RX;
-			cfg_fine_start = FIXED_LC_FINE_RX;
-			cfg_coarse_stop = cfg_coarse_start + 1;
-			cfg_mid_stop = cfg_mid_start + 1;
-			cfg_fine_stop = cfg_fine_start + 1;
-		} else { // sweep mode
-			cfg_coarse_start = 22;
-			cfg_mid_start = 20;
-			cfg_fine_start = 0;
-			cfg_coarse_stop = 23;
-			cfg_mid_stop = STEPS_PER_CONFIG;
-			cfg_fine_stop = STEPS_PER_CONFIG;
-		}
-		
-    while(1){
-        // loop through all configuration
-        for (app_vars_rx.cfg_coarse=cfg_coarse_start;app_vars_rx.cfg_coarse<cfg_coarse_stop;app_vars_rx.cfg_coarse++){
-						if (SHOULD_SWEEP_RX) {
-							printf("coarse=%d\r\n", app_vars_rx.cfg_coarse);
-						}
-						
-            for (app_vars_rx.cfg_mid=cfg_mid_start;app_vars_rx.cfg_mid<cfg_mid_stop;app_vars_rx.cfg_mid += 1){
-                for (app_vars_rx.cfg_fine=cfg_fine_start;app_vars_rx.cfg_fine<cfg_fine_stop;app_vars_rx.cfg_fine += 1){
-										int q;
-										int i;
-									
-										if (SOLAR_MODE) {
-											//for (q = 0; q < 200000; q++) {}
-											low_power_mode();
-											for (q = 0; q < 2000; q++) {}
-											normal_power_mode();
-										}
-										
-										if (SHOULD_SWEEP_RX) {
-											printf(
-													"coarse=%d, middle=%d, fine=%d\r\n", 
-													app_vars_rx.cfg_coarse,app_vars_rx.cfg_mid,app_vars_rx.cfg_fine
-											);
-										}
-                    for (i=0;i<NUMPKT_PER_CFG;i++) {
-                        //while(app_vars.rxFrameStarted == true);
-												app_vars_rx.rxFrameStarted = false;
-                        LC_FREQCHANGE(app_vars_rx.cfg_coarse,app_vars_rx.cfg_mid,app_vars_rx.cfg_fine);
-                        radio_rxEnable();
-                        radio_rxNow();
-                        rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_RX);
-                        app_vars_rx.changeConfig = false;
-                        while (app_vars_rx.changeConfig==false);
-                    }
-                }
-            }
-        }
-    }
+	//while(app_vars.rxFrameStarted == true);
+	app_vars_rx.rxFrameStarted = false;
+	LC_FREQCHANGE(app_vars_rx.cfg_coarse,app_vars_rx.cfg_mid,app_vars_rx.cfg_fine);
+	radio_rxEnable();
+	radio_rxNow();
+	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_RX);
+	app_vars_rx.changeConfig = false;
+	while (app_vars_rx.changeConfig==false);
 }
 
-
-void    cb_endFrame_tx(uint32_t timestamp){
-    
+void cb_endFrame_tx(uint32_t timestamp){
     radio_rfOff();
-    
     app_vars_tx.sendDone = true;
-    
 }
 
-void    cb_startFrame_rx(uint32_t timestamp){
+void cb_startFrame_rx(uint32_t timestamp){
     app_vars_rx.rxFrameStarted = true;
 }
 
-void    cb_endFrame_rx(uint32_t timestamp){
+void cb_endFrame_rx(uint32_t timestamp){
     uint8_t i;
     
     radio_getReceivedFrame(
