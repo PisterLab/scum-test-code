@@ -26,15 +26,15 @@ side.
 #define LENGTH_PACKET       125+LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
 
-#define TIMER_PERIOD        7500           ///< 500 = 1ms@500kHz //7500 = 15 ms
+#define TIMER_PERIOD        7500          ///< 500 = 1ms@500kHz //default = 7500 = 15 ms
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
 #define SHOULD_SWEEP				1 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
-#define FIXED_LC_COARSE			22
-#define FIXED_LC_MID				23
-#define FIXED_LC_FINE				14
+#define FIXED_LC_COARSE			22 //22
+#define FIXED_LC_MID				25 //25
+#define FIXED_LC_FINE				2 //2
 
 //=========================== variables =======================================
 
@@ -83,7 +83,25 @@ int main(void) {
     uint8_t         i;
     uint8_t         j;
     uint8_t         offset;
-    
+	
+		int HF_coarse = 3;
+		int HF_fine = 26;
+		int LC_code = 721;
+		int RC2M_coarse = 22;
+		int RC2M_fine = 15;
+		int RC2M_superfine = 15;
+		int IF_coarse = 22;
+		int IF_fine = 19;
+
+//		int HF_coarse = 3;
+//		int HF_fine = 26;
+//		int LC_code = 721;
+//		int RC2M_coarse = 25;
+//		int RC2M_fine = 12;
+//		int RC2M_superfine = 16;
+//		int IF_coarse = 22;
+//		int IF_fine = 41;
+		
     memset(&app_vars,0,sizeof(app_vars_t));
 
     
@@ -120,22 +138,9 @@ int main(void) {
     
     //printf("done\r\n");
     
-    // After bootloading the next thing that happens is frequency calibration using optical
-    printf("Calibrating frequencies...\r\n");
-    
-    // Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
+		manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
 
-    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
-    // by calling radio rxEnable
-    radio_rxEnable();
-    
-    // Enable optical SFD interrupt for optical calibration
-    optical_enable();
-    
-    // Wait for optical cal to finish
-    while(optical_getCalibrationFinshed() == 0);
-
-    printf("Cal complete\r\n");
+		//optical_calibrate();
     
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
@@ -151,7 +156,7 @@ int main(void) {
 			cfg_fine_stop = cfg_fine_start + 1;
 		} else { // sweep mode
 			cfg_coarse_start = 22;
-			cfg_mid_start = 0;
+			cfg_mid_start = 20;
 			cfg_fine_start = 0;
 			cfg_coarse_stop = 23;
 			cfg_mid_stop = STEPS_PER_CONFIG;
@@ -161,19 +166,39 @@ int main(void) {
     while(1){
         // loop through all configuration
         for (app_vars.cfg_coarse=cfg_coarse_start;app_vars.cfg_coarse<cfg_coarse_stop;app_vars.cfg_coarse++){
-						//printf("coarse=%d\r\n", cfg_coarse);
+						if (SHOULD_SWEEP) {
+							printf("coarse=%d\r\n", app_vars.cfg_coarse);
+						}
+						
             for (app_vars.cfg_mid=cfg_mid_start;app_vars.cfg_mid<cfg_mid_stop;app_vars.cfg_mid += 1){
                 for (app_vars.cfg_fine=cfg_fine_start;app_vars.cfg_fine<cfg_fine_stop;app_vars.cfg_fine += 1){
-									// golden board: 21 30 29
+										int q;
+										//for (q = 0; q < 200000; q++) {}
+										//radio_rfOff();
+										//printf("radio off\n");
+										//for (q = 0; q < 1000000; q++) {}			 // 200000 for scum on solar
+										//for (q = 0; q < 50000; q++) {}
+											
+										
+										
+										//printf("low power\n");
+										//low_power_mode();
+										//for (q = 0; q < 2000; q++) {}
+										//normal_power_mode();
+										//printf("normal\n");
+											
+										// golden board: 21 30 29
 									// titan's board: 23 3 31
-                    printf(
-                        "coarse=%d, middle=%d, fine=%d\r\n", 
-                        app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
-                    );
+										if (SHOULD_SWEEP && 0) {
+											printf(
+													"coarse=%d, middle=%d, fine=%d\r\n", 
+													app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
+											);
+										}
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         while(app_vars.rxFrameStarted == true);
-                        radio_rfOff();
                         LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine);
+												//printf("radio on\n");
                         radio_rxEnable();
                         radio_rxNow();
                         rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
@@ -209,8 +234,8 @@ void    cb_endFrame_rx(uint32_t timestamp){
         
     radio_rfOff();
     
-    if(
-        app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
+    if(1
+        //app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
     ){
         // Only record IF estimate, LQI, and CDR tau for valid packets
         app_vars.IF_estimate        = radio_getIFestimate();
@@ -232,15 +257,21 @@ void    cb_endFrame_rx(uint32_t timestamp){
         memset(&app_vars.packet[0],0,LENGTH_PACKET);
     }
     
-    radio_rxEnable();
-    radio_rxNow();
+    //radio_rxEnable();
+    //radio_rxNow();
     
     app_vars.rxFrameStarted = false;
-    
+    //printf("end frame\n");
 }
 
 void    cb_timer(void) {
+		int q;
     
     app_vars.changeConfig = true;
+	
+		radio_rfOff();
+	
+		//printf("timer end\n");
+		
 }
 

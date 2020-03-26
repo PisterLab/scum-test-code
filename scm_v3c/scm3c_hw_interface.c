@@ -107,6 +107,8 @@ void optical_calibrate(void) {
 	
 		// Wait for optical cal to finish
     while(optical_getCalibrationFinshed() == 0);
+	
+		//radio_rfOff(); test to see if we can turn off the radio
 		
     printf("Optical calibration complete\r\n");
 }

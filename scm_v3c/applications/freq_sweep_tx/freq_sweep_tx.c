@@ -30,10 +30,10 @@ side.
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
-#define SHOULD_SWEEP				1 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
+#define SHOULD_SWEEP				0 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
 #define FIXED_LC_COARSE			22
-#define FIXED_LC_MID				24
-#define FIXED_LC_FINE				4
+#define FIXED_LC_MID			  21
+#define FIXED_LC_FINE				2
 
 //=========================== variables =======================================
 
@@ -70,11 +70,11 @@ int main(void) {
     uint8_t         offset;
 		uint8_t					counter;
 	
-		 int HF_coarse = 3;
+		int HF_coarse = 3;
 		int HF_fine = 26;
 		int LC_code = 721;
 		int RC2M_coarse = 25;
-		int RC2M_fine = 14;
+		int RC2M_fine = 12;
 		int RC2M_superfine = 16;
 		int IF_coarse = 22;
 		int IF_fine = 41;
@@ -112,8 +112,8 @@ int main(void) {
 
 		// manual_calibrate(3,21,721,24,17,16,22,13); // manual calibration codes for USB power
 		// manual_calibrate(3,26,721,25,14,16,22,39); // manual calibration codes for keithley 1.86V
-    //manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
-		optical_calibrate();
+    manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+		//optical_calibrate();
     
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
@@ -128,7 +128,7 @@ int main(void) {
 			cfg_fine_stop = cfg_fine_start + 1;
 		} else { // sweep mode
 			cfg_coarse_start = 22;
-			cfg_mid_start = 0;
+			cfg_mid_start = 20;
 			cfg_fine_start = 0;
 			cfg_coarse_stop = 23;
 			cfg_mid_stop = STEPS_PER_CONFIG;
@@ -147,7 +147,7 @@ int main(void) {
                 for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 1){
 									// titan: 22 20 4 on usb power; 22 13 25 on keithley 1.5V; 22 21 10 on keithley 1.86V // on solar 22 17 0
 										int q;
-										//for (q = 0; q < 200000; q++) {}			 // 400000 for scum on solar
+										for (q = 0; q < 200000; q++) {}			 // 200000 for scum on solar
                     
 										printf(
 											"coarse=%d, middle=%d, fine=%d\r\n", 
