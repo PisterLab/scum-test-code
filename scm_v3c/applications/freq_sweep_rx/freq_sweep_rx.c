@@ -26,15 +26,17 @@ side.
 #define LENGTH_PACKET       125+LENGTH_CRC ///< maximum length is 127 bytes
 #define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
 
-#define TIMER_PERIOD        7500          ///< 500 = 1ms@500kHz //default = 7500 = 15 ms
+#define TIMER_PERIOD        3000          ///< 500 = 1ms@500kHz //default = 7500 = 15 ms
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
-#define SHOULD_SWEEP				1 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
+#define OPTICAL_CALIBRATE 	0 // 1 if should optical calibrate, 0 if manual
+#define SOLAR_MODE					1 // 1 if on solar, 0 if on power supply/usb
+#define SHOULD_SWEEP				0 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
 #define FIXED_LC_COARSE			22 //22
-#define FIXED_LC_MID				25 //25
-#define FIXED_LC_FINE				2 //2
+#define FIXED_LC_MID				23 //25
+#define FIXED_LC_FINE				23 //2
 
 //=========================== variables =======================================
 
@@ -88,19 +90,10 @@ int main(void) {
 		int HF_fine = 26;
 		int LC_code = 721;
 		int RC2M_coarse = 22;
-		int RC2M_fine = 15;
-		int RC2M_superfine = 15;
+		int RC2M_fine = 17;
+		int RC2M_superfine = 14;
 		int IF_coarse = 22;
-		int IF_fine = 19;
-
-//		int HF_coarse = 3;
-//		int HF_fine = 26;
-//		int LC_code = 721;
-//		int RC2M_coarse = 25;
-//		int RC2M_fine = 12;
-//		int RC2M_superfine = 16;
-//		int IF_coarse = 22;
-//		int IF_fine = 41;
+		int IF_fine = 31;
 		
     memset(&app_vars,0,sizeof(app_vars_t));
 
@@ -138,10 +131,12 @@ int main(void) {
     
     //printf("done\r\n");
     
-		manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+		if (OPTICAL_CALIBRATE) {
+			optical_calibrate();
+		} else {
+			manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+		}
 
-		//optical_calibrate();
-    
     // Enable interrupts for the radio FSM
     radio_enable_interrupts();
     
@@ -173,7 +168,13 @@ int main(void) {
             for (app_vars.cfg_mid=cfg_mid_start;app_vars.cfg_mid<cfg_mid_stop;app_vars.cfg_mid += 1){
                 for (app_vars.cfg_fine=cfg_fine_start;app_vars.cfg_fine<cfg_fine_stop;app_vars.cfg_fine += 1){
 										int q;
-										//for (q = 0; q < 200000; q++) {}
+									
+										if (SOLAR_MODE) {
+											//for (q = 0; q < 200000; q++) {}
+											low_power_mode();
+											for (q = 0; q < 2000; q++) {}
+											normal_power_mode();
+										}
 										//radio_rfOff();
 										//printf("radio off\n");
 										//for (q = 0; q < 1000000; q++) {}			 // 200000 for scum on solar
@@ -182,21 +183,23 @@ int main(void) {
 										
 										
 										//printf("low power\n");
-										//low_power_mode();
-										//for (q = 0; q < 2000; q++) {}
-										//normal_power_mode();
+										
 										//printf("normal\n");
 											
 										// golden board: 21 30 29
 									// titan's board: 23 3 31
-										if (SHOULD_SWEEP && 0) {
+										if (SHOULD_SWEEP && 1) {
 											printf(
 													"coarse=%d, middle=%d, fine=%d\r\n", 
 													app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
 											);
 										}
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
-                        while(app_vars.rxFrameStarted == true);
+												//int h = 0;
+                        //while(app_vars.rxFrameStarted == true) {
+												//	printf(".");
+												//}
+												app_vars.rxFrameStarted = false;
                         LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine);
 												//printf("radio on\n");
                         radio_rxEnable();
@@ -234,8 +237,8 @@ void    cb_endFrame_rx(uint32_t timestamp){
         
     radio_rfOff();
     
-    if(1
-        //app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
+    if(
+        app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
     ){
         // Only record IF estimate, LQI, and CDR tau for valid packets
         app_vars.IF_estimate        = radio_getIFestimate();
