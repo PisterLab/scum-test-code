@@ -32,12 +32,22 @@ side.
 
 #define SHOULD_SWEEP				0 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
 #define FIXED_LC_COARSE			22
-#define FIXED_LC_MID			  21
-#define FIXED_LC_FINE				2
+#define FIXED_LC_MID			  23
+#define FIXED_LC_FINE				9
+
+// manual calibration settings for use if manual calibration enable
+#define OPTICAL_CALIBRATE 	0 // 1 if should optical calibrate, 0 if manual
+#define HF_coarse	3
+#define HF_fine	26
+#define LC_code 721
+#define RC2M_coarse 25
+#define RC2M_fine 12
+#define RC2M_superfine 16
+#define IF_coarse 22
+#define IF_fine			41
 
 //=========================== variables =======================================
 
-static const uint8_t payload_identity[] = "test.";
 
 typedef struct {
                 uint8_t         packet[LENGTH_PACKET];
@@ -55,7 +65,6 @@ void     cb_timer(void);
 //=========================== main ============================================
 
 int main(void) {
-    
     uint32_t calc_crc;
 
 		uint8_t         cfg_coarse_start;
@@ -66,18 +75,8 @@ int main(void) {
     uint8_t         cfg_fine_stop;
     
     uint8_t         i;
-    uint8_t         j;
     uint8_t         offset;
 		uint8_t					counter;
-	
-		int HF_coarse = 3;
-		int HF_fine = 26;
-		int LC_code = 721;
-		int RC2M_coarse = 25;
-		int RC2M_fine = 12;
-		int RC2M_superfine = 16;
-		int IF_coarse = 22;
-		int IF_fine = 41;
 		
 		counter = 0;
     
@@ -91,11 +90,9 @@ int main(void) {
     
     radio_setEndFrameTxCb(cb_endFrame_tx);
     rftimer_set_callback(cb_timer);
-    
-    // Disable interrupts for the radio and rftimer
-    radio_disable_interrupts();
-    rftimer_disable_interrupts();
-    
+		// Enable interrupts for the radio FSM
+    radio_enable_interrupts();
+		
     // Check CRC to ensure there were no errors during optical programming
     printf("\r\n-------------------\r\n");
     printf("Validating program integrity..."); 
@@ -109,15 +106,9 @@ int main(void) {
         while(1);
     }
 		
+    //manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+		optical_calibrate();
 
-		// manual_calibrate(3,21,721,24,17,16,22,13); // manual calibration codes for USB power
-		// manual_calibrate(3,26,721,25,14,16,22,39); // manual calibration codes for keithley 1.86V
-    manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
-		//optical_calibrate();
-    
-    // Enable interrupts for the radio FSM
-    radio_enable_interrupts();
-    
     // configure freq sweep    
 		if (SHOULD_SWEEP == 0) { // fixed frequency mode
 			cfg_coarse_start = FIXED_LC_COARSE;
@@ -139,21 +130,18 @@ int main(void) {
 				uint8_t         cfg_coarse;
 				uint8_t         cfg_mid;
 				uint8_t         cfg_fine;
-        //memcpy(&app_vars.packet[0],&payload_identity[0],sizeof(payload_identity)-1);
         
         // loop through all configuration
         for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse++){
             for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
                 for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 1){
-									// titan: 22 20 4 on usb power; 22 13 25 on keithley 1.5V; 22 21 10 on keithley 1.86V // on solar 22 17 0
 										int q;
-										for (q = 0; q < 200000; q++) {}			 // 200000 for scum on solar
+										//for (q = 0; q < 200000; q++) {}			 // 200000 for scum on solar
                     
 										printf(
 											"coarse=%d, middle=%d, fine=%d\r\n", 
 											cfg_coarse,cfg_mid,cfg_fine
                     );
-                    j = sizeof(payload_identity)-1;
 										app_vars.packet[0] = counter++;
 										app_vars.packet[1] = cfg_coarse;
 										app_vars.packet[2] = cfg_mid;
@@ -179,16 +167,13 @@ int main(void) {
 
 //=========================== private =========================================
 
-void    cb_endFrame_tx(uint32_t timestamp){
-    
+void    cb_endFrame_tx(uint32_t timestamp){  
     radio_rfOff();
-    
+	
     app_vars.sendDone = true;
-    
 }
 
 void    cb_timer(void) {
-    
     // Tranmit the packet
     radio_txNow();
 }

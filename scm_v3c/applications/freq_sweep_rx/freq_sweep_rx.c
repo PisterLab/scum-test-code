@@ -31,12 +31,12 @@ side.
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
-#define OPTICAL_CALIBRATE 	0 // 1 if should optical calibrate, 0 if manual
-#define SOLAR_MODE					1 // 1 if on solar, 0 if on power supply/usb
+#define OPTICAL_CALIBRATE 	1 // 1 if should optical calibrate, 0 if manual
+#define SOLAR_MODE					0 // 1 if on solar, 0 if on power supply/usb
 #define SHOULD_SWEEP				0 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
 #define FIXED_LC_COARSE			22 //22
-#define FIXED_LC_MID				23 //25
-#define FIXED_LC_FINE				23 //2
+#define FIXED_LC_MID				22 //25
+#define FIXED_LC_FINE				22 //2
 
 //=========================== variables =======================================
 
@@ -107,10 +107,9 @@ int main(void) {
     radio_setStartFrameRxCb(cb_startFrame_rx);
     radio_setEndFrameRxCb(cb_endFrame_rx);
     rftimer_set_callback(cb_timer);
-    
-    // Disable interrupts for the radio and rftimer
-    radio_disable_interrupts();
-    rftimer_disable_interrupts();
+		
+    // Enable interrupts for the radio FSM
+    radio_enable_interrupts();
     
     // Check CRC to ensure there were no errors during optical programming
     printf("\r\n-------------------\r\n");
@@ -125,20 +124,11 @@ int main(void) {
         while(1);
     }
     
-    // Debug output
-    //printf("\r\nCode length is %u bytes",code_length); 
-    //printf("\r\nCRC calculated by SCM is: 0x%X",calc_crc);    
-    
-    //printf("done\r\n");
-    
 		if (OPTICAL_CALIBRATE) {
 			optical_calibrate();
 		} else {
 			manual_calibrate(HF_coarse, HF_fine, LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
 		}
-
-    // Enable interrupts for the radio FSM
-    radio_enable_interrupts();
     
     // configure 
 		
@@ -175,19 +165,7 @@ int main(void) {
 											for (q = 0; q < 2000; q++) {}
 											normal_power_mode();
 										}
-										//radio_rfOff();
-										//printf("radio off\n");
-										//for (q = 0; q < 1000000; q++) {}			 // 200000 for scum on solar
-										//for (q = 0; q < 50000; q++) {}
-											
 										
-										
-										//printf("low power\n");
-										
-										//printf("normal\n");
-											
-										// golden board: 21 30 29
-									// titan's board: 23 3 31
 										if (SHOULD_SWEEP && 1) {
 											printf(
 													"coarse=%d, middle=%d, fine=%d\r\n", 
@@ -195,13 +173,9 @@ int main(void) {
 											);
 										}
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
-												//int h = 0;
-                        //while(app_vars.rxFrameStarted == true) {
-												//	printf(".");
-												//}
+                        //while(app_vars.rxFrameStarted == true);
 												app_vars.rxFrameStarted = false;
                         LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine);
-												//printf("radio on\n");
                         radio_rxEnable();
                         radio_rxNow();
                         rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
@@ -237,9 +211,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
         
     radio_rfOff();
     
-    if(
-        app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
-    ){
+    if(app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())){
         // Only record IF estimate, LQI, and CDR tau for valid packets
         app_vars.IF_estimate        = radio_getIFestimate();
         app_vars.LQI_chip_errors    = radio_getLQIchipErrors();
@@ -260,11 +232,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
         memset(&app_vars.packet[0],0,LENGTH_PACKET);
     }
     
-    //radio_rxEnable();
-    //radio_rxNow();
-    
     app_vars.rxFrameStarted = false;
-    //printf("end frame\n");
 }
 
 void    cb_timer(void) {
@@ -273,8 +241,5 @@ void    cb_timer(void) {
     app_vars.changeConfig = true;
 	
 		radio_rfOff();
-	
-		//printf("timer end\n");
-		
 }
 

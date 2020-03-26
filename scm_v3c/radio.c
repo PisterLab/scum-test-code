@@ -51,6 +51,29 @@ signed short cdr_tau_history[11] = {0};
 #define  PANID_HBYTE_PKT_INDEX   0x05
 #define  DEFAULT_PANID           0xcafe
 
+// austin
+
+#define LEN_TX_PKT          20+LENGTH_CRC  ///< length of tx packet
+#define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
+#define CHANNEL             11             ///< 11=2.405GHz
+#define TIMER_PERIOD_TX        2000           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD_RX        3000           ///< 500 = 1ms@500kHz
+
+#define SHOULD_SWEEP_RX				0 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
+#define FIXED_LC_COARSE_RX			22 //22
+#define FIXED_LC_MID_RX				22 //25
+#define FIXED_LC_FINE_RX				22 //2
+
+#define SHOULD_SWEEP_TX				0 // set to 1 to sweep, set to 0 to work at fixed LC frequency (with settigns defined right below)
+#define FIXED_LC_COARSE_TX			22
+#define FIXED_LC_MID_TX			  23
+#define FIXED_LC_FINE_TX				4
+
+#define NUMPKT_PER_CFG      1
+#define STEPS_PER_CONFIG    32
+
+#define SOLAR_MODE					0 // 1 if on solar, 0 if on power supply/usb
+
 //=========================== variables =======================================
 
 typedef struct {
@@ -74,7 +97,38 @@ typedef struct {
     volatile uint16_t   frequency_update_cooldown_timer;
 } radio_vars_t;
 
+typedef struct {
+		uint8_t         packet[LEN_TX_PKT];
+		uint8_t         packet_len;
+    volatile    bool            sendDone;
+} app_vars_t_tx;
+
+typedef struct {
+		uint8_t         packet[LEN_RX_PKT];
+		uint8_t         packet_len;
+		int8_t          rxpk_rssi;
+		uint8_t         rxpk_lqi;
+    
+    volatile    bool            rxpk_crc;
+    // a flag to mark when to change configure
+    volatile    bool            changeConfig;
+    // a flag to avoid change configure during receiving frame
+    volatile    bool            rxFrameStarted; 
+    
+    volatile    uint32_t        IF_estimate;
+    volatile    uint32_t        LQI_chip_errors;
+    volatile    uint32_t        cdr_tau_value;
+
+		uint8_t         cfg_coarse;
+		uint8_t         cfg_mid;
+		uint8_t         cfg_fine;
+} app_vars_t_rx;
+
 radio_vars_t radio_vars;
+app_vars_t_tx app_vars_tx;
+app_vars_t_rx app_vars_rx;
+bool tx_rx_mode; // 0 if tx and 1 if rx
+uint8_t	packet_counter = 0;
 
 //=========================== prototypes ======================================
 
@@ -89,11 +143,211 @@ void        build_TX_channel_table(
 
 //=========================== public ==========================================
 
+void radio_setCallbacks() { // rx_callback is custom callback so that user can get received packet
+	radio_setEndFrameTxCb(cb_endFrame_tx);
+	radio_setStartFrameRxCb(cb_startFrame_rx);
+	radio_setEndFrameRxCb(cb_endFrame_rx);
+	rftimer_set_callback(cb_timer); // see if we can have two callbacks that we switch between based on rx/tx
+}
+
+void sweep_send_packet(void) {
+		uint8_t         cfg_coarse_start;
+    uint8_t         cfg_mid_start;
+    uint8_t         cfg_fine_start;
+		uint8_t         cfg_coarse_stop;
+    uint8_t         cfg_mid_stop;
+    uint8_t         cfg_fine_stop;
+	
+		tx_rx_mode = 0;
+	
+		if (SHOULD_SWEEP_TX == 0) { // fixed frequency mode
+			cfg_coarse_start = FIXED_LC_COARSE_TX;
+			cfg_mid_start = FIXED_LC_MID_TX;
+			cfg_fine_start = FIXED_LC_FINE_TX;
+			cfg_coarse_stop = cfg_coarse_start + 1;
+			cfg_mid_stop = cfg_mid_start + 1;
+			cfg_fine_stop = cfg_fine_start + 1;
+		} else { // sweep mode
+			cfg_coarse_start = 22;
+			cfg_mid_start = 20;
+			cfg_fine_start = 0;
+			cfg_coarse_stop = 23;
+			cfg_mid_stop = STEPS_PER_CONFIG;
+			cfg_fine_stop = STEPS_PER_CONFIG;
+		}
+		
+    while(1){
+				uint8_t         cfg_coarse;
+				uint8_t         cfg_mid;
+				uint8_t         cfg_fine;
+        
+        // loop through all configuration
+        for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse++){
+            for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
+                for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 1){
+										int q;
+										int i;
+										//for (q = 0; q < 200000; q++) {}			 // 200000 for scum on solar
+                    
+										printf(
+											"coarse=%d, middle=%d, fine=%d\r\n", 
+											cfg_coarse,cfg_mid,cfg_fine
+                    );
+										app_vars_tx.packet[0] = packet_counter++;
+										app_vars_tx.packet[1] = cfg_coarse;
+										app_vars_tx.packet[2] = cfg_mid;
+										app_vars_tx.packet[3] = cfg_fine;
+                    
+                    for (i=0;i<NUMPKT_PER_CFG;i++) {                  
+                        radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);
+                        LC_FREQCHANGE(cfg_coarse,cfg_mid,cfg_fine);
+                        radio_txEnable();
+                        rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
+                        app_vars_tx.sendDone = false;
+											
+                        while (app_vars_tx.sendDone==false);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void sweep_receive_packet(void) {
+		uint8_t         cfg_coarse_start;
+    uint8_t         cfg_mid_start;
+    uint8_t         cfg_fine_start;
+		uint8_t         cfg_coarse_stop;
+    uint8_t         cfg_mid_stop;
+    uint8_t         cfg_fine_stop;
+	
+		tx_rx_mode = 1;
+	
+	  if (SHOULD_SWEEP_RX == 0) { // fixed frequency mode
+			cfg_coarse_start = FIXED_LC_COARSE_RX;
+			cfg_mid_start = FIXED_LC_MID_RX;
+			cfg_fine_start = FIXED_LC_FINE_RX;
+			cfg_coarse_stop = cfg_coarse_start + 1;
+			cfg_mid_stop = cfg_mid_start + 1;
+			cfg_fine_stop = cfg_fine_start + 1;
+		} else { // sweep mode
+			cfg_coarse_start = 22;
+			cfg_mid_start = 20;
+			cfg_fine_start = 0;
+			cfg_coarse_stop = 23;
+			cfg_mid_stop = STEPS_PER_CONFIG;
+			cfg_fine_stop = STEPS_PER_CONFIG;
+		}
+		
+    while(1){
+        // loop through all configuration
+        for (app_vars_rx.cfg_coarse=cfg_coarse_start;app_vars_rx.cfg_coarse<cfg_coarse_stop;app_vars_rx.cfg_coarse++){
+						if (SHOULD_SWEEP_RX) {
+							printf("coarse=%d\r\n", app_vars_rx.cfg_coarse);
+						}
+						
+            for (app_vars_rx.cfg_mid=cfg_mid_start;app_vars_rx.cfg_mid<cfg_mid_stop;app_vars_rx.cfg_mid += 1){
+                for (app_vars_rx.cfg_fine=cfg_fine_start;app_vars_rx.cfg_fine<cfg_fine_stop;app_vars_rx.cfg_fine += 1){
+										int q;
+										int i;
+									
+										if (SOLAR_MODE) {
+											//for (q = 0; q < 200000; q++) {}
+											low_power_mode();
+											for (q = 0; q < 2000; q++) {}
+											normal_power_mode();
+										}
+										
+										if (SHOULD_SWEEP_RX) {
+											printf(
+													"coarse=%d, middle=%d, fine=%d\r\n", 
+													app_vars_rx.cfg_coarse,app_vars_rx.cfg_mid,app_vars_rx.cfg_fine
+											);
+										}
+                    for (i=0;i<NUMPKT_PER_CFG;i++) {
+                        //while(app_vars.rxFrameStarted == true);
+												app_vars_rx.rxFrameStarted = false;
+                        LC_FREQCHANGE(app_vars_rx.cfg_coarse,app_vars_rx.cfg_mid,app_vars_rx.cfg_fine);
+                        radio_rxEnable();
+                        radio_rxNow();
+                        rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_RX);
+                        app_vars_rx.changeConfig = false;
+                        while (app_vars_rx.changeConfig==false);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void    cb_endFrame_tx(uint32_t timestamp){
+    
+    radio_rfOff();
+    
+    app_vars_tx.sendDone = true;
+    
+}
+
+void    cb_startFrame_rx(uint32_t timestamp){
+    app_vars_rx.rxFrameStarted = true;
+}
+
+void    cb_endFrame_rx(uint32_t timestamp){
+    uint8_t i;
+    
+    radio_getReceivedFrame(
+        &(app_vars_rx.packet[0]),
+        &app_vars_rx.packet_len,
+        sizeof(app_vars_rx.packet),
+        &app_vars_rx.rxpk_rssi,
+        &app_vars_rx.rxpk_lqi
+    );
+        
+    radio_rfOff();
+    
+    if(app_vars_rx.packet_len == LEN_RX_PKT && (radio_getCrcOk())){
+        // Only record IF estimate, LQI, and CDR tau for valid packets
+        app_vars_rx.IF_estimate        = radio_getIFestimate();
+        app_vars_rx.LQI_chip_errors    = radio_getLQIchipErrors();
+        
+        //printf(
+        //    "pkt received on ch%d %c%c%c%c.%d.%d.%d\r\n",
+				printf("Packet num %d. Packet contents 1-3: %d %d %d coarse: %d\tmid: %d\tfine: %d\n",
+            app_vars_rx.packet[0],
+            app_vars_rx.packet[1],
+            app_vars_rx.packet[2],
+            app_vars_rx.packet[3],
+            app_vars_rx.cfg_coarse,
+            app_vars_rx.cfg_mid,
+            app_vars_rx.cfg_fine
+        );
+        
+        app_vars_rx.packet_len = 0;
+        memset(&app_vars_rx.packet[0],0,LEN_RX_PKT);
+    }
+    
+    app_vars_rx.rxFrameStarted = false;
+    
+}
+
+void    cb_timer(void) {
+    if (tx_rx_mode == 0) {
+				// Tranmit the packet
+				radio_txNow();
+		} else {
+				// in the case of Rx set the flag
+				app_vars_rx.changeConfig = true;
+				radio_rfOff();
+		}
+}
+
 
 void radio_init(void) {
 
     // clear variables
     memset(&radio_vars,0,sizeof(radio_vars_t));
+		memset(&app_vars_tx,0,sizeof(app_vars_t_tx));
     
     //skip building a channel table for now; hardcode LC values
     radio_vars.tx_channel_codes[0] = LC_CODE_TX;
@@ -210,28 +464,6 @@ void radio_rxEnable(){
     
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = RF_RESET;
-}
-
-// Experimental radio rx enable function for disabling certain features in hopes of lowing optical power
-void radio_rxEnableOptical() {
-		printf("Optical radio enable!\r\n");
-		// Turn on LO, IF, and AUX LDOs via memory mapped register
-    
-    // Aux is inverted (0 = on)
-    // Memory-mapped LDO control
-    // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
-    // For MUX signals, '1' = FSM control, '0' = memory mapped control
-    // For EN signals, '1' = turn on LDO
-    ANALOG_CFG_REG__10 = 0x0000; // IF_EN, LO_EN are needed
-    
-    // Enable polyphase and mixers via memory-mapped I/O
-    //ANALOG_CFG_REG__16 = 0x1; // this doesn't need to be on, but has no impact on current draw
-    
-    // Where packet will be stored in memory
-    //DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);;
-    
-    // Reset radio FSM
-    //RFCONTROLLER_REG__CONTROL = RF_RESET;
 }
 
 // Radio will begin searching for start of packet
