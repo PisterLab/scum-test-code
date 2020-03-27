@@ -9,41 +9,45 @@
 #include "rftimer.h"
 #include "radio.h"
 #include "optical.h"
+#include "wireless_config.h"
 
 //=========================== defines =========================================
 
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
 
-// optical calibration configuration settings
-#define OPTICAL_CALIBRATE 	1 // 1 if should optical calibrate, 0 if manual
 
 #define HF_COARSE 3
-#define HF_FINE 26
+#define HF_FINE 25
 #define LC_CODE 721
 #define RC2M_COARSE 22
-#define RC2M_FINE 14
-#define RC2M_SUPERFINE 15
+#define RC2M_FINE 16
+#define RC2M_SUPERFINE 14
 #define IF_COARSE 22
-#define IF_FINE 14
+#define IF_FINE 24
 
-#define MODE 2 // 0 for tx, 1 for rx, 2 for rx then tx
-#define SOLAR_MODE					0 // 1 if on solar, 0 if on power supply/usb
-
-// fixed rx/tx coarse, mid, fine settings used if OPTICAL_CALIBRATE is 0
-#define FIXED_LC_COARSE_RX			22
-#define FIXED_LC_MID_RX				22
-#define FIXED_LC_FINE_RX				22
-
-#define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			  23
-#define FIXED_LC_FINE_TX				4
+//#define HF_COARSE 3
+//#define HF_FINE 22
+//#define LC_CODE 721
+//#define RC2M_COARSE 22
+//#define RC2M_FINE 15
+//#define RC2M_SUPERFINE 15
+//#define IF_COARSE 22
+//#define IF_FINE 27
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
-
 #define TX_PACKET_LENGTH 4
+
+// fixed rx/tx coarse, mid, fine settings used if OPTICAL_CALIBRATE is 0
+#define FIXED_LC_COARSE_RX			22
+#define FIXED_LC_MID_RX				24
+#define FIXED_LC_FINE_RX				13
+
+#define FIXED_LC_COARSE_TX			22
+#define FIXED_LC_MID_TX			  24
+#define FIXED_LC_FINE_TX				31
 
 typedef enum {
 	SWEEP = 0,
@@ -52,8 +56,8 @@ typedef enum {
 
 //=========================== variables =======================================
 
-repeat_mode_t tx_repeat_mode = FIXED;
-repeat_mode_t rx_repeat_mode = FIXED;
+repeat_mode_t tx_repeat_mode = SWEEP;
+repeat_mode_t rx_repeat_mode = SWEEP;
 uint8_t tx_packet[TX_PACKET_LENGTH];
 
 //=========================== prototypes ======================================
@@ -100,15 +104,30 @@ int main(void) {
 			manual_calibrate(HF_COARSE, HF_FINE, LC_CODE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
 		
-		if (MODE == 0) { //tx 
-			repeat_rx_tx(TX, tx_repeat_mode, -1);
-		} else if(MODE == 1) { //rx
-			repeat_rx_tx(RX, rx_repeat_mode, -1);
-		} else if(MODE == 2) { // tx and then rx
-			repeat_rx_tx(TX, tx_repeat_mode, 100);
-			repeat_rx_tx(RX, rx_repeat_mode, -1);
-		} else {
-			printf("Invalid mode\n");
+		low_power_mode();
+		
+		switch (MODE) {
+			case 0: // tx
+				repeat_rx_tx(TX, tx_repeat_mode, -1);
+				break;
+			case 1: //rx
+				repeat_rx_tx(RX, rx_repeat_mode, -1);
+				break;
+			case 2: //tx then rx
+				repeat_rx_tx(TX, tx_repeat_mode, 1);
+				repeat_rx_tx(RX, rx_repeat_mode, 1);
+				
+				low_power_mode();
+				while(1);
+				break;
+			case 3: //idle
+				while(1) {
+					printf("idle\n");
+				}
+				break;
+			default:
+				printf("Invalid mode\n");
+				break;
 		}
 }
 
@@ -160,7 +179,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 		printf("Fixed %s at c:%u m:%u f:%u\n", radio_mode_string, cfg_coarse_start, cfg_mid_start, cfg_fine_start);
 	} else { // sweep mode
 		cfg_coarse_start = 22;
-		cfg_mid_start = 20;
+		cfg_mid_start = 22;
 		cfg_fine_start = 0;
 		cfg_coarse_stop = 23;
 		cfg_mid_stop = STEPS_PER_CONFIG;
@@ -178,8 +197,11 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 					
 					if (SOLAR_MODE) {
 						low_power_mode();
-						for (i = 0; i < 2000; i++) {}
+						for (i = 0; i < 5000; i++) {}
 						normal_power_mode();
+						
+						//for (i = 0; i < 900000; i++) {}
+						printf("event\n");
 					}
 					
 					if (repeat_mode == SWEEP) {
