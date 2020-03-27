@@ -21,18 +21,19 @@ typedef enum {
 //=========================== typedef =========================================
 
 typedef void  (*radio_capture_cbt)(uint32_t timestamp);
+typedef void  (*radio_rx_cb)(uint8_t *packet, uint8_t packet_len);
 
 //=========================== variables =======================================
 
 //=========================== prototypes ======================================
 
 // austin
-void radio_setCallbacks(void);
+void radio_setCallbacks(radio_rx_cb rx_cb);
 void cb_endFrame_tx(uint32_t timestamp);
 void cb_startFrame_rx(uint32_t timestamp);
 void cb_endFrame_rx(uint32_t timestamp);
 void cb_timer(void);
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine);
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet, uint8_t packet_len);
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine);
 
 //==== admin

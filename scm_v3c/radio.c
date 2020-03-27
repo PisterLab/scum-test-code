@@ -113,7 +113,7 @@ radio_vars_t radio_vars;
 app_vars_t_tx app_vars_tx;
 app_vars_t_rx app_vars_rx;
 bool tx_rx_mode; // 0 if tx and 1 if rx
-uint8_t	packet_counter = 0;
+radio_rx_cb receive_cb;
 
 //=========================== prototypes ======================================
 
@@ -128,20 +128,24 @@ void        build_TX_channel_table(
 
 //=========================== public ==========================================
 
-void radio_setCallbacks() { // rx_callback is custom callback so that user can get received packet
+void radio_setCallbacks(radio_rx_cb rx_cb) { // rx_callback is custom callback so that user can get received packet
 	radio_setEndFrameTxCb(cb_endFrame_tx);
 	radio_setStartFrameRxCb(cb_startFrame_rx);
 	radio_setEndFrameRxCb(cb_endFrame_rx);
 	rftimer_set_callback(cb_timer); // see if we can have two callbacks that we switch between based on rx/tx
+	receive_cb = rx_cb;
 }
 
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet, uint8_t packet_len) {
+	uint8_t copy_size;
+	uint8_t i;
+	
 	tx_rx_mode = 0;
 	
-	app_vars_tx.packet[0] = packet_counter++;
-	app_vars_tx.packet[1] = coarse;
-	app_vars_tx.packet[2] = mid;
-	app_vars_tx.packet[3] = fine;
+	copy_size = packet_len < LEN_TX_PKT ? packet_len : LEN_TX_PKT;
+	for (i = 0; i < copy_size; i++) {
+		app_vars_tx.packet[i] = packet[i];
+	}
 
 	radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);
 	LC_FREQCHANGE(coarse, mid, fine);
@@ -207,6 +211,8 @@ void cb_endFrame_rx(uint32_t timestamp){
             app_vars_rx.cfg_mid,
             app_vars_rx.cfg_fine
         );
+			
+				receive_cb(app_vars_rx.packet, app_vars_rx.packet_len);
         
         app_vars_rx.packet_len = 0;
         memset(&app_vars_rx.packet[0],0,LEN_RX_PKT);
@@ -259,6 +265,8 @@ void radio_init(void) {
 //                                      RX_CUTOFF_ERROR_EN;
                                       
     RFCONTROLLER_REG__ERROR_CONFIG  = RX_CRC_ERROR_EN;
+		
+		radio_enable_interrupts();
 }
 
 void radio_setStartFrameTxCb(radio_capture_cbt cb) {

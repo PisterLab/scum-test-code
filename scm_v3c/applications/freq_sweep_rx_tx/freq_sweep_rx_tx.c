@@ -1,5 +1,5 @@
 /**
-\brief This program conducts a freqency sweeping test where scum will alternate between Tx and Rx.
+\brief This program has multiple uses: rx sweep/fixed, tx sweep/fixed, and rx then tx (or any sort of combination)
 */
 
 #include <string.h>
@@ -14,24 +14,26 @@
 
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
-	
+
+// optical calibration configuration settings
 #define OPTICAL_CALIBRATE 	1 // 1 if should optical calibrate, 0 if manual
 
-#define HF_COARSE	3
-#define HF_FINE	26
+#define HF_COARSE 3
+#define HF_FINE 26
 #define LC_CODE 721
-#define RC2M_COARSE 25
-#define RC2M_FINE 12
-#define RC2M_SUPERFINE 16
+#define RC2M_COARSE 22
+#define RC2M_FINE 14
+#define RC2M_SUPERFINE 15
 #define IF_COARSE 22
-#define IF_FINE			41
+#define IF_FINE 14
 
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx
+#define MODE 2 // 0 for tx, 1 for rx, 2 for rx then tx
 #define SOLAR_MODE					0 // 1 if on solar, 0 if on power supply/usb
 
-#define FIXED_LC_COARSE_RX			22 //22
-#define FIXED_LC_MID_RX				22 //25
-#define FIXED_LC_FINE_RX				22 //2
+// fixed rx/tx coarse, mid, fine settings used if OPTICAL_CALIBRATE is 0
+#define FIXED_LC_COARSE_RX			22
+#define FIXED_LC_MID_RX				22
+#define FIXED_LC_FINE_RX				22
 
 #define FIXED_LC_COARSE_TX			22
 #define FIXED_LC_MID_TX			  23
@@ -40,6 +42,9 @@
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
+
+#define TX_PACKET_LENGTH 4
+
 typedef enum {
 	SWEEP = 0,
 	FIXED = 1
@@ -47,8 +52,9 @@ typedef enum {
 
 //=========================== variables =======================================
 
-repeat_mode_t tx_repeat_mode = SWEEP;
-repeat_mode_t rx_repeat_mode = SWEEP;
+repeat_mode_t tx_repeat_mode = FIXED;
+repeat_mode_t rx_repeat_mode = FIXED;
+uint8_t tx_packet[TX_PACKET_LENGTH];
 
 //=========================== prototypes ======================================
 
@@ -58,7 +64,8 @@ void     cb_endFrame_rx(uint32_t timestamp);
 void     cb_timer(void);
 void		 sweep_send_packet(void);
 void		 sweep_receive_packet(void);
-void		 repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode);
+void		 repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_packets);
+void		 onRx(uint8_t *packet, uint8_t packet_len);
 
 //=========================== main ============================================
 
@@ -67,13 +74,6 @@ int main(void) {
     uint8_t         offset;
     
     printf("Initializing...");
-        
-    // Set up mote configuration
-    // This function handles all the analog scan chain setup
-    initialize_mote();
-    
-		radio_setCallbacks();
-		radio_enable_interrupts();
 	
     // Check CRC to ensure there were no errors during optical programming
     printf("\r\n-------------------\r\n");
@@ -87,12 +87,12 @@ int main(void) {
         printf("\r\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\r\n");
         while(1);
     }
-    
-    // Debug output
-    //printf("\r\nCode length is %u bytes",code_length); 
-    //printf("\r\nCRC calculated by SCM is: 0x%X",calc_crc);    
-    
-    //printf("done\r\n");
+		
+		// Set up mote configuration
+    // This function handles all the analog scan chain setup
+    initialize_mote();
+		
+		radio_setCallbacks(onRx);
     
     if (OPTICAL_CALIBRATE) {
 			optical_calibrate();
@@ -100,12 +100,13 @@ int main(void) {
 			manual_calibrate(HF_COARSE, HF_FINE, LC_CODE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
 		
-		if (MODE == 0) {
-			repeat_rx_tx(TX, tx_repeat_mode);
-		} else if(MODE == 1) {
-			repeat_rx_tx(RX, rx_repeat_mode);
-		} else if(MODE == 2) {
-			
+		if (MODE == 0) { //tx 
+			repeat_rx_tx(TX, tx_repeat_mode, -1);
+		} else if(MODE == 1) { //rx
+			repeat_rx_tx(RX, rx_repeat_mode, -1);
+		} else if(MODE == 2) { // tx and then rx
+			repeat_rx_tx(TX, tx_repeat_mode, 100);
+			repeat_rx_tx(RX, rx_repeat_mode, -1);
 		} else {
 			printf("Invalid mode\n");
 		}
@@ -116,8 +117,9 @@ int main(void) {
 //=========================== private =========================================
 
 /* Repeateadly sends or receives packets depending on radio_mode
-   Will sweep or be at fixed frequency depending on repeat_mode */
-void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode) {
+   Will sweep or be at fixed frequency depending on repeat_mode
+	 total_packets indicates the number of packets to send/receive, -1 if infinite*/
+void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_packets) {
 	uint8_t         cfg_coarse;
 	uint8_t         cfg_mid;
 	uint8_t         cfg_fine;
@@ -130,7 +132,15 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode) {
 	uint8_t         cfg_mid_stop;
 	uint8_t         cfg_fine_stop;
 	
+	int packet_counter = 0;
+	
 	char* radio_mode_string;
+	
+	if (radio_mode == TX) {
+		radio_mode_string = "transmit";
+	} else {
+		radio_mode_string = "receive";
+	}
 
 	if (repeat_mode == FIXED) { // fixed frequency mode
 		if (radio_mode == TX) {
@@ -142,13 +152,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode) {
 			cfg_mid_start = FIXED_LC_MID_RX;
 			cfg_fine_start = FIXED_LC_FINE_RX;
 		}
-		
-		if (radio_mode == TX) {
-			radio_mode_string = "transmit";
-		} else {
-			radio_mode_string = "receive";
-		}
-		
+				
 		cfg_coarse_stop = cfg_coarse_start + 1;
 		cfg_mid_stop = cfg_mid_start + 1;
 		cfg_fine_stop = cfg_fine_start + 1;
@@ -161,6 +165,8 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode) {
 		cfg_coarse_stop = 23;
 		cfg_mid_stop = STEPS_PER_CONFIG;
 		cfg_fine_stop = STEPS_PER_CONFIG;
+		
+		printf("Sweeping %s\n", radio_mode_string);
 	}
 	
 	while(1){
@@ -170,26 +176,39 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode) {
 				for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 1){										
 					int i;
 					
-					if (SOLAR_MODE) {									
-						for (i = 0; i < 200000; i++) {}			 // 200000 for scum on solar
+					if (SOLAR_MODE) {
+						low_power_mode();
+						for (i = 0; i < 2000; i++) {}
+						normal_power_mode();
 					}
 					
 					if (repeat_mode == SWEEP) {
-						printf(
-						"coarse=%d, middle=%d, fine=%d\r\n", 
-						cfg_coarse,cfg_mid,cfg_fine
-						);
+						printf( "coarse=%d, middle=%d, fine=%d\r\n", cfg_coarse, cfg_mid, cfg_fine);
 					}
 					
 					for (i=0;i<NUMPKT_PER_CFG;i++) {
 						if (radio_mode == RX) {
 							receive_packet(cfg_coarse, cfg_mid, cfg_fine);
 						} else {
-							send_packet(cfg_coarse, cfg_mid, cfg_fine);
+							tx_packet[0] = (uint8_t) packet_counter;
+							tx_packet[1] = cfg_coarse;
+							tx_packet[2] = cfg_mid;
+							tx_packet[3] = cfg_fine;
+							
+							send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet, TX_PACKET_LENGTH);
+						}
+						
+						packet_counter += 1;
+						if (packet_counter == total_packets) {
+							return;
 						}
 					}
 				}
 			}
 		}
 	}
+}
+
+void onRx(uint8_t *packet, uint8_t packet_len) {
+	//printf("packet first item: %d\n", packet[0]);
 }
