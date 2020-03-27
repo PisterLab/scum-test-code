@@ -1248,14 +1248,14 @@ void initialize_mote(){
 //	set_asc_bit(43);
 //	set_asc_bit(42);
 	
-//	set_asc_bit(50);
-//	set_asc_bit(51);
-//	clear_asc_bit(52); // inverted
-//	set_asc_bit(53);
-//	set_asc_bit(54);
-//	set_asc_bit(55);
-//	set_asc_bit(56);
-//	set_asc_bit(57);
+	set_asc_bit(50);
+	set_asc_bit(51);
+	clear_asc_bit(52); // inverted
+	set_asc_bit(53);
+	set_asc_bit(54);
+	set_asc_bit(55);
+	set_asc_bit(56);
+	set_asc_bit(57);
 
 //	clear_asc_bit(50);
 //	clear_asc_bit(51);
