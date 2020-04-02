@@ -61,10 +61,11 @@
 
 // fixed rx/tx coarse, mid, fine settings used if OPTICAL_CALIBRATE is 0
 #define FIXED_LC_COARSE_RX			22
-#define FIXED_LC_MID_RX				24
-#define FIXED_LC_FINE_RX				13
+#define FIXED_LC_MID_RX				23
+#define FIXED_LC_FINE_RX				14
 
 #define FIXED_LC_COARSE_TX			22
+
 #define FIXED_LC_MID_TX			  29
 #define FIXED_LC_FINE_TX				6
 
@@ -105,8 +106,8 @@ int main(void) {
     uint8_t         offset;
 
 
-
-   
+		int i;
+    
 
     printf("Initializing...");
 	
@@ -137,23 +138,35 @@ int main(void) {
 			manual_calibrate(HF_COARSE, HF_FINE, LC_CODE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
 		
+
 		//low_power_mode();
 		
+
 		switch (MODE) {
-			case 0: // tx
+			case 0: // tx indefinite
 				repeat_rx_tx(TX, tx_repeat_mode, -1);
 				break;
-			case 1: //rx
+			case 1: //rx indefinite
 				repeat_rx_tx(RX, rx_repeat_mode, -1);
 				break;
+
 			case 2: //tx then rx
 				repeat_rx_tx(TX, tx_repeat_mode, 1);// number means to send one packet. if you change to negative infinity. usually want to try for two
 				repeat_rx_tx(RX, rx_repeat_mode, 1);
+			
+				printf("entering low power state indefinitely. Power cycle before reprogramming.\n");
 				
 				low_power_mode();
 				while(1);
 				break;
-			case 3: //idle
+			case 3: //tx then rx NONSOLAR
+				repeat_rx_tx(TX, tx_repeat_mode, 1);
+			
+				for (i = 0; i < 100000; i++){}
+			
+				repeat_rx_tx(RX, rx_repeat_mode, 1);
+				break;
+			case 4:
 				while(1) {
 					printf("idle\n");
 				}
@@ -187,7 +200,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 	uint8_t         t2=29;
 	uint8_t         t3=6;
 	
-	int packet_counter = 0;
+	unsigned packet_counter = 0;
 	
 	char* radio_mode_string;
 	
@@ -237,7 +250,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 						normal_power_mode();
 						
 						//for (i = 0; i < 900000; i++) {}
-						printf("event\n");
+						printf("rx/tx send/receive\n");
 					}
 					
 					if (repeat_mode == SWEEP) {
@@ -282,6 +295,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 						
 						packet_counter += 1;
 						if (packet_counter == total_packets) {
+							printf("stopping %s\n", radio_mode_string);
 							return;
 						}
 					}
