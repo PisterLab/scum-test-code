@@ -2,7 +2,7 @@ import serial
 import random
 import argparse
 
-def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.bin",
+def program_cortex(teensy_port="COM10", scum_port=None, binary_image="../AllGPIOToggle.bin",
         boot_mode='optical', skip_reset=False, insert_CRC=False,
         pad_random_payload=False):
     """

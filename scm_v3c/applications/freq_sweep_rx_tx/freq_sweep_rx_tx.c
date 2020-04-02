@@ -16,16 +16,36 @@
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
 
+//hard code here ############################################
+//#define HF_COARSE 3
+//#define HF_FINE 25
+//#define LC_CODE 721
+//#define RC2M_COARSE 22
+//#define RC2M_FINE 16
+//#define RC2M_SUPERFINE 14
+//#define IF_COARSE 22
+//#define IF_FINE 24
 
+
+
+// hard code 03/31/2020 from rx 
 #define HF_COARSE 3
-#define HF_FINE 25
+#define HF_FINE 22
 #define LC_CODE 721
 #define RC2M_COARSE 22
-#define RC2M_FINE 16
+#define RC2M_FINE 18
 #define RC2M_SUPERFINE 14
 #define IF_COARSE 22
-#define IF_FINE 24
-
+#define IF_FINE 7
+//hard code 04/01/2020 from tx
+//#define HF_COARSE 3
+//#define HF_FINE 23
+//#define LC_CODE 721
+//#define RC2M_COARSE 24
+//#define RC2M_FINE 13
+//#define RC2M_SUPERFINE 15
+//#define IF_COARSE 22
+//#define IF_FINE 29
 //#define HF_COARSE 3
 //#define HF_FINE 22
 //#define LC_CODE 721
@@ -37,7 +57,6 @@
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
-
 #define TX_PACKET_LENGTH 4
 
 // fixed rx/tx coarse, mid, fine settings used if OPTICAL_CALIBRATE is 0
@@ -46,17 +65,18 @@
 #define FIXED_LC_FINE_RX				13
 
 #define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			  24
-#define FIXED_LC_FINE_TX				31
+#define FIXED_LC_MID_TX			  29
+#define FIXED_LC_FINE_TX				6
+
 
 typedef enum {
-	SWEEP = 0,
-	FIXED = 1
+	SWEEP = 1,
+	FIXED = 0
 } repeat_mode_t;
 
 //=========================== variables =======================================
 
-repeat_mode_t tx_repeat_mode = SWEEP;
+repeat_mode_t tx_repeat_mode = SWEEP;//change this to FIXED for solar 
 repeat_mode_t rx_repeat_mode = SWEEP;
 uint8_t tx_packet[TX_PACKET_LENGTH];
 
@@ -72,11 +92,22 @@ void		 repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int tota
 void		 onRx(uint8_t *packet, uint8_t packet_len);
 
 //=========================== main ============================================
-
+	uint8_t HF_CLOCK_fine;
+	uint8_t HF_CLOCK_coarse;
+	uint8_t RC2M_coarse;
+	uint8_t RC2M_fine;
+	uint8_t RC2M_superfine;
+	uint8_t IF_clk_target;
+	uint8_t IF_coarse;
+	uint8_t IF_fine;
 int main(void) {
     uint32_t calc_crc;
     uint8_t         offset;
-    
+
+
+
+   
+
     printf("Initializing...");
 	
     // Check CRC to ensure there were no errors during optical programming
@@ -97,14 +128,16 @@ int main(void) {
     initialize_mote();
 		
 		radio_setCallbacks(onRx);
-    
+
     if (OPTICAL_CALIBRATE) {
 			optical_calibrate();
+  
+
 		} else {
 			manual_calibrate(HF_COARSE, HF_FINE, LC_CODE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
 		
-		low_power_mode();
+		//low_power_mode();
 		
 		switch (MODE) {
 			case 0: // tx
@@ -114,7 +147,7 @@ int main(void) {
 				repeat_rx_tx(RX, rx_repeat_mode, -1);
 				break;
 			case 2: //tx then rx
-				repeat_rx_tx(TX, tx_repeat_mode, 1);
+				repeat_rx_tx(TX, tx_repeat_mode, 1);// number means to send one packet. if you change to negative infinity. usually want to try for two
 				repeat_rx_tx(RX, rx_repeat_mode, 1);
 				
 				low_power_mode();
@@ -150,6 +183,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 	uint8_t         cfg_coarse_stop;
 	uint8_t         cfg_mid_stop;
 	uint8_t         cfg_fine_stop;
+	uint8_t         t1 =22;
+	uint8_t         t2=29;
+	uint8_t         t3=6;
 	
 	int packet_counter = 0;
 	
@@ -211,7 +247,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 					for (i=0;i<NUMPKT_PER_CFG;i++) {
 						if (radio_mode == RX) {
 							receive_packet(cfg_coarse, cfg_mid, cfg_fine);
-						} else {
+						} else if (!SEND_OPTICAL) {
 							tx_packet[0] = (uint8_t) packet_counter;
 							tx_packet[1] = cfg_coarse;
 							tx_packet[2] = cfg_mid;
@@ -219,6 +255,30 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 							
 							send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet, TX_PACKET_LENGTH);
 						}
+						else {
+							HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
+							HF_CLOCK_fine       = scm3c_hw_interface_get_HF_CLOCK_fine();
+							RC2M_coarse         = scm3c_hw_interface_get_RC2M_coarse();
+							RC2M_fine           = scm3c_hw_interface_get_RC2M_fine();
+							RC2M_superfine      = scm3c_hw_interface_get_RC2M_superfine();
+							IF_clk_target       = scm3c_hw_interface_get_IF_clk_target();
+							IF_coarse           = scm3c_hw_interface_get_IF_coarse();
+							IF_fine             = scm3c_hw_interface_get_IF_fine();
+							tx_packet[0] = (uint8_t)HF_CLOCK_fine;
+							tx_packet[1] = t1;
+							tx_packet[2] = t2;
+							tx_packet[3] = t3;
+//							tx_packet[1] = HF_CLOCK_coarse;
+//							tx_packet[2] = HF_CLOCK_fine;
+//							tx_packet[3] = RC2M_coarse;
+//							tx_packet[1] = RC2M_superfine;
+//							tx_packet[2] = IF_coarse;
+//							tx_packet[3] = IF_fine;
+							
+							
+							send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet,TX_PACKET_LENGTH);//hardcoded TX_PACKET_LENGTH to 7
+						}
+						
 						
 						packet_counter += 1;
 						if (packet_counter == total_packets) {
@@ -232,5 +292,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 }
 
 void onRx(uint8_t *packet, uint8_t packet_len) {
-	//printf("packet first item: %d\n", packet[0]);
+	//printf("packet first item: %d\n", packet[0]); //there are 20 or 22 packets and they are uint8_t
+	if (packet[1]==23)
+	{
+		//sara(100, 2,1);
+	}
 }
