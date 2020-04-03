@@ -7,6 +7,8 @@
 //=========================== define ==========================================
 
 #define LENGTH_CRC      2
+#define LEN_TX_PKT          20+LENGTH_CRC  ///< length of tx packet
+#define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
 
 typedef enum {
    FREQ_TX                        = 0x01,
@@ -33,7 +35,7 @@ void cb_endFrame_tx(uint32_t timestamp);
 void cb_startFrame_rx(uint32_t timestamp);
 void cb_endFrame_rx(uint32_t timestamp);
 void cb_timer(void);
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet, uint8_t packet_len);
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet);
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine);
 
 //==== admin

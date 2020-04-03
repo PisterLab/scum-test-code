@@ -27,16 +27,25 @@
 //#define IF_FINE 24
 
 
-
-// hard code 03/31/2020 from rx 
 #define HF_COARSE 3
 #define HF_FINE 22
 #define LC_CODE 721
 #define RC2M_COARSE 22
-#define RC2M_FINE 18
-#define RC2M_SUPERFINE 14
+#define RC2M_FINE 13
+#define RC2M_SUPERFINE 15
 #define IF_COARSE 22
-#define IF_FINE 7
+#define IF_FINE 14
+
+
+// hard code 03/31/2020 from rx 
+//#define HF_COARSE 3
+//#define HF_FINE 22
+//#define LC_CODE 721
+//#define RC2M_COARSE 22
+//#define RC2M_FINE 18
+//#define RC2M_SUPERFINE 14
+//#define IF_COARSE 22
+//#define IF_FINE 7
 //hard code 04/01/2020 from tx
 //#define HF_COARSE 3
 //#define HF_FINE 23
@@ -57,7 +66,6 @@
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
-#define TX_PACKET_LENGTH 4
 
 // fixed rx/tx coarse, mid, fine settings used if OPTICAL_CALIBRATE is 0
 #define FIXED_LC_COARSE_RX			22
@@ -65,9 +73,8 @@
 #define FIXED_LC_FINE_RX				14
 
 #define FIXED_LC_COARSE_TX			22
-
-#define FIXED_LC_MID_TX			  29
-#define FIXED_LC_FINE_TX				6
+#define FIXED_LC_MID_TX			  23
+#define FIXED_LC_FINE_TX				2
 
 
 typedef enum {
@@ -79,7 +86,7 @@ typedef enum {
 
 repeat_mode_t tx_repeat_mode = SWEEP;//change this to FIXED for solar 
 repeat_mode_t rx_repeat_mode = SWEEP;
-uint8_t tx_packet[TX_PACKET_LENGTH];
+uint8_t tx_packet[LEN_TX_PKT];
 
 //=========================== prototypes ======================================
 
@@ -132,10 +139,8 @@ int main(void) {
 
     if (OPTICAL_CALIBRATE) {
 			optical_calibrate();
-  
-
 		} else {
-			manual_calibrate(HF_COARSE, HF_FINE, LC_CODE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
+			manual_calibrate(HF_COARSE, HF_FINE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
 		
 
@@ -196,9 +201,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 	uint8_t         cfg_coarse_stop;
 	uint8_t         cfg_mid_stop;
 	uint8_t         cfg_fine_stop;
-	uint8_t         t1 =22;
-	uint8_t         t2=29;
-	uint8_t         t3=6;
+	uint8_t         t1 =1;//22
+	uint8_t         t2=2;//29
+	uint8_t         t3=3;//6
 	
 	unsigned packet_counter = 0;
 	
@@ -228,9 +233,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 		printf("Fixed %s at c:%u m:%u f:%u\n", radio_mode_string, cfg_coarse_start, cfg_mid_start, cfg_fine_start);
 	} else { // sweep mode
 		cfg_coarse_start = 22;
-		cfg_mid_start = 22;
+		cfg_mid_start = 0;
 		cfg_fine_start = 0;
-		cfg_coarse_stop = 23;
+		cfg_coarse_stop = 24;
 		cfg_mid_stop = STEPS_PER_CONFIG;
 		cfg_fine_stop = STEPS_PER_CONFIG;
 		
@@ -243,6 +248,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 			for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
 				for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 1){										
 					int i;
+					uint8_t k;
 					
 					if (SOLAR_MODE) {
 						low_power_mode();
@@ -266,7 +272,12 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 							tx_packet[2] = cfg_mid;
 							tx_packet[3] = cfg_fine;
 							
-							send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet, TX_PACKET_LENGTH);
+							for (k = 4; k < 17; k++) { // bug: for some reason if the end is set to 18 or beyond the received packet is written over starting at 0... (first 17 spots usable currently)
+								tx_packet[k] = k;
+							}
+							//tx_packet[10] = 10;
+							
+							send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet);
 						}
 						else {
 							HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
@@ -274,22 +285,24 @@ void repeat_rx_tx(radio_mode_t radio_mode, repeat_mode_t repeat_mode, int total_
 							RC2M_coarse         = scm3c_hw_interface_get_RC2M_coarse();
 							RC2M_fine           = scm3c_hw_interface_get_RC2M_fine();
 							RC2M_superfine      = scm3c_hw_interface_get_RC2M_superfine();
-							IF_clk_target       = scm3c_hw_interface_get_IF_clk_target();
 							IF_coarse           = scm3c_hw_interface_get_IF_coarse();
 							IF_fine             = scm3c_hw_interface_get_IF_fine();
-							tx_packet[0] = (uint8_t)HF_CLOCK_fine;
-							tx_packet[1] = t1;
-							tx_packet[2] = t2;
-							tx_packet[3] = t3;
-//							tx_packet[1] = HF_CLOCK_coarse;
-//							tx_packet[2] = HF_CLOCK_fine;
-//							tx_packet[3] = RC2M_coarse;
-//							tx_packet[1] = RC2M_superfine;
-//							tx_packet[2] = IF_coarse;
-//							tx_packet[3] = IF_fine;
+							tx_packet[0] = (uint8_t) packet_counter;
+							tx_packet[1] = (uint8_t) 0;
+							tx_packet[2] = (uint8_t)HF_CLOCK_coarse;
+							tx_packet[3] = (uint8_t)HF_CLOCK_fine;
+							tx_packet[4] = (uint8_t)RC2M_coarse;
+							tx_packet[5] = (uint8_t)RC2M_fine;
+							tx_packet[6] = (uint8_t)RC2M_superfine;
+							tx_packet[7] = (uint8_t)IF_coarse;
+							tx_packet[8] = (uint8_t)IF_fine;
+							tx_packet[9] = (uint8_t) 0;
+							tx_packet[10] = cfg_coarse;
+							tx_packet[11] = cfg_mid;
+							tx_packet[12] = cfg_fine;
 							
 							
-							send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet,TX_PACKET_LENGTH);//hardcoded TX_PACKET_LENGTH to 7
+							send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet);
 						}
 						
 						

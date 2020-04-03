@@ -224,8 +224,8 @@ void optical_sfd_isr(){
 		//	HF_CLOCK_coarse, HF_CLOCK_fine, optical_vars.LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine, IF_coarse, IF_fine);
      
     if(optical_vars.optical_cal_iteration == 25){
-				printf("#define HF_COARSE %u\n#define HF_FINE %u\n#define LC_CODE %u\n#define RC2M_COARSE %u\n#define RC2M_FINE %u\n#define RC2M_SUPERFINE %u\n#define IF_COARSE %u\n#define IF_FINE %u\n",
-					HF_CLOCK_coarse, HF_CLOCK_fine, optical_vars.LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+				printf("#define HF_COARSE %u\n#define HF_FINE %u\n#define RC2M_COARSE %u\n#define RC2M_FINE %u\n#define RC2M_SUPERFINE %u\n#define IF_COARSE %u\n#define IF_FINE %u\n",
+					HF_CLOCK_coarse, HF_CLOCK_fine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
         // Disable this ISR
         ICER = 0x0800;
         optical_vars.optical_cal_iteration = 0;

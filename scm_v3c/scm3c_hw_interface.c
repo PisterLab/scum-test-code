@@ -114,12 +114,11 @@ void optical_calibrate(void) {
 }
 
 // performs the manual calibration given parameters
-void manual_calibrate(int HF_coarse, int HF_fine, int LC_code, int RC2M_coarse, int RC2M_fine, int RC2M_superfine, int IF_coarse, int IF_fine) {
+void manual_calibrate(int HF_coarse, int HF_fine, int RC2M_coarse, int RC2M_fine, int RC2M_superfine, int IF_coarse, int IF_fine) {
 		printf("using manually set optical calibration settings\n");
 		
 		scm3c_hw_interface_set_HF_CLOCK_coarse(HF_coarse);
 		scm3c_hw_interface_set_HF_CLOCK_fine(HF_fine); //21
-		//LC_monotonic(LC_code);
 		set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
 		scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
 		scm3c_hw_interface_set_RC2M_fine(RC2M_fine);

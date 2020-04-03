@@ -53,8 +53,6 @@ signed short cdr_tau_history[11] = {0};
 
 //===== tx/rx parameters
 
-#define LEN_TX_PKT          20+LENGTH_CRC  ///< length of tx packet
-#define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
 #define CHANNEL             11             ///< 11=2.405GHz
 #define TIMER_PERIOD_TX        2000           ///< 500 = 1ms@500kHz
 #define TIMER_PERIOD_RX        1000           ///< 500 = 1ms@500kHz
@@ -136,16 +134,17 @@ void radio_setCallbacks(radio_rx_cb rx_cb) { // rx_callback is custom callback s
 	receive_cb = rx_cb;
 }
 
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet, uint8_t packet_len) {
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet) {
 	uint8_t copy_size;
 	uint8_t i;
 	
 	tx_rx_mode = 0;
 	
-	copy_size = packet_len < LEN_TX_PKT ? packet_len : LEN_TX_PKT;
-	for (i = 0; i < copy_size; i++) {
+	for (i = 0; i < LEN_TX_PKT; i++) {
 		app_vars_tx.packet[i] = packet[i];
 	}
+	
+	//printf("%u\n", app_vars_tx.packet[0]);
 
 	radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);
 	LC_FREQCHANGE(coarse, mid, fine);
