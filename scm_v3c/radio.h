@@ -35,7 +35,7 @@ void cb_endFrame_tx(uint32_t timestamp);
 void cb_startFrame_rx(uint32_t timestamp);
 void cb_endFrame_rx(uint32_t timestamp);
 void cb_timer(void);
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet);
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet);
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine);
 
 //==== admin

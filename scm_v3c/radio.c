@@ -134,7 +134,7 @@ void radio_setCallbacks(radio_rx_cb rx_cb) { // rx_callback is custom callback s
 	receive_cb = rx_cb;
 }
 
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet) {
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
 	uint8_t copy_size;
 	uint8_t i;
 	

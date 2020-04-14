@@ -53,7 +53,7 @@
 
 //=========================== variables =======================================
 
-uint8_t tx_packet[LEN_TX_PKT];
+char tx_packet[LEN_TX_PKT];
 
 //=========================== prototypes ======================================
 
@@ -231,10 +231,6 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 								tx_packet[1] = cfg_coarse;
 								tx_packet[2] = cfg_mid;
 								tx_packet[3] = cfg_fine;
-								
-								for (k = 4; k < 17; k++) { // bug: for some reason if the end is set to 18 or beyond the received packet is written over starting at 0... (first 17 spots usable currently)
-									tx_packet[k] = k;
-								}
 								
 								send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet);
 							} else {
