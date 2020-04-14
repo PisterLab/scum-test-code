@@ -456,11 +456,6 @@
               <FileType>1</FileType>
               <FilePath>.\freq_sweep_rx_tx.c</FilePath>
             </File>
-            <File>
-              <FileName>wireless_config.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\wireless_config.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
