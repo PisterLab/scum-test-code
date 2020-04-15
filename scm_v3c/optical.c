@@ -137,9 +137,10 @@ void optical_sfd_isr(){
     // Enable all counters
     ANALOG_CFG_REG__0 = 0x3FFF;
 		
+		
     // Don't make updates on the first two executions of this ISR
     if(optical_vars.optical_cal_iteration > 2){
-        if (optical_vars.optical_cal_iteration <= 20) { // HF and 2MHz calibration
+        if (optical_vars.optical_cal_iteration < 30) { // HF and 2MHz calibration
 					// Do correction on HF CLOCK
 					// Fine DAC step size is about 6000 counts
 					if(count_HFclock < 1997000) {
@@ -185,6 +186,7 @@ void optical_sfd_isr(){
 					scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
 					scm3c_hw_interface_set_RC2M_fine(RC2M_fine);
 					scm3c_hw_interface_set_RC2M_superfine(RC2M_superfine);
+					
 					// Do correction on IF RC clock
 					// Fine DAC step size is ~2800 counts
 					if(count_IF > (1600000+1400)) {
@@ -198,7 +200,7 @@ void optical_sfd_isr(){
 					scm3c_hw_interface_set_IF_coarse(IF_coarse);
 					scm3c_hw_interface_set_IF_fine(IF_fine);
 				} else if (optical_vars.optical_cal_iteration == 5) {
-					//radio_rxEnable();
+					//radio_rxEnable_optical();
 				} else {
 					
 				}
@@ -207,20 +209,12 @@ void optical_sfd_isr(){
         analog_scan_chain_load();    
     }
 		
-		
-		
-		// Turn off the radio: experimental
-		//radio_rfOff();
-		//for (t = 0; t < 10000; t++) {}
-		//radio_rxEnableOptical();
-		
-//    
     // Debugging output
     printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine);
 		//printf("HF coarse: %d HF fine: %d LC code: %d RC2M_coarse: %d RC2M_fine: %d RC2M_superfine: %d RC2M_coarse: %d RC2M_fine: %d RC2M_superfine: %d IF_coarse: %d IF_fine: %d IF_coarse: %d IF_fine: %d \n",
 		//	HF_CLOCK_coarse, HF_CLOCK_fine, optical_vars.LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine, IF_coarse, IF_fine);
      
-    if(optical_vars.optical_cal_iteration == 20){
+    if(optical_vars.optical_cal_iteration == 25){
 				printf("#define HF_COARSE %u\n#define HF_FINE %u\n#define RC2M_COARSE %u\n#define RC2M_FINE %u\n#define RC2M_SUPERFINE %u\n#define IF_COARSE %u\n#define IF_FINE %u\n",
 					HF_CLOCK_coarse, HF_CLOCK_fine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
         // Disable this ISR
