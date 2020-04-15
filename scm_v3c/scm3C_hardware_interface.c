@@ -1247,7 +1247,7 @@ void initialize_mote(){
 //	set_asc_bit(44);
 //	set_asc_bit(43);
 //	set_asc_bit(42);
-	
+//low power mode 
 	set_asc_bit(50);
 	set_asc_bit(51);
 	clear_asc_bit(52); // inverted
