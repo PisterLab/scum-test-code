@@ -358,6 +358,20 @@ void radio_rxEnable(){
     RFCONTROLLER_REG__CONTROL = RF_RESET;
 }
 
+// LO doesn't need to be on for optical calibration
+void radio_rxEnable_optical() {
+	
+    // Turn on IF, and AUX LDOs via memory mapped register
+    
+    // Aux is inverted (0 = on)
+    // Memory-mapped LDO control
+    // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
+    // For MUX signals, '1' = FSM control, '0' = memory mapped control
+    // For EN signals, '1' = turn on LDO
+    ANALOG_CFG_REG__10 = 0x0010;
+    
+}
+
 // Radio will begin searching for start of packet
 void radio_rxNow(){
     

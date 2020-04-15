@@ -97,18 +97,22 @@ void optical_calibrate(void) {
 		
 		// For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
 		// by calling radio rxEnable
-		radio_rxEnable();
-		//radio_rxEnableOptical();
+		
+		//radio_rfOff();
 		//ANALOG_CFG_REG__10 = 0x0018;
 		//RFCONTROLLER_REG__CONTROL = RF_RESET;
 		// Enable optical SFD interrupt for optical calibration
-		
+	
+		radio_rxEnable_optical();
+
+	
 		optical_enable();
 	
 		// Wait for optical cal to finish
     while(optical_getCalibrationFinshed() == 0);
 	
-		//radio_rfOff(); test to see if we can turn off the radio
+		radio_rfOff();
+		normal_power_mode();
 		
     printf("Optical calibration complete\r\n");
 }

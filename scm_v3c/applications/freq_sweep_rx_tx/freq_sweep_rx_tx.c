@@ -12,39 +12,38 @@
 
 //=========================== defines =========================================
 	
-#define OPTICAL_CALIBRATE 	1 // 1 if should optical calibrate, 0 if manual
+#define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 #define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
-#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
+#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
+#define FIXED_LC_COARSE_TX			22
+#define FIXED_LC_MID_TX			  16
+#define FIXED_LC_FINE_TX				22
+
 #define FIXED_LC_COARSE_RX			22
 #define FIXED_LC_MID_RX				23
-#define FIXED_LC_FINE_RX				4
-
-#define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			  23
-#define FIXED_LC_FINE_TX				2
+#define FIXED_LC_FINE_RX				13
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
 #define SWEEP_COARSE_START 22
 #define SWEEP_COARSE_END 24
-#define SWEEP_MID_START 15
+#define SWEEP_MID_START 0
 #define SWEEP_MID_END 32
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
 
 // fixed optical calibration settings to use if OPTICAL_CALIBRATE is 0
 #define HF_COARSE 3
-#define HF_FINE 22
-#define LC_CODE 721
-#define RC2M_COARSE 22
-#define RC2M_FINE 13
-#define RC2M_SUPERFINE 15
+#define HF_FINE 23
+#define RC2M_COARSE 24
+#define RC2M_FINE 16
+#define RC2M_SUPERFINE 13
 #define IF_COARSE 22
-#define IF_FINE 14
+#define IF_FINE 25
 
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
@@ -128,6 +127,14 @@ int main(void) {
 					printf("idle\n");
 				}
 				break;
+			case 5: // idle low power, but radio on
+				printf("low power idle radio on\n");
+				radio_rxEnable();
+				low_power_mode();
+				while (1) {
+					for (i = 0; i < 10000; i++){
+					}
+				}
 			default:
 				printf("Invalid mode\n");
 				break;
