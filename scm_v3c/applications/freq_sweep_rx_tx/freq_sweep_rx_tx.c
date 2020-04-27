@@ -44,6 +44,10 @@
 #define RC2M_SUPERFINE 13
 #define IF_COARSE 22
 #define IF_FINE 25 
+
+#define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
+#define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
+#define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
 //=========================== variables =======================================
