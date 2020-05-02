@@ -209,7 +209,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
         &app_vars.rxpk_lqi
     );
 
-    // Read IF estimate, and LQI
+    // Read IF estimate, and LQI.
     IF_estimate       = radio_getIFestimate();
     LQI_chip_errors   = radio_getLQIchipErrors();
 
@@ -218,7 +218,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
     if (
         app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
     ) {
-        // Only record IF estimate, LQI, and CDR tau for valid packets
+        // Only record IF estimate, LQI, and CDR tau for valid packets.
         app_vars.IF_estimate        = IF_estimate;
         app_vars.LQI_chip_errors    = LQI_chip_errors;
 
@@ -254,7 +254,7 @@ void    cb_timer(void) {
     app_vars.changeConfig = true;
 }
 
-void receive_154_packet(void) {
+void    receive_154_packet(void) {
     printf("Receiving on %u %u %u\n", app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
     while (app_vars.rxFrameStarted);
     radio_rfOff();
@@ -265,7 +265,7 @@ void receive_154_packet(void) {
     radio_rxNow();
 }
 
-void transmit_ble_packet(void) {
+void    transmit_ble_packet(void) {
     int t;
 
     ble_gen_packet();

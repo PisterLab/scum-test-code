@@ -210,7 +210,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
         &app_vars.rxpk_lqi
     );
 
-    // Read IF estimate and LQI chip errors
+    // Read IF estimate and LQI chip errors.
     IF_estimate       = radio_getIFestimate();
     LQI_chip_errors   = radio_getLQIchipErrors();
 
@@ -219,7 +219,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
     if (
         app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
     ) {
-        // Only record IF estimate, LQI chip errors, and CDR tau for valid packets
+        // Only record IF estimate, LQI chip errors, and CDR tau for valid packets.
         app_vars.IF_estimate        = IF_estimate;
         app_vars.LQI_chip_errors    = LQI_chip_errors;
 
@@ -258,7 +258,7 @@ void    cb_timer(void) {
     app_vars.changeConfig = true;
 }
 
-void receive_154_packet(void) {
+void    receive_154_packet(void) {
     printf("Receiving on %u %u %u\n", app_vars.rx_coarse, app_vars.rx_mid, app_vars.rx_fine);
     while (app_vars.rxFrameStarted);
     radio_rfOff();
@@ -269,7 +269,7 @@ void receive_154_packet(void) {
     radio_rxNow();
 }
 
-void transmit_ble_packet(void) {
+void    transmit_ble_packet(void) {
     int t;
 
     ble_gen_packet();
@@ -290,7 +290,7 @@ void    calibrate_fine_code(void) {
         app_vars.IF_offset_prev = app_vars.IF_offset;
         app_vars.IF_offset = radio_get_IF_estimate();
 
-        diff = app_vars.IF_offset / 12; // empiracally tuned
+        diff = app_vars.IF_offset / 12; // empirically tuned
         app_vars.rx_fine += diff;
         app_vars.tx_fine += diff;
         printf("IF offset: %d, previous IF offset: %d, ", app_vars.IF_offset, app_vars.IF_offset_prev);
