@@ -31,6 +31,7 @@ void radio_setErrorCb(radio_capture_cbt cb);
 void radio_rfOff(void);
 void radio_enable_interrupts(void);
 void radio_disable_interrupts(void);
+void radio_reset(void);
 
 //==== get/set
 bool        radio_getCrcOk(void);

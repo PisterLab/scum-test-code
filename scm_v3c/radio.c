@@ -7,6 +7,7 @@
 #include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
+#include "gpio.h"
 
 // raw_chip interrupt related
 unsigned int chips[100];
@@ -256,7 +257,10 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
                             uint8_t* pLqi) {
    
     //===== rssi
-    *pRssi          = RSSI_REF_READ_VALUE-read_RSSI()+RSSI_REFERENCE;
+    *pRssi          = read_RSSI()+RSSI_REFERENCE;
+                                
+    //===== lqi
+    *pLqi           = read_LQI();
     
     //===== length
     *pLenRead       = radio_vars.radio_rx_buffer[0];
@@ -268,6 +272,9 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
 }
 
 void radio_rfOff(){
+    
+    // reset state machine first
+    radio_reset();
     
     // Hold digital baseband in reset
     ANALOG_CFG_REG__4 = 0x2000;
@@ -447,18 +454,6 @@ void radio_enable_interrupts(){
     
     // Enable radio interrupts in NVIC
     ISER = 0x40;
-    
-    // Enable all interrupts and pulses to radio timer
-    //RFCONTROLLER_REG__INT_CONFIG = 0x3FF;   
-        
-    // Enable TX_SEND_DONE, RX_SFD_DONE, RX_DONE
-    RFCONTROLLER_REG__INT_CONFIG = 0x1C;
-    
-    // Enable all errors
-    //RFCONTROLLER_REG__ERROR_CONFIG = 0x1F;  
-    
-    // Enable only the RX CRC error
-    RFCONTROLLER_REG__ERROR_CONFIG = 0x8;    //0x10; x10 is wrong? 
 }
 
 void radio_disable_interrupts(void){
@@ -663,6 +658,9 @@ void radio_isr(void) {
     unsigned int interrupt = RFCONTROLLER_REG__INT;
     unsigned int error     = RFCONTROLLER_REG__ERROR;
     
+    gpio_2_set();
+    gpio_6_set();
+    
     radio_vars.crc_ok   = true;
     if (error != 0) {
         
@@ -705,6 +703,8 @@ void radio_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("TX LOAD DONE\r\n");
 #endif
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000001;
     }
     
     if (interrupt & 0x00000002) {
@@ -715,6 +715,8 @@ void radio_isr(void) {
         if (radio_vars.startFrame_tx_cb != 0) {
             radio_vars.startFrame_tx_cb(RFTIMER_REG__COUNTER);
         }
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000002;
     }
     
     if (interrupt & 0x00000004){
@@ -725,6 +727,8 @@ void radio_isr(void) {
         if (radio_vars.endFrame_tx_cb != 0) {
             radio_vars.endFrame_tx_cb(RFTIMER_REG__COUNTER);
         }
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000004;
     }
     
     if (interrupt & 0x00000008){
@@ -735,6 +739,8 @@ void radio_isr(void) {
         if (radio_vars.startFrame_rx_cb != 0) {
             radio_vars.startFrame_rx_cb(RFTIMER_REG__COUNTER);
         }
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000008;
     }
     
     if (interrupt & 0x00000010) {
@@ -745,9 +751,14 @@ void radio_isr(void) {
         if (radio_vars.endFrame_rx_cb != 0) {
             radio_vars.endFrame_rx_cb(RFTIMER_REG__COUNTER);
         }
+        
+        RFCONTROLLER_REG__INT_CLEAR |= 0x00000010;
     }
     
-    RFCONTROLLER_REG__INT_CLEAR = interrupt;
+//    RFCONTROLLER_REG__INT_CLEAR = interrupt;
+    
+    gpio_2_clr();
+    gpio_6_clr();
 }
 
 

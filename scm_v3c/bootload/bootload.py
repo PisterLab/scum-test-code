@@ -1,6 +1,7 @@
 import serial
 import random
 import argparse
+import time
 
 def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.bin",
         boot_mode='optical', skip_reset=False, insert_CRC=False,
@@ -104,6 +105,8 @@ def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.
 
         # Display confirmation message from Teensy
         print(teensy_ser.readline())
+        # delay 2 seconds in case image takes long to complete CRC check for large size.
+        time.sleep(2)
         teensy_ser.write(b'opti_cal\n');
     elif boot_mode == '3wb':
         # Execute 3-wire bus bootloader on Teensy
