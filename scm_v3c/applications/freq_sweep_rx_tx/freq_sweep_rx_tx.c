@@ -68,6 +68,7 @@
 #define RC2M_FINE 17
 #define RC2M_SUPERFINE 15
 #define IF_COARSE 22
+
 #define IF_FINE 31
 
 //1.85V
@@ -88,7 +89,7 @@
 //#define IF_COARSE 22
 //#define IF_FINE 41
 
-// 1.
+
 
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
