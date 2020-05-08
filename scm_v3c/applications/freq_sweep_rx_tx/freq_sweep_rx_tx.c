@@ -12,38 +12,83 @@
 
 //=========================== defines =========================================
 	
-#define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
+#define OPTICAL_CALIBRATE 1// 1 if should optical calibrate, 0 if manual
 #define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
-#define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
+#define SOLAR_MODE 1// 1 if on solar, 0 if on power supply/usb
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
-#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
+#define SWEEP_TX 1// 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
-#define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			  16
-#define FIXED_LC_FINE_TX				22
+#define FIXED_LC_COARSE_TX			23
+#define FIXED_LC_MID_TX			  0
+#define FIXED_LC_FINE_TX			6
 
 #define FIXED_LC_COARSE_RX			22
 #define FIXED_LC_MID_RX				23
+
 #define FIXED_LC_FINE_RX				13
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 22
+#define SWEEP_COARSE_START 23
 #define SWEEP_COARSE_END 24
 #define SWEEP_MID_START 0
-#define SWEEP_MID_END 32
+#define SWEEP_MID_END 2
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
 
 // fixed optical calibration settings to use if OPTICAL_CALIBRATE is 0
+//3  | 24 | 22 | 16 | 16 | 22 | 26 | 0  | 22 | 26 | 11 
+//#define HF_COARSE 3
+//#define HF_FINE 24
+//#define RC2M_COARSE 22
+//#define RC2M_FINE 15
+//#define RC2M_SUPERFINE 15
+//#define IF_COARSE 22
+//#define IF_FINE 21
+//#define HF_COARSE 3
+//#define HF_FINE 24
+//#define RC2M_COARSE 22
+//#define RC2M_FINE 15
+//#define RC2M_SUPERFINE 16
+//#define IF_COARSE 22
+//#define IF_FINE 21
+//#define HF_COARSE 3
+//#define HF_FINE 31
+//#define RC2M_COARSE 22
+//#define RC2M_FINE 18
+//#define RC2M_SUPERFINE 14
+//#define IF_COARSE 22
+//#define IF_FINE 41
+
+// 1.82V
 #define HF_COARSE 3
-#define HF_FINE 23
-#define RC2M_COARSE 24
-#define RC2M_FINE 16
-#define RC2M_SUPERFINE 13
+#define HF_FINE 24
+#define RC2M_COARSE 22
+#define RC2M_FINE 17
+#define RC2M_SUPERFINE 15
 #define IF_COARSE 22
-#define IF_FINE 25
+#define IF_FINE 31
+
+//1.85V
+//#define HF_COARSE 3
+//#define HF_FINE 23
+//#define RC2M_COARSE 22
+//#define RC2M_FINE 17
+//#define RC2M_SUPERFINE 15
+//#define IF_COARSE 22
+//#define IF_FINE 41
+
+//1.89V
+//#define HF_COARSE 3
+//#define HF_FINE 24
+//#define RC2M_COARSE 22
+//#define RC2M_FINE 17
+//#define RC2M_SUPERFINE 15
+//#define IF_COARSE 22
+//#define IF_FINE 41
+
+// 1.
 
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
@@ -209,7 +254,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	
 	while(1){
 		// loop through all configuration
-		for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse++){
+		for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse+=1){
 			for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
 				for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 1){										
 					int i;
@@ -221,7 +266,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 						normal_power_mode();
 						
 						//for (i = 0; i < 900000; i++) {}
-						printf("rx/tx send/receive\n");
+						//printf("rx/tx send/receive\n");
 					}
 					
 					if (should_sweep) {
@@ -262,7 +307,16 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 								tx_packet[10] = cfg_coarse;
 								tx_packet[11] = cfg_mid;
 								tx_packet[12] = cfg_fine;
-										
+								tx_packet[13] = (uint8_t) 0;	
+								tx_packet[14] = (uint8_t) 0;
+								tx_packet[15] = (uint8_t) 0;
+								tx_packet[16] = (uint8_t) 0;
+								tx_packet[17] = (uint8_t) 0;
+								tx_packet[18] = (uint8_t) 0;
+								tx_packet[19] = (uint8_t) 0;
+								tx_packet[20] = (uint8_t) 0;
+								tx_packet[21] = (uint8_t) 0;
+							
 								send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet);
 							}
 						}
@@ -274,7 +328,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 							return;
 						}
 					}
-				}
+				} 
 			}
 		}
 	}
