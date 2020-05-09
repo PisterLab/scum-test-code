@@ -13,7 +13,7 @@
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1// 1 if should optical calibrate, 0 if manual
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
 #define SOLAR_MODE 1// 1 if on solar, 0 if on power supply/usb
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
 #define SWEEP_TX 1// 1 if sweep, 0 if fixed
@@ -30,10 +30,10 @@
 #define FIXED_LC_FINE_RX				13
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 23
+#define SWEEP_COARSE_START 22
 #define SWEEP_COARSE_END 24
-#define SWEEP_MID_START 0
-#define SWEEP_MID_END 2
+#define SWEEP_MID_START 4
+#define SWEEP_MID_END 32
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
 
