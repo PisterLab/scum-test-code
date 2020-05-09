@@ -16,13 +16,13 @@
 #define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
 #define SOLAR_MODE 1// 1 if on solar, 0 if on power supply/usb
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
-#define SWEEP_TX 1// 1 if sweep, 0 if fixed
+#define SWEEP_TX 0// 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
 #define FIXED_LC_COARSE_TX			23
-#define FIXED_LC_MID_TX			  0
-#define FIXED_LC_FINE_TX			6
+#define FIXED_LC_MID_TX			  1
+#define FIXED_LC_FINE_TX				28
 
 #define FIXED_LC_COARSE_RX			22
 #define FIXED_LC_MID_RX				23
@@ -299,25 +299,16 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 								tx_packet[1] = (uint8_t) 0;
 								tx_packet[2] = (uint8_t)HF_CLOCK_coarse;
 								tx_packet[3] = (uint8_t)HF_CLOCK_fine;
-								tx_packet[4] = (uint8_t)RC2M_coarse;
-								tx_packet[5] = (uint8_t)RC2M_fine;
-								tx_packet[6] = (uint8_t)RC2M_superfine;
-								tx_packet[7] = (uint8_t)IF_coarse;
-								tx_packet[8] = (uint8_t)IF_fine;
-								tx_packet[9] = (uint8_t) 0;
-								tx_packet[10] = cfg_coarse;
-								tx_packet[11] = cfg_mid;
-								tx_packet[12] = cfg_fine;
-								tx_packet[13] = (uint8_t) 0;	
-								tx_packet[14] = (uint8_t) 0;
-								tx_packet[15] = (uint8_t) 0;
-								tx_packet[16] = (uint8_t) 0;
-								tx_packet[17] = (uint8_t) 0;
-								tx_packet[18] = (uint8_t) 0;
-								tx_packet[19] = (uint8_t) 0;
-								tx_packet[20] = (uint8_t) 0;
-								tx_packet[21] = (uint8_t) 0;
-							
+//								tx_packet[4] = (uint8_t)RC2M_coarse;
+//								tx_packet[5] = (uint8_t)RC2M_fine;
+//								tx_packet[6] = (uint8_t)RC2M_superfine;
+//								tx_packet[7] = (uint8_t)IF_coarse;
+//								tx_packet[8] = (uint8_t)IF_fine;
+//								tx_packet[9] = (uint8_t) 0;
+//								tx_packet[10] = cfg_coarse;
+//								tx_packet[11] = cfg_mid;
+//								tx_packet[12] = cfg_fine;
+										
 								send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet);
 							}
 						}
@@ -336,7 +327,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 }
 
 void onRx(uint8_t *packet, uint8_t packet_len) {
-	//printf("packet first item: %d\n", packet[0]); //there are 20 or 22 packets and they are uint8_t
+	printf("packet first item: %d\n", packet[0]); //there are 20 or 22 packets and they are uint8_t
 	if (packet[1]==23)
 	{
 		//sara(100, 2,1);

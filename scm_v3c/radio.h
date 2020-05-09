@@ -7,7 +7,7 @@
 //=========================== define ==========================================
 
 #define LENGTH_CRC      2
-#define LEN_TX_PKT          20+LENGTH_CRC  ///< length of tx packet
+#define LEN_TX_PKT          4+LENGTH_CRC  ///< length of tx packet
 #define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
 
 typedef enum {
