@@ -1224,7 +1224,8 @@ void initialize_mote(){
     init_ldo_control();
 
     // Set LDO reference voltages
-    set_VDDD_LDO_voltage(65);
+    //set_VDDD_LDO_voltage(40);//1.07V 65 .93V
+		set_VDDD_LDO_voltage(65);
     // set_AUX_LDO_voltage(0);
     // set_ALWAYSON_LDO_voltage(0);
         
