@@ -4,6 +4,7 @@
 
 #include <string.h>
 
+
 #include "scm3c_hw_interface.h"
 #include "memory_map.h"
 #include "rftimer.h"
@@ -13,7 +14,7 @@
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1// 1 if should optical calibrate, 0 if manual
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define MODE 4 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
 #define SOLAR_MODE 0// 1 if on solar, 0 if on power supply/usb
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
 #define SWEEP_TX 0// 1 if sweep, 0 if fixed
@@ -169,13 +170,18 @@ int main(void) {
 				repeat_rx_tx(RX, SWEEP_RX, 1);
 				break;
 			case 4: // idle
-				while(1) {
-					printf("idle\n");
+//				radio_rfOff();
+				
+				//for (i = 0; i < 10000; i++) {}
+				
+//				normal_power_mode();
+				
+				while (1) {
+				
 				}
 				break;
 			case 5: // idle low power, but radio on
 				printf("low power idle radio on\n");
-				radio_rxEnable();
 				low_power_mode();
 				while (1) {
 					for (i = 0; i < 10000; i++){

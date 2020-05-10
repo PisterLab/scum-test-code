@@ -1684,6 +1684,7 @@ void set_PA_supply(unsigned int code) {
     scm3c_hw_interface_vars.ASC[30] |= code_ASC;
     
 }
+
 void set_LO_supply(unsigned int code, unsigned char panic) {
     // 7-bit setting (between 0 and 127)
     // MSB is a "panic" bit that engages the high-voltage settings
