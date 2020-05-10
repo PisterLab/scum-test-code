@@ -140,19 +140,26 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
 	
 	tx_rx_mode = 0;
 	
+	printf("1\n");
 	for (i = 0; i < LEN_TX_PKT; i++) {
 		app_vars_tx.packet[i] = packet[i];
 	}
-	
+	printf("2\n");
 	//printf("%u\n", app_vars_tx.packet[0]);
 
 	radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);
+	printf("3\n");
 	LC_FREQCHANGE(coarse, mid, fine);
+	printf("4\n");
 	radio_txEnable();
+	printf("5\n");
 	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
+	printf("6\n");	
 	app_vars_tx.sendDone = false;
-
-	while (app_vars_tx.sendDone==false);
+	printf("7\n");
+	while (app_vars_tx.sendDone==false) {
+		printf("stuck in loo :( foreva\n");
+	}
 }
 
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
@@ -173,6 +180,7 @@ void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
 }
 
 void cb_endFrame_tx(uint32_t timestamp){
+		printf("end frame tx\n");
     radio_rfOff();
     app_vars_tx.sendDone = true;
 }
@@ -194,7 +202,8 @@ void cb_endFrame_rx(uint32_t timestamp){
         
     radio_rfOff();
     
-    if(app_vars_rx.packet_len == LEN_RX_PKT && (radio_getCrcOk())){
+    //if(app_vars_rx.packet_len == LEN_RX_PKT && (radio_getCrcOk())){
+		if(app_vars_rx.packet_len == LEN_RX_PKT) {
         // Only record IF estimate, LQI, and CDR tau for valid packets
         app_vars_rx.IF_estimate        = radio_getIFestimate();
         app_vars_rx.LQI_chip_errors    = radio_getLQIchipErrors();
@@ -222,9 +231,11 @@ void cb_endFrame_rx(uint32_t timestamp){
 }
 
 void    cb_timer(void) {
+		printf("tx rx mode %d\n", tx_rx_mode);
     if (tx_rx_mode == 0) {
 				// Tranmit the packet
 				radio_txNow();
+				printf("radio_txNow\n");
 		} else {
 				// in the case of Rx set the flag
 				app_vars_rx.changeConfig = true;
@@ -326,6 +337,7 @@ void radio_txEnable(){
     
     // Turn on LO, PA, and AUX LDOs
     ANALOG_CFG_REG__10 = 0x0028;
+
 }
 
 // Begin modulating the radio output for TX
@@ -809,7 +821,8 @@ void radio_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("TX SEND DONE\r\n");
 #endif
-        
+        printf("end frame tx interrupt %p\n", radio_vars.endFrame_tx_cb);
+
         if (radio_vars.endFrame_tx_cb != 0) {
             radio_vars.endFrame_tx_cb(RFTIMER_REG__COUNTER);
         }
@@ -829,7 +842,7 @@ void radio_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("RX DONE\r\n");
 #endif
-        
+        printf("end frame rx interrupt %p\n", radio_vars.endFrame_rx_cb);
         if (radio_vars.endFrame_rx_cb != 0) {
             radio_vars.endFrame_rx_cb(RFTIMER_REG__COUNTER);
         }
