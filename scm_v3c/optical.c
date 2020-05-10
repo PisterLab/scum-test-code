@@ -89,7 +89,6 @@ void optical_sfd_isr(){
     uint32_t IF_clk_target;
     uint32_t IF_coarse;
     uint32_t IF_fine;
-		uint32_t i;
     
     HF_CLOCK_fine       = scm3c_hw_interface_get_HF_CLOCK_fine();
     HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
@@ -135,82 +134,90 @@ void optical_sfd_isr(){
     ANALOG_CFG_REG__0 = 0x0000;        
     
     // Enable all counters
-    ANALOG_CFG_REG__0 = 0x3FFF;
-		
-		
+    ANALOG_CFG_REG__0 = 0x3FFF;    
+        
     // Don't make updates on the first two executions of this ISR
     if(optical_vars.optical_cal_iteration > 2){
-				// Do correction on HF CLOCK
-				// Fine DAC step size is about 6000 counts
-				if(count_HFclock < 1997000) {
-						HF_CLOCK_fine--;
-				}
-				if(count_HFclock > 2003000) {
-						HF_CLOCK_fine++;
-				}
-				
-				set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
-				scm3c_hw_interface_set_HF_CLOCK_coarse(HF_CLOCK_coarse);
-				scm3c_hw_interface_set_HF_CLOCK_fine(HF_CLOCK_fine);
-						
-				// Do correction on 2M RC
-				// Coarse step ~1100 counts, fine ~150 counts, superfine ~25
-				// Too fast
-				if(count_2M > (200600)) {
-						RC2M_coarse += 1;
-				} else {
-						if(count_2M > (200080)) {
-								RC2M_fine += 1;
-						} else {
-								if(count_2M > (200015)) {
-										RC2M_superfine += 1;
-								}
-						}
-				} 
-				
-				// Too slow
-				if(count_2M < (199400)) {
-						RC2M_coarse -= 1;
-				} else {
-						if(count_2M < (199920)) {
-								RC2M_fine -= 1;
-						} else {
-								if(count_2M < (199985)) {
-										RC2M_superfine -= 1;
-								}
-						}
-				}
-				
-				set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
-				scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
-				scm3c_hw_interface_set_RC2M_fine(RC2M_fine);
-				scm3c_hw_interface_set_RC2M_superfine(RC2M_superfine);
-				
-				// Do correction on IF RC clock
-				// Fine DAC step size is ~2800 counts
-				if(count_IF > (1600000+1400)) {
-						IF_fine += 1;
-				}
-				if(count_IF < (1600000-1400)) {
-						IF_fine -= 1;
-				}
-				
-				set_IF_clock_frequency(IF_coarse, IF_fine, 0);
-				scm3c_hw_interface_set_IF_coarse(IF_coarse);
-				scm3c_hw_interface_set_IF_fine(IF_fine);
-			
-			analog_scan_chain_write();
-			analog_scan_chain_load();    
+        
+        // Do correction on HF CLOCK
+        // Fine DAC step size is about 6000 counts
+        if(count_HFclock < 1997000) {
+            HF_CLOCK_fine--;
+        }
+        if(count_HFclock > 2003000) {
+            HF_CLOCK_fine++;
+        }
+        
+        set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
+        scm3c_hw_interface_set_HF_CLOCK_coarse(HF_CLOCK_coarse);
+        scm3c_hw_interface_set_HF_CLOCK_fine(HF_CLOCK_fine);
+        
+        // Do correction on LC
+        if(count_LC > (optical_vars.LC_target + 0)) {
+            optical_vars.LC_code -= 1;
+        }
+        if(count_LC < (optical_vars.LC_target - 0)) {
+            optical_vars.LC_code += 1;
+        }
+        LC_monotonic(optical_vars.LC_code);
+            
+        // Do correction on 2M RC
+        // Coarse step ~1100 counts, fine ~150 counts, superfine ~25
+        // Too fast
+        if(count_2M > (200600)) {
+            RC2M_coarse += 1;
+        } else {
+            if(count_2M > (200080)) {
+                RC2M_fine += 1;
+            } else {
+                if(count_2M > (200015)) {
+                    RC2M_superfine += 1;
+                }
+            }
+        } 
+        
+        // Too slow
+        if(count_2M < (199400)) {
+            RC2M_coarse -= 1;
+        } else {
+            if(count_2M < (199920)) {
+                RC2M_fine -= 1;
+            } else {
+                if(count_2M < (199985)) {
+                    RC2M_superfine -= 1;
+                }
+            }
+        }
+        
+        set_2M_RC_frequency(31, 31, RC2M_coarse, RC2M_fine, RC2M_superfine);
+        scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
+        scm3c_hw_interface_set_RC2M_fine(RC2M_fine);
+        scm3c_hw_interface_set_RC2M_superfine(RC2M_superfine);
+
+        // Do correction on IF RC clock
+        // Fine DAC step size is ~2800 counts
+        if(count_IF > (1600000+1400)) {
+            IF_fine += 1;
+        }
+        if(count_IF < (1600000-1400)) {
+            IF_fine -= 1;
+        }
+        
+        set_IF_clock_frequency(IF_coarse, IF_fine, 0);
+        scm3c_hw_interface_set_IF_coarse(IF_coarse);
+        scm3c_hw_interface_set_IF_fine(IF_fine);
+        
+        analog_scan_chain_write();
+        analog_scan_chain_load();    
     }
-		
+    
     // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine);
-		//printf("HF coarse: %d HF fine: %d LC code: %d RC2M_coarse: %d RC2M_fine: %d RC2M_superfine: %d RC2M_coarse: %d RC2M_fine: %d RC2M_superfine: %d IF_coarse: %d IF_fine: %d IF_coarse: %d IF_fine: %d \n",
-		//	HF_CLOCK_coarse, HF_CLOCK_fine, optical_vars.LC_code, RC2M_coarse, RC2M_fine, RC2M_superfine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine, IF_coarse, IF_fine);
+    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine); 
      
-    if(optical_vars.optical_cal_iteration == 20){
+    if(optical_vars.optical_cal_iteration == 25){
 				printf("#define HF_COARSE %u\n#define HF_FINE %u\n#define RC2M_COARSE %u\n#define RC2M_FINE %u\n#define RC2M_SUPERFINE %u\n#define IF_COARSE %u\n#define IF_FINE %u\n",
-					HF_CLOCK_coarse, HF_CLOCK_fine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+							HF_CLOCK_coarse, HF_CLOCK_fine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+			
         // Disable this ISR
         ICER = 0x0800;
         optical_vars.optical_cal_iteration = 0;

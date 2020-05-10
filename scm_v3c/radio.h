@@ -31,6 +31,7 @@ typedef void  (*radio_rx_cb)(uint8_t *packet, uint8_t packet_len);
 
 // austin
 void radio_setCallbacks(radio_rx_cb rx_cb);
+void cb_startFrame_tx(uint32_t timestamp);
 void cb_endFrame_tx(uint32_t timestamp);
 void cb_startFrame_rx(uint32_t timestamp);
 void cb_endFrame_rx(uint32_t timestamp);
