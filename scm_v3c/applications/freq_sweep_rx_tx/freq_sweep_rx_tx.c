@@ -37,30 +37,6 @@
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
 
-// fixed optical calibration settings to use if OPTICAL_CALIBRATE is 0
-//3  | 24 | 22 | 16 | 16 | 22 | 26 | 0  | 22 | 26 | 11 
-//#define HF_COARSE 3
-//#define HF_FINE 24
-//#define RC2M_COARSE 22
-//#define RC2M_FINE 15
-//#define RC2M_SUPERFINE 15
-//#define IF_COARSE 22
-//#define IF_FINE 21
-//#define HF_COARSE 3
-//#define HF_FINE 24
-//#define RC2M_COARSE 22
-//#define RC2M_FINE 15
-//#define RC2M_SUPERFINE 16
-//#define IF_COARSE 22
-//#define IF_FINE 21
-//#define HF_COARSE 3
-//#define HF_FINE 31
-//#define RC2M_COARSE 22
-//#define RC2M_FINE 18
-//#define RC2M_SUPERFINE 14
-//#define IF_COARSE 22
-//#define IF_FINE 41
-
 // 1.82V
 #define HF_COARSE 3
 #define HF_FINE 24
@@ -68,7 +44,6 @@
 #define RC2M_FINE 17
 #define RC2M_SUPERFINE 15
 #define IF_COARSE 22
-
 #define IF_FINE 31
 
 //1.85V
@@ -89,8 +64,6 @@
 //#define IF_COARSE 22
 //#define IF_FINE 41
 
-
-
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
 #define NUMPKT_PER_CFG      1
@@ -102,12 +75,6 @@ char tx_packet[LEN_TX_PKT];
 
 //=========================== prototypes ======================================
 
-//void     cb_endFrame_tx(uint32_t timestamp);
-//void     cb_startFrame_rx(uint32_t timestamp);
-//void     cb_endFrame_rx(uint32_t timestamp);
-//void     cb_timer(void);
-//void		 sweep_send_packet(void);
-//void		 sweep_receive_packet(void);
 void		 repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packets);
 void		 onRx(uint8_t *packet, uint8_t packet_len);
 
@@ -160,7 +127,6 @@ int main(void) {
 						repeat_rx_tx(RX, SWEEP_RX, 1);
 				}
 			
-				
 				//printf("entering low power state indefinitely. Power cycle before reprogramming.\n");
 				printf("done!\n");
 				
@@ -174,24 +140,9 @@ int main(void) {
 			
 				repeat_rx_tx(RX, SWEEP_RX, 1);
 				break;
-			case 4: // idle
-//				radio_rfOff();
-				
-				//for (i = 0; i < 10000; i++) {}
-				
-//				normal_power_mode();
-				
-				while (1) {
-				
-				}
+			case 4: // idle normal power
+				while (1) {}
 				break;
-			case 5: // idle low power, but radio on
-				printf("low power idle radio on\n");
-				low_power_mode();
-				while (1) {
-					for (i = 0; i < 10000; i++){
-					}
-				}
 			default:
 				printf("Invalid mode\n");
 				break;
