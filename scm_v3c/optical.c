@@ -196,12 +196,23 @@ void optical_sfd_isr(){
 
         // Do correction on IF RC clock
         // Fine DAC step size is ~2800 counts
-        if(count_IF > (1600000+1400)) {
-            IF_fine += 1;
-        }
-        if(count_IF < (1600000-1400)) {
-            IF_fine -= 1;
-        }
+				// Coarse DAC step size is ~25000 counts
+				
+				// if very far away then change coarse, otherwise change fine
+				
+				if (count_IF > (1600000+12500)) {
+					IF_coarse += 1;
+				} else if (count_IF < (1600000-12500)) {
+					IF_coarse -= 1;
+				} else {
+					// in this case close enough to change the fine codes
+					if(count_IF > (1600000+1400)) {
+							IF_fine += 1;
+					} else if(count_IF < (1600000-1400)) {
+							IF_fine -= 1;
+					} else {
+					}
+				}
         
         set_IF_clock_frequency(IF_coarse, IF_fine, 0);
         scm3c_hw_interface_set_IF_coarse(IF_coarse);
@@ -212,7 +223,7 @@ void optical_sfd_isr(){
     }
     
     // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine); 
+    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d,%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_coarse,IF_fine); 
      
     if(optical_vars.optical_cal_iteration == 15){
 				printf("#define HF_COARSE %u\n#define HF_FINE %u\n#define RC2M_COARSE %u\n#define RC2M_FINE %u\n#define RC2M_SUPERFINE %u\n#define IF_COARSE %u\n#define IF_FINE %u\n",
