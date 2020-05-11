@@ -139,6 +139,7 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
 	uint8_t copy_size;
 	uint8_t i;
 	int j;
+	radio_rxEnable();
 		
 	tx_rx_mode = 0;
 	
@@ -152,13 +153,15 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
 	radio_txEnable();
 	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
 	app_vars_tx.sendDone = false;
-	
+		
 	while (app_vars_tx.sendDone==false) {
 		//printf("stuck in loop :( foreva\n");
 	}
 }
 
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {	
+	int i;
+	
 	tx_rx_mode = 1;
 	
 	app_vars_rx.cfg_coarse = coarse;
@@ -168,7 +171,7 @@ void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
 	//while(app_vars.rxFrameStarted == true);
 	app_vars_rx.rxFrameStarted = false;
 	LC_FREQCHANGE(app_vars_rx.cfg_coarse,app_vars_rx.cfg_mid,app_vars_rx.cfg_fine);
-	radio_rxEnable();	
+	radio_rxEnable();
 	radio_rxNow();
 	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_RX);
 	app_vars_rx.changeConfig = false;
@@ -189,8 +192,9 @@ void cb_startFrame_rx(uint32_t timestamp){
     app_vars_rx.rxFrameStarted = true;
 }
 
-void cb_endFrame_rx(uint32_t timestamp){
+void cb_endFrame_rx(uint32_t timestamp){		
     uint8_t i;
+
     
     radio_getReceivedFrame(
         &(app_vars_rx.packet[0]),
@@ -238,6 +242,7 @@ void    cb_timer(void) {
 		} else {
 				// in the case of Rx set the flag
 				app_vars_rx.changeConfig = true;
+				//app_vars_rx.rxFrameStarted = false;
 				radio_rfOff();
 		}
 }

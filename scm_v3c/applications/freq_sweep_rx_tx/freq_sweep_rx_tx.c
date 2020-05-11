@@ -14,25 +14,25 @@
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define MODE 2 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
 #define SWEEP_TX 0 // 1 if sweep, 0 if fixed
-#define SWEEP_RX 1 // 1 if sweep, 0 if fixed
+#define SWEEP_RX 0 // 1 if sweep, 0 if fixed
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
-#define FIXED_LC_COARSE_TX			23
-#define FIXED_LC_MID_TX			  3
-#define FIXED_LC_FINE_TX				10
+#define FIXED_LC_COARSE_TX			22
+#define FIXED_LC_MID_TX			 		21
+#define FIXED_LC_FINE_TX				1
 
-#define FIXED_LC_COARSE_RX			23
-#define FIXED_LC_MID_RX				4
-#define FIXED_LC_FINE_RX				21
+#define FIXED_LC_COARSE_RX			22
+#define FIXED_LC_MID_RX				  22
+#define FIXED_LC_FINE_RX				16
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
 #define SWEEP_COARSE_START 22
-#define SWEEP_COARSE_END 24
-#define SWEEP_MID_START 0
+#define SWEEP_COARSE_END 23
+#define SWEEP_MID_START 10
 #define SWEEP_MID_END 32
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
@@ -83,7 +83,7 @@ void		 onRx(uint8_t *packet, uint8_t packet_len);
 int main(void) {
     uint32_t calc_crc;
     uint8_t         offset;
-		int i;
+		int i,j;
     
     printf("Initializing...");
 	
@@ -124,7 +124,8 @@ int main(void) {
 				
 				for (i = 0; i < 10; i++) {
 					repeat_rx_tx(TX, SWEEP_TX, 1);// number means to send one packet. if you change to negative infinity. usually want to try for two
-					repeat_rx_tx(RX, SWEEP_RX, 3);
+					//for (j = 0; j < 1000000; j++) {}
+					repeat_rx_tx(RX, SWEEP_RX, 1);
 				}
 			
 				//printf("entering low power state indefinitely. Power cycle before reprogramming.\n");
@@ -141,6 +142,10 @@ int main(void) {
 				repeat_rx_tx(RX, SWEEP_RX, 1);
 				break;
 			case 4: // idle normal power
+				while (1) {}
+				break;
+			case 5: // idle low power
+				low_power_mode();
 				while (1) {}
 				break;
 			default:
@@ -279,11 +284,11 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 						packet_counter += 1;
 						
 						if (total_packets > 0) {
-							printf("packet %d out of %d\n", packet_counter, total_packets);
+							//printf("packet %d out of %d\n", packet_counter, total_packets);
 						}
 						
 						if (packet_counter == total_packets) {
-							printf("stopping %s\n", radio_mode_string);
+							//printf("stopping %s\n", radio_mode_string);
 							return;
 						}
 					}
