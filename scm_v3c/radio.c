@@ -139,14 +139,13 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
 	uint8_t copy_size;
 	uint8_t i;
 	int j;
-	radio_rxEnable();
 		
 	tx_rx_mode = 0;
 	
+	// copy the packet over
 	for (i = 0; i < LEN_TX_PKT; i++) {
 		app_vars_tx.packet[i] = packet[i];
 	}
-	//printf("%u\n", app_vars_tx.packet[0]);
 
 	radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);	
 	LC_FREQCHANGE(coarse, mid, fine);
@@ -154,9 +153,7 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
 	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
 	app_vars_tx.sendDone = false;
 		
-	while (app_vars_tx.sendDone==false) {
-		//printf("stuck in loop :( foreva\n");
-	}
+	while (app_vars_tx.sendDone==false);
 }
 
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {	
@@ -322,6 +319,8 @@ void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {
 }
 
 void radio_loadPacket(uint8_t* packet, uint16_t len){
+		// Reset radio FSM; // having this fixes a problem where if scum is switching between rx and tx, scum would fail to tx if didn't receive on tx previously
+		RFCONTROLLER_REG__CONTROL = RF_RESET;
     
     memcpy(&radio_vars.radio_tx_buffer[0],packet,len);
 
@@ -345,7 +344,7 @@ void radio_txEnable(){
 
 // Begin modulating the radio output for TX
 // Note that you need some delay before txNow() to allow txLoad() to finish loading the packet
-void radio_txNow(){    
+void radio_txNow(){
     RFCONTROLLER_REG__CONTROL = TX_SEND;
 }
 
@@ -366,7 +365,7 @@ void radio_rxEnable(){
     ANALOG_CFG_REG__16 = 0x1;
     
     // Where packet will be stored in memory
-    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);;
+    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);
     
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = RF_RESET;

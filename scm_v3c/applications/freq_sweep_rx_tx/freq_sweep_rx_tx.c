@@ -27,7 +27,7 @@
 
 #define FIXED_LC_COARSE_RX			22
 #define FIXED_LC_MID_RX				  22
-#define FIXED_LC_FINE_RX				16
+#define FIXED_LC_FINE_RX				17
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
 #define SWEEP_COARSE_START 22
