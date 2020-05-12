@@ -69,12 +69,12 @@ int main(void) {
     // This function handles all the analog scan chain setup
     initialize_mote();
     
-    radio_setEndFrameTxCb(cb_endFrame_tx);
-    rftimer_set_callback(cb_timer);
+    //radio_setEndFrameTxCb(cb_endFrame_tx);
+    //rftimer_set_callback(cb_timer);
     
     // Disable interrupts for the radio and rftimer
-    radio_disable_interrupts();
-    rftimer_disable_interrupts();
+    //radio_disable_interrupts();
+    //rftimer_disable_interrupts();
     
     // Check CRC to ensure there were no errors during optical programming
     printf("\r\n-------------------\r\n");
