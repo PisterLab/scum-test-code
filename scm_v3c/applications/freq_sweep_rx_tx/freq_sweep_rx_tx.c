@@ -14,25 +14,25 @@
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
-#define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
+#define MODE 2 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
 #define SWEEP_TX 0 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 0 // 1 if sweep, 0 if fixed
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
-#define FIXED_LC_COARSE_TX			23
-#define FIXED_LC_MID_TX			 		3
-#define FIXED_LC_FINE_TX				0
+#define FIXED_LC_COARSE_TX			22
+#define FIXED_LC_MID_TX			 		20
+#define FIXED_LC_FINE_TX				3
 
 #define FIXED_LC_COARSE_RX			22
-#define FIXED_LC_MID_RX				  23
-#define FIXED_LC_FINE_RX				7
+#define FIXED_LC_MID_RX				  22
+#define FIXED_LC_FINE_RX				22
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
 #define SWEEP_COARSE_START 22
-#define SWEEP_COARSE_END 24
-#define SWEEP_MID_START 0
+#define SWEEP_COARSE_END 23
+#define SWEEP_MID_START 20
 #define SWEEP_MID_END 32
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
@@ -72,6 +72,7 @@
 //=========================== variables =======================================
 
 char tx_packet[LEN_TX_PKT];
+int rx_count = 0;
 
 //=========================== prototypes ======================================
 
@@ -123,7 +124,7 @@ int main(void) {
 			case 2: //single tx then single rx then low power
 				printf("going into switching mode!\n");
 				
-				for (i = 0; i < 10; i++) {
+				for (i = 0; i < 100; i++) {
 					repeat_rx_tx(TX, SWEEP_TX, 1);// number means to send one packet. if you change to negative infinity. usually want to try for two
 					//for (j = 0; j < 1000000; j++) {}
 					repeat_rx_tx(RX, SWEEP_RX, 1);
@@ -300,6 +301,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 }
 
 void onRx(uint8_t *packet, uint8_t packet_len) {
+	rx_count += 1;
+	printf("received a total of %d packets\n", rx_count);
+	
 	//printf("packet first item: %d\n", packet[0]); //there are 20 or 22 packets and they are uint8_t
 	if (packet[1]==23)
 	{
