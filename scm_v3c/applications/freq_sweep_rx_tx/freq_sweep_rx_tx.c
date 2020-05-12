@@ -14,25 +14,25 @@
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
 #define SWEEP_TX 0 // 1 if sweep, 0 if fixed
-#define SWEEP_RX 1 // 1 if sweep, 0 if fixed
+#define SWEEP_RX 0 // 1 if sweep, 0 if fixed
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
-#define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			 		21
-#define FIXED_LC_FINE_TX				1
+#define FIXED_LC_COARSE_TX			23
+#define FIXED_LC_MID_TX			 		3
+#define FIXED_LC_FINE_TX				0
 
 #define FIXED_LC_COARSE_RX			22
-#define FIXED_LC_MID_RX				  22
-#define FIXED_LC_FINE_RX				17
+#define FIXED_LC_MID_RX				  23
+#define FIXED_LC_FINE_RX				7
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
 #define SWEEP_COARSE_START 22
-#define SWEEP_COARSE_END 23
-#define SWEEP_MID_START 10
+#define SWEEP_COARSE_END 24
+#define SWEEP_MID_START 0
 #define SWEEP_MID_END 32
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
@@ -103,6 +103,7 @@ int main(void) {
 		// Set up mote configuration
     // This function handles all the analog scan chain setup
     initialize_mote();
+		
 		radio_setCallbacks(onRx);
 
     if (OPTICAL_CALIBRATE) {

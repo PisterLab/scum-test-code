@@ -89,6 +89,8 @@ void optical_sfd_isr(){
     uint32_t IF_clk_target;
     uint32_t IF_coarse;
     uint32_t IF_fine;
+	
+		int coarse, mid, fine;
     
     HF_CLOCK_fine       = scm3c_hw_interface_get_HF_CLOCK_fine();
     HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
@@ -124,7 +126,7 @@ void optical_sfd_isr(){
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
     count_LC = rdata_lsb + (rdata_msb << 16);
-    
+		    
     // Read IF ADC_CLK counter
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000);
@@ -160,7 +162,7 @@ void optical_sfd_isr(){
             optical_vars.LC_code += 1;
         }
         LC_monotonic(optical_vars.LC_code);
-            
+				
         // Do correction on 2M RC
         // Coarse step ~1100 counts, fine ~150 counts, superfine ~25
         // Too fast
@@ -225,9 +227,15 @@ void optical_sfd_isr(){
     // Debugging output
     printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d,%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_coarse,IF_fine); 
      
-    if(optical_vars.optical_cal_iteration == 15){
+    if(optical_vars.optical_cal_iteration == 25){
 				printf("#define HF_COARSE %u\n#define HF_FINE %u\n#define RC2M_COARSE %u\n#define RC2M_FINE %u\n#define RC2M_SUPERFINE %u\n#define IF_COARSE %u\n#define IF_FINE %u\n",
 							HF_CLOCK_coarse, HF_CLOCK_fine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
+			
+				coarse = LC_monotonic_coarse(optical_vars.LC_code);
+				mid = LC_monotonic_mid(optical_vars.LC_code);
+				fine = LC_monotonic_fine(optical_vars.LC_code);
+				//printf("Optically calibrated LC codes for tx channel 11 (highly dependent on voltage; not reliable): coarse %d, mid: %d, fine: %d\n", coarse, mid, fine);
+				printf("The LC codes for rx/tx are very roughly near (note this is highly unreliable): coarse %d, mid: %d, fine: %d\n", coarse, mid, fine);
 			
         // Disable this ISR
         ICER = 0x0800;

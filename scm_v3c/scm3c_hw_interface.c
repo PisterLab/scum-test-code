@@ -94,11 +94,12 @@ void optical_calibrate(void) {
 		// Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
 		// After bootloading the next thing that happens is frequency calibration using optical
 		printf("Calibrating frequencies...\r\n");
+
 		
 		// For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
 		// by calling radio rxEnable
 		//radio_rxEnable_optical();
-		radio_rxEnable();
+		radio_rxEnable_optical();
 	
 		// Enable optical SFD interrupt for optical calibration
 		optical_enable();
@@ -1630,9 +1631,42 @@ void LC_monotonic(int LC_code){
     
     // coarse=24, mid=0, fine=10 worked at Inria for Tx Frequency
     LC_FREQCHANGE(coarse,mid,fine);
-    
+		//printf("coarse %d, mid %d, fine %d\n", coarse, mid, fine);
 }
 
+int LC_monotonic_coarse(int LC_code) {
+		int coarse_divs = 140;
+		int coarse = (((LC_code/coarse_divs + 19) & 0x000000FF));
+	
+		return coarse;
+}
+
+int LC_monotonic_mid(int LC_code) {
+		int mid_fix = 0;
+		int mid_divs = 23; // works for Ioana's board, Fil's board, Brad's other board
+		int coarse_divs = 140;
+		int mid;
+	
+		LC_code = LC_code % coarse_divs;
+		mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
+
+		return mid;
+}
+
+int LC_monotonic_fine(int LC_code) {
+		int fine_fix = 0;
+		int mid_fix = 0;
+		int mid_divs = 23; // works for Ioana's board, Fil's board, Brad's other board
+		int coarse_divs = 140;
+		int fine;
+		
+		LC_code = LC_code % coarse_divs;
+		if (LC_code/mid_divs >= 2) {fine_fix = 0;};
+		fine = (((LC_code % mid_divs + fine_fix) & 0x000000FF));
+		if (fine > 15){fine++;};
+		
+		return fine;
+}
 
 void set_LC_current(unsigned int current) {
     unsigned int current_msb = (current & 0x000000F0) >> 4;

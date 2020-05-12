@@ -111,6 +111,9 @@ void set_LO_supply(unsigned int code, unsigned char panic);
 void set_DIV_supply(unsigned int code, unsigned char panic);
 void prescaler(int code);
 void LC_monotonic(int LC_code);
+int LC_monotonic_coarse(int LC_code);
+int LC_monotonic_mid(int LC_code);
+int LC_monotonic_fine(int LC_code);
 void LC_FREQCHANGE(int coarse, int mid, int fine);
 void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
 
