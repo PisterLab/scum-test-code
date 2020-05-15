@@ -96,7 +96,7 @@ typedef struct {
     // a flag to mark when to change configure
     volatile    bool            changeConfig;
     // a flag to avoid change configure during receiving frame
-    volatile    bool            rxFrameStarted; 
+    volatile    bool            rxFrameStarted;
     
     volatile    uint32_t        IF_estimate;
     volatile    uint32_t        LQI_chip_errors;
@@ -172,7 +172,20 @@ void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
 	radio_rxNow();
 	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_RX);
 	app_vars_rx.changeConfig = false;
+	// the first check is to wait until the timer period is up
+	// the second check is to wait until the end frame rx is done (could take a while if sending ack packets)
 	while (app_vars_rx.changeConfig==false);
+}
+
+void send_ack(uint8_t coarse, uint8_t mid, uint8_t fine) {
+	char tx_packet[LEN_TX_PKT];
+	
+	tx_packet[0] = 7;
+	tx_packet[1] = 7;
+	tx_packet[2] = 7;
+	tx_packet[3] = 7;
+	
+	send_packet(coarse, mid, fine, tx_packet);
 }
 
 void cb_startFrame_tx(uint32_t timestamp){
@@ -191,8 +204,7 @@ void cb_startFrame_rx(uint32_t timestamp){
 
 void cb_endFrame_rx(uint32_t timestamp){		
     uint8_t i;
-
-    
+	    
     radio_getReceivedFrame(
         &(app_vars_rx.packet[0]),
         &app_vars_rx.packet_len,
@@ -228,7 +240,6 @@ void cb_endFrame_rx(uint32_t timestamp){
     }
     
     app_vars_rx.rxFrameStarted = false;
-    
 }
 
 void    cb_timer(void) {
@@ -240,6 +251,7 @@ void    cb_timer(void) {
 				// in the case of Rx set the flag
 				app_vars_rx.changeConfig = true;
 				//app_vars_rx.rxFrameStarted = false;
+			
 				radio_rfOff();
 		}
 }

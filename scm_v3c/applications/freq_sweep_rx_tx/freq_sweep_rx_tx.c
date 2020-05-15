@@ -14,25 +14,28 @@
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 2 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
-#define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb
+#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
+#define SOLAR_DELAY 5000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
 #define SWEEP_TX 0 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 0 // 1 if sweep, 0 if fixed
+#define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
+#define NUM_ACK 1 // number of acknowledgments to send upon receiving a packet
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
 #define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			 		20
-#define FIXED_LC_FINE_TX				3
+#define FIXED_LC_MID_TX			 		22
+#define FIXED_LC_FINE_TX				9
 
 #define FIXED_LC_COARSE_RX			22
 #define FIXED_LC_MID_RX				  22
-#define FIXED_LC_FINE_RX				22
+#define FIXED_LC_FINE_RX				19
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
 #define SWEEP_COARSE_START 22
 #define SWEEP_COARSE_END 23
-#define SWEEP_MID_START 20
+#define SWEEP_MID_START 15
 #define SWEEP_MID_END 32
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
@@ -73,11 +76,14 @@
 
 char tx_packet[LEN_TX_PKT];
 int rx_count = 0;
+bool need_to_send_ack = false;
 
 //=========================== prototypes ======================================
 
 void		 repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packets);
+void		 radio_delay(void);
 void		 onRx(uint8_t *packet, uint8_t packet_len);
+
 
 //=========================== main ============================================
 	
@@ -229,15 +235,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 				for (cfg_fine=cfg_fine_start;cfg_fine<cfg_fine_stop;cfg_fine += 1){										
 					int i;
 					uint8_t k;
+					uint8_t j;
 					
-					if (SOLAR_MODE) {
-						low_power_mode();
-						for (i = 0; i < 5000; i++) {}
-						normal_power_mode();
-						
-						//for (i = 0; i < 900000; i++) {}
-						//printf("rx/tx send/receive\n");
-					}
+					radio_delay();
 					
 					if (should_sweep) {
 						printf( "coarse=%d, middle=%d, fine=%d\r\n", cfg_coarse, cfg_mid, cfg_fine);
@@ -246,6 +246,18 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 					for (i=0;i<NUMPKT_PER_CFG;i++) {
 						if (radio_mode == RX) {
 							receive_packet(cfg_coarse, cfg_mid, cfg_fine);
+							
+							if (need_to_send_ack) {
+								for (j = 0; j < NUM_ACK; j++) {
+									radio_delay();
+									
+									printf("sending ack %d out of %d\n", j + 1, NUM_ACK);
+									
+									send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX);
+								}
+								
+								need_to_send_ack = false;
+							}
 						}
 						else { // TX mode
 							if (!SEND_OPTICAL) {
@@ -300,13 +312,30 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	}
 }
 
+void radio_delay(void) {
+	uint16_t j;
+	
+	if (SOLAR_MODE) {
+		low_power_mode();
+		for (j = 0; j < 5000; j++) {}
+		normal_power_mode();
+	}
+}
+
 void onRx(uint8_t *packet, uint8_t packet_len) {
+	uint8_t i;
+	uint16_t j;
+	
 	rx_count += 1;
 	printf("received a total of %d packets\n", rx_count);
 	
+	if (SEND_ACK)
+		need_to_send_ack = true;
+	
 	//printf("packet first item: %d\n", packet[0]); //there are 20 or 22 packets and they are uint8_t
-	if (packet[1]==23)
+	if (packet[1]==1)
 	{
+		//printf("Got message to actuate gripper!!!\n");
 		//sara(100, 2,1);
 	}
 }
