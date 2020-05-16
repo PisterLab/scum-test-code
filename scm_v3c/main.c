@@ -107,7 +107,8 @@ while(1)
 	//2.5 Hz at (x, 10k)
 	//96 Hz at (x, 250)
 	// 300 toggles (300, x)
-	sara_start(100,100);
+		//sara_start(300,300); //clock 26Hz signal 1.3Hz
+	sara_start(300,300);
 	//(200,200); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
 	//GPIO_REG__OUTPUT=0x0000;
 	

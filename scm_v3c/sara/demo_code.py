@@ -63,12 +63,12 @@ def demo_gpio_control(uart_port):
 
 
 if __name__ == "__main__":
-	programmer_port = "COM15"
+	programmer_port = "COM4"
 	scm_port = "COM23"
 
 	# Programs SCM
 	program_cortex_specs = dict(teensy_port=programmer_port,
-								uart_port=scm_port,
+								uart_port=None,
 								file_binary="./code.bin",
 								boot_mode="optical",
 								skip_reset=False,
