@@ -55,7 +55,7 @@ signed short cdr_tau_history[11] = {0};
 
 #define CHANNEL             11             ///< 11=2.405GHz
 #define TIMER_PERIOD_TX        2000           ///< 500 = 1ms@500kHz
-#define TIMER_PERIOD_RX        1000           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD_RX        2000           ///< 500 = 1ms@500kHz
 
 //=========================== variables =======================================
 
