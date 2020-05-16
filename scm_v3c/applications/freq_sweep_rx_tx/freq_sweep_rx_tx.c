@@ -156,6 +156,11 @@ int main(void) {
 				low_power_mode();
 				while (1) {}
 				break;
+			case 6: //turn on go to low power and after you are done closing send packet
+				while(1)
+				{low_power_mode();
+				sara();}
+				break;
 			default:
 				printf("Invalid mode\n");
 				break;
