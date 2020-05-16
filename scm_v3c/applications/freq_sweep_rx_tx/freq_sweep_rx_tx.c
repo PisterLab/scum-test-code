@@ -10,11 +10,12 @@
 #include "rftimer.h"
 #include "radio.h"
 #include "optical.h"
+#include "zappy2.h"
 
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define MODE 6 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
 #define SOLAR_DELAY 5000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
@@ -158,8 +159,16 @@ int main(void) {
 				break;
 			case 6: //turn on go to low power and after you are done closing send packet
 				while(1)
-				{low_power_mode();
-				sara();}
+				{
+					low_power_mode();
+					sara_start(300,300);
+					//(200,200); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
+					//GPIO_REG__OUTPUT=0x0000;
+					
+					for(i=0;i<100;i++);
+					sara_release(300);
+					for(i=0;i<100;i++);
+				}
 				break;
 			default:
 				printf("Invalid mode\n");

@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Memory_Map.h"
-#include "scm3_hardware_interface.h"
-#include "scm3C_hardware_interface.h"
+//#include "scm3_hardware_interface.h"
+//#include "scm3c_hardware_interface.h"
+#include "scm3c_hw_interface.h"
 void sara_start(unsigned int toggles,unsigned int periodCounts)
 {	
 	unsigned int i=1;
