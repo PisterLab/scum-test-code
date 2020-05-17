@@ -8,7 +8,7 @@ matplotlib.rcParams.update({'font.size': 12})
 
 # =========================== variables =======================================
 
-LOG_TXT     = "log_temp_if_estimate_2.txt"
+LOG_TXT     = "log_1.txt"
 
 
 SETTING_OFFSET              = 23*32*32
@@ -118,19 +118,31 @@ if __name__ == '__main__':
 
         x_axis = [i for i in range(len(data[key]))]
         
-        ax.plot(x_axis, data[key], '.')
-        if key == 'linear_config':
-            ax.plot(x_axis, [maxlength_list[0] for i in x_axis], 'r-')
-            ax.plot(x_axis, [maxlength_list[-1] for i in x_axis], 'r-')
-            
-        yticks = [4*i + (maxlength_list[0] & 0xFFE0) for i in range(8)]
-        ylabel = [converter_config_linear_2_text(i) for i in yticks]
         
-        ax.set_yticks(yticks)
-        ax.set_yticklabels(ylabel)
+        if key == 'linear_config':
+            ax.plot(x_axis, data[key], '.', label='freq_setting')
+            ax.plot(x_axis, [maxlength_list[0] for i in x_axis], 'k--')
+            ax.plot(x_axis, [maxlength_list[-1] for i in x_axis], 'k--')
+            
+            yticks = [4*i + (maxlength_list[0] & 0xFFE0) for i in range(8)]
+            ylabel = [converter_config_linear_2_text(i) for i in yticks]
+            
+            ax.set_yticks(yticks)
+            ax.set_yticklabels(ylabel)
+            
+            
+            ax2 = ax.twinx()  # instantiate a second axes that shares the same x-axis
+            ax2.plot(x_axis, data['temp'], 'r-',label='temperature (C)')
+            ax2.set_ylim(25, 40)
+            ax2.set_ylabel('temperature')
+            ax2.legend()
+        else:
+            ax.plot(x_axis, data[key], '.')
         
         if key == 'linear_config':
             ax.set_ylabel('frequency setting')
+            ax.legend()
+            ax.set_xlim(0,16000)
         else:
             ax.set_ylabel(key)
          
