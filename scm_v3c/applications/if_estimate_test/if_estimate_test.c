@@ -25,16 +25,21 @@ packet is received and adjust the coarse, mid and fine settings accordingly.
 #define CRC_VALUE           (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH         (*((unsigned int *) 0x0000FFF8))
     
-#define LENGTH_PACKET       125+LENGTH_CRC ///< maximum length is 127 bytes
-#define LEN_RX_PKT          20+LENGTH_CRC  ///< length of rx packet
+#define LENGTH_PACKET           125+LENGTH_CRC ///< maximum length is 127 bytes
+#define LEN_RX_PKT              20+LENGTH_CRC  ///< length of rx packet
 
-#define TIMER_PERIOD        7500           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD            7500           ///< 500 = 1ms@500kHz
 
-#define NUMPKT_PER_CFG      1
-#define STEPS_PER_CONFIG    32
+#define NUMPKT_PER_CFG          1
+#define STEPS_PER_CONFIG        32
 
-#define COARSE_START        23
-#define COARSE_END          25
+#define COARSE_START            24
+#define COARSE_END              25
+
+#define IF_ESTIMATE_PER_FINE_CODE 17
+#define NUM_SWEEP_ROUNDS          1
+#define IF_ESTIMATE_HISTORY_LEN   10
+#define TARGET_IF_ESTIMATE        500
 
 //=========================== variables =======================================
 
@@ -60,10 +65,17 @@ typedef struct {
     
                 uint8_t         target_coarse;
                 uint8_t         target_mid;
+                uint8_t         target_fine;
                 
                 uint16_t        settings[STEPS_PER_CONFIG];
                 uint8_t         num_settings;
                 uint8_t         pre_num_settings;
+                
+                uint8_t         num_sweep_rounds;
+                
+                bool            if_estimate_calibration_started;
+                uint32_t        if_estimate_history[IF_ESTIMATE_HISTORY_LEN];
+                uint8_t         history_index;
 } app_vars_t;
 
 app_vars_t app_vars;
@@ -73,6 +85,7 @@ app_vars_t app_vars;
 void     cb_startFrame_rx(uint32_t timestamp);
 void     cb_endFrame_rx(uint32_t timestamp);
 void     cb_timer(void);
+void     update_lc_frequency_setting(uint32_t* history, uint8_t len);
 
 //=========================== main ============================================
 
@@ -80,9 +93,9 @@ int main(void) {
     
     uint32_t calc_crc;
     
-    uint8_t         i;
-    uint8_t         j;
-    uint8_t         offset;
+    uint16_t         i;
+    uint16_t         j;
+    uint16_t         offset;
     
     memset(&app_vars,0,sizeof(app_vars_t));
     
@@ -140,8 +153,12 @@ int main(void) {
     radio_enable_interrupts();
     
     // configure 
+    
+    app_vars.if_estimate_calibration_started = false;
 
-    while(1){
+
+    // phase 1: sweep to find the target coarse and mid setting
+    while(app_vars.num_sweep_rounds < NUM_SWEEP_ROUNDS){
         
         // loop through all configuration
         for (app_vars.cfg_coarse=COARSE_START;app_vars.cfg_coarse<COARSE_END;app_vars.cfg_coarse++){
@@ -154,6 +171,10 @@ int main(void) {
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         while(app_vars.rxFrameStarted == true);
                         radio_rfOff();
+                        
+                        // some delay required here
+                        for(j=0;j<0xffff;j++);
+                        
                         LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine);
                         radio_rxEnable();
                         radio_rxNow();
@@ -165,14 +186,43 @@ int main(void) {
             }
         }
         
-        printf("Sweep Done!\r\n");
-        printf(
-            "target_coarse = %d target_mid = %d (num_settings = %d)\r\n", 
-            app_vars.target_coarse, 
-            app_vars.target_mid,
-            app_vars.pre_num_settings
-        );
+        app_vars.num_sweep_rounds+=1;
     }
+        
+    printf("Sweep Done!\r\n");
+    printf(
+        "target_coarse = %d target_mid = %d  target_fine = %d (num_settings = %d)\r\n", 
+        app_vars.target_coarse, 
+        app_vars.target_mid,
+        app_vars.target_fine,
+        app_vars.pre_num_settings
+    );
+    
+    // phase 2: use the target coarse and mid settings to receive packet
+    //      adjust fine code according to the IF estimates of last samples
+    
+    app_vars.if_estimate_calibration_started = true;
+    
+    while (1) {
+        while(app_vars.rxFrameStarted == true);
+        radio_rfOff();
+        
+        // some delay required here
+        for(j=0;j<0xffff;j++);
+        
+        app_vars.cfg_coarse = app_vars.target_coarse;
+        app_vars.cfg_mid    = app_vars.target_mid;
+        app_vars.cfg_fine   = app_vars.target_fine;
+        
+        LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine);
+        radio_rxEnable();
+        
+        radio_rxNow();
+        rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
+        app_vars.changeConfig = false;
+        while (app_vars.changeConfig==false);
+    }
+    
 }
 
 //=========================== public ==========================================
@@ -208,12 +258,8 @@ void    cb_endFrame_rx(uint32_t timestamp){
     ){
         
         printf(
-            "pkt received on ch%d %c%c%c%c.%d.%d.%d IF_estimate %d LQI_chip_errors %d \r\n",
-            app_vars.packet[4],
-            app_vars.packet[0],
-            app_vars.packet[1],
-            app_vars.packet[2],
-            app_vars.packet[3],
+        "pkt received temp %d setting %d.%d.%d IF_estimate %d LQI_chip_errors %d \r\n",
+            (app_vars.packet[1]<<8) | app_vars.packet[2],
             app_vars.cfg_coarse,
             app_vars.cfg_mid,
             app_vars.cfg_fine,
@@ -226,50 +272,60 @@ void    cb_endFrame_rx(uint32_t timestamp){
         
         // record the settings
         
-        setting = (app_vars.cfg_coarse << 10) | \
-                  (app_vars.cfg_mid    << 5)  | \
-                  (app_vars.cfg_fine);
+        if (app_vars.if_estimate_calibration_started == false) {
         
-        if (
-            app_vars.target_coarse == 0 ||
-            app_vars.target_mid    == 0
-        ){
+            setting = (app_vars.cfg_coarse << 10) | \
+                      (app_vars.cfg_mid    << 5)  | \
+                      (app_vars.cfg_fine);
             
-            // first time record
-            app_vars.num_settings     = 0;
-            
-            app_vars.settings[0]      = setting;
-            
-            app_vars.target_coarse    = (app_vars.settings[0] >> 10) & 0x001F;
-            app_vars.target_mid       = (app_vars.settings[0] >> 5 ) & 0x001F;
-            
-            app_vars.num_settings += 1;
-            
-        } else {
             if (
-                ((app_vars.settings[0] >> 10) & 0x001F) == app_vars.cfg_coarse &&
-                ((app_vars.settings[0] >> 5 ) & 0x001F) == app_vars.cfg_mid
-            ) {
-                app_vars.settings[app_vars.num_settings] = setting;
-                
-                app_vars.num_settings += 1;
-            } else {
-                
-                // new coarse and mid settings
-                
-                if (app_vars.num_settings>app_vars.pre_num_settings){
-                    app_vars.pre_num_settings = app_vars.num_settings;
-                    app_vars.target_coarse    = (app_vars.settings[0] >> 10) & 0x001F;
-                    app_vars.target_mid       = (app_vars.settings[0] >> 5 ) & 0x001F;
-                }
+                app_vars.target_coarse == 0 ||
+                app_vars.target_mid    == 0
+            ){
                 
                 // first time record
                 app_vars.num_settings     = 0;
+                
                 app_vars.settings[0]      = setting;
-                app_vars.num_settings    += 1;
+                
+                app_vars.target_coarse    = (app_vars.settings[0] >> 10) & 0x001F;
+                app_vars.target_mid       = (app_vars.settings[0] >> 5 ) & 0x001F;
+                app_vars.target_fine      = (app_vars.settings[0]      ) & 0x001F;
+                
+                app_vars.num_settings += 1;
+                
+            } else {
+                if (
+                    ((app_vars.settings[0] >> 10) & 0x001F) == app_vars.cfg_coarse &&
+                    ((app_vars.settings[0] >> 5 ) & 0x001F) == app_vars.cfg_mid
+                ) {
+                    app_vars.settings[app_vars.num_settings] = setting;
+                    
+                    app_vars.num_settings += 1;
+                } else {
+                    
+                    // new coarse and mid settings
+                    
+                    if (app_vars.num_settings>app_vars.pre_num_settings){
+                        app_vars.pre_num_settings = app_vars.num_settings;
+                        app_vars.target_coarse    = (app_vars.settings[0] >> 10) & 0x001F;
+                        app_vars.target_mid       = (app_vars.settings[0] >> 5 ) & 0x001F;
+                        app_vars.target_fine      = app_vars.settings[app_vars.num_settings/2] & 0x001F;
+                    }
+                    
+                    // first time record
+                    app_vars.num_settings     = 0;
+                    app_vars.settings[0]      = setting;
+                    app_vars.num_settings    += 1;
+                }
+            }
+        } else {
+            app_vars.if_estimate_history[app_vars.history_index++] = app_vars.IF_estimate;
+            if (app_vars.history_index == IF_ESTIMATE_HISTORY_LEN) {
+                update_lc_frequency_setting(app_vars.if_estimate_history, app_vars.history_index);
+                app_vars.history_index = 0;
             }
         }
-        
         
     }
     
@@ -283,5 +339,26 @@ void    cb_endFrame_rx(uint32_t timestamp){
 void    cb_timer(void) {
     
     app_vars.changeConfig = true;
+}
+
+void update_lc_frequency_setting(uint32_t* history, uint8_t len){
+    
+    uint8_t  i;
+    uint32_t avg_if_estimate;
+    int16_t  offset;
+    
+    // average the if estimate in history
+    
+    for (i=0;i<len;i++){
+        avg_if_estimate += history[i];
+    }
+    avg_if_estimate /= len;
+    
+    offset = (int16_t)(avg_if_estimate) - (int16_t)(TARGET_IF_ESTIMATE);
+    
+    printf("avg_if_estimate = %d offset = %d\r\n",
+            avg_if_estimate,     offset);
+    
+    app_vars.target_fine += offset/IF_ESTIMATE_PER_FINE_CODE;
 }
 
