@@ -19,6 +19,7 @@ packet is received and adjust the coarse, mid and fine settings accordingly.
 #include "rftimer.h"
 #include "radio.h"
 #include "optical.h"
+#include "gpio.h"
 
 //=========================== defines =========================================
 
@@ -68,6 +69,7 @@ typedef struct {
                 uint8_t         target_fine;
                 
                 uint16_t        settings[STEPS_PER_CONFIG];
+                uint16_t        chip_error[STEPS_PER_CONFIG];
                 uint8_t         num_settings;
                 uint8_t         pre_num_settings;
                 
@@ -75,6 +77,7 @@ typedef struct {
                 
                 bool            if_estimate_calibration_started;
                 uint32_t        if_estimate_history[IF_ESTIMATE_HISTORY_LEN];
+                
                 uint8_t         history_index;
 } app_vars_t;
 
@@ -86,6 +89,10 @@ void     cb_startFrame_rx(uint32_t timestamp);
 void     cb_endFrame_rx(uint32_t timestamp);
 void     cb_timer(void);
 void     update_lc_frequency_setting(uint32_t* history, uint8_t len);
+
+// ========================== helper ==========================================
+
+void delay(void);
 
 //=========================== main ============================================
 
@@ -172,8 +179,11 @@ int main(void) {
                         while(app_vars.rxFrameStarted == true);
                         radio_rfOff();
                         
+                        gpio_3_set();
                         // some delay required here
-                        for(j=0;j<0xffff;j++);
+                        delay();
+                        gpio_3_clr();
+                        
                         
                         LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine);
                         radio_rxEnable();
@@ -207,16 +217,19 @@ int main(void) {
         while(app_vars.rxFrameStarted == true);
         radio_rfOff();
         
+        gpio_1_set();
         // some delay required here
-        for(j=0;j<0xffff;j++);
+        delay();
         
         app_vars.cfg_coarse = app_vars.target_coarse;
         app_vars.cfg_mid    = app_vars.target_mid;
         app_vars.cfg_fine   = app_vars.target_fine;
         
         LC_FREQCHANGE(app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine);
-        radio_rxEnable();
         
+        gpio_1_clr();
+        
+        radio_rxEnable();
         radio_rxNow();
         rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
         app_vars.changeConfig = false;
@@ -239,6 +252,10 @@ void    cb_endFrame_rx(uint32_t timestamp){
     uint8_t  i;
     uint16_t setting;
     
+    uint32_t count_2M;
+    uint32_t count_LC;
+    uint32_t count_adc;
+    
     radio_getReceivedFrame(
         &(app_vars.packet[0]),
         &app_vars.packet_len,
@@ -257,14 +274,19 @@ void    cb_endFrame_rx(uint32_t timestamp){
         app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
     ){
         
+        read_counters_3B(&count_2M,&count_LC,&count_adc);
+        
         printf(
-        "pkt received temp %d setting %d.%d.%d IF_estimate %d LQI_chip_errors %d \r\n",
+        "pkt received temp %d setting %d.%d.%d IF_estimate %d LQI_chip_errors %d count_2M %d count_LC %d count_adc %d\r\n",
             (app_vars.packet[1]<<8) | app_vars.packet[2],
             app_vars.cfg_coarse,
             app_vars.cfg_mid,
             app_vars.cfg_fine,
             app_vars.IF_estimate,
-            app_vars.LQI_chip_errors
+            app_vars.LQI_chip_errors,
+            count_2M,
+            count_LC,
+            count_adc
         );
         
         app_vars.packet_len = 0;
@@ -287,6 +309,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
                 app_vars.num_settings     = 0;
                 
                 app_vars.settings[0]      = setting;
+                app_vars.chip_error[0]    = app_vars.LQI_chip_errors;
                 
                 app_vars.target_coarse    = (app_vars.settings[0] >> 10) & 0x001F;
                 app_vars.target_mid       = (app_vars.settings[0] >> 5 ) & 0x001F;
@@ -299,7 +322,8 @@ void    cb_endFrame_rx(uint32_t timestamp){
                     ((app_vars.settings[0] >> 10) & 0x001F) == app_vars.cfg_coarse &&
                     ((app_vars.settings[0] >> 5 ) & 0x001F) == app_vars.cfg_mid
                 ) {
-                    app_vars.settings[app_vars.num_settings] = setting;
+                    app_vars.settings[app_vars.num_settings]   = setting;
+                    app_vars.chip_error[app_vars.num_settings] = app_vars.LQI_chip_errors;
                     
                     app_vars.num_settings += 1;
                 } else {
@@ -311,11 +335,23 @@ void    cb_endFrame_rx(uint32_t timestamp){
                         app_vars.target_coarse    = (app_vars.settings[0] >> 10) & 0x001F;
                         app_vars.target_mid       = (app_vars.settings[0] >> 5 ) & 0x001F;
                         app_vars.target_fine      = app_vars.settings[app_vars.num_settings/2] & 0x001F;
+                        for (i=0; i<app_vars.num_settings/2; i++) {
+                            if(app_vars.chip_error[app_vars.num_settings/2-i]==0) {
+                                app_vars.target_fine      = app_vars.settings[app_vars.num_settings/2-i] & 0x001F;
+                                break;
+                            } else {
+                                if(app_vars.chip_error[app_vars.num_settings/2+i]==0) {
+                                    app_vars.target_fine      = app_vars.settings[app_vars.num_settings/2-i] & 0x001F;
+                                    break;
+                                }
+                            }
+                        }
                     }
                     
                     // first time record
                     app_vars.num_settings     = 0;
                     app_vars.settings[0]      = setting;
+                    app_vars.chip_error[0]    = app_vars.LQI_chip_errors;
                     app_vars.num_settings    += 1;
                 }
             }
@@ -360,5 +396,14 @@ void update_lc_frequency_setting(uint32_t* history, uint8_t len){
             avg_if_estimate,     offset);
     
     app_vars.target_fine += offset/IF_ESTIMATE_PER_FINE_CODE;
+}
+
+// ========================== helper ===========================================
+
+#define NUMBER_LOOP 0x2Bff
+
+void delay(void){
+    uint16_t i;
+    for (i=0;i<NUMBER_LOOP;i++);
 }
 
