@@ -19,7 +19,7 @@ NUM_CONFIG                  = 2*32*32
 data = {
     'temp':           [],
     'linear_config':  [],
-    'IF_estimate':    [],
+    'IF_count':    [],
     'avg_estimate':   [],
     'LQI_chip_error': [],
 }
@@ -36,14 +36,14 @@ def converter_config_linear_2_text(linear_configure):
 def converter_config_text_2_linear(text_config):
     temp           = None
     linear_config  = None
-    IF_estimate    = None
+    IF_count    = None
     LQI_chip_error = None
     try:
     
         info                = text_config.split(' ')
         temp                = info[3]
         coarse, mid, fine   = info[5].split('.')
-        IF_estimate         = int(info[7])
+        IF_count         = int(info[7])
         LQI_chip_error      = int(info[9][:-2])
         
         assert int(coarse) < 32 and int(mid) < 32 and int(fine) < 32
@@ -51,7 +51,7 @@ def converter_config_text_2_linear(text_config):
         
     except:
         pass
-    return temp, linear_config, IF_estimate, LQI_chip_error
+    return temp, linear_config, IF_count, LQI_chip_error
     
 # ==== tests
 
@@ -73,17 +73,17 @@ if __name__ == '__main__':
                         
                     if sweep_done and line.startswith("pkt received"):
                 
-                        temp, linear_config, IF_estimate, LQI_chip_error = converter_config_text_2_linear(line)
-                        if temp != None and linear_config != None and IF_estimate != None and LQI_chip_error != None:
+                        temp, linear_config, IF_count, LQI_chip_error = converter_config_text_2_linear(line)
+                        if temp != None and linear_config != None and IF_count != None and LQI_chip_error != None:
                             data['temp'].append(temp)
                             data['linear_config'].append(linear_config)
-                            data['IF_estimate'].append(IF_estimate)
+                            data['IF_count'].append(IF_count)
                             data['LQI_chip_error'].append(LQI_chip_error)
                             
                     elif line.startswith("pkt received"):
                         
-                        temp, linear_config, IF_estimate, LQI_chip_error = converter_config_text_2_linear(line)
-                        if temp != None and linear_config != None and IF_estimate != None and LQI_chip_error != None:
+                        temp, linear_config, IF_count, LQI_chip_error = converter_config_text_2_linear(line)
+                        if temp != None and linear_config != None and IF_count != None and LQI_chip_error != None:
                             if len(temporal_list) == 0:
                                 temporal_list.append([linear_config])
                             elif (linear_config>>5) == (temporal_list[-1][0]>>5):
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                                 temporal_list.append([linear_config])
                                 
                         
-                    if line.startswith("avg_if_estimate"):
+                    if line.startswith("avg_IF_count"):
                         data['avg_estimate'].append(int(line.split(' ')[2]))
                         
     # verify data
@@ -142,9 +142,10 @@ if __name__ == '__main__':
         if key == 'linear_config':
             ax.set_ylabel('frequency setting')
             ax.legend()
-            ax.set_xlim(0,16000)
         else:
             ax.set_ylabel(key)
+        
+        ax.set_xlim(0,17000)
          
         ax.legend(markerscale=0.7, scatterpoints=1, loc=2)
         ax.grid(True)
