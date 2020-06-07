@@ -76,16 +76,35 @@ void rftimer_isr(void) {
         }
     }
     
-    if (interrupt & 0x00000002){
+    if (interrupt & 0x00000002){ // MEASURE TEMPERATURE INTERRUPT 
 #ifdef ENABLE_PRINTF
         printf("COMPARE1 MATCH\r\n");
 #endif
+			
+			printf("do temperature measurement here!\n");
+			
+			// Reset the interrupt
+			RFTIMER_REG__CONTROL = 0x7;
+			RFTIMER_REG__MAX_COUNT = 0x0000C350;
+			RFTIMER_REG__COMPARE1 = 0x0000C350;
+			RFTIMER_REG__COMPARE1_CONTROL = 0x03;
+
+			// Reset all counters
+			ANALOG_CFG_REG__0 = 0x0000;
+
+			// Enable all counters
+			//ANALOG_CFG_REG__0 = 0x3FFF;
+			
+			// disable the interrupt
+			ICER = 0x0080;
     }
     
-    if (interrupt & 0x00000004){
+    if (interrupt & 0x00000004){ // MEASURE 2M 32K COUNTER INTERRUPT
 #ifdef ENABLE_PRINTF
         printf("COMPARE2 MATCH\r\n");
 #endif
+			
+			printf("do 2M and 32K count measurement here!\n");
     }
     
     // Watchdog has expired - no packet received

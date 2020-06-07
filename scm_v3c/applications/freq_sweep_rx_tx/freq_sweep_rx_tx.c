@@ -4,24 +4,24 @@
 
 #include <string.h>
 
-
 #include "scm3c_hw_interface.h"
 #include "memory_map.h"
 #include "rftimer.h"
 #include "radio.h"
 #include "optical.h"
 #include "zappy2.h"
+#include "temperature.h"
 
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 6 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
 #define SOLAR_DELAY 5000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
-#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
-#define SWEEP_RX 0 // 1 if sweep, 0 if fixed
-#define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
+#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
+#define SWEEP_RX 1 // 1 if sweep, 0 if fixed
+#define SEND_ACK 0 // 1 if we should send an ack after packet rx and 0 otherwise
 #define NUM_ACK 1 // number of acknowledgments to send upon receiving a packet
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
@@ -75,8 +75,10 @@
 
 //=========================== variables =======================================
 
-char tx_packet[LEN_TX_PKT];
-int rx_count = 0;
+char tx_packet[LEN_TX_PKT]; // contains the contents of the packet to be transmitted
+int rx_count = 0; // count of the number of packets received
+// set to true if should send ack right after the receive completes.f].
+// Use SEND_ACK to determine whether to send an acknowledgemnets or not.
 bool need_to_send_ack = false;
 
 //=========================== prototypes ======================================
@@ -84,7 +86,6 @@ bool need_to_send_ack = false;
 void		 repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packets);
 void		 radio_delay(void);
 void		 onRx(uint8_t *packet, uint8_t packet_len);
-
 
 //=========================== main ============================================
 	

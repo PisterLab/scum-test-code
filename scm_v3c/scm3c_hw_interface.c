@@ -55,13 +55,13 @@ scm3c_hw_interface_vars_t scm3c_hw_interface_vars;
 
 //=========================== public ==========================================
 
-// austin
+// AUSTIN
 void update_scan_chain() {
 		analog_scan_chain_write();
 		analog_scan_chain_load();
 }
 
-// lowers clock frequency to 700kHz
+// lowers clock frequency to 78.4kHz (or is it 700kHz?)
 void low_power_mode(void) {
 		set_asc_bit(50);
 		set_asc_bit(51);
@@ -71,7 +71,7 @@ void low_power_mode(void) {
 		set_asc_bit(55);
 		set_asc_bit(56);
 		set_asc_bit(57);
-		
+	
 		update_scan_chain();
 }
 
@@ -85,9 +85,80 @@ void normal_power_mode(void) {
 		clear_asc_bit(55);
 		clear_asc_bit(56);
 		clear_asc_bit(57);
+	
+		clear_asc_bit(1150);
+		clear_asc_bit(1149);
+		clear_asc_bit(1148);
+		set_asc_bit(1147);
 		
 		update_scan_chain();
 }
+
+void enter_low_power_mode_32k(void) {
+		int i = 0;
+		// Use the 32kHz as source for HCLK rather than HF clock
+		// This means we need to set the input for HCLK to be TIMER32k, which is clock number 3
+		// to set the input clock for HCLK to TIMER32k we need to modify ASC[1150:1147] to be 0011 (3 in decimal)
+		clear_asc_bit(1150);
+		clear_asc_bit(1149);
+		set_asc_bit(1148);
+		set_asc_bit(1147);
+	
+	  update_scan_chain();
+	
+		for (i = 0; i < 10000; i++) {}
+		
+		// additionally we want to enable passthrough on the HCLK divider so that the TIMER32k passes
+		// directly through without any divide (by default HCLK has a division of 4)
+		set_asc_bit(37);
+	
+		update_scan_chain();
+}
+
+void exit_low_power_mode_32k(void) {
+		int i;
+		
+		clear_asc_bit(37);
+	
+		update_scan_chain();
+	
+		for (i = 0; i < 1000; i++) {}
+	
+		clear_asc_bit(1150);
+		clear_asc_bit(1149);
+		clear_asc_bit(1148);
+		set_asc_bit(1147);
+		
+		update_scan_chain();
+}
+
+void read_count_2M_32K(unsigned int* count_2M, unsigned int* count_32k) {
+		unsigned int rdata_lsb, rdata_msb;//, count_LC, count_32k;
+	
+		// Disable all counters
+		ANALOG_CFG_REG__0 = 0x007F;
+			
+		// Read 2M counter
+		rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
+		rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
+		*count_2M = rdata_lsb + (rdata_msb << 16);
+			
+		// Read 32k counter
+		rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
+		rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
+		*count_32k = rdata_lsb + (rdata_msb << 16);
+		
+		// Reset all counters
+		ANALOG_CFG_REG__0 = 0x0000;		
+		
+		// Enable all counters
+		ANALOG_CFG_REG__0 = 0x3FFF;	
+		
+		printf("2M_count=%X\n",*count_2M);
+		printf("32k_count=%X\n\n",*count_32k);
+}
+
+// AUSTIN DONE
 
 // performs the setup needed for optical calibration
 void optical_calibrate(void) {
