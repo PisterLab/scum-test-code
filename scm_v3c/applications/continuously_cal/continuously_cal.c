@@ -38,6 +38,7 @@ This calibration only applies on on signel channel, e.g. channel 11.
 
 #define MAX_PKT_SIZE        127
 #define TARGET_PKT_SIZE     5
+#define FREQ_OFFSET_THRESHOLD   5   // target frequency offset is 2
 
 //=========================== variables =======================================
 
@@ -52,6 +53,7 @@ typedef struct {
     // setting for tx
     uint16_t tx_setting_target;
     uint16_t tx_settings_list[SETTING_SIZE];
+      int8_t tx_settings_freq_offset_list[SETTING_SIZE];
     uint16_t tx_list_index;
     
     // setting for rx
@@ -176,7 +178,7 @@ void    cb_timer(void) {
             app_vars.state = SWEEP_TX;
         break;
         case SWEEP_TX:
-            
+            app_vars.rx_done = 1;   // rx for ack
         break;
     }
 }
@@ -207,10 +209,23 @@ void    cb_endFrame_rx(uint32_t timestamp) {
         
     if (radio_getCrcOk() && pkt_len == TARGET_PKT_SIZE) {
         temperature = (pkt[0] << 8) | (pkt[1]);
-        app_vars.rx_settings_list[app_vars.rx_list_index++] = \
-            app_vars.current_setting;
-        app_vars.beacon_stops_in = BEACON_PERIOD - pkt[2];
+        
+        if (app_vars.state == SWEEP_RX) {
+        
+            app_vars.rx_settings_list[app_vars.rx_list_index++] = \
+                app_vars.current_setting;
+            app_vars.beacon_stops_in = BEACON_PERIOD - pkt[2];
+        } else {
+            
+            app_vars.tx_settings_list[app_vars.tx_list_index] = \
+                app_vars.current_setting;
+            app_vars.tx_settings_freq_offset_list[app_vars.tx_list_index] = \
+                (int8_t)(pkt[2]);
+            app_vars.tx_list_index++;
+        }
     }
+    
+    app_vars.rx_done = 1;
 }
 
 void    cb_startFrame_tx(uint32_t timestamp) {
@@ -284,6 +299,8 @@ void    getFrequencyTx(
     uint16_t setting_end
 ) {
     
+    uint8_t i;
+     int8_t diff;
     uint8_t pkt[TARGET_PKT_SIZE];
     
     while (app_vars.state != SWEEP_TX);
@@ -295,6 +312,9 @@ void    getFrequencyTx(
         app_vars.current_setting<setting_end; 
         app_vars.current_setting++
     ) {
+        
+        // transmit probe frame
+        
         radio_rfOff();
         radio_loadPacket(pkt, TARGET_PKT_SIZE);
         
@@ -308,8 +328,39 @@ void    getFrequencyTx(
         radio_txEnable();
         radio_txNow();
         while(app_vars.tx_done == 0);
+        
+        // listen for ack
+        
+        radio_rfOff();
+        
+        delay();
+        
+        LC_FREQCHANGE(
+            (app_vars.rx_setting_target>>10) & 0x001F,
+            (app_vars.rx_setting_target>>5)  & 0x001F,
+            (app_vars.rx_setting_target)     & 0x001F
+        );
+        
+        radio_rxEnable();
+        radio_rxNow();
+        rftimer_setCompareIn(rftimer_readCounter()+RX_TIMEOUT);
+        while(app_vars.rx_done == 0);
     }
+    
+    // choose the first setting in the tx_settings_list within the threshold
+    //      as the target tx frequency setting
+    
+    i = 0;
+    diff = (int8_t)(app_vars.tx_settings_freq_offset_list[i]-2);
+    while (
+        diff >=  FREQ_OFFSET_THRESHOLD ||
+        diff <= -FREQ_OFFSET_THRESHOLD
+    ) {
+        i++;
+    }
+    app_vars.tx_setting_target = app_vars.tx_settings_list[i];
 }
+
 void    contiuously_calibration_start(void) {
     
 }
