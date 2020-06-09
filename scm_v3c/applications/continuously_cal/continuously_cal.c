@@ -34,18 +34,23 @@ This calibration only applies on on signel channel, e.g. channel 11.
 
 #define SETTING_SIZE        100
 #define BEACON_PERIOD       10      // seconds
-#define SECOND_IN_TICKS     500000  // @500kHz
+#define SECOND_IN_TICKS     500000  // 500000 = 1s@500kHz
+#define SENDING_INTERVAL    50000   // 50000  = 100ms@500kHz
 
 #define MAX_PKT_SIZE        127
 #define TARGET_PKT_SIZE     5
 #define FREQ_OFFSET_THRESHOLD   5   // target frequency offset is 2
 
+#define HISTORY_SAMPLE_SIZE 10
+
 //=========================== variables =======================================
 
 typedef enum {
-    SWEEP_RX        = 0,
-    SWEEP_RX_DONE   = 1,
-    SWEEP_TX        = 2
+    SWEEP_RX            = 0,
+    SWEEP_RX_DONE       = 1,
+    SWEEP_TX            = 2,
+    SWEEP_TX_DONE       = 3,
+    CONTINUOUSLY_CAL    = 4
 } state_t;
 
 typedef struct {
@@ -67,8 +72,15 @@ typedef struct {
     state_t state;
     uint8_t rx_done;
     uint8_t tx_done;
+    uint8_t ok_to_send;
     
+    // for sync
     uint8_t beacon_stops_in;    // in seconds
+    
+    // for continuously calibration
+    uint32_t if_history[HISTORY_SAMPLE_SIZE];
+      int8_t fo_history[HISTORY_SAMPLE_SIZE];
+     uint8_t history_index;
     
 } app_vars_t;
 
@@ -85,6 +97,7 @@ void    cb_endFrame_rx(uint32_t timestamp);
 void    getFrequencyTx(uint16_t setting_start, uint16_t setting_end);
 void    getFrequencyRx(uint16_t setting_start, uint16_t setting_end);
 void    contiuously_calibration_start(void);
+void    update_target_settings(void);
 
 //=========================== main ============================================
 
@@ -180,6 +193,12 @@ void    cb_timer(void) {
         case SWEEP_TX:
             app_vars.rx_done = 1;   // rx for ack
         break;
+        case CONTINUOUSLY_CAL:
+            app_vars.ok_to_send = 1;
+        break;
+        default:
+            // to nothing
+        break;
     }
 }
 
@@ -210,18 +229,41 @@ void    cb_endFrame_rx(uint32_t timestamp) {
     if (radio_getCrcOk() && pkt_len == TARGET_PKT_SIZE) {
         temperature = (pkt[0] << 8) | (pkt[1]);
         
-        if (app_vars.state == SWEEP_RX) {
-        
-            app_vars.rx_settings_list[app_vars.rx_list_index++] = \
-                app_vars.current_setting;
-            app_vars.beacon_stops_in = BEACON_PERIOD - pkt[2];
-        } else {
+        switch (app_vars.state) {
+            case SWEEP_RX:
+                
+                app_vars.rx_settings_list[app_vars.rx_list_index++] = \
+                    app_vars.current_setting;
+                app_vars.beacon_stops_in = BEACON_PERIOD - pkt[2];
+            break;
+            case SWEEP_TX:
+                
+                app_vars.tx_settings_list[app_vars.tx_list_index] = \
+                    app_vars.current_setting;
+                app_vars.tx_settings_freq_offset_list[app_vars.tx_list_index] = \
+                    (int8_t)(pkt[2]);
+                app_vars.tx_list_index++;
+            break;
+            case CONTINUOUSLY_CAL:
+                
+                app_vars.if_history[app_vars.history_index] = \
+                    radio_getIFestimate();
+                app_vars.fo_history[app_vars.history_index] = \
+                    (int8_t)(pkt[2]);
+                app_vars.history_index += 1;
+                app_vars.history_index %= HISTORY_SAMPLE_SIZE;
             
-            app_vars.tx_settings_list[app_vars.tx_list_index] = \
-                app_vars.current_setting;
-            app_vars.tx_settings_freq_offset_list[app_vars.tx_list_index] = \
-                (int8_t)(pkt[2]);
-            app_vars.tx_list_index++;
+                if (app_vars.history_index == 0) {
+                    update_target_settings();
+                }
+            break;
+            default:
+                printf(
+                    "error! app_vars state = %d (code location %d)\r\n",
+                    app_vars.state, 
+                    0
+                );
+            break;
         }
     }
     
@@ -359,9 +401,87 @@ void    getFrequencyTx(
         i++;
     }
     app_vars.tx_setting_target = app_vars.tx_settings_list[i];
+    
+    app_vars.state = SWEEP_TX_DONE;
 }
 
 void    contiuously_calibration_start(void) {
     
+    uint8_t i;
+     int8_t diff;
+    uint8_t pkt[TARGET_PKT_SIZE];
+    
+    while (app_vars.state != SWEEP_TX_DONE);
+    
+    app_vars.state = CONTINUOUSLY_CAL;
+    
+    app_vars.ok_to_send = 0;
+    rftimer_setCompareIn(rftimer_readCounter()+SENDING_INTERVAL);
+    
+    while (1) {
+        // transmit probe frame
+                
+        while (app_vars.ok_to_send==0);
+        
+        radio_rfOff();
+        radio_loadPacket(pkt, TARGET_PKT_SIZE);
+        
+        delay();
+        
+        LC_FREQCHANGE(
+            (app_vars.tx_setting_target>>10) & 0x001F,
+            (app_vars.tx_setting_target>>5)  & 0x001F,
+            (app_vars.tx_setting_target)     & 0x001F
+        );
+        radio_txEnable();
+        radio_txNow();
+        while(app_vars.tx_done == 0);
+        
+        // listen for ack
+        
+        radio_rfOff();
+        
+        delay();
+        
+        LC_FREQCHANGE(
+            (app_vars.rx_setting_target>>10) & 0x001F,
+            (app_vars.rx_setting_target>>5)  & 0x001F,
+            (app_vars.rx_setting_target)     & 0x001F
+        );
+        
+        radio_rxEnable();
+        radio_rxNow();
+        
+        // schedule to transmit next frame
+        rftimer_setCompareIn(rftimer_readCounter()+SENDING_INTERVAL);
+    }
+}
+
+void    update_target_settings(void){
+    
+    uint8_t i;
+    uint32_t avg_if;
+     int32_t adjustment;
+     int16_t avg_fo;
+    
+    // update target setting for RX
+    avg_if = 0;
+    for (i=0;i<HISTORY_SAMPLE_SIZE;i++){
+        avg_if += app_vars.if_history[i];
+    }
+    avg_if      /= HISTORY_SAMPLE_SIZE;
+    
+    adjustment   = ((int32_t)(avg_if - 500))/17;
+    app_vars.rx_setting_target += adjustment;
+    
+    // update target setting for TX
+    avg_fo = 0;
+    for (i=0;i<HISTORY_SAMPLE_SIZE;i++){
+        avg_fo += app_vars.fo_history[i];
+    }
+    avg_fo      /= HISTORY_SAMPLE_SIZE;
+    
+    adjustment   = (int16_t)(avg_fo - 2)/10;
+    app_vars.tx_setting_target -= adjustment;
 }
 
