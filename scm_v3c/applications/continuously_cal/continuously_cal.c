@@ -21,25 +21,28 @@ This calibration only applies on on signel channel, e.g. channel 11.
 #include "rftimer.h"
 #include "radio.h"
 #include "optical.h"
+#include "gpio.h"
+
+#include "freq_setting_selection.h"
 
 //=========================== defines =========================================
 
 #define CRC_VALUE           (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH         (*((unsigned int *) 0x0000FFF8))
 
-#define RX_TIMEOUT          500 // 500 = 1ms@500kHz
+#define RX_TIMEOUT          500  // 500 = 1ms@500kHz
+#define RX_ACK_TIMEOUT      500  // 500 = 1ms@500kHz
 
-#define SWEEP_START         ((23<<10) | (31<<5) | (31<<5))
-#define SWEEP_END           ((24<<10) | (31<<5) | (31<<5))
+#define SWEEP_START         ((24<<10) | ( 0<<5) | (0))
+#define SWEEP_END           ((24<<10) | (31<<5) | (31))
 
 #define SETTING_SIZE        100
-#define BEACON_PERIOD       10      // seconds
+#define BEACON_PERIOD       5       // seconds
 #define SECOND_IN_TICKS     500000  // 500000 = 1s@500kHz
 #define SENDING_INTERVAL    50000   // 50000  = 100ms@500kHz
 
 #define MAX_PKT_SIZE        127
 #define TARGET_PKT_SIZE     5
-#define FREQ_OFFSET_THRESHOLD   5   // target frequency offset is 2
 
 #define HISTORY_SAMPLE_SIZE 10
 
@@ -72,7 +75,6 @@ typedef struct {
     state_t state;
     uint8_t rx_done;
     uint8_t tx_done;
-    uint8_t ok_to_send;
     
     // for sync
     uint8_t beacon_stops_in;    // in seconds
@@ -98,6 +100,9 @@ void    getFrequencyTx(uint16_t setting_start, uint16_t setting_end);
 void    getFrequencyRx(uint16_t setting_start, uint16_t setting_end);
 void    contiuously_calibration_start(void);
 void    update_target_settings(void);
+
+void    delay_turnover(void);
+void    delay_tx(void);
 
 //=========================== main ============================================
 
@@ -169,8 +174,22 @@ int main(void) {
         // obtain frequency setting for RX
         getFrequencyRx(SWEEP_START, SWEEP_END);
         
+        printf(
+            "RX target setting = %d %d %d\r\n",
+            (app_vars.rx_setting_target>>10) & 0x001f,
+            (app_vars.rx_setting_target>>5)  & 0x001f,
+            (app_vars.rx_setting_target)     & 0x001f
+        );
+        
         // obtain frequency setting for TX
-        getFrequencyTx(SWEEP_START, SWEEP_END);
+        getFrequencyTx(SWEEP_START-1024, SWEEP_END-1024);
+        
+        printf(
+            "TX target setting = %d %d %d\r\n",
+            (app_vars.tx_setting_target>>10) & 0x001f,
+            (app_vars.tx_setting_target>>5)  & 0x001f,
+            (app_vars.tx_setting_target)     & 0x001f
+        );
         
         // start contiuously calibration
         contiuously_calibration_start();
@@ -194,10 +213,14 @@ void    cb_timer(void) {
             app_vars.rx_done = 1;   // rx for ack
         break;
         case CONTINUOUSLY_CAL:
-            app_vars.ok_to_send = 1;
+            app_vars.rx_done = 1;
         break;
         default:
-            // to nothing
+            printf(
+                "error! app_vars state = %d (code location %d)\r\n",
+                app_vars.state, 
+                0
+            );
         break;
     }
 }
@@ -238,6 +261,13 @@ void    cb_endFrame_rx(uint32_t timestamp) {
             break;
             case SWEEP_TX:
                 
+                printf(
+                    "ACK received at = %d %d %d\r\n",
+                    (app_vars.current_setting >> 10) & 0x001f,
+                    (app_vars.current_setting >>  5) & 0x001f,
+                    (app_vars.current_setting)       & 0x001f
+                );
+            
                 app_vars.tx_settings_list[app_vars.tx_list_index] = \
                     app_vars.current_setting;
                 app_vars.tx_settings_freq_offset_list[app_vars.tx_list_index] = \
@@ -245,6 +275,8 @@ void    cb_endFrame_rx(uint32_t timestamp) {
                 app_vars.tx_list_index++;
             break;
             case CONTINUOUSLY_CAL:
+                
+                printf("ACK received in continuously_cal\r\n");
                 
                 app_vars.if_history[app_vars.history_index] = \
                     radio_getIFestimate();
@@ -261,13 +293,13 @@ void    cb_endFrame_rx(uint32_t timestamp) {
                 printf(
                     "error! app_vars state = %d (code location %d)\r\n",
                     app_vars.state, 
-                    0
+                    1
                 );
             break;
         }
     }
     
-    app_vars.rx_done = 1;
+    app_vars.rx_done    = 1;
 }
 
 void    cb_startFrame_tx(uint32_t timestamp) {
@@ -281,9 +313,18 @@ void    cb_endFrame_tx(uint32_t timestamp) {
 
 //=========================== helper ==========================================
 
-void delay(void) {
+#define TUNROVER_DELAY 0x2bff
+
+void delay_turnover(void){
     uint16_t i;
-    for (i=0;i<0x1fff;i++);
+    for (i=0;i<TUNROVER_DELAY;i++);
+}
+
+#define TX_DELAY 0x001f
+
+void delay_tx(void) {
+    uint16_t i;
+    for (i=0;i<TX_DELAY;i++);
 }
 
 void    getFrequencyRx(
@@ -291,7 +332,7 @@ void    getFrequencyRx(
     uint16_t setting_end
 ) {
     
-    uint8_t i;
+    uint16_t i;
     
     // make sure we are at SWEEP_RX state
     
@@ -304,9 +345,10 @@ void    getFrequencyRx(
         app_vars.current_setting<setting_end; 
         app_vars.current_setting++
     ) {
+        
         radio_rfOff();
         
-        delay();
+        app_vars.rx_done = 0;
         
         LC_FREQCHANGE(
             (app_vars.current_setting>>10) & 0x001F,
@@ -326,14 +368,13 @@ void    getFrequencyRx(
         rftimer_readCounter()+app_vars.beacon_stops_in*SECOND_IN_TICKS
     );
     
+    printf("schedule sweep Tx in %d seconds\r\n",app_vars.beacon_stops_in);
+    
     // choose the median setting in the rx_settings_list as 
     //      target rx frequency setting
     
-    i = 0;
-    while (app_vars.rx_settings_list[i] != 0) {
-        i++;
-    }
-    app_vars.rx_setting_target = app_vars.rx_settings_list[i/2];
+    app_vars.rx_setting_target = \
+        freq_setting_selection_rx(app_vars.rx_settings_list);
 }
 
 void    getFrequencyTx(
@@ -341,11 +382,13 @@ void    getFrequencyTx(
     uint16_t setting_end
 ) {
     
-    uint8_t i;
+    uint16_t i;
      int8_t diff;
     uint8_t pkt[TARGET_PKT_SIZE];
     
     while (app_vars.state != SWEEP_TX);
+    
+    printf("SWEEP_TX started\r\n");
     
     // sweep settings to find the ones for TX
     
@@ -358,9 +401,13 @@ void    getFrequencyTx(
         // transmit probe frame
         
         radio_rfOff();
-        radio_loadPacket(pkt, TARGET_PKT_SIZE);
         
-        delay();
+        app_vars.tx_done = 0;
+        
+        pkt[0] = 'S';
+        pkt[1] = 'C';
+        pkt[2] = 'M';
+        radio_loadPacket(pkt, TARGET_PKT_SIZE);
         
         LC_FREQCHANGE(
             (app_vars.current_setting>>10) & 0x001F,
@@ -368,6 +415,7 @@ void    getFrequencyTx(
             (app_vars.current_setting)     & 0x001F
         );
         radio_txEnable();
+        delay_tx();
         radio_txNow();
         while(app_vars.tx_done == 0);
         
@@ -375,32 +423,36 @@ void    getFrequencyTx(
         
         radio_rfOff();
         
-        delay();
+        app_vars.rx_done = 0;
         
         LC_FREQCHANGE(
             (app_vars.rx_setting_target>>10) & 0x001F,
             (app_vars.rx_setting_target>>5)  & 0x001F,
             (app_vars.rx_setting_target)     & 0x001F
         );
-        
+
         radio_rxEnable();
         radio_rxNow();
-        rftimer_setCompareIn(rftimer_readCounter()+RX_TIMEOUT);
+        
+        gpio_3_toggle();
+        
+        rftimer_setCompareIn(rftimer_readCounter()+RX_ACK_TIMEOUT);
         while(app_vars.rx_done == 0);
     }
     
     // choose the first setting in the tx_settings_list within the threshold
     //      as the target tx frequency setting
     
-    i = 0;
-    diff = (int8_t)(app_vars.tx_settings_freq_offset_list[i]-2);
-    while (
-        diff >=  FREQ_OFFSET_THRESHOLD ||
-        diff <= -FREQ_OFFSET_THRESHOLD
-    ) {
-        i++;
-    }
-    app_vars.tx_setting_target = app_vars.tx_settings_list[i];
+    app_vars.tx_setting_target = \
+        freq_setting_selection_tx(
+            app_vars.tx_settings_list, 
+            app_vars.tx_settings_freq_offset_list
+        );
+    
+    app_vars.tx_setting_target = \
+        freq_setting_selection_rx(
+            app_vars.tx_settings_list
+        );
     
     app_vars.state = SWEEP_TX_DONE;
 }
@@ -415,18 +467,21 @@ void    contiuously_calibration_start(void) {
     
     app_vars.state = CONTINUOUSLY_CAL;
     
-    app_vars.ok_to_send = 0;
+    printf("CONTINUOUSLY_CAL started\r\n");
+    
     rftimer_setCompareIn(rftimer_readCounter()+SENDING_INTERVAL);
     
     while (1) {
         // transmit probe frame
-                
-        while (app_vars.ok_to_send==0);
         
         radio_rfOff();
-        radio_loadPacket(pkt, TARGET_PKT_SIZE);
         
-        delay();
+        app_vars.tx_done = 0;
+        
+        pkt[0] = 'S';
+        pkt[1] = 'C';
+        pkt[2] = 'M';
+        radio_loadPacket(pkt, TARGET_PKT_SIZE);
         
         LC_FREQCHANGE(
             (app_vars.tx_setting_target>>10) & 0x001F,
@@ -434,14 +489,13 @@ void    contiuously_calibration_start(void) {
             (app_vars.tx_setting_target)     & 0x001F
         );
         radio_txEnable();
+        delay_tx();
         radio_txNow();
         while(app_vars.tx_done == 0);
         
         // listen for ack
         
         radio_rfOff();
-        
-        delay();
         
         LC_FREQCHANGE(
             (app_vars.rx_setting_target>>10) & 0x001F,
@@ -454,6 +508,8 @@ void    contiuously_calibration_start(void) {
         
         // schedule to transmit next frame
         rftimer_setCompareIn(rftimer_readCounter()+SENDING_INTERVAL);
+        app_vars.rx_done = 0;
+        while (app_vars.rx_done==0);
     }
 }
 
@@ -483,5 +539,17 @@ void    update_target_settings(void){
     
     adjustment   = (int16_t)(avg_fo - 2)/10;
     app_vars.tx_setting_target -= adjustment;
+    
+    printf(
+        "TX setting: %d %d %d (avg_if=%d)\r\nRX setting %d %d %d (avg_fo=%d)\r\n",
+        ( app_vars.tx_setting_target >> 10 ) & 0x001f,
+        ( app_vars.tx_setting_target >> 5 )  & 0x001f,
+        ( app_vars.tx_setting_target )       & 0x001f,
+        avg_fo,
+        ( app_vars.rx_setting_target >> 10 ) & 0x001f,
+        ( app_vars.rx_setting_target >> 5 )  & 0x001f,
+        ( app_vars.rx_setting_target )       & 0x001f,
+        avg_if
+    );
 }
 

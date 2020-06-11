@@ -386,6 +386,11 @@
               <FileType>1</FileType>
               <FilePath>.\continuously_cal.c</FilePath>
             </File>
+            <File>
+              <FileName>freq_setting_selection.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\freq_setting_selection.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
