@@ -182,7 +182,7 @@ int main(void) {
         );
         
         // obtain frequency setting for TX
-        getFrequencyTx(SWEEP_START-1024, SWEEP_END-1024);
+        getFrequencyTx(SWEEP_START, SWEEP_END);
         
         printf(
             "TX target setting = %d %d %d\r\n",
@@ -260,13 +260,6 @@ void    cb_endFrame_rx(uint32_t timestamp) {
                 app_vars.beacon_stops_in = BEACON_PERIOD - pkt[2];
             break;
             case SWEEP_TX:
-                
-                printf(
-                    "ACK received at = %d %d %d\r\n",
-                    (app_vars.current_setting >> 10) & 0x001f,
-                    (app_vars.current_setting >>  5) & 0x001f,
-                    (app_vars.current_setting)       & 0x001f
-                );
             
                 app_vars.tx_settings_list[app_vars.tx_list_index] = \
                     app_vars.current_setting;
@@ -275,8 +268,6 @@ void    cb_endFrame_rx(uint32_t timestamp) {
                 app_vars.tx_list_index++;
             break;
             case CONTINUOUSLY_CAL:
-                
-                printf("ACK received in continuously_cal\r\n");
                 
                 app_vars.if_history[app_vars.history_index] = \
                     radio_getIFestimate();
@@ -320,7 +311,7 @@ void delay_turnover(void){
     for (i=0;i<TUNROVER_DELAY;i++);
 }
 
-#define TX_DELAY 0x001f
+#define TX_DELAY 0x0fff
 
 void delay_tx(void) {
     uint16_t i;
@@ -374,7 +365,7 @@ void    getFrequencyRx(
     //      target rx frequency setting
     
     app_vars.rx_setting_target = \
-        freq_setting_selection_rx(app_vars.rx_settings_list);
+        freq_setting_selection_median(app_vars.rx_settings_list);
 }
 
 void    getFrequencyTx(
@@ -444,14 +435,9 @@ void    getFrequencyTx(
     //      as the target tx frequency setting
     
     app_vars.tx_setting_target = \
-        freq_setting_selection_tx(
+        freq_setting_selection_reference(
             app_vars.tx_settings_list, 
             app_vars.tx_settings_freq_offset_list
-        );
-    
-    app_vars.tx_setting_target = \
-        freq_setting_selection_rx(
-            app_vars.tx_settings_list
         );
     
     app_vars.state = SWEEP_TX_DONE;

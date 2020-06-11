@@ -7,17 +7,16 @@
 #include "freq_setting_selection.h"
 
 
-uint16_t freq_setting_selection_tx(
+uint16_t freq_setting_selection_reference(
     uint16_t* setting_list, 
     int8_t* freq_offset_list
 ) {
     uint8_t i;
+    uint8_t debug_index;
     int8_t diff;
     
     i = 0;
-    while (freq_offset_list[i] != 0) {
-        
-        printf("freq_offset_list[%d] = %d\r\n", i, freq_offset_list[i]);
+    while (setting_list[i] != 0) {
         
         diff = (int8_t)(freq_offset_list[i]-FREQ_OFFSET_TARGET);
         
@@ -29,11 +28,28 @@ uint16_t freq_setting_selection_tx(
         }
         i++;
     }
+    
+    // debug info
+    
+    debug_index=0;
+    
+    while (setting_list[debug_index] != 0) {
+            
+        printf("setting_list[%d] = %d %d %d fo=%d\r\n", 
+            debug_index, 
+            setting_list[debug_index] >> 10 & 0x001f,
+            setting_list[debug_index] >> 5  & 0x001f,
+            setting_list[debug_index]       & 0x001f,
+            freq_offset_list[debug_index]
+        );
+        debug_index++;
+    }
+    
     return setting_list[i];
     
 }
 
-uint16_t freq_setting_selection_rx(
+uint16_t freq_setting_selection_median(
     uint16_t* setting_list
 ) {
     
@@ -45,6 +61,8 @@ uint16_t freq_setting_selection_rx(
     
     uint16_t mid_settings[MAX_MID_SETTINGS];
     
+    uint8_t debug_index;
+    
     i                       = 0;
     mid                     = ((setting_list[0]>>5) & 0x001F);
     mid_changed_at          = 0;
@@ -53,14 +71,6 @@ uint16_t freq_setting_selection_rx(
     
     memset(mid_settings, 0, MAX_MID_SETTINGS*sizeof(uint16_t));
     while (setting_list[i]!=0) {
-        
-        printf(
-            "%d: mid setting_list = %d %d %d\r\n",
-            i,
-            (setting_list[i] >> 10 ) & 0x001f,
-            (setting_list[i] >> 5 )  & 0x001f,
-            (setting_list[i] )       & 0x001f
-        );
         
         if (((setting_list[i]>>5) & 0x001F) != mid) {
             if (mid_settings_size>max_mid_settings_size) {
@@ -89,19 +99,26 @@ uint16_t freq_setting_selection_rx(
         max_mid_settings_size = mid_settings_size; 
     }
     
-    // debug info
-    
-    i = 0;
-    while (mid_settings[i] != 0) {
-
-        i++;
-    }
-    
     // choose the median setting in mid_settings list
     
     i = 0;
     while(mid_settings[i]!=0){
         i++;
+    }
+    
+    // debug info
+    
+    debug_index = 0;
+    while (setting_list[debug_index] != 0) {
+                
+        printf(
+            "setting_list[%d] = %d %d %d\r\n",
+            debug_index,
+            (setting_list[debug_index] >> 10 ) & 0x001f,
+            (setting_list[debug_index] >> 5 )  & 0x001f,
+            (setting_list[debug_index] )       & 0x001f
+        );
+        debug_index++;
     }
     
     return mid_settings[i/2];
