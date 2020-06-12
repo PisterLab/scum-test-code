@@ -37,7 +37,7 @@ This calibration only applies on on signel channel, e.g. channel 11.
 #define SWEEP_END           ((24<<10) | (31<<5) | (31))
 
 #define SETTING_SIZE        100
-#define BEACON_PERIOD       5       // seconds
+#define BEACON_PERIOD       20      // seconds
 #define SECOND_IN_TICKS     500000  // 500000 = 1s@500kHz
 #define SENDING_INTERVAL    50000   // 50000  = 100ms@500kHz
 
@@ -326,11 +326,11 @@ void delay_tx(void) {
 }
 
 // 0x02ff roughly corresponds to 1.2ms
-#define RFOFF_DELAY 0x02ff
+#define LC_SETUP_DELAY 0x02ff
 
 void delay_lc_setup(void) {
     uint16_t i;
-    for (i=0;i<RFOFF_DELAY;i++);
+    for (i=0;i<LC_SETUP_DELAY;i++);
 }
 
 //=========================== prototype========================================
@@ -363,6 +363,8 @@ void    getFrequencyRx(
             (app_vars.current_setting>>5)  & 0x001F,
             (app_vars.current_setting)     & 0x001F
         );
+        
+        delay_turnover();
         
         delay_lc_setup();
         
@@ -451,6 +453,8 @@ void    getFrequencyTx(
             (app_vars.rx_setting_target)     & 0x001F
         );
         
+        delay_turnover();
+        
         delay_lc_setup();
 
         radio_rxEnable();
@@ -520,6 +524,8 @@ void    contiuously_calibration_start(void) {
             (app_vars.rx_setting_target>>5)  & 0x001F,
             (app_vars.rx_setting_target)     & 0x001F
         );
+        
+        delay_turnover();
         
         delay_lc_setup();
         
