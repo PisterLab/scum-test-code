@@ -31,7 +31,7 @@ This calibration only applies on on signel channel, e.g. channel 11.
 #define CODE_LENGTH         (*((unsigned int *) 0x0000FFF8))
 
 #define RX_TIMEOUT          500  // 500 = 1ms@500kHz
-#define RX_ACK_TIMEOUT      500  // 500 = 1ms@500kHz
+#define RX_ACK_TIMEOUT      1000 // 500 = 1ms@500kHz
 
 #define SWEEP_START         ((24<<10) | ( 0<<5) | (0))
 #define SWEEP_END           ((24<<10) | (31<<5) | (31))
@@ -525,6 +525,8 @@ void    contiuously_calibration_start(void) {
         
         radio_rxEnable();
         radio_rxNow();
+        
+        gpio_3_toggle();
         
         // schedule to transmit next frame
         rftimer_setCompareIn(rftimer_readCounter()+SENDING_INTERVAL);
