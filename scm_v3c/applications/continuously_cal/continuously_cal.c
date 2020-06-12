@@ -302,7 +302,7 @@ void    cb_endFrame_tx(uint32_t timestamp) {
     app_vars.tx_done = 1;
 }
 
-//=========================== helper ==========================================
+//=========================== delays ==========================================
 
 #define TUNROVER_DELAY 0x2bff
 
@@ -311,12 +311,21 @@ void delay_turnover(void){
     for (i=0;i<TUNROVER_DELAY;i++);
 }
 
-#define TX_DELAY 0x0fff
+#define TX_DELAY 0x00ff
 
 void delay_tx(void) {
     uint16_t i;
     for (i=0;i<TX_DELAY;i++);
 }
+
+#define RFOFF_DELAY 0x0ff
+
+void delay_rfoff(void) {
+    uint16_t i;
+    for (i=0;i<RFOFF_DELAY;i++);
+}
+
+//=========================== prototype========================================
 
 void    getFrequencyRx(
     uint16_t setting_start, 
@@ -393,6 +402,8 @@ void    getFrequencyTx(
         
         radio_rfOff();
         
+        delay_rfoff();
+        
         app_vars.tx_done = 0;
         
         pkt[0] = 'S';
@@ -435,7 +446,7 @@ void    getFrequencyTx(
     //      as the target tx frequency setting
     
     app_vars.tx_setting_target = \
-        freq_setting_selection_reference(
+        freq_setting_selection_fo(
             app_vars.tx_settings_list, 
             app_vars.tx_settings_freq_offset_list
         );
@@ -461,6 +472,8 @@ void    contiuously_calibration_start(void) {
         // transmit probe frame
         
         radio_rfOff();
+        
+        delay_rfoff();
         
         app_vars.tx_done = 0;
         
@@ -527,7 +540,7 @@ void    update_target_settings(void){
     app_vars.tx_setting_target -= adjustment;
     
     printf(
-        "TX setting: %d %d %d (avg_if=%d)\r\nRX setting %d %d %d (avg_fo=%d)\r\n",
+        "TX setting: %d %d %d (avg_if=%d) | RX setting %d %d %d (avg_fo=%d)\r\n",
         ( app_vars.tx_setting_target >> 10 ) & 0x001f,
         ( app_vars.tx_setting_target >> 5 )  & 0x001f,
         ( app_vars.tx_setting_target )       & 0x001f,

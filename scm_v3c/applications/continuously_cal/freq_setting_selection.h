@@ -12,7 +12,7 @@
 //=========================== prototypes ======================================
 
 //==== admin
-uint16_t freq_setting_selection_reference(
+uint16_t freq_setting_selection_fo(
     uint16_t* setting_list, 
     int8_t* freq_offset_list
 );

@@ -2,29 +2,32 @@
 #define FREQ_OFFSET_TARGET      2
 #define FREQ_OFFSET_THRESHOLD   5
 #define MAX_MID_SETTINGS        32
+#define MAX_FREQ_OFFSET         32  // 32 indicates roughly 250kHz
 
 #include "string.h"
 #include "freq_setting_selection.h"
 
 
-uint16_t freq_setting_selection_reference(
+uint16_t freq_setting_selection_fo(
     uint16_t* setting_list, 
     int8_t* freq_offset_list
 ) {
     uint8_t i;
     uint8_t debug_index;
     int8_t diff;
+    int8_t min_diff;
+    uint8_t target_index;
     
     i = 0;
+    target_index = 0;
+    min_diff = MAX_FREQ_OFFSET;
     while (setting_list[i] != 0) {
         
         diff = (int8_t)(freq_offset_list[i]-FREQ_OFFSET_TARGET);
         
-        if (
-            diff <=  FREQ_OFFSET_THRESHOLD &&
-            diff >= -FREQ_OFFSET_THRESHOLD
-        ) {
-            break;
+        if (diff<min_diff) {
+            target_index = i;
+            min_diff = diff;
         }
         i++;
     }
@@ -45,7 +48,7 @@ uint16_t freq_setting_selection_reference(
         debug_index++;
     }
     
-    return setting_list[i];
+    return setting_list[target_index];
     
 }
 
