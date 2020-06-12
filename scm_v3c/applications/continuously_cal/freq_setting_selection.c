@@ -1,8 +1,10 @@
 
 #define FREQ_OFFSET_TARGET      2
 #define FREQ_OFFSET_THRESHOLD   5
-#define MAX_MID_SETTINGS        32
 #define MAX_FREQ_OFFSET         32  // 32 indicates roughly 250kHz
+
+#define IF_COUNT_TARGET         500
+#define MAX_MID_SETTINGS        32
 
 #include "string.h"
 #include "freq_setting_selection.h"
@@ -14,8 +16,8 @@ uint16_t freq_setting_selection_fo(
 ) {
     uint8_t i;
     uint8_t debug_index;
-    int8_t diff;
-    int8_t min_diff;
+    uint8_t diff;
+    uint8_t min_diff;
     uint8_t target_index;
     
     i = 0;
@@ -23,7 +25,15 @@ uint16_t freq_setting_selection_fo(
     min_diff = MAX_FREQ_OFFSET;
     while (setting_list[i] != 0) {
         
-        diff = (int8_t)(freq_offset_list[i]-FREQ_OFFSET_TARGET);
+        if (freq_offset_list[i] > (int8_t)(FREQ_OFFSET_TARGET)) {
+            diff = (uint8_t)(
+                    freq_offset_list[i]-(int8_t)(FREQ_OFFSET_TARGET)
+                    );
+        } else {
+            diff = (uint8_t)(
+                    (int8_t)(FREQ_OFFSET_TARGET)-freq_offset_list[i]
+                    );
+        }
         
         if (diff<min_diff) {
             target_index = i;
@@ -125,4 +135,52 @@ uint16_t freq_setting_selection_median(
     }
     
     return mid_settings[i/2];
+}
+
+uint16_t freq_setting_selection_if(
+    uint16_t* setting_list, 
+    uint16_t* if_count_list
+) {
+    uint8_t i;
+    uint8_t debug_index;
+    uint16_t diff;
+    uint16_t min_diff;
+    uint8_t target_index;
+    
+    i = 0;
+    target_index = 0;
+    min_diff = MAX_FREQ_OFFSET;
+    while (setting_list[i] != 0) {
+        
+        if (if_count_list[i] > IF_COUNT_TARGET) {
+            diff = if_count_list[i]-IF_COUNT_TARGET;
+        } else {
+            diff = IF_COUNT_TARGET-if_count_list[i];
+        }
+        
+        if (diff<min_diff) {
+            target_index = i;
+            min_diff = diff;
+        }
+        i++;
+    }
+    
+    // debug info
+    
+    debug_index=0;
+    
+    while (setting_list[debug_index] != 0) {
+            
+        printf("setting_list[%d] = %d %d %d if_count=%d\r\n", 
+            debug_index, 
+            setting_list[debug_index] >> 10 & 0x001f,
+            setting_list[debug_index] >> 5  & 0x001f,
+            setting_list[debug_index]       & 0x001f,
+            if_count_list[debug_index]
+        );
+        debug_index++;
+    }
+    
+    return setting_list[target_index];
+    
 }
