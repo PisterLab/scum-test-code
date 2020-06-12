@@ -67,6 +67,7 @@ typedef struct {
     // setting for rx
     uint16_t rx_setting_target;
     uint16_t rx_settings_list[SETTING_SIZE];
+    uint16_t rx_settings_if_count_list[SETTING_SIZE];
     uint16_t rx_list_index;
     
     uint16_t current_setting;
@@ -103,6 +104,7 @@ void    update_target_settings(void);
 
 void    delay_turnover(void);
 void    delay_tx(void);
+void    delay_lc_setup(void);
 
 //=========================== main ============================================
 
@@ -255,9 +257,12 @@ void    cb_endFrame_rx(uint32_t timestamp) {
         switch (app_vars.state) {
             case SWEEP_RX:
                 
-                app_vars.rx_settings_list[app_vars.rx_list_index++] = \
+                app_vars.rx_settings_list[app_vars.rx_list_index] = \
                     app_vars.current_setting;
+                app_vars.rx_settings_if_count_list[app_vars.rx_list_index] = \
+                    radio_getIFestimate();
                 app_vars.beacon_stops_in = BEACON_PERIOD - pkt[2];
+                app_vars.rx_list_index++;
             break;
             case SWEEP_TX:
             
@@ -304,6 +309,7 @@ void    cb_endFrame_tx(uint32_t timestamp) {
 
 //=========================== delays ==========================================
 
+// 0x2bff roughly corresponds to 17.2ms
 #define TUNROVER_DELAY 0x2bff
 
 void delay_turnover(void){
@@ -311,16 +317,18 @@ void delay_turnover(void){
     for (i=0;i<TUNROVER_DELAY;i++);
 }
 
-#define TX_DELAY 0x00ff
+// 0x07ff roughly corresponds to 2.8ms
+#define TX_DELAY 0x07ff
 
 void delay_tx(void) {
     uint16_t i;
     for (i=0;i<TX_DELAY;i++);
 }
 
-#define RFOFF_DELAY 0x0ff
+// 0x02ff roughly corresponds to 1.2ms
+#define RFOFF_DELAY 0x02ff
 
-void delay_rfoff(void) {
+void delay_lc_setup(void) {
     uint16_t i;
     for (i=0;i<RFOFF_DELAY;i++);
 }
@@ -355,6 +363,9 @@ void    getFrequencyRx(
             (app_vars.current_setting>>5)  & 0x001F,
             (app_vars.current_setting)     & 0x001F
         );
+        
+        delay_lc_setup();
+        
         radio_rxEnable();
         radio_rxNow();
         rftimer_setCompareIn(rftimer_readCounter()+RX_TIMEOUT);
@@ -373,8 +384,16 @@ void    getFrequencyRx(
     // choose the median setting in the rx_settings_list as 
     //      target rx frequency setting
     
+//    app_vars.rx_setting_target = \
+//        freq_setting_selection_if(
+//            app_vars.rx_settings_list, 
+//            app_vars.rx_settings_if_count_list
+//        );
+    
     app_vars.rx_setting_target = \
-        freq_setting_selection_median(app_vars.rx_settings_list);
+        freq_setting_selection_median(
+            app_vars.rx_settings_list
+        );
 }
 
 void    getFrequencyTx(
@@ -402,22 +421,21 @@ void    getFrequencyTx(
         
         radio_rfOff();
         
-        delay_rfoff();
-        
         app_vars.tx_done = 0;
         
         pkt[0] = 'S';
         pkt[1] = 'C';
         pkt[2] = 'M';
         radio_loadPacket(pkt, TARGET_PKT_SIZE);
-        
         LC_FREQCHANGE(
             (app_vars.current_setting>>10) & 0x001F,
             (app_vars.current_setting>>5)  & 0x001F,
             (app_vars.current_setting)     & 0x001F
         );
         radio_txEnable();
+        
         delay_tx();
+        
         radio_txNow();
         while(app_vars.tx_done == 0);
         
@@ -432,6 +450,8 @@ void    getFrequencyTx(
             (app_vars.rx_setting_target>>5)  & 0x001F,
             (app_vars.rx_setting_target)     & 0x001F
         );
+        
+        delay_lc_setup();
 
         radio_rxEnable();
         radio_rxNow();
@@ -473,22 +493,21 @@ void    contiuously_calibration_start(void) {
         
         radio_rfOff();
         
-        delay_rfoff();
-        
         app_vars.tx_done = 0;
         
         pkt[0] = 'S';
         pkt[1] = 'C';
         pkt[2] = 'M';
         radio_loadPacket(pkt, TARGET_PKT_SIZE);
-        
         LC_FREQCHANGE(
             (app_vars.tx_setting_target>>10) & 0x001F,
             (app_vars.tx_setting_target>>5)  & 0x001F,
             (app_vars.tx_setting_target)     & 0x001F
         );
         radio_txEnable();
+        
         delay_tx();
+        
         radio_txNow();
         while(app_vars.tx_done == 0);
         
@@ -501,6 +520,8 @@ void    contiuously_calibration_start(void) {
             (app_vars.rx_setting_target>>5)  & 0x001F,
             (app_vars.rx_setting_target)     & 0x001F
         );
+        
+        delay_lc_setup();
         
         radio_rxEnable();
         radio_rxNow();
