@@ -9,6 +9,9 @@
 
 //=========================== defines =========================================
 
+#define OPTICAL_CALIBRATION_ITERATION_COUNT 25
+#define LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION 0 // flag
+
 //=========================== variables =======================================
 
 typedef struct {
@@ -139,7 +142,8 @@ void optical_sfd_isr(){
     ANALOG_CFG_REG__0 = 0x3FFF;    
         
     // Don't make updates on the first two executions of this ISR
-    if(optical_vars.optical_cal_iteration > 2){
+		// only make updates until the number of desired iterations is reached
+    if(optical_vars.optical_cal_iteration > 2 && optical_vars.optical_cal_iteration <= OPTICAL_CALIBRATION_ITERATION_COUNT){
         
         // Do correction on HF CLOCK
         // Fine DAC step size is about 6000 counts
@@ -221,13 +225,14 @@ void optical_sfd_isr(){
         scm3c_hw_interface_set_IF_fine(IF_fine);
         
         analog_scan_chain_write();
-        analog_scan_chain_load();    
+        analog_scan_chain_load();
+				
+				// Debugging output
+				printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d,%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_coarse,IF_fine); 
     }
     
-    // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d,%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_coarse,IF_fine); 
-     
-    if(optical_vars.optical_cal_iteration == 25){
+		// on the very last iteration of optical calibration, store the final counts
+    if(optical_vars.optical_cal_iteration == OPTICAL_CALIBRATION_ITERATION_COUNT){
 				printf("#define HF_COARSE %u\n#define HF_FINE %u\n#define RC2M_COARSE %u\n#define RC2M_FINE %u\n#define RC2M_SUPERFINE %u\n#define IF_COARSE %u\n#define IF_FINE %u\n",
 							HF_CLOCK_coarse, HF_CLOCK_fine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
 			
@@ -236,11 +241,6 @@ void optical_sfd_isr(){
 				fine = LC_monotonic_fine(optical_vars.LC_code);
 				//printf("Optically calibrated LC codes for tx channel 11 (highly dependent on voltage; not reliable): coarse %d, mid: %d, fine: %d\n", coarse, mid, fine);
 				printf("The LC codes for rx/tx are very roughly near (note this is highly unreliable): coarse %d, mid: %d, fine: %d\n", coarse, mid, fine);
-			
-        // Disable this ISR
-        ICER = 0x0800;
-        optical_vars.optical_cal_iteration = 0;
-        optical_vars.optical_cal_finished = 1;
         
         // Store the last count values
         optical_vars.num_32k_ticks_in_100ms = count_32k;
@@ -252,9 +252,7 @@ void optical_sfd_isr(){
         // Debug prints
         //printf("LC_code=%d\r\n", optical_vars.LC_code);
         //printf("IF_fine=%d\r\n", IF_fine);
-        
-        printf("done\r\n");
-                
+                        
         // This was an earlier attempt to build out a complete table of LC_code for TX/RX on each channel
         // It doesn't really work well yet so leave it commented
         //printf("Building channel table...");
@@ -265,7 +263,25 @@ void optical_sfd_isr(){
         
         //radio_disable_all();
         
-        // Halt all counters
-        ANALOG_CFG_REG__0 = 0x0000;
+        // Halt all counters only if we aren't going to log temperature after
+				if (!LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION) {
+						ANALOG_CFG_REG__0 = 0x0000;
+					
+						// Disable this ISR
+						ICER = 0x0800;
+						//optical_vars.optical_cal_iteration = 0;
+						optical_vars.optical_cal_finished = 1;
+				}
     }
+		
+		// Temperature measurement section
+		// We are going to log the 32kHz and 2MHz clocks for the iterations after the optical
+		// calibration is complete.
+		// adding 2, since I noticed the 32kHz and 2MHz measurments were very wrong for the first
+		// two iterations directly after completing the first part of optical calibration
+		if (LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION &&
+			optical_vars.optical_cal_iteration > OPTICAL_CALIBRATION_ITERATION_COUNT + 2) {
+				printf("32kHz: %d 2MHz %d\n", count_32k, count_2M);
+		}
+		
 }

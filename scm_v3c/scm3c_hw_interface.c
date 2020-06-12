@@ -95,7 +95,6 @@ void normal_power_mode(void) {
 }
 
 void enter_low_power_mode_32k(void) {
-		int i = 0;
 		// Use the 32kHz as source for HCLK rather than HF clock
 		// This means we need to set the input for HCLK to be TIMER32k, which is clock number 3
 		// to set the input clock for HCLK to TIMER32k we need to modify ASC[1150:1147] to be 0011 (3 in decimal)
@@ -103,10 +102,6 @@ void enter_low_power_mode_32k(void) {
 		clear_asc_bit(1149);
 		set_asc_bit(1148);
 		set_asc_bit(1147);
-	
-	  update_scan_chain();
-	
-		for (i = 0; i < 10000; i++) {}
 		
 		// additionally we want to enable passthrough on the HCLK divider so that the TIMER32k passes
 		// directly through without any divide (by default HCLK has a division of 4)
@@ -116,14 +111,10 @@ void enter_low_power_mode_32k(void) {
 }
 
 void exit_low_power_mode_32k(void) {
-		int i;
-		
+		// disable passthrough on the HCLK divider
 		clear_asc_bit(37);
 	
-		update_scan_chain();
-	
-		for (i = 0; i < 1000; i++) {}
-	
+		// set the source for HCLK to come from the HF_CLOCK
 		clear_asc_bit(1150);
 		clear_asc_bit(1149);
 		clear_asc_bit(1148);
@@ -154,8 +145,8 @@ void read_count_2M_32K(unsigned int* count_2M, unsigned int* count_32k) {
 		// Enable all counters
 		ANALOG_CFG_REG__0 = 0x3FFF;	
 		
-		printf("2M_count=%X\n",*count_2M);
-		printf("32k_count=%X\n\n",*count_32k);
+		//printf("2M_count=%X\n",*count_2M);
+		//printf("32k_count=%X\n\n",*count_32k);
 }
 
 // AUSTIN DONE

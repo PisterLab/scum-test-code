@@ -20,6 +20,10 @@ typedef struct {
 
 rftimer_vars_t rftimer_vars;
 
+// todo: this is a very hacky solution. Need to find a better way to do this
+extern unsigned int count_2M;
+extern unsigned int count_32k;
+
 // ========================== prototype =======================================
 
 // ========================== public ==========================================
@@ -61,6 +65,33 @@ void rftimer_disable_interrupts(void){
     ICER = 0x80;
 }
 
+/* Delays the chip for a period of time in milliseconds based off the rate
+ * of the 500kHz RF TIMER. Internally, this function uses RFTIMER COMPARE 7.
+ *
+ * @param callback - the callback to call after the delay has completed
+ * @param delay_milli - the delay in milliseconds
+*/
+void delay_milliseconds(rftimer_cbt callback, unsigned int delay_milli) {
+	// RF TIMER is derived from HF timer (20MHz) through a divide ratio of 40, thus it is 500kHz.
+	// the count defined by RFTIMER_REG__MAX_COUNT and RFTIMER_REG__COMPARE1 indicate how many
+	// counts the timer should go through before triggering an interrupt. This is the basis for
+	// the following calculation. For example a count of 0x0000C350 corresponds to 100ms.
+	unsigned int rf_timer_count = delay_milli * 500; // same as (delay_milli * 500000) / 1000;
+
+  rftimer_set_callback(callback);
+	rftimer_enable_interrupts();
+
+	RFTIMER_REG__MAX_COUNT = rf_timer_count;
+	RFTIMER_REG__COMPARE7 = rf_timer_count;
+	RFTIMER_REG__COMPARE7_CONTROL = 0x03;
+
+	// Reset all counters
+	ANALOG_CFG_REG__0 = 0x0000;
+
+	// Enable all counters
+	ANALOG_CFG_REG__0 = 0x3FFF;
+}
+
 // ========================== interrupt =======================================
 
 void rftimer_isr(void) {
@@ -71,35 +102,19 @@ void rftimer_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("COMPARE0 MATCH\r\n");
 #endif
-        if (rftimer_vars.rftimer_cb!=NULL) {
-            rftimer_vars.rftimer_cb();
-        }
     }
     
-    if (interrupt & 0x00000002){ // MEASURE TEMPERATURE INTERRUPT 
+    if (interrupt & 0x00000002){
 #ifdef ENABLE_PRINTF
         printf("COMPARE1 MATCH\r\n");
-#endif
-			
-			printf("do temperature measurement here!\n");
-			
-			// Reset the interrupt
-			RFTIMER_REG__CONTROL = 0x7;
-			RFTIMER_REG__MAX_COUNT = 0x0000C350;
-			RFTIMER_REG__COMPARE1 = 0x0000C350;
-			RFTIMER_REG__COMPARE1_CONTROL = 0x03;
-
-			// Reset all counters
-			ANALOG_CFG_REG__0 = 0x0000;
-
-			// Enable all counters
-			//ANALOG_CFG_REG__0 = 0x3FFF;
-			
-			// disable the interrupt
-			ICER = 0x0080;
+#endif			
+			// This interrupt is used for measuring temperature.
+			// We are just going to read in the counts of the 2MHz and the 32kHz
+			// clocks which will be used for making the temperature estimate.
+			read_count_2M_32K(&count_2M, &count_32k);
     }
     
-    if (interrupt & 0x00000004){ // MEASURE 2M 32K COUNTER INTERRUPT
+    if (interrupt & 0x00000004){
 #ifdef ENABLE_PRINTF
         printf("COMPARE2 MATCH\r\n");
 #endif
@@ -138,6 +153,8 @@ void rftimer_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("COMPARE7 MATCH\r\n");
 #endif
+			// this interrupt is used by the delay_milliseconds function. We are going to do nothing
+			// for this one since we are just delaying
     }
     
     if (interrupt & 0x00000100) {
@@ -187,6 +204,14 @@ void rftimer_isr(void) {
         printf("CAPTURE3 OVERFLOW AT: 0x%x\r\n", RFTIMER_REG__CAPTURE3);
 #endif
     }
+		
+		// disable the interrupt (I believes this make using the RF timer a "one time interrupt" rather than a
+		// repeating interrupt that keeps happening at an interval, but not sure)
+		ICER = 0x0080;
     
     RFTIMER_REG__INT_CLEAR = interrupt;
+
+    if (rftimer_vars.rftimer_cb != NULL) {
+        rftimer_vars.rftimer_cb();
+    }
 }

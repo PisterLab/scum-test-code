@@ -11,11 +11,25 @@
 #include "optical.h"
 #include "zappy2.h"
 #include "temperature.h"
+#include "fixed-point.h"
 
 //=========================== defines =========================================
-	
+
+// TEMPERATURE DEFINES
+// LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION variable exists in optical.c
+// and indicates whether you want to conduct a measurements of the 32kHz and 2MHz clocks
+// after optical calibration has completed for the purpose of measuring temperature
+// the optical programmer (if programmed to do so) will continue to send optical
+// calibration pulses as a reference.
+#define CLOCK_RATIO_VS_TEMP_SLOPE -30.715 // dummy value
+#define CLOCK_RATIO_VS_TEMP_OFFSET 1915.142 // y intercept // dummy value
+#define FINE_CODE_VS_TEMP_SLOPE 1.194 // dummy value
+#define FINE_CODE_VS_TEMP_OFFSET -12.439 // y intercept // dummy value
+#define TEMP_MEASURE_DURATION_MILLISECONDS 100 // duration for which we should measure the 2MHz and 32kHz clocks in order to measure the temperature
+
+// RADIO DEFINES
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
+#define MODE 8 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
 #define SOLAR_DELAY 5000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
@@ -50,24 +64,6 @@
 #define IF_COARSE 22
 #define IF_FINE 31
 
-//1.85V
-//#define HF_COARSE 3
-//#define HF_FINE 23
-//#define RC2M_COARSE 22
-//#define RC2M_FINE 17
-//#define RC2M_SUPERFINE 15
-//#define IF_COARSE 22
-//#define IF_FINE 41
-
-//1.89V
-//#define HF_COARSE 3
-//#define HF_FINE 24
-//#define RC2M_COARSE 22
-//#define RC2M_FINE 17
-//#define RC2M_SUPERFINE 15
-//#define IF_COARSE 22
-//#define IF_FINE 41
-
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
 #define NUMPKT_PER_CFG      1
@@ -76,16 +72,25 @@
 //=========================== variables =======================================
 
 char tx_packet[LEN_TX_PKT]; // contains the contents of the packet to be transmitted
-int rx_count = 0; // count of the number of packets received
-// set to true if should send ack right after the receive completes.f].
+unsigned packet_counter = 0; // number of times we have transmitted or attempted to receive
+int rx_count = 0; // count of the number of packets actually received
+// need_to_send_ack: set to true if should send ack right after the receive completes.
 // Use SEND_ACK to determine whether to send an acknowledgemnets or not.
 bool need_to_send_ack = false;
+double temp;
+
+uint32_t count_2M;
+uint32_t count_32k;
 
 //=========================== prototypes ======================================
 
 void		 repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packets);
 void		 radio_delay(void);
 void		 onRx(uint8_t *packet, uint8_t packet_len);
+void		 temp_radio_adjust_loop(void);
+void		 radio_temp_adjust_callback(void);
+void     read_temp_callback(void);
+void		 delay_milliseconds_test_loop(void);
 
 //=========================== main ============================================
 	
@@ -151,7 +156,7 @@ int main(void) {
 			
 				repeat_rx_tx(RX, SWEEP_RX, 1);
 				break;
-			case 4: // idle normal power
+			case 4: // idle normal power used for doing nothing while letting optical interrupts happen for tmperature mode
 				while (1) {}
 				break;
 			case 5: // idle low power
@@ -171,6 +176,13 @@ int main(void) {
 					for(i=0;i<100;i++);
 				}
 				break;
+			case 7: // temperature compensated transmit loop 
+				temp_radio_adjust_loop();
+				while (1) {} // since this is interrupt based we need some loop to stall in while we wait for interrupts
+				break;
+			case 8: // test of RF TIMER delay milliseconds function
+				delay_milliseconds_test_loop();
+				while (1) {} // since this is interrupt based we need some loop to stall in while we wait for interrupts
 			default:
 				printf("Invalid mode\n");
 				break;
@@ -205,8 +217,6 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	uint8_t IF_clk_target;
 	uint8_t IF_coarse;
 	uint8_t IF_fine;
-	
-	unsigned packet_counter = 0;
 	
 	char* radio_mode_string;
 	
@@ -353,4 +363,61 @@ void onRx(uint8_t *packet, uint8_t packet_len) {
 		//printf("Got message to actuate gripper!!!\n");
 		//sara(100, 2,1);
 	}
+}
+
+/* Loop that will get a temperature estimate, which will then trigger a calculation of the
+ * proper fine code to use based on that temperature.
+ */
+void temp_radio_adjust_loop(void) {
+	measure_temperature(radio_temp_adjust_callback, TEMP_MEASURE_DURATION_MILLISECONDS);
+}
+
+/* Once called count_2M and count_32k will already be set
+	with the the count that accumulated from the start of the RF TIMER running (from the start of
+	the call to measure_temperature). The duration of the timer is specified in the call to 
+	measure_temperature. This function will set the temep variable based on the hard coded
+	linear model relating the ratio of the 2M/32kHz clocks and a temperature estimate. */
+void read_temp_callback(void) {
+	double ratio;
+	
+	// calculate the ratio between the 2M and the 32kHZz clocks
+	ratio = fix_double(fix_div(fix_init(count_2M), fix_init(count_32k)));
+	
+	// using our linear model that we fit based on fixed point temperature measurement
+	// we can determine an estimate for temperature
+	temp = CLOCK_RATIO_VS_TEMP_SLOPE * ratio + CLOCK_RATIO_VS_TEMP_OFFSET;
+	
+	printf("2M: %u, 32kHz: %u, Ratio: %f, Temp: %d\n", count_2M, count_32k, ratio, (int) temp);
+}
+
+/* Setting this function as the callback to read_temperature will update the temp variable through
+	an estimated temperature set by calling read_temp_callback function. Then this function will ajust
+	the LC based on the linear model relating fine codes and temperature. Relies on FIXED_LC_COARSE_TX
+	and FIXED_LC_MID_TX to represent the coarse and mid codes at room temperature. Will then determine
+	the correct fine code based on a hardcoded linear model. */
+void radio_temp_adjust_callback(void) {
+	uint8_t LC_fine_code;
+	
+	// process the clock count data that has just been obtained to come up with a temperature estimate
+	read_temp_callback();
+	
+	// based on the temp value, come up with an estimate for a fine code based on the linear model
+	LC_fine_code = FINE_CODE_VS_TEMP_SLOPE * temp + FINE_CODE_VS_TEMP_OFFSET;
+	
+	// set the packet contents and transmit a packet at the determined LC code
+	tx_packet[1] = packet_counter++;
+	tx_packet[2] = (uint8_t) FIXED_LC_COARSE_TX;
+	tx_packet[3] = (uint8_t) FIXED_LC_MID_TX;
+	tx_packet[4] = (uint8_t) LC_fine_code;
+	tx_packet[5] = (uint8_t) temp;
+	send_packet(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, LC_fine_code, tx_packet);
+	
+	// wait for a certain period of time before starting process of reading in tempterature and transmitting
+	delay_milliseconds(temp_radio_adjust_loop, 3000);
+}
+
+/* A function used for testing the delay milliseconds functionality. */
+void delay_milliseconds_test_loop(void) {
+	printf("delay over!\n");
+	delay_milliseconds(delay_milliseconds_test_loop, 3000);
 }

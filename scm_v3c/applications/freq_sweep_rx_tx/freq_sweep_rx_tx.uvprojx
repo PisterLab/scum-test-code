@@ -572,6 +572,11 @@
               <FileType>5</FileType>
               <FilePath>..\..\temperature.h</FilePath>
             </File>
+            <File>
+              <FileName>fixed-point.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\fixed-point.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
