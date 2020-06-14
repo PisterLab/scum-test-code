@@ -84,6 +84,9 @@ typedef struct {
     uint32_t if_history[HISTORY_SAMPLE_SIZE];
       int8_t fo_history[HISTORY_SAMPLE_SIZE];
      uint8_t history_index;
+     
+    // last temperature
+     uint16_t last_temperature;
     
 } app_vars_t;
 
@@ -273,6 +276,8 @@ void    cb_endFrame_rx(uint32_t timestamp) {
                 app_vars.tx_list_index++;
             break;
             case CONTINUOUSLY_CAL:
+                
+                app_vars.last_temperature = temperature;
                 
                 app_vars.if_history[app_vars.history_index] = \
                     radio_getIFestimate();
@@ -569,7 +574,7 @@ void    update_target_settings(void){
     app_vars.tx_setting_target -= adjustment;
     
     printf(
-        "TX setting: %d %d %d (avg_if=%d) | RX setting %d %d %d (avg_fo=%d)\r\n",
+        "TX setting: %d %d %d (avg_if=%d) | RX setting %d %d %d (avg_fo=%d) temp=%d\r\n",
         ( app_vars.tx_setting_target >> 10 ) & 0x001f,
         ( app_vars.tx_setting_target >> 5 )  & 0x001f,
         ( app_vars.tx_setting_target )       & 0x001f,
@@ -577,7 +582,8 @@ void    update_target_settings(void){
         ( app_vars.rx_setting_target >> 10 ) & 0x001f,
         ( app_vars.rx_setting_target >> 5 )  & 0x001f,
         ( app_vars.rx_setting_target )       & 0x001f,
-        avg_if
+        avg_if,
+        app_vars.last_temperature
     );
 }
 
