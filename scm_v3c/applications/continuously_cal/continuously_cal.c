@@ -574,7 +574,7 @@ void    update_target_settings(void){
     app_vars.tx_setting_target -= adjustment;
     
     printf(
-        "TX setting: %d %d %d (avg_if=%d) | RX setting %d %d %d (avg_fo=%d) temp=%d\r\n",
+        "TX setting: %d %d %d (avg_fo=%d) | RX setting %d %d %d (avg_if=%d) temp=%d\r\n",
         ( app_vars.tx_setting_target >> 10 ) & 0x001f,
         ( app_vars.tx_setting_target >> 5 )  & 0x001f,
         ( app_vars.tx_setting_target )       & 0x001f,

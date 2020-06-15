@@ -47,9 +47,9 @@ def parser_line(line):
     
         info                = line.split(' ')
         tx_setting          = (int(info[2])<<10) | (int(info[3])<<5)  | (int(info[4]))
-        avg_if              = int(info[5].split('=')[-1][:-1])
+        avg_fo              = int(info[5].split('=')[-1][:-1])
         rx_setting          = (int(info[9])<<10)  | (int(info[10])<<5) | (int(info[11]))
-        avg_fo              = int(info[12].split('=')[-1][:-1])
+        avg_if              = int(info[12].split('=')[-1][:-1])
         temp                = int(info[13].split('=')[-1][:-1])
         
     except:
@@ -123,16 +123,17 @@ for key, raw_data in result.items():
     
     
     if 'setting' in key:
-        ax.plot(x_axis, raw_data, '.', label='freq_setting')
         
         if key == 'tx_setting':
-        
+            
+            ax.plot(x_axis, raw_data, '.', label='freq_setting_tx')
             ax.plot(x_axis, [maxlength_list_tx[0] for i in x_axis], 'k--')
             ax.plot(x_axis, [maxlength_list_tx[-1] for i in x_axis], 'k--')
             yticks = [4*i + (maxlength_list_tx[0] & 0xFFE0) for i in range(8)]
         
         if key == 'rx_setting':
         
+            ax.plot(x_axis, raw_data, '.', label='freq_setting_rx')
             ax.plot(x_axis, [maxlength_list_rx[0] for i in x_axis], 'k--')
             ax.plot(x_axis, [maxlength_list_rx[-1] for i in x_axis], 'k--')
             yticks = [4*i + (maxlength_list_rx[0] & 0xFFE0) for i in range(8)]
