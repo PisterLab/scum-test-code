@@ -17,6 +17,11 @@ uint16_t freq_setting_selection_fo(
     int8_t* freq_offset_list
 );
 
+uint16_t freq_setting_selection_fo_alternative(
+    uint16_t* setting_list, 
+    int8_t* freq_offset_list
+);
+
 uint16_t freq_setting_selection_median(
     uint16_t* setting_list
 );
