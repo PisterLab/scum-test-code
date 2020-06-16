@@ -65,6 +65,7 @@ typedef struct {
     uint16_t tx_setting_target;
     uint16_t tx_settings_list[SETTING_SIZE];
       int8_t tx_settings_freq_offset_list[SETTING_SIZE];
+    uint32_t count_2m_list[SETTING_SIZE];
     uint16_t tx_list_index;
     
     // setting for rx
@@ -87,7 +88,9 @@ typedef struct {
     // for continuously calibration
     uint32_t if_history[HISTORY_SAMPLE_SIZE];
       int8_t fo_history[HISTORY_SAMPLE_SIZE];
+    uint32_t count_2m_history[HISTORY_SAMPLE_SIZE];
      uint8_t history_index;
+    uint32_t target_count_2m;
      
     // last temperature
      uint16_t last_temperature;
@@ -273,6 +276,13 @@ void    cb_endFrame_rx(uint32_t timestamp) {
     
     uint16_t temperature;
     
+    uint32_t count_2M;
+    uint32_t count_LC; 
+    uint32_t count_adc;
+    
+    // read the  count_2M counters
+    read_counters_3B(&count_2M,&count_LC,&count_adc);
+    
     // disable timeout interrupt
     rftimer_disable_interrupts();
     
@@ -303,16 +313,20 @@ void    cb_endFrame_rx(uint32_t timestamp) {
                     app_vars.current_setting;
                 app_vars.tx_settings_freq_offset_list[app_vars.tx_list_index] = \
                     (int8_t)(pkt[2]);
+                app_vars.count_2m_list[app_vars.tx_list_index] = \
+                     count_2M;
                 app_vars.tx_list_index++;
             break;
             case CONTINUOUSLY_CAL:
                 
                 app_vars.last_temperature = temperature;
                 
-                app_vars.if_history[app_vars.history_index] = \
+                app_vars.if_history[app_vars.history_index]       = \
                     radio_getIFestimate();
-                app_vars.fo_history[app_vars.history_index] = \
+                app_vars.fo_history[app_vars.history_index]       = \
                     (int8_t)(pkt[2]);
+                app_vars.count_2m_history[app_vars.history_index] = \
+                     count_2M;
                 app_vars.history_index += 1;
                 app_vars.history_index %= HISTORY_SAMPLE_SIZE;
             
@@ -338,6 +352,13 @@ void    cb_startFrame_tx(uint32_t timestamp) {
 }
 
 void    cb_endFrame_tx(uint32_t timestamp) {
+    
+    uint32_t count_2M;
+    uint32_t count_LC; 
+    uint32_t count_adc;
+    
+    // only for resetting the counters
+    read_counters_3B(&count_2M,&count_LC,&count_adc);
     
     // schedule when to start to listen ACK
     
@@ -502,10 +523,21 @@ void    getFrequencyTx(
     //      as the target tx frequency setting
     
     app_vars.tx_setting_target = \
-        freq_setting_selection_fo(
+        freq_setting_selection_fo_alternative(
             app_vars.tx_settings_list, 
             app_vars.tx_settings_freq_offset_list
         );
+    
+    // calculate target count 2m
+    i = 0;
+    app_vars.target_count_2m = 0;
+    while (app_vars.count_2m_list[i]!=0) {
+        app_vars.target_count_2m += app_vars.count_2m_list[i];
+        i++;
+    }
+    app_vars.target_count_2m /= i;
+    
+    printf("target count 2M = %d\r\n",app_vars.target_count_2m);
     
     app_vars.state = SWEEP_TX_DONE;
 }
@@ -568,7 +600,13 @@ void    update_target_settings(void){
     uint8_t i;
     uint32_t avg_if;
      int32_t adjustment;
+     int32_t tmp;
      int16_t avg_fo;
+    uint32_t avg_count_2M;
+    
+    uint32_t RC2M_coarse;
+    uint32_t RC2M_fine;
+    uint32_t RC2M_superfine;
     
     // update target setting for RX
     avg_if = 0;
@@ -590,8 +628,54 @@ void    update_target_settings(void){
     adjustment   = (int16_t)(avg_fo - 2)/10;
     app_vars.tx_setting_target -= adjustment;
     
+    // update target setting for 2M RC OSC
+    avg_count_2M = 0;
+    for (i=0;i<HISTORY_SAMPLE_SIZE;i++){
+        avg_count_2M += app_vars.count_2m_history[i];
+    }
+    avg_count_2M      /= HISTORY_SAMPLE_SIZE;
+    
+    RC2M_coarse     = scm3c_hw_interface_get_RC2M_coarse();
+    RC2M_fine       = scm3c_hw_interface_get_RC2M_fine();
+    RC2M_superfine  = scm3c_hw_interface_get_RC2M_superfine();
+    
+    adjustment = (int32_t)(avg_count_2M-app_vars.target_count_2m);
+    if (adjustment >= 331 || adjustment <= -331) {
+        tmp          = adjustment/331;
+        RC2M_coarse += tmp;
+        adjustment   = adjustment - tmp*331;
+    }
+    
+    if (adjustment >= 58 || adjustment <= -58) {
+        tmp          = adjustment/58;
+        RC2M_fine   += tmp;
+        adjustment   = adjustment - tmp*58;
+    }
+    
+    if (adjustment >= 7 || adjustment <= -7) {
+        tmp               = adjustment/7;
+        RC2M_superfine   += tmp;
+    }
+    
+    set_2M_RC_frequency(
+        31,
+        31,
+        RC2M_coarse, 
+        RC2M_fine, 
+        RC2M_superfine
+    );
+    
+    scm3c_hw_interface_set_RC2M_coarse(RC2M_coarse);
+    scm3c_hw_interface_set_RC2M_fine(RC2M_fine);
+    scm3c_hw_interface_set_RC2M_superfine(RC2M_superfine);
+    
+    analog_scan_chain_write();
+    analog_scan_chain_load(); 
+    
+    // output for plot
+    
     printf(
-        "TX setting: %d %d %d (avg_fo=%d) | RX setting %d %d %d (avg_if=%d) temp=%d\r\n",
+        "TX setting %d %d %d (avg_fo=%d) | RX setting %d %d %d (avg_if=%d) | 2M setting %d %d %d (avg_count_2M=%d) | temp=%d\r\n",
         ( app_vars.tx_setting_target >> 10 ) & 0x001f,
         ( app_vars.tx_setting_target >> 5 )  & 0x001f,
         ( app_vars.tx_setting_target )       & 0x001f,
@@ -600,6 +684,10 @@ void    update_target_settings(void){
         ( app_vars.rx_setting_target >> 5 )  & 0x001f,
         ( app_vars.rx_setting_target )       & 0x001f,
         avg_if,
+        RC2M_coarse, 
+        RC2M_fine, 
+        RC2M_superfine,
+        avg_count_2M,
         app_vars.last_temperature
     );
 }
