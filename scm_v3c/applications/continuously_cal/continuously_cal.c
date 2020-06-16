@@ -31,7 +31,7 @@ This calibration only applies on on signel channel, e.g. channel 11.
 #define CODE_LENGTH         (*((unsigned int *) 0x0000FFF8))
 
 #define RX_TIMEOUT          500  // 500 = 1ms@500kHz
-#define RX_ACK_TIMEOUT      1000 // 500 = 1ms@500kHz
+#define RX_ACK_TIMEOUT      1500 // 500 = 1ms@500kHz
 
 #define SWEEP_START         ((24<<10) | ( 0<<5) | (0))
 #define SWEEP_END           ((24<<10) | (31<<5) | (31))
@@ -45,6 +45,9 @@ This calibration only applies on on signel channel, e.g. channel 11.
 #define TARGET_PKT_SIZE     5
 
 #define HISTORY_SAMPLE_SIZE 10
+
+#define ACK_IN_MS           30
+#define TICK_IN_MS          500
 
 //=========================== variables =======================================
 
@@ -76,6 +79,7 @@ typedef struct {
     state_t state;
     uint8_t rx_done;
     uint8_t tx_done;
+    uint8_t schedule_rx_ack_or_rx_timeout;
     
     // for sync
     uint8_t beacon_stops_in;    // in seconds
@@ -215,10 +219,36 @@ void    cb_timer(void) {
             app_vars.state = SWEEP_TX;
         break;
         case SWEEP_TX:
-            app_vars.rx_done = 1;   // rx for ack
+            
+            if (app_vars.schedule_rx_ack_or_rx_timeout){
+                
+                radio_rxEnable();
+                radio_rxNow();
+                
+                gpio_3_toggle();
+                
+                app_vars.schedule_rx_ack_or_rx_timeout = 0;
+                rftimer_setCompareIn(rftimer_readCounter()+RX_ACK_TIMEOUT);
+            } else {
+        
+                app_vars.rx_done = 1;   // rx for ack
+            }
         break;
         case CONTINUOUSLY_CAL:
-            app_vars.rx_done = 1;
+            
+            if (app_vars.schedule_rx_ack_or_rx_timeout){
+                
+                radio_rxEnable();
+                radio_rxNow();
+                
+                gpio_3_toggle();
+                
+                app_vars.schedule_rx_ack_or_rx_timeout = 0;
+                rftimer_setCompareIn(rftimer_readCounter()+SENDING_INTERVAL);
+            } else {
+                
+                app_vars.rx_done = 1;
+            }
         break;
         default:
             printf(
@@ -308,6 +338,13 @@ void    cb_startFrame_tx(uint32_t timestamp) {
 }
 
 void    cb_endFrame_tx(uint32_t timestamp) {
+    
+    // schedule when to start to listen ACK
+    
+    app_vars.schedule_rx_ack_or_rx_timeout = 1; // 1 = schedule_rx_ack
+    
+    // start to listen for ack 1 ms early
+    rftimer_setCompareIn(timestamp + ACK_IN_MS*TICK_IN_MS - RX_ACK_TIMEOUT/2);
     
     app_vars.tx_done = 1;
 }
@@ -430,9 +467,9 @@ void    getFrequencyTx(
         
         app_vars.tx_done = 0;
         
-        pkt[0] = 'S';
-        pkt[1] = 'C';
-        pkt[2] = 'M';
+        pkt[0] = 'C';
+        pkt[1] = 'F';
+        pkt[2] = ACK_IN_MS;
         radio_loadPacket(pkt, TARGET_PKT_SIZE);
         LC_FREQCHANGE(
             (app_vars.current_setting>>10) & 0x001F,
@@ -458,16 +495,6 @@ void    getFrequencyTx(
             (app_vars.rx_setting_target)     & 0x001F
         );
         
-        delay_turnover();
-        
-        delay_lc_setup();
-
-        radio_rxEnable();
-        radio_rxNow();
-        
-        gpio_3_toggle();
-        
-        rftimer_setCompareIn(rftimer_readCounter()+RX_ACK_TIMEOUT);
         while(app_vars.rx_done == 0);
     }
     
@@ -504,9 +531,9 @@ void    contiuously_calibration_start(void) {
         
         app_vars.tx_done = 0;
         
-        pkt[0] = 'S';
-        pkt[1] = 'C';
-        pkt[2] = 'M';
+        pkt[0] = 'C';
+        pkt[1] = 'F';
+        pkt[2] = ACK_IN_MS;
         radio_loadPacket(pkt, TARGET_PKT_SIZE);
         LC_FREQCHANGE(
             (app_vars.tx_setting_target>>10) & 0x001F,
@@ -524,24 +551,14 @@ void    contiuously_calibration_start(void) {
         
         radio_rfOff();
         
+        app_vars.rx_done = 0;
+        
         LC_FREQCHANGE(
             (app_vars.rx_setting_target>>10) & 0x001F,
             (app_vars.rx_setting_target>>5)  & 0x001F,
             (app_vars.rx_setting_target)     & 0x001F
         );
         
-        delay_turnover();
-        
-        delay_lc_setup();
-        
-        radio_rxEnable();
-        radio_rxNow();
-        
-        gpio_3_toggle();
-        
-        // schedule to transmit next frame
-        rftimer_setCompareIn(rftimer_readCounter()+SENDING_INTERVAL);
-        app_vars.rx_done = 0;
         while (app_vars.rx_done==0);
     }
 }
