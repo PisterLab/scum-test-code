@@ -20,9 +20,7 @@ typedef struct {
 
 rftimer_vars_t rftimer_vars;
 
-// todo: this is a very hacky solution. Need to find a better way to do this
-extern unsigned int count_2M;
-extern unsigned int count_32k;
+uint8_t delay_completed; // flag indicating whether the delay has completed. For use by delay_milliseoncds_synchronous method
 
 // ========================== prototype =======================================
 
@@ -67,6 +65,10 @@ void rftimer_disable_interrupts(void){
 
 /* Delays the chip for a period of time in milliseconds based off the rate
  * of the 500kHz RF TIMER. Internally, this function uses RFTIMER COMPARE 7.
+ * This is an asynchronous delay, so the program can continue executation and
+ * eventually the interrupt will be called indicating the end of the delay.
+ * 
+ * Side effects: system counts are all reset upon call. 
  *
  * @param callback - the callback to call after the delay has completed
  * @param delay_milli - the delay in milliseconds
@@ -80,16 +82,37 @@ void delay_milliseconds(rftimer_cbt callback, unsigned int delay_milli) {
 
   rftimer_set_callback(callback);
 	rftimer_enable_interrupts();
+	
+	rftimer_setCompareIn(rftimer_readCounter()+rf_timer_count);
 
-	RFTIMER_REG__MAX_COUNT = rf_timer_count;
-	RFTIMER_REG__COMPARE7 = rf_timer_count;
-	RFTIMER_REG__COMPARE7_CONTROL = 0x03;
+//	RFTIMER_REG__MAX_COUNT = rf_timer_count;
+//	RFTIMER_REG__COMPARE7 = rf_timer_count;
+//	RFTIMER_REG__COMPARE7_CONTROL = 0x03;
 
-	// Reset all counters
-	ANALOG_CFG_REG__0 = 0x0000;
+//	// Reset all counters
+//	ANALOG_CFG_REG__0 = 0x0000;
 
-	// Enable all counters
-	ANALOG_CFG_REG__0 = 0x3FFF;
+//	// Enable all counters
+//	ANALOG_CFG_REG__0 = 0x3FFF;
+}
+
+/* Performs a delay that will not return until the delay has completed.
+ * For additional documentation see the delay_milliseconds function.
+ */
+void delay_milliseconds_synchronous(unsigned int delay_milli) {
+	delay_completed = 0;
+	
+	delay_milliseconds((rftimer_cbt) delay_milliseconds_synchronous_helper, delay_milli);
+	
+	// do nothing until delay has finished
+	while (delay_completed == 0) {}
+}
+
+/* Helper for the delay_milliseconds_synchronous function that sets the delay_completed
+ * flag to 1 to indicate the delay has finished once the callback occurs.
+ */
+void delay_milliseconds_synchronous_helper(void) {
+	delay_completed = 1;
 }
 
 // ========================== interrupt =======================================
@@ -108,35 +131,26 @@ void rftimer_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("COMPARE1 MATCH\r\n");
 #endif			
-			// This interrupt is used for measuring temperature.
-			// We are just going to read in the counts of the 2MHz and the 32kHz
-			// clocks which will be used for making the temperature estimate.
-			read_count_2M_32K(&count_2M, &count_32k);
     }
     
     if (interrupt & 0x00000004){
 #ifdef ENABLE_PRINTF
         printf("COMPARE2 MATCH\r\n");
-#endif
-			
-			printf("do 2M and 32K count measurement here!\n");
+#endif			
     }
     
-    // Watchdog has expired - no packet received
     if (interrupt & 0x00000008){
 #ifdef ENABLE_PRINTF
         printf("COMPARE3 MATCH\r\n");
 #endif
     }
     
-    // Turn on transmitter to allow frequency to settle
     if (interrupt & 0x00000010){
 #ifdef ENABLE_PRINTF
         printf("COMPARE4 MATCH\r\n");
 #endif
     }
     
-    // Transmit now
     if (interrupt & 0x00000020){
 #ifdef ENABLE_PRINTF
         printf("COMPARE5 MATCH\r\n");
@@ -153,8 +167,6 @@ void rftimer_isr(void) {
 #ifdef ENABLE_PRINTF
         printf("COMPARE7 MATCH\r\n");
 #endif
-			// this interrupt is used by the delay_milliseconds function. We are going to do nothing
-			// for this one since we are just delaying
     }
     
     if (interrupt & 0x00000100) {

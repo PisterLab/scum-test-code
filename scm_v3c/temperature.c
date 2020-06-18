@@ -3,31 +3,22 @@
 #include "Memory_map.h"
 #include "rftimer.h"
 
-void measure_temperature(rftimer_cbt callback, unsigned int measurement_time_milliseconds) {
-	// RF TIMER is derived from HF timer (20MHz) through a divide ratio of 40, thus it is 500kHz.
-	// the count defined by RFTIMER_REG__MAX_COUNT and RFTIMER_REG__COMPARE1 indicate how many
-	// counts the timer should go through before triggering an interrupt. This is the basis for
-	// the following calculation. For example a count of 0x0000C350 corresponds to 100ms.
-	unsigned int rf_timer_count = (measurement_time_milliseconds * 500000) / 1000;
-		
-	// RFCONTROLLER_REG__INT_CONFIG = 0x3FF;   // Enable all interrupts and pulses to radio timer
-	// RFCONTROLLER_REG__ERROR_CONFIG = 0x1F;  // Enable all errors
+extern unsigned int count_2M;
+extern unsigned int count_32k;
 
-  rftimer_set_callback(callback);
-		
-	// Enable RF timer interrupt
-	ISER = 0x0080;
-
-	RFTIMER_REG__CONTROL = 0x7;
-	RFTIMER_REG__MAX_COUNT = rf_timer_count;
-	RFTIMER_REG__COMPARE1 = rf_timer_count;
-	RFTIMER_REG__COMPARE1_CONTROL = 0x03;
-
-	// Reset all counters
-	ANALOG_CFG_REG__0 = 0x0000;
-
-	// Enable all counters
-	ANALOG_CFG_REG__0 = 0x3FFF;
+/* Performs a temperature measurement (in this case will set count_2M and count_32k
+ * variables defined in freq_sweep_rx_tx.c). Is performed asynchronously.
+ */
+void measure_2M_32k_counters(unsigned int measurement_time_milliseconds) {
+	reset_counters();
+	enable_counters();
+	
+	delay_milliseconds_synchronous(measurement_time_milliseconds);
+	
+	// This function leverages the fact that the counters are reset upon calling the delay function
+	// so we know by the point the delay is done our count will make sense based on when the
+	// call occurred.
+	read_count_2M_32K(&count_2M, &count_32k);
 }
 
 //void measure_2M_32k_counters() {		

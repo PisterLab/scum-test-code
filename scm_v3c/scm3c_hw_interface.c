@@ -94,6 +94,7 @@ void normal_power_mode(void) {
 		update_scan_chain();
 }
 
+// TODO: experimental
 void enter_low_power_mode_32k(void) {
 		// Use the 32kHz as source for HCLK rather than HF clock
 		// This means we need to set the input for HCLK to be TIMER32k, which is clock number 3
@@ -110,6 +111,7 @@ void enter_low_power_mode_32k(void) {
 		update_scan_chain();
 }
 
+// TODO: experimental
 void exit_low_power_mode_32k(void) {
 		// disable passthrough on the HCLK divider
 		clear_asc_bit(37);
@@ -126,8 +128,7 @@ void exit_low_power_mode_32k(void) {
 void read_count_2M_32K(unsigned int* count_2M, unsigned int* count_32k) {
 		unsigned int rdata_lsb, rdata_msb;//, count_LC, count_32k;
 	
-		// Disable all counters
-		ANALOG_CFG_REG__0 = 0x007F;
+		disable_counters();
 			
 		// Read 2M counter
 		rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
@@ -139,14 +140,23 @@ void read_count_2M_32K(unsigned int* count_2M, unsigned int* count_32k) {
 		rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
 		*count_32k = rdata_lsb + (rdata_msb << 16);
 		
-		// Reset all counters
-		ANALOG_CFG_REG__0 = 0x0000;		
-		
-		// Enable all counters
-		ANALOG_CFG_REG__0 = 0x3FFF;	
+		reset_counters();		
+		enable_counters();
 		
 		//printf("2M_count=%X\n",*count_2M);
 		//printf("32k_count=%X\n\n",*count_32k);
+}
+
+void disable_counters(void) {
+	ANALOG_CFG_REG__0 = 0x007F;
+}
+
+void enable_counters(void) {
+	ANALOG_CFG_REG__0 = 0x3FFF;
+}
+
+void reset_counters(void) {
+	ANALOG_CFG_REG__0 = 0x0000;	
 }
 
 // AUSTIN DONE

@@ -19,6 +19,9 @@ void exit_low_power_mode_32k(void);
 void optical_calibrate(void);
 void manual_calibrate(int HF_coarse, int HF_fine, int RC2M_coarse, int RC2M_fine, int RC2M_superfine, int IF_coarse, int IF_fine);
 void read_count_2M_32K(unsigned int* count_2M, unsigned int* count_32k);
+void disable_counters(void);
+void enable_counters(void);
+void reset_counters(void);
 
 //==== admin
 void scm3c_hw_interface_init(void);

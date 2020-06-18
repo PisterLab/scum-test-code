@@ -270,7 +270,7 @@ void optical_sfd_isr(){
 						// Disable this ISR
 						ICER = 0x0800;
 						//optical_vars.optical_cal_iteration = 0;
-						optical_vars.optical_cal_finished = 1;
+						optical_vars.optical_cal_finished = 1;					
 				}
     }
 		
@@ -279,6 +279,8 @@ void optical_sfd_isr(){
 		// calibration is complete.
 		// adding 2, since I noticed the 32kHz and 2MHz measurments were very wrong for the first
 		// two iterations directly after completing the first part of optical calibration
+		// note that with this mode, we will never exit out of the optical calibration stage and the
+		// program will continue to idle while we keep waiting for more optical interrupts
 		if (LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION &&
 			optical_vars.optical_cal_iteration > OPTICAL_CALIBRATION_ITERATION_COUNT + 2) {
 				printf("32kHz: %d 2MHz %d\n", count_32k, count_2M);

@@ -81,7 +81,7 @@ typedef struct {
 } radio_vars_t;
 
 typedef struct {
-		uint8_t         packet[LEN_TX_PKT];
+		//uint8_t         packet[LEN_TX_PKT];
 		uint8_t         packet_len;
     volatile    bool            sendDone;
 } app_vars_t_tx;
@@ -135,19 +135,28 @@ void radio_setCallbacks(radio_rx_cb rx_cb) { // rx_callback is custom callback s
 	receive_cb = rx_cb;
 }
 
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet) {
 	uint8_t copy_size;
 	uint8_t i;
 	int j;	
 	tx_rx_mode = 0;
 	
+	rftimer_set_callback(cb_timer); // just in case the callback got changed, reset the RF TIMER callback
+	
 	// copy the packet over
-	for (i = 0; i < LEN_TX_PKT; i++) {
-		app_vars_tx.packet[i] = packet[i];
-	}
+//	for (i = 0; i < LEN_TX_PKT; i++) {
+//		app_vars_tx.packet[i] = packet[i];
+//	}
 
-	radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);	
+	//radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);	
+	radio_loadPacket(packet, LEN_TX_PKT);	
 	LC_FREQCHANGE(coarse, mid, fine);
+	
+	// log the packet contents
+	for (i = 0; i < LEN_TX_PKT; i++) {
+		printf("%d ", radio_vars.radio_tx_buffer[i]);
+	}
+	printf("\n");
 	
 	radio_txEnable();
 	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
@@ -158,6 +167,8 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
 
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {	
 	int i;
+	
+	rftimer_set_callback(cb_timer); // just in case the callback got changed, reset the RF TIMER callback
 	
 	tx_rx_mode = 1;
 	
