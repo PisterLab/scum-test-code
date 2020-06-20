@@ -74,6 +74,11 @@ typedef struct {
     uint16_t rx_settings_if_count_list[SETTING_SIZE];
     uint16_t rx_list_index;
     
+    // setting for 2m clock
+    uint32_t count_2M;
+    uint32_t count_LC; 
+    uint32_t count_adc;
+    
     uint16_t current_setting;
     
     // stats
@@ -265,6 +270,13 @@ void    cb_timer(void) {
 
 void    cb_startFrame_rx(uint32_t timestamp) {
     
+    // read the  count_2M counters
+    read_counters_3B(
+        &app_vars.count_2M,
+        &app_vars.count_LC,
+        &app_vars.count_adc
+    );
+    
 }
 
 void    cb_endFrame_rx(uint32_t timestamp) {
@@ -275,13 +287,6 @@ void    cb_endFrame_rx(uint32_t timestamp) {
     uint8_t lqi;
     
     uint16_t temperature;
-    
-    uint32_t count_2M;
-    uint32_t count_LC; 
-    uint32_t count_adc;
-    
-    // read the  count_2M counters
-    read_counters_3B(&count_2M,&count_LC,&count_adc);
     
     // disable timeout interrupt
     rftimer_disable_interrupts();
@@ -314,7 +319,7 @@ void    cb_endFrame_rx(uint32_t timestamp) {
                 app_vars.tx_settings_freq_offset_list[app_vars.tx_list_index] = \
                     (int8_t)(pkt[2]);
                 app_vars.count_2m_list[app_vars.tx_list_index] = \
-                     count_2M;
+                     app_vars.count_2M;
                 app_vars.tx_list_index++;
             break;
             case CONTINUOUSLY_CAL:
@@ -326,7 +331,7 @@ void    cb_endFrame_rx(uint32_t timestamp) {
                 app_vars.fo_history[app_vars.history_index]       = \
                     (int8_t)(pkt[2]);
                 app_vars.count_2m_history[app_vars.history_index] = \
-                     count_2M;
+                     app_vars.count_2M;
                 app_vars.history_index += 1;
                 app_vars.history_index %= HISTORY_SAMPLE_SIZE;
             
@@ -652,10 +657,10 @@ void    update_target_settings(void){
         adjustment   = adjustment - tmp*58;
     }
     
-    if (adjustment >= 7 || adjustment <= -7) {
-        tmp               = adjustment/7;
-        RC2M_superfine   += tmp;
-    }
+//    if (adjustment >= 7 || adjustment <= -7) {
+//        tmp               = adjustment/7;
+//        RC2M_superfine   += tmp;
+//    }
     
     set_2M_RC_frequency(
         31,
