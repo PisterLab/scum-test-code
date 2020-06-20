@@ -156,14 +156,14 @@ uint16_t freq_setting_selection_fo_alternative(
     
     debug_index=0;
     
-    while (mid_settings[debug_index] != 0) {
+    while (setting_list[debug_index] != 0) {
             
         printf("setting_list[%d] = %d %d %d fo=%d\r\n", 
             debug_index, 
-            mid_settings[debug_index] >> 10 & 0x001f,
-            mid_settings[debug_index] >> 5  & 0x001f,
-            mid_settings[debug_index]       & 0x001f,
-            mid_settings_fo[debug_index]
+            setting_list[debug_index] >> 10 & 0x001f,
+            setting_list[debug_index] >> 5  & 0x001f,
+            setting_list[debug_index]       & 0x001f,
+            freq_offset_list[debug_index]
         );
         debug_index++;
     }
