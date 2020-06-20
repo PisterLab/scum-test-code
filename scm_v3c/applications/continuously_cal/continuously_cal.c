@@ -49,6 +49,20 @@ This calibration only applies on on signel channel, e.g. channel 11.
 #define ACK_IN_MS           30
 #define TICK_IN_MS          500
 
+// when nextOrPrev ==  1: move to next     mid setting
+// when nextOrPrev == -1: move to previous mid setting
+#define CANDIDATE_SETTING_OFFSET_RX(nextOrPrev) (nextOrPrev*(32 - 6))
+#define CANDIDATE_SETTING_OFFSET_TX(nextOrPrev) (nextOrPrev*(32 - 8))
+#define SWITCH_COUNTER_MASK     0x01
+#define NUM_CANDIDATE_SETTING   2
+#define DEFAULT_SETTING         0
+#define ALTERNATIVE_SETTING     1
+
+#define HIGH_BOUDRY_FINE        30
+#define LOW_BOUDRY_FINE         2
+
+#define TARGET_2M_COUNT         60000   // 60000  = 30ms@2MHz
+
 //=========================== variables =======================================
 
 typedef enum {
@@ -62,14 +76,12 @@ typedef enum {
 typedef struct {
     
     // setting for tx
-    uint16_t tx_setting_target;
     uint16_t tx_settings_list[SETTING_SIZE];
       int8_t tx_settings_freq_offset_list[SETTING_SIZE];
     uint32_t count_2m_list[SETTING_SIZE];
     uint16_t tx_list_index;
     
     // setting for rx
-    uint16_t rx_setting_target;
     uint16_t rx_settings_list[SETTING_SIZE];
     uint16_t rx_settings_if_count_list[SETTING_SIZE];
     uint16_t rx_list_index;
@@ -99,6 +111,12 @@ typedef struct {
      
     // last temperature
      uint16_t last_temperature;
+     
+     // candidate settings
+     uint16_t tx_setting_candidate[NUM_CANDIDATE_SETTING];
+     uint16_t rx_setting_candidate[NUM_CANDIDATE_SETTING];
+      uint8_t switch_counter;
+      uint8_t setting_index;
     
 } app_vars_t;
 
@@ -116,6 +134,8 @@ void    getFrequencyTx(uint16_t setting_start, uint16_t setting_end);
 void    getFrequencyRx(uint16_t setting_start, uint16_t setting_end);
 void    contiuously_calibration_start(void);
 void    update_target_settings(void);
+void    switch_lc_setting(void);
+void    lc_setting_edge_detection(uint16_t* settings, uint8_t txOrRx);
 
 void    delay_turnover(void);
 void    delay_tx(void);
@@ -184,8 +204,10 @@ int main(void) {
 
     printf("Cal complete\r\n");
     
+    app_vars.target_count_2m = TARGET_2M_COUNT;
+    
     app_vars.state = SWEEP_RX;
-
+    
     while(1){
         
         // obtain frequency setting for RX
@@ -193,9 +215,27 @@ int main(void) {
         
         printf(
             "RX target setting = %d %d %d\r\n",
-            (app_vars.rx_setting_target>>10) & 0x001f,
-            (app_vars.rx_setting_target>>5)  & 0x001f,
-            (app_vars.rx_setting_target)     & 0x001f
+            (app_vars.rx_setting_candidate[DEFAULT_SETTING]>>10) & 0x001f,
+            (app_vars.rx_setting_candidate[DEFAULT_SETTING]>>5)  & 0x001f,
+            (app_vars.rx_setting_candidate[DEFAULT_SETTING])     & 0x001f
+        );
+        
+        if ((app_vars.rx_setting_candidate[DEFAULT_SETTING] & 0x001f)>=16) {
+            
+            app_vars.rx_setting_candidate[ALTERNATIVE_SETTING] = \
+                app_vars.rx_setting_candidate[DEFAULT_SETTING] + \
+                CANDIDATE_SETTING_OFFSET_RX(1);
+        } else {
+            app_vars.rx_setting_candidate[ALTERNATIVE_SETTING] = \
+                app_vars.rx_setting_candidate[DEFAULT_SETTING] + \
+                CANDIDATE_SETTING_OFFSET_RX(-1);
+        }
+        
+        printf(
+            "RX alternative setting = %d %d %d\r\n",
+            (app_vars.rx_setting_candidate[ALTERNATIVE_SETTING]>>10) & 0x001f,
+            (app_vars.rx_setting_candidate[ALTERNATIVE_SETTING]>>5)  & 0x001f,
+            (app_vars.rx_setting_candidate[ALTERNATIVE_SETTING])     & 0x001f
         );
         
         // obtain frequency setting for TX
@@ -203,9 +243,28 @@ int main(void) {
         
         printf(
             "TX target setting = %d %d %d\r\n",
-            (app_vars.tx_setting_target>>10) & 0x001f,
-            (app_vars.tx_setting_target>>5)  & 0x001f,
-            (app_vars.tx_setting_target)     & 0x001f
+            (app_vars.tx_setting_candidate[DEFAULT_SETTING]>>10) & 0x001f,
+            (app_vars.tx_setting_candidate[DEFAULT_SETTING]>>5)  & 0x001f,
+            (app_vars.tx_setting_candidate[DEFAULT_SETTING])     & 0x001f
+        );
+        
+        if ((app_vars.tx_setting_candidate[DEFAULT_SETTING] & 0x001f)>=16) {
+            
+            app_vars.tx_setting_candidate[ALTERNATIVE_SETTING] = \
+                app_vars.tx_setting_candidate[DEFAULT_SETTING] + \
+                CANDIDATE_SETTING_OFFSET_RX(1);
+        } else {
+            
+            app_vars.tx_setting_candidate[ALTERNATIVE_SETTING] = \
+                app_vars.tx_setting_candidate[DEFAULT_SETTING] + \
+                CANDIDATE_SETTING_OFFSET_TX(-1);
+        }
+            
+        printf(
+            "TX alternative setting = %d %d %d\r\n",
+            (app_vars.tx_setting_candidate[ALTERNATIVE_SETTING]>>10) & 0x001f,
+            (app_vars.tx_setting_candidate[ALTERNATIVE_SETTING]>>5)  & 0x001f,
+            (app_vars.tx_setting_candidate[ALTERNATIVE_SETTING])     & 0x001f
         );
         
         // start contiuously calibration
@@ -337,6 +396,9 @@ void    cb_endFrame_rx(uint32_t timestamp) {
             
                 if (app_vars.history_index == 0) {
                     update_target_settings();
+                    switch_lc_setting();
+                    lc_setting_edge_detection(app_vars.rx_setting_candidate, 0);
+                    lc_setting_edge_detection(app_vars.tx_setting_candidate, 1);
                 }
             break;
             default:
@@ -403,7 +465,10 @@ void delay_lc_setup(void) {
 
 //=========================== prototype========================================
 
-void    getFrequencyRx(
+//=== getFrequency
+
+void    getFrequencyRx (
+    
     uint16_t setting_start, 
     uint16_t setting_end
 ) {
@@ -454,19 +519,19 @@ void    getFrequencyRx(
     // choose the median setting in the rx_settings_list as 
     //      target rx frequency setting
     
-//    app_vars.rx_setting_target = \
+//    app_vars.rx_setting_target_main = \
 //        freq_setting_selection_if(
 //            app_vars.rx_settings_list, 
 //            app_vars.rx_settings_if_count_list
 //        );
     
-    app_vars.rx_setting_target = \
+    app_vars.rx_setting_candidate[DEFAULT_SETTING] = \
         freq_setting_selection_median(
             app_vars.rx_settings_list
         );
 }
 
-void    getFrequencyTx(
+void    getFrequencyTx (
     uint16_t setting_start, 
     uint16_t setting_end
 ) {
@@ -516,9 +581,9 @@ void    getFrequencyTx(
         app_vars.rx_done = 0;
         
         LC_FREQCHANGE(
-            (app_vars.rx_setting_target>>10) & 0x001F,
-            (app_vars.rx_setting_target>>5)  & 0x001F,
-            (app_vars.rx_setting_target)     & 0x001F
+            (app_vars.rx_setting_candidate[DEFAULT_SETTING]>>10) & 0x001F,
+            (app_vars.rx_setting_candidate[DEFAULT_SETTING]>>5)  & 0x001F,
+            (app_vars.rx_setting_candidate[DEFAULT_SETTING])     & 0x001F
         );
         
         while(app_vars.rx_done == 0);
@@ -527,31 +592,36 @@ void    getFrequencyTx(
     // choose the first setting in the tx_settings_list within the threshold
     //      as the target tx frequency setting
     
-    app_vars.tx_setting_target = \
+    app_vars.tx_setting_candidate[DEFAULT_SETTING] = \
         freq_setting_selection_fo_alternative(
             app_vars.tx_settings_list, 
             app_vars.tx_settings_freq_offset_list
         );
     
     // calculate target count 2m
-    i = 0;
-    app_vars.target_count_2m = 0;
-    while (app_vars.count_2m_list[i]!=0) {
-        app_vars.target_count_2m += app_vars.count_2m_list[i];
-        i++;
-    }
-    app_vars.target_count_2m /= i;
-    
-    printf("target count 2M = %d\r\n",app_vars.target_count_2m);
+//    i = 0;
+//    app_vars.target_count_2m = 0;
+//    while (app_vars.count_2m_list[i]!=0) {
+//        app_vars.target_count_2m += app_vars.count_2m_list[i];
+//        i++;
+//    }
+//    app_vars.target_count_2m /= i;
+//    
+//    printf("target count 2M = %d\r\n",app_vars.target_count_2m);
     
     app_vars.state = SWEEP_TX_DONE;
 }
+
+//=== contiuously cal
 
 void    contiuously_calibration_start(void) {
     
     uint8_t i;
      int8_t diff;
     uint8_t pkt[TARGET_PKT_SIZE];
+    
+    uint16_t tx_setting_target;
+    uint16_t rx_setting_target;
     
     while (app_vars.state != SWEEP_TX_DONE);
     
@@ -562,6 +632,7 @@ void    contiuously_calibration_start(void) {
     rftimer_setCompareIn(rftimer_readCounter()+SENDING_INTERVAL);
     
     while (1) {
+        
         // transmit probe frame
         
         radio_rfOff();
@@ -573,9 +644,9 @@ void    contiuously_calibration_start(void) {
         pkt[2] = ACK_IN_MS;
         radio_loadPacket(pkt, TARGET_PKT_SIZE);
         LC_FREQCHANGE(
-            (app_vars.tx_setting_target>>10) & 0x001F,
-            (app_vars.tx_setting_target>>5)  & 0x001F,
-            (app_vars.tx_setting_target)     & 0x001F
+            (app_vars.tx_setting_candidate[app_vars.setting_index]>>10) & 0x001F,
+            (app_vars.tx_setting_candidate[app_vars.setting_index]>>5)  & 0x001F,
+            (app_vars.tx_setting_candidate[app_vars.setting_index])     & 0x001F
         );
         radio_txEnable();
         
@@ -591,9 +662,9 @@ void    contiuously_calibration_start(void) {
         app_vars.rx_done = 0;
         
         LC_FREQCHANGE(
-            (app_vars.rx_setting_target>>10) & 0x001F,
-            (app_vars.rx_setting_target>>5)  & 0x001F,
-            (app_vars.rx_setting_target)     & 0x001F
+            (app_vars.rx_setting_candidate[app_vars.setting_index]>>10) & 0x001F,
+            (app_vars.rx_setting_candidate[app_vars.setting_index]>>5)  & 0x001F,
+            (app_vars.rx_setting_candidate[app_vars.setting_index])     & 0x001F
         );
         
         while (app_vars.rx_done==0);
@@ -621,7 +692,7 @@ void    update_target_settings(void){
     avg_if      /= HISTORY_SAMPLE_SIZE;
     
     adjustment   = ((int32_t)(avg_if - 500))/17;
-    app_vars.rx_setting_target += adjustment;
+    app_vars.rx_setting_candidate[app_vars.setting_index] += adjustment;
     
     // update target setting for TX
     avg_fo = 0;
@@ -631,7 +702,7 @@ void    update_target_settings(void){
     avg_fo      /= HISTORY_SAMPLE_SIZE;
     
     adjustment   = (int16_t)(avg_fo - 2)/10;
-    app_vars.tx_setting_target -= adjustment;
+    app_vars.tx_setting_candidate[app_vars.setting_index] -= adjustment;
     
     // update target setting for 2M RC OSC
     avg_count_2M = 0;
@@ -681,13 +752,13 @@ void    update_target_settings(void){
     
     printf(
         "TX setting %d %d %d (avg_fo=%d) | RX setting %d %d %d (avg_if=%d) | 2M setting %d %d %d (avg_count_2M=%d) | temp=%d\r\n",
-        ( app_vars.tx_setting_target >> 10 ) & 0x001f,
-        ( app_vars.tx_setting_target >> 5 )  & 0x001f,
-        ( app_vars.tx_setting_target )       & 0x001f,
+        ( app_vars.tx_setting_candidate[app_vars.setting_index] >> 10 ) & 0x001f,
+        ( app_vars.tx_setting_candidate[app_vars.setting_index] >> 5 )  & 0x001f,
+        ( app_vars.tx_setting_candidate[app_vars.setting_index] )       & 0x001f,
         avg_fo,
-        ( app_vars.rx_setting_target >> 10 ) & 0x001f,
-        ( app_vars.rx_setting_target >> 5 )  & 0x001f,
-        ( app_vars.rx_setting_target )       & 0x001f,
+        ( app_vars.rx_setting_candidate[app_vars.setting_index] >> 10 ) & 0x001f,
+        ( app_vars.rx_setting_candidate[app_vars.setting_index] >> 5 )  & 0x001f,
+        ( app_vars.rx_setting_candidate[app_vars.setting_index] )       & 0x001f,
         avg_if,
         RC2M_coarse, 
         RC2M_fine, 
@@ -695,5 +766,68 @@ void    update_target_settings(void){
         avg_count_2M,
         app_vars.last_temperature
     );
+}
+
+//=== switch lc setting between main and candidate settings
+
+void switch_lc_setting(void) {
+    
+    if (app_vars.setting_index == 0) {
+        app_vars.setting_index = 1;
+    } else {
+        app_vars.setting_index = 0;
+    }
+}
+
+//=== edge detection
+
+void lc_setting_edge_detection(uint16_t* setting, uint8_t txOrRx) {
+    
+    uint8_t i;
+     int8_t move_mid_nextORprev;
+     int8_t offset;
+    
+    // 0: do nothing 1: mid next -1: move previous
+    move_mid_nextORprev = 0;
+    for (i=0; i<NUM_CANDIDATE_SETTING; i++){
+        if ((setting[i] & 0x001f) >= HIGH_BOUDRY_FINE) {
+            move_mid_nextORprev = 1;
+            break;
+        } else {
+            if ((setting[i] & 0x001f) <= LOW_BOUDRY_FINE) {
+                move_mid_nextORprev = -1;
+                break;
+            }
+        }
+    }
+    
+    if (move_mid_nextORprev != 0) {
+        
+        // txOrRx 0: RX  1: TX
+        
+        if (txOrRx == 0) {
+            offset = CANDIDATE_SETTING_OFFSET_RX(move_mid_nextORprev);
+        } else {
+            offset = CANDIDATE_SETTING_OFFSET_TX(move_mid_nextORprev);
+        }
+        
+        if (i==0) {
+            setting[0] = setting[1] + offset;
+        } else {
+            setting[1] = setting[0] + offset;
+        }
+        
+        printf(
+            "setting[0] %d %d %d | setting[1] %d %d %d | offset %d\r\n",
+            ( setting[0] >> 10 ) & 0x001f,
+            ( setting[0] >> 5 )  & 0x001f,
+            ( setting[0] )       & 0x001f,
+            ( setting[1] >> 10 ) & 0x001f,
+            ( setting[1] >> 5 )  & 0x001f,
+            ( setting[1] )       & 0x001f,
+            offset
+        ); 
+    }
+    
 }
 
