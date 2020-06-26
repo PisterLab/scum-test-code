@@ -21,18 +21,18 @@
 // after optical calibration has completed for the purpose of measuring temperature
 // the optical programmer (if programmed to do so) will continue to send optical
 // calibration pulses as a reference.
-#define CLOCK_RATIO_VS_TEMP_SLOPE -19.667 //-30.715 // dummy value
-#define CLOCK_RATIO_VS_TEMP_OFFSET 1317.511 //1915.142 // y intercept // dummy value
-#define CLOCK_RATIO_VS_FINE_CODE_SLOPE -24.33
-#define CLOCK_RATIO_VS_FINE_CODE_OFFEST 1592.204 // y intercept // dummy value
+#define CLOCK_RATIO_VS_TEMP_SLOPE -19.293 //-19.667 //-30.715 // dummy value
+#define CLOCK_RATIO_VS_TEMP_OFFSET 1298.134 // 1317.511 //1915.142 // y intercept // dummy value
+#define CLOCK_RATIO_VS_FINE_CODE_SLOPE -10.567 //-24.33
+#define CLOCK_RATIO_VS_FINE_CODE_OFFEST 710.411 // 1592.204 // y intercept // dummy value
 #define TEMP_MEASURE_DURATION_MILLISECONDS 100 // duration for which we should measure the 2MHz and 32kHz clocks in order to measure the temperature
 
 // RADIO DEFINES
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 0 // 1 if should optical calibrate, 0 if manual
-#define MODE 10 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 7 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb
-#define SOLAR_DELAY 1000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
+#define SOLAR_DELAY 2000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 #define SEND_ACK 0 // 1 if we should send an ack after packet rx and 0 otherwise
@@ -426,10 +426,32 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 								
 									break;
 								case TEMP:
-									tx_packet[1] = (uint8_t) cfg_coarse;
-									tx_packet[2] = (uint8_t) cfg_mid;
-									tx_packet[3] = (uint8_t) cfg_fine;
-									tx_packet[4] = (uint8_t) (int) temp;
+									// format: FF TT.TT
+									//sprintf(tx_packet, "%2d %2.2f", cfg_fine, temp);
+									
+										// had to do it this weird way since the normal double formatting was making the packets stop sending after a while.... I have no clue why
+										sprintf(tx_packet, "%02d %d.%02d", cfg_fine, (uint8_t) temp, (uint8_t) ((temp - (uint8_t) temp) * 100));
+									
+//									tx_packet[1] = (uint8_t) cfg_coarse;
+//									tx_packet[2] = (uint8_t) cfg_mid;
+//									tx_packet[3] = (uint8_t) cfg_fine;
+//									tx_packet[4] = (uint8_t) (int) temp; // two digits left of decimal place
+//									tx_packet[5] = (uint8_t) ((temp - (uint8_t)(temp))*100); // two digits right of decimal place
+//									tx_packet[6] = (uint8_t) 0;
+//									tx_packet[7] = (uint8_t) 0;
+//									tx_packet[8] = (uint8_t) 0;
+//									tx_packet[9] = (uint8_t) 0;
+									
+//									tx_packet[0] = 0;
+//									tx_packet[1] = cfg_fine;
+//									tx_packet[2] = 2;
+//									tx_packet[3] = 3;
+//									tx_packet[4] = 4;
+//									tx_packet[5] = 5;
+//									tx_packet[6] = 6;
+//									tx_packet[7] = 7;
+//									tx_packet[8] = 8;
+//									tx_packet[9] = 9;
 								
 									break;
 								case COUNT_2M_32K:
