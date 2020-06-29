@@ -1,5 +1,6 @@
 import matplotlib 
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 LOG_FILE = 'log_final.txt'
 SWEEP_CAL_START_STR        = 'setting_list'
@@ -129,8 +130,6 @@ maxlength_list_rx = get_max_length_setting_list(setting_list_rx)
 # plot
 
 for key, raw_data in result.items():
-    
-    fig, ax = plt.subplots(dpi=300)
 
     # roughly 2 samples per second
     x_axis = [i*0.5/60 for i in range(len(raw_data))]
@@ -138,25 +137,27 @@ for key, raw_data in result.items():
     
     if 'setting' in key:
     
+        fig, ax = plt.subplots(dpi=300)
+    
         DOTSIZE  = 2
         
         if key == 'tx_setting':
             
-            ax.plot(x_axis, raw_data, '.', label='LC OSC Frequency Setting (TX)')
-            ax.plot(x_axis, [maxlength_list_tx[0] for i in x_axis], 'k--', markersize=DOTSIZE)
-            ax.plot(x_axis, [maxlength_list_tx[-1] for i in x_axis], 'k--', markersize=DOTSIZE)
+            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC Frequency Setting (TX)')
+            # ax.plot(x_axis, [maxlength_list_tx[0] for i in x_axis], 'k--', markersize=DOTSIZE)
+            # ax.plot(x_axis, [maxlength_list_tx[-1] for i in x_axis], 'k--', markersize=DOTSIZE)
             yticks = [16*i + (maxlength_list_tx[0] & 0xFFE0) for i in range(9)]
         
         if key == 'rx_setting':
         
-            ax.plot(x_axis, raw_data, '.', label='LC OSC Frequency Setting (RX)', markersize=DOTSIZE)
-            ax.plot(x_axis, [maxlength_list_rx[0] for i in x_axis], 'k--', markersize=DOTSIZE)
-            ax.plot(x_axis, [maxlength_list_rx[-1] for i in x_axis], 'k--', markersize=DOTSIZE)
+            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC Frequency Setting (RX)', markersize=DOTSIZE)
+            # ax.plot(x_axis, [maxlength_list_rx[0] for i in x_axis], 'k--', markersize=DOTSIZE)
+            # ax.plot(x_axis, [maxlength_list_rx[-1] for i in x_axis], 'k--', markersize=DOTSIZE)
             yticks = [16*i + (maxlength_list_rx[0] & 0xFFE0) for i in range(9)]
             
         if key == 'rc_2m_setting':
             
-            ax.plot(x_axis, raw_data, '.', label='2M RC OSC Frequency Settings', markersize=DOTSIZE)
+            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='2M RC OSC Frequency Settings', markersize=DOTSIZE)
             yticks = [16*i + (raw_data[0] & 0xFFE0) for i in range(12)]
         
         ylabel = [converter_config_linear_2_text(i) for i in yticks]
@@ -172,24 +173,47 @@ for key, raw_data in result.items():
         ax2.set_ylabel('Temperature ($^\circ$C)')
         ax2.legend()
         
+        ax.set_xlim(-2.5,50)  
+        ax.set_xlabel('time (minutes)')
+             
+        ax.legend(markerscale=0.7, scatterpoints=1, loc=2)
+        ax.grid(True)
+        
         fig.set_size_inches(8, 4)
         
     else:
+    
+        gs_kw = dict(width_ratios=[3,1])
+    
+        fig, (ax1, ax2)= plt.subplots(nrows=1, ncols=2,  gridspec_kw=gs_kw, dpi=300)
         
         DOTSIZE  = 5
         
-        ax.plot(x_axis, raw_data, '.', markersize=DOTSIZE)
-        ax.set_ylabel(key)
+        if key == 'avg_fo':
+            bins = 64
+        elif key == 'avg_if':
+            bins = 120
+        elif key == 'avg_2m_counts':
+            bins = 140
+        
+        ax1.plot(x_axis, raw_data, '.', color='#0000FF', markersize=DOTSIZE)
+        ax1.set_ylabel(key)
+        ax2.hist(raw_data, bins=bins, color='#0000FF', density=False, label='bin={0}'.format(bins))
+        ax2.set_xlabel(key)
+        
+        ax2.legend(markerscale=0.7, scatterpoints=1, loc=2)
+        ax2.grid(True)
+        
+        ax1.set_xlim(-2.5,50)  
+        ax1.set_xlabel('time (minutes)')
+
+        ax1.grid(True)
+        ax2.grid(True)
         
         fig.set_size_inches(16, 4)
     
-    ax.set_xlim(-2.5,50)    
-    ax.set_xlabel('time (minutes)')
-    
     # ax.set_xlim(0,17000)
-     
-    ax.legend(markerscale=0.7, scatterpoints=1, loc=2)
-    ax.grid(True)
+    
     plt.tight_layout()
     plt.savefig('{0}.png'.format(key))
     plt.clf()
