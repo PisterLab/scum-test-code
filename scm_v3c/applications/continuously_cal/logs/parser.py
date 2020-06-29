@@ -164,7 +164,7 @@ for key, raw_data in result.items():
         
         ax.set_yticks(yticks)
         ax.set_yticklabels(ylabel)
-        ax.set_ylabel('coarse.mid.fine')
+        ax.set_ylabel('Frequency Settings (coarse.mid.fine)')
         ax.legend()
         
         ax2 = ax.twinx()  # instantiate a second axes that shares the same x-axis
@@ -174,7 +174,7 @@ for key, raw_data in result.items():
         ax2.legend()
         
         ax.set_xlim(-2.5,50)  
-        ax.set_xlabel('time (minutes)')
+        ax.set_xlabel('Time (minutes)')
              
         ax.legend(markerscale=0.7, scatterpoints=1, loc=2)
         ax.grid(True)
@@ -191,21 +191,24 @@ for key, raw_data in result.items():
         
         if key == 'avg_fo':
             bins = 64
+            y_lable = "Frequency Offset (mean)"
         elif key == 'avg_if':
             bins = 120
+            y_lable = "Intermediate Frequency Counts (mean)"
         elif key == 'avg_2m_counts':
             bins = 140
+            y_lable = "2M RC Frequency Counts (mean)"
         
         ax1.plot(x_axis, raw_data, '.', color='#0000FF', markersize=DOTSIZE)
-        ax1.set_ylabel(key)
-        ax2.hist(raw_data, bins=bins, color='#0000FF', density=False, label='bin={0}'.format(bins))
-        ax2.set_xlabel(key)
+        ax1.set_ylabel(y_lable)
+        ax2.hist(raw_data, bins=bins, color='#0000FF', density=False, label='bin={0}'.format(bins), orientation='horizontal')
+        ax2.set_xlabel('Number Of Samples')
         
         ax2.legend(markerscale=0.7, scatterpoints=1, loc=2)
         ax2.grid(True)
         
-        ax1.set_xlim(-2.5,50)  
-        ax1.set_xlabel('time (minutes)')
+        ax1.set_xlim(-2.5,50)
+        ax1.set_xlabel('Time (minutes)')
 
         ax1.grid(True)
         ax2.grid(True)
