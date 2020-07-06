@@ -4,6 +4,7 @@
 
 #include <string.h>
 
+#include <stdio.h>
 #include "scm3c_hw_interface.h"
 #include "memory_map.h"
 #include "rftimer.h"
@@ -127,7 +128,6 @@ uint8_t fixed_lc_fine_rx = DEFAULT_FIXED_LC_FINE_RX;
 
 // TEMPERATURE VARIABLES
 double temp;
-
 uint32_t count_2M;
 uint32_t count_32k;
 
@@ -138,7 +138,6 @@ uint8_t temp_adjusted_fine_code; // will be set by adjust_tx_fine_with_temp func
 void		 repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packets);
 void		 radio_delay(void);
 void		 onRx(uint8_t *packet, uint8_t packet_len);
-void     estimate_temp_from_2MHz_32kHz_measurement(void);
 void		 adjust_tx_fine_with_temp(void);
 void		 delay_milliseconds_test_loop(void);
 
@@ -230,8 +229,7 @@ int main(void) {
 				break;
 			case 7: // temperature compensated transmit loop
 				while (1) {
-					measure_2M_32k_counters(TEMP_MEASURE_DURATION_MILLISECONDS);
-					estimate_temp_from_2MHz_32kHz_measurement();
+					temp = get_2MHz_32k_ratio_temp_estimate(TEMP_MEASURE_DURATION_MILLISECONDS, CLOCK_RATIO_VS_TEMP_SLOPE, CLOCK_RATIO_VS_TEMP_OFFSET);
 					adjust_tx_fine_with_temp();
 				
 					tx_packet_data_source = TEMP;
@@ -256,30 +254,35 @@ int main(void) {
 				// note: since this is a sweep, we need to set the sweep coarse and mid code start and end fixed values to be such that the coarse and mid
 				// are always fixed. The fine code sweep should be 0 to 32
 				while (1) {
-					measure_2M_32k_counters(TEMP_MEASURE_DURATION_MILLISECONDS);
+					// Get the counts for 2MHz and 32kHz clocks
+					read_counters_duration(TEMP_MEASURE_DURATION_MILLISECONDS);
 					
+					count_2M = scm3c_hw_interface_get_count_2M();
+					count_32k = scm3c_hw_interface_get_count_32k();
+					
+					// Now continuously transimt the clock counts.
 					printf("2M: %u, 32kHz: %u\n", count_2M, count_32k);
 		
-					//if (SOLAR_MODE) {
 					tx_packet_data_source = COMPRESSED_CLOCK;
-					//} else {
-					//tx_packet_data_source = COUNT_2M_32K;
-					//}
-					
 					repeat_rx_tx(TX, 1, 32); // in this case we will always sweep since with different temps we don't know which LC codes will work, so set to 1 not 0
 				}
 				
 				break;
 			case 11: // continuously measure and log 2MHz and 32kHz
 				while (1) {
-					measure_2M_32k_counters(TEMP_MEASURE_DURATION_MILLISECONDS);										
+					// Get the counts for 2MHz and 32kHz clocks
+					read_counters_duration(TEMP_MEASURE_DURATION_MILLISECONDS);
+					
+					count_2M = scm3c_hw_interface_get_count_2M();
+					count_32k = scm3c_hw_interface_get_count_32k();
+					
 					printf("2M: %u, 32kHz: %u\n", count_2M, count_32k);
 				}
 				break;
-			case 12: // continuously measure and log temperature
+			case 12: // continuously measure and print temperature
 				while (1) {
-					measure_2M_32k_counters(TEMP_MEASURE_DURATION_MILLISECONDS);
-					estimate_temp_from_2MHz_32kHz_measurement();
+					// Get the counts for 2MHz and 32kHz clocks
+					temp = get_2MHz_32k_ratio_temp_estimate(TEMP_MEASURE_DURATION_MILLISECONDS, CLOCK_RATIO_VS_TEMP_SLOPE, CLOCK_RATIO_VS_TEMP_OFFSET);
 					
 					printf("2M: %u, 32kHz: %u, Temp: %d\n", count_2M, count_32k, (int) temp);					
 				}
@@ -476,7 +479,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									// since we are on solar and the sweep of 32 fine codes will take a while (probably 1.5 minutes)
 									// and the temperature properly is changing at a faster rate, we can just take a new temp measurement
 									// every time we transmit
-									measure_2M_32k_counters(TEMP_MEASURE_DURATION_MILLISECONDS);
+									read_counters_duration(TEMP_MEASURE_DURATION_MILLISECONDS);
+									count_2M = scm3c_hw_interface_get_count_2M();
+									count_32k = scm3c_hw_interface_get_count_32k();
 									printf("2M: %u, 32kHz: %u\n", count_2M, count_32k);
 								
 									// mode for sending the 2MHz clocks and the 32kHz clock as well as fine code
@@ -570,22 +575,6 @@ void onRx(uint8_t *packet, uint8_t packet_len) {
 		//printf("Got message to actuate gripper!!!\n");
 		//sara(100, 2,1);
 	}
-}
-
-/* Once called count_2M and count_32k will already be set
-	with the the count that accumulated from the start of the RF TIMER running (from the start of
-	the call to measure_temperature). The duration of the timer is specified in the call to 
-	measure_temperature. This function will set the temep variable based on the hard coded
-	linear model relating the ratio of the 2M/32kHz clocks and a temperature estimate. */
-void estimate_temp_from_2MHz_32kHz_measurement(void) {
-	double ratio;
-	
-	// calculate the ratio between the 2M and the 32kHZz clocks
-	ratio = fix_double(fix_div(fix_init(count_2M), fix_init(count_32k)));
-	
-	// using our linear model that we fit based on fixed point temperature measurement
-	// we can determine an estimate for temperature
-	temp = CLOCK_RATIO_VS_TEMP_SLOPE * ratio + CLOCK_RATIO_VS_TEMP_OFFSET;
 }
 
 /* This function will update the fixed fine code based on a linear model relating the 2MHz and 32kHz clock ratios

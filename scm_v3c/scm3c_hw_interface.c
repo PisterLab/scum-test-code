@@ -47,6 +47,13 @@ typedef struct {
     uint32_t IF_clk_target;
     uint32_t IF_coarse;
     uint32_t IF_fine;
+	
+		// Clock counts from last measurement
+		unsigned int count_2M;
+		unsigned int count_32k;
+		unsigned int count_HF;
+		unsigned int count_LC_div;
+		unsigned int count_IF;
 } scm3c_hw_interface_vars_t;
 
 scm3c_hw_interface_vars_t scm3c_hw_interface_vars;
@@ -125,26 +132,46 @@ void exit_low_power_mode_32k(void) {
 		update_scan_chain();
 }
 
-void read_count_2M_32K(unsigned int* count_2M, unsigned int* count_32k) {
-		unsigned int rdata_lsb, rdata_msb;//, count_LC, count_32k;
+/* Resets clock counts and waits MEASURE_TIME_MILLISECONDS before saving the clocks counts. */
+void read_counters_duration(unsigned int measure_time_milliseconds) {
+	reset_counters();
+	enable_counters();
 	
-		disable_counters();
-			
-		// Read 2M counter
-		rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
-		rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
-		*count_2M = rdata_lsb + (rdata_msb << 16);
-			
-		// Read 32k counter
-		rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
-		rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
-		*count_32k = rdata_lsb + (rdata_msb << 16);
-		
-		reset_counters();		
-		enable_counters();
-		
-		//printf("2M_count=%X\n",*count_2M);
-		//printf("32k_count=%X\n\n",*count_32k);
+	delay_milliseconds_synchronous(measure_time_milliseconds);
+	
+	read_counters();
+}
+
+/* Disables all counters and writes the current clock counts for 2MHz, 32kHz, HF, LC div, and IF clocks to scm3c_hw_interface_vars. */
+void read_counters() {
+	unsigned int rdata_lsb, rdata_msb;
+	
+	disable_counters();
+	
+	// 2MHz
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
+	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
+	scm3c_hw_interface_vars.count_2M = rdata_lsb + (rdata_msb << 16);
+	
+	// 32kHz
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
+	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
+	scm3c_hw_interface_vars.count_32k = rdata_lsb + (rdata_msb << 16);
+	
+	// HF clock
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x100000);
+	rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x140000);
+	scm3c_hw_interface_vars.count_HF = rdata_lsb + (rdata_msb << 16);
+	
+	// LC div
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
+  rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
+	scm3c_hw_interface_vars.count_LC_div = rdata_lsb + (rdata_msb << 16);
+	
+	// IF
+	rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000);
+  rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000);
+	scm3c_hw_interface_vars.count_IF = rdata_lsb + (rdata_msb << 16);
 }
 
 void disable_counters(void) {
@@ -155,6 +182,7 @@ void enable_counters(void) {
 	ANALOG_CFG_REG__0 = 0x3FFF;
 }
 
+// still need to perform a call to enable counters after resetting counters
 void reset_counters(void) {
 	ANALOG_CFG_REG__0 = 0x0000;	
 }
@@ -170,8 +198,7 @@ void optical_calibrate(void) {
 		
 		// For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
 		// by calling radio rxEnable
-		//radio_rxEnable_optical();
-		radio_rxEnable_optical();
+		radio_rxEnable();
 	
 		// Enable optical SFD interrupt for optical calibration
 		optical_enable();
@@ -260,6 +287,21 @@ uint32_t scm3c_hw_interface_get_IF_coarse(void){
 }
 uint32_t scm3c_hw_interface_get_IF_fine(void){
     return scm3c_hw_interface_vars.IF_fine;
+}
+unsigned int scm3c_hw_interface_get_count_2M(void) {
+		return scm3c_hw_interface_vars.count_2M;
+}
+unsigned int scm3c_hw_interface_get_count_32k(void) {
+		return scm3c_hw_interface_vars.count_32k;
+}
+unsigned int scm3c_hw_interface_get_count_HF(void) {
+		return scm3c_hw_interface_vars.count_HF;
+}
+unsigned int scm3c_hw_interface_get_count_LC_div(void) {
+		return scm3c_hw_interface_vars.count_LC_div;
+}
+unsigned int scm3c_hw_interface_get_count_IF(void) {
+		return scm3c_hw_interface_vars.count_IF;
 }
 
 //===== set function
@@ -1556,40 +1598,6 @@ void initialize_2M_DAC(void) {
     // print_2MHz_DAC();
 }
 
-void read_counters(unsigned int* count_2M, unsigned int* count_LC, unsigned int* count_32k){
-
-    unsigned int rdata_lsb, rdata_msb;//, count_LC, count_32k;
-    
-    // Disable all counters
-    ANALOG_CFG_REG__0 = 0x007F;
-        
-    // Read 2M counter
-    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
-    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
-    *count_2M = rdata_lsb + (rdata_msb << 16);
-        
-    // Read LC_div counter (via counter4)
-    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x200000);
-    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x240000);
-    *count_LC = rdata_lsb + (rdata_msb << 16);
-        
-    // Read 32k counter
-    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
-    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
-    *count_32k = rdata_lsb + (rdata_msb << 16);
-    
-    // Reset all counters
-    ANALOG_CFG_REG__0 = 0x0000;        
-    
-    // Enable all counters
-    ANALOG_CFG_REG__0 = 0x3FFF;    
-    
-    //printf("LC_count=%X\r\n",count_LC);
-    //printf("2M_count=%X\r\n",count_2M);
-    //printf("32k_count=%X\r\n\r\n",count_32k);
-
-}
-
 void update_PN31_byte(unsigned int* current_lfsr){
     int i;
     
@@ -1704,40 +1712,6 @@ void LC_monotonic(int LC_code){
     // coarse=24, mid=0, fine=10 worked at Inria for Tx Frequency
     LC_FREQCHANGE(coarse,mid,fine);
 		//printf("coarse %d, mid %d, fine %d\n", coarse, mid, fine);
-}
-
-int LC_monotonic_coarse(int LC_code) {
-		int coarse_divs = 140;
-		int coarse = (((LC_code/coarse_divs + 19) & 0x000000FF));
-	
-		return coarse;
-}
-
-int LC_monotonic_mid(int LC_code) {
-		int mid_fix = 0;
-		int mid_divs = 23; // works for Ioana's board, Fil's board, Brad's other board
-		int coarse_divs = 140;
-		int mid;
-	
-		LC_code = LC_code % coarse_divs;
-		mid = ((((LC_code/mid_divs)*3 + mid_fix) & 0x000000FF));
-
-		return mid;
-}
-
-int LC_monotonic_fine(int LC_code) {
-		int fine_fix = 0;
-		int mid_fix = 0;
-		int mid_divs = 23; // works for Ioana's board, Fil's board, Brad's other board
-		int coarse_divs = 140;
-		int fine;
-		
-		LC_code = LC_code % coarse_divs;
-		if (LC_code/mid_divs >= 2) {fine_fix = 0;};
-		fine = (((LC_code % mid_divs + fine_fix) & 0x000000FF));
-		if (fine > 15){fine++;};
-		
-		return fine;
 }
 
 void set_LC_current(unsigned int current) {

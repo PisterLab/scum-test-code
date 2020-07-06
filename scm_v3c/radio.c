@@ -394,27 +394,6 @@ void radio_rxEnable(){
     RFCONTROLLER_REG__CONTROL = RF_RESET;
 }
 
-//#define DIV_ON 1
-
-// LC divider doesn't need to be on for optical calibration if not calibrating the LC
-// todo: is this function needed anymore?
-void radio_rxEnable_optical() {	
-		// Turn on LO, IF, and AUX LDOs via memory mapped register
-	
-		// Turn on DIV on if need to read LC_div counter. Use while trying to calibrate LC during optical calibration
-    
-    // Aux is inverted (0 = on)
-    // Memory-mapped LDO control
-    // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
-    // For MUX signals, '1' = FSM control, '0' = memory mapped control
-    // For EN signals, '1' = turn on LDO
-#ifdef DIV_ON
-    ANALOG_CFG_REG__10 = 0x0058;
-#else
-    ANALOG_CFG_REG__10 = 0x0018;
-#endif
-}
-
 // Radio will begin searching for start of packet
 void radio_rxNow(){
     // Reset digital baseband

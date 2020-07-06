@@ -10,7 +10,11 @@
 //=========================== defines =========================================
 
 #define OPTICAL_CALIBRATION_ITERATION_COUNT 25
-#define LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION 0 // flag
+// Flag set to 1 if SCuM should still process optical interrupts after OPTICAL_CALIBRATION_ITERATION_COUNT
+// iterations have occured. This could be useful for logging clock counts using the optical interrupts from
+// the optical programmer. If set set 1, then SCuM will NEVER leave the optical calibration phase. If set to
+// 0, then calibration will occur normally.
+#define POST_OPTICAL_CALIBRATION_LOGGING 0
 
 //=========================== variables =======================================
 
@@ -79,7 +83,6 @@ void optical_32_isr(){
 // This interrupt can also be used to synchronize to the start of an optical data transfer
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
 void optical_sfd_isr(){
-    
     int32_t t;
     uint32_t rdata_lsb, rdata_msb; 
     uint32_t count_LC, count_32k, count_2M, count_HFclock, count_IF;
@@ -92,9 +95,7 @@ void optical_sfd_isr(){
     uint32_t IF_clk_target;
     uint32_t IF_coarse;
     uint32_t IF_fine;
-	
-		int coarse, mid, fine;
-    
+	    
     HF_CLOCK_fine       = scm3c_hw_interface_get_HF_CLOCK_fine();
     HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
     RC2M_coarse         = scm3c_hw_interface_get_RC2M_coarse();
@@ -103,43 +104,21 @@ void optical_sfd_isr(){
     IF_clk_target       = scm3c_hw_interface_get_IF_clk_target();
     IF_coarse           = scm3c_hw_interface_get_IF_coarse();
     IF_fine             = scm3c_hw_interface_get_IF_fine();
-        
-    // Disable all counters
-    ANALOG_CFG_REG__0 = 0x007F;
-    
-    // Keep track of how many calibration iterations have been completed
+           
+		// Read in all the clock counts
+		read_counters();
+    count_32k = scm3c_hw_interface_get_count_32k();
+    count_HFclock = scm3c_hw_interface_get_count_HF();
+    count_2M = scm3c_hw_interface_get_count_2M();
+    count_LC = scm3c_hw_interface_get_count_LC_div();
+    count_IF = scm3c_hw_interface_get_count_IF();
+		
+		// Keep track of how many calibration iterations have been completed
     optical_vars.optical_cal_iteration++;
-        
-    // Read 32k counter
-    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x000000);
-    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x040000);
-    count_32k = rdata_lsb + (rdata_msb << 16);
-
-    // Read HF_CLOCK counter
-    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x100000);
-    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x140000);
-    count_HFclock = rdata_lsb + (rdata_msb << 16);
-
-    // Read 2M counter
-    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
-    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
-    count_2M = rdata_lsb + (rdata_msb << 16);
-        
-    // Read LC_div counter (via counter4)
-    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
-    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x2C0000);
-    count_LC = rdata_lsb + (rdata_msb << 16);
-		    
-    // Read IF ADC_CLK counter
-    rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000);
-    rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000);
-    count_IF = rdata_lsb + (rdata_msb << 16);
     
-    // Reset all counters
-    ANALOG_CFG_REG__0 = 0x0000;        
-    
-    // Enable all counters
-    ANALOG_CFG_REG__0 = 0x3FFF;    
+		// Reset the counters in preparation of next iteration
+    reset_counters();
+		enable_counters();
         
     // Don't make updates on the first two executions of this ISR
 		// only make updates until the number of desired iterations is reached
@@ -235,13 +214,6 @@ void optical_sfd_isr(){
     if(optical_vars.optical_cal_iteration == OPTICAL_CALIBRATION_ITERATION_COUNT){
 				printf("#define HF_COARSE %u\n#define HF_FINE %u\n#define RC2M_COARSE %u\n#define RC2M_FINE %u\n#define RC2M_SUPERFINE %u\n#define IF_COARSE %u\n#define IF_FINE %u\n",
 							HF_CLOCK_coarse, HF_CLOCK_fine, RC2M_coarse, RC2M_fine, RC2M_superfine, IF_coarse, IF_fine);
-			
-				coarse = LC_monotonic_coarse(optical_vars.LC_code);
-				mid = LC_monotonic_mid(optical_vars.LC_code);
-				fine = LC_monotonic_fine(optical_vars.LC_code);
-				//printf("Optically calibrated LC codes for tx channel 11 (highly dependent on voltage; not reliable): coarse %d, mid: %d, fine: %d\n", coarse, mid, fine);
-				printf("The LC codes for rx/tx are very roughly near (note this is highly unreliable): coarse %d, mid: %d, fine: %d\n", coarse, mid, fine);
-        
         // Store the last count values
         optical_vars.num_32k_ticks_in_100ms = count_32k;
         optical_vars.num_2MRC_ticks_in_100ms = count_2M;
@@ -263,8 +235,8 @@ void optical_sfd_isr(){
         
         //radio_disable_all();
         
-        // Halt all counters only if we aren't going to log temperature after
-				if (!LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION) {
+        // Halt all counters only if we aren't going to log afterwards
+				if (!POST_OPTICAL_CALIBRATION_LOGGING) {
 						ANALOG_CFG_REG__0 = 0x0000;
 					
 						// Disable this ISR
@@ -274,15 +246,9 @@ void optical_sfd_isr(){
 				}
     }
 		
-		// Temperature measurement section
-		// We are going to log the 32kHz and 2MHz clocks for the iterations after the optical
-		// calibration is complete.
-		// adding 2, since I noticed the 32kHz and 2MHz measurments were very wrong for the first
-		// two iterations directly after completing the first part of optical calibration
-		// note that with this mode, we will never exit out of the optical calibration stage and the
-		// program will continue to idle while we keep waiting for more optical interrupts
-		if (LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION &&
-			optical_vars.optical_cal_iteration > OPTICAL_CALIBRATION_ITERATION_COUNT + 2) {
+		// Start the logging process if enabled and we have finished the normal optical calibration phase
+		if (POST_OPTICAL_CALIBRATION_LOGGING &&
+			optical_vars.optical_cal_iteration > OPTICAL_CALIBRATION_ITERATION_COUNT) {
 				printf("32kHz: %d 2MHz %d\n", count_32k, count_2M);
 		}
 		

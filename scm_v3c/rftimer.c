@@ -67,8 +67,6 @@ void rftimer_disable_interrupts(void){
  * of the 500kHz RF TIMER. Internally, this function uses RFTIMER COMPARE 7.
  * This is an asynchronous delay, so the program can continue executation and
  * eventually the interrupt will be called indicating the end of the delay.
- * 
- * Side effects: system counts are all reset upon call. 
  *
  * @param callback - the callback to call after the delay has completed
  * @param delay_milli - the delay in milliseconds
@@ -84,16 +82,6 @@ void delay_milliseconds(rftimer_cbt callback, unsigned int delay_milli) {
 	rftimer_enable_interrupts();
 	
 	rftimer_setCompareIn(rftimer_readCounter()+rf_timer_count);
-
-//	RFTIMER_REG__MAX_COUNT = rf_timer_count;
-//	RFTIMER_REG__COMPARE7 = rf_timer_count;
-//	RFTIMER_REG__COMPARE7_CONTROL = 0x03;
-
-//	// Reset all counters
-//	ANALOG_CFG_REG__0 = 0x0000;
-
-//	// Enable all counters
-//	ANALOG_CFG_REG__0 = 0x3FFF;
 }
 
 /* Performs a delay that will not return until the delay has completed.
@@ -217,7 +205,7 @@ void rftimer_isr(void) {
 #endif
     }
 		
-		// disable the interrupt (I believes this make using the RF timer a "one time interrupt" rather than a
+		// Austin: disable the interrupt (I believes this make using the RF timer a "one time interrupt" rather than a
 		// repeating interrupt that keeps happening at an interval, but not sure)
 		ICER = 0x0080;
     
