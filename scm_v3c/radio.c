@@ -394,9 +394,10 @@ void radio_rxEnable(){
     RFCONTROLLER_REG__CONTROL = RF_RESET;
 }
 
-#define DIV_ON 1
+//#define DIV_ON 1
 
-// LO doesn't need to be on for optical calibration
+// LC divider doesn't need to be on for optical calibration if not calibrating the LC
+// todo: is this function needed anymore?
 void radio_rxEnable_optical() {	
 		// Turn on LO, IF, and AUX LDOs via memory mapped register
 	

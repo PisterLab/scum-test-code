@@ -30,7 +30,7 @@
 // RADIO DEFINES
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 0 // 1 if should optical calibrate, 0 if manual
-#define MODE 7 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 5 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb
 #define SOLAR_DELAY 2000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
@@ -282,6 +282,16 @@ int main(void) {
 					estimate_temp_from_2MHz_32kHz_measurement();
 					
 					printf("2M: %u, 32kHz: %u, Temp: %d\n", count_2M, count_32k, (int) temp);					
+				}
+				break;
+			case 13: // measure divider current draw
+				while (1) {
+					printf("switching\n");
+					ANALOG_CFG_REG__10 = 0x0058;
+					delay_milliseconds_synchronous(2000);
+					printf("switching\n");
+					ANALOG_CFG_REG__10 = 0x0018;
+					delay_milliseconds_synchronous(2000);
 				}
 				break;
 			default:
