@@ -127,6 +127,27 @@ with open(LOG_FILE, 'r') as f:
 maxlength_list_tx = get_max_length_setting_list(setting_list_tx)
 maxlength_list_rx = get_max_length_setting_list(setting_list_rx)
 
+# counts drift
+
+if_40_ppm   = 0
+fo_40_ppm   = 0
+twom_1000_ppm = 0
+
+for i in result['avg_if']:
+    if i>=481 and i<=519:
+        if_40_ppm += 1
+
+for i in result['avg_fo']:
+    if i>=-10 and i<=14:
+        fo_40_ppm += 1
+        
+for i in result['avg_2m_counts']:
+    if i>=59940 and i<=60060:
+        twom_1000_ppm += 1
+        
+all = float(len(result['avg_2m_counts']))
+print "if_40_ppm = {0} fo_40_ppm = {1} 2m_count_1000_ppm = {2}".format(if_40_ppm/all, fo_40_ppm/all, twom_1000_ppm/all)
+
 # plot
 
 for key, raw_data in result.items():
@@ -143,38 +164,38 @@ for key, raw_data in result.items():
         
         if key == 'tx_setting':
             
-            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC Frequency Setting (TX)')
+            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC frequency setting (TX)')
             # ax.plot(x_axis, [maxlength_list_tx[0] for i in x_axis], 'k--', markersize=DOTSIZE)
             # ax.plot(x_axis, [maxlength_list_tx[-1] for i in x_axis], 'k--', markersize=DOTSIZE)
             yticks = [16*i + (maxlength_list_tx[0] & 0xFFE0) for i in range(9)]
         
         if key == 'rx_setting':
         
-            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC Frequency Setting (RX)', markersize=DOTSIZE)
+            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC frequency setting (RX)', markersize=DOTSIZE)
             # ax.plot(x_axis, [maxlength_list_rx[0] for i in x_axis], 'k--', markersize=DOTSIZE)
             # ax.plot(x_axis, [maxlength_list_rx[-1] for i in x_axis], 'k--', markersize=DOTSIZE)
             yticks = [16*i + (maxlength_list_rx[0] & 0xFFE0) for i in range(9)]
             
         if key == 'rc_2m_setting':
             
-            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='2M RC OSC Frequency Settings', markersize=DOTSIZE)
+            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='2M RC OSC frequency settings', markersize=DOTSIZE)
             yticks = [16*i + (raw_data[0] & 0xFFE0) for i in range(12)]
         
         ylabel = [converter_config_linear_2_text(i) for i in yticks]
         
         ax.set_yticks(yticks)
         ax.set_yticklabels(ylabel)
-        ax.set_ylabel('Frequency Settings (coarse.mid.fine)')
+        ax.set_ylabel('frequency settings (coarse.mid.fine)')
         ax.legend()
         
         ax2 = ax.twinx()  # instantiate a second axes that shares the same x-axis
-        ax2.plot(x_axis, result['temp'], 'r-',label='Temperature ($^\circ$C)')
+        ax2.plot(x_axis, result['temp'], 'r-',label='temperature ($^\circ$C)')
         ax2.set_ylim(25, 45)
-        ax2.set_ylabel('Temperature ($^\circ$C)')
+        ax2.set_ylabel('temperature ($^\circ$C)')
         ax2.legend()
         
         ax.set_xlim(-2.5,50)  
-        ax.set_xlabel('Time (minutes)')
+        ax.set_xlabel('time (minutes)')
              
         ax.legend(markerscale=0.7, scatterpoints=1, loc=2)
         ax.grid(True)
@@ -191,24 +212,39 @@ for key, raw_data in result.items():
         
         if key == 'avg_fo':
             bins = 64
-            y_lable = "Frequency Offset (mean)"
+            y_lable = "frequency offset"
+            target_value = 2
+            ppm_boundary = [-14,18]
+            
         elif key == 'avg_if':
             bins = 120
-            y_lable = "Intermediate Frequency Counts (mean)"
+            y_lable = "intermediate frequency counts"
+            target_value = 500
+            ppm_boundary = [480,520]
+            
         elif key == 'avg_2m_counts':
             bins = 140
-            y_lable = "2M RC Frequency Counts (mean)"
+            y_lable = "2M RC frequency counts"
+            target_value = 60000
+            ppm_boundary = [59940,60060]
+            
+        target_x = [target_value for i in x_axis]
         
         ax1.plot(x_axis, raw_data, '.', color='#0000FF', markersize=DOTSIZE)
+        # ax1.plot(x_axis, [ppm_boundary[0] for i in x_axis], 'r-')
+        # ax1.plot(x_axis, [ppm_boundary[1] for i in x_axis], 'r-')
         ax1.set_ylabel(y_lable)
         ax2.hist(raw_data, bins=bins, color='#0000FF', density=False, label='bin={0}'.format(bins), orientation='horizontal')
-        ax2.set_xlabel('Number Of Samples')
+        ax2.set_xlabel('number of samples')
+
+        # ax1.plot(x_axis, target_x, '-', color='r', linewidth=3, label='target={0}'.format(target_value))
+        # ax1.legend(loc=2)
         
         ax2.legend(markerscale=0.7, scatterpoints=1, loc=2)
         ax2.grid(True)
         
-        ax1.set_xlim(-2.5,50)
-        ax1.set_xlabel('Time (minutes)')
+        ax1.set_xlim(-2.5,50)  
+        ax1.set_xlabel('time (minutes)')
 
         ax1.grid(True)
         ax2.grid(True)
