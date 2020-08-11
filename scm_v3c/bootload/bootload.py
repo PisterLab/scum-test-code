@@ -46,7 +46,8 @@ def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.
         baudrate=19200,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS)
+        bytesize=serial.EIGHTBITS,
+        timeout=5)
 
     # Open binary file from Keil
     with open(binary_image, 'rb') as f:

@@ -4,7 +4,8 @@ import numpy as np
 import os
 import json
 
-matplotlib.rcParams.update({'font.size': 12})
+matplotlib.rcParams.update({'font.size': 20})
+matplotlib.rcParams.update({'lines.linewidth': 3})
 
 # =========================== variables =======================================
 
@@ -88,8 +89,10 @@ if __name__ == '__main__':
                 label='ch{0}'.format(i+11)
             )
         for key, item in file.items():
-            ax.plot(item, label=key)
-        
+            if key == 'tx':
+                ax.plot(item, 'r', label=key)
+            if key == 'rx':
+                ax.plot(item, 'b', label=key)
         
         # x_s_lim   = 0
         # x_e_lim   = NUM_CONFIG
@@ -99,8 +102,8 @@ if __name__ == '__main__':
         x_e_lim   = 25*32*32 + 32
         SCALE     = 32
         
-        ax.set_ylabel('Hz (converted from lc_count)')
-        ax.set_xlabel('coarse.mid.fine')
+        ax.set_ylabel('frequency (Hz)')
+        ax.set_xlabel('frequency setting (coarse.mid.fine)')
         
         ax.set_xlim(x_s_lim,x_e_lim)
         ax.set_ylim(2400000000,2450000000)
@@ -111,8 +114,9 @@ if __name__ == '__main__':
         ax.set_xticks(xticks)
         ax.set_xticklabels(xlabel,rotation = 45)
         
-        ax.set_title(board)
+        # ax.set_title(board)
         
         ax.legend(markerscale=0.7, scatterpoints=1, loc=2)
         ax.grid(True)
+        plt.tight_layout()
         plt.savefig('{0}_freq_sweep_lc_count.png'.format(board))
