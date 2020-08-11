@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     num_tx = 0
 
-    with (open(LOG_FILE), 'r') as lf:
+    with open(LOG_FILE, 'r') as lf:
         for line in lf:
             if re.match("Transmitting on \d+ \d+ \d+", line) is not None:
                 num_tx += 1

@@ -64,6 +64,8 @@ if __name__ == '__main__':
     serial_scum.start()
 
     print "running for ", RUNNING_DURATION, 's...'
+    
+    time.sleep(RUNNING_DURATION)
 
     # serial_openmote.close()
     serial_scum.close()
