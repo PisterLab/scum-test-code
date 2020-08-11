@@ -3,6 +3,7 @@
 
 #include "memory_map.h"
 #include "scm3c_hw_interface.h"
+#include "ble.h"
 #include "radio.h"
 #include "optical.h"
 #include "rftimer.h"
@@ -845,7 +846,7 @@ void radio_init_rx_MF(){
     // Enable both polyphase and mixers via memory mapped IO (...001 = 0x1)
     // To disable both you would invert these values (...110 = 0x6)
     ANALOG_CFG_REG__16 = 0x1;
-        
+
 }
 
 // Must set IF clock frequency AFTER calling this function
@@ -974,15 +975,15 @@ void radio_init_tx(){
     set_LC_current(127);
     
     // Set LDO voltages for PA and LO
-    set_PA_supply(63);
-    set_LO_supply(127,0);
+    set_PA_supply(127);
+    set_LO_supply(63,0);
     
 }
 
 void radio_init_divider(unsigned int div_value){
     
     // Set divider LDO value to max
-    set_DIV_supply(63,0);
+    set_DIV_supply(127,0);
 
     // Set prescaler to div-by-2
     prescaler(4);
@@ -1138,7 +1139,8 @@ void initialize_mote(){
     optical_init();
     radio_init();
     rftimer_init();
-    
+    ble_init();
+
     //--------------------------------------------------------
     // SCM3C Analog Scan Chain Initialization
     //--------------------------------------------------------
@@ -1149,20 +1151,20 @@ void initialize_mote(){
     // set_VDDD_LDO_voltage(0);
     // set_AUX_LDO_voltage(0);
     // set_ALWAYSON_LDO_voltage(0);
-        
+
     // Select banks for GPIO inputs
     GPI_control(0,0,0,0);
-    
+
     // Select banks for GPIO outputs
     GPO_control(6,6,6,0);
-    
+
     // Set all GPIOs as outputs
     GPI_enables(0x0000);    
     GPO_enables(0xFFFF);
 
     // Set HCLK source as HF_CLOCK
     set_asc_bit(1147);
-    
+
     // Set initial coarse/fine on HF_CLOCK
     //coarse 0:4 = 860 861 875b 876b 877b
     //fine 0:4 870 871 872 873 874b
@@ -1170,13 +1172,13 @@ void initialize_mote(){
         scm3c_hw_interface_vars.HF_CLOCK_coarse,
         scm3c_hw_interface_vars.HF_CLOCK_fine
     );
-    
+
     // Set RFTimer source as HF_CLOCK
     set_asc_bit(1151);
 
     // Disable LF_CLOCK
     set_asc_bit(553);
-    
+
     // HF_CLOCK will be trimmed to 20MHz, so set RFTimer div value to 40 to get 500kHz (inverted, so 1101 0111)
     set_asc_bit(49);
     set_asc_bit(48);
@@ -1186,27 +1188,27 @@ void initialize_mote(){
     set_asc_bit(44);
     set_asc_bit(43);
     set_asc_bit(42);
-    
+
     // Set 2M RC as source for chip CLK
     set_asc_bit(1156);
-    
+
     // Enable 32k for cal
     set_asc_bit(623);
-    
+
     // Enable passthrough on chip CLK divider
     set_asc_bit(41);
-    
+
     // Init counter setup - set all to analog_cfg control
     // scm3c_hw_interface_vars.ASC[0] is leftmost
     //scm3c_hw_interface_vars.ASC[0] |= 0x6F800000; 
     for(t=2; t<9; t++) set_asc_bit(t);    
-        
+
     // Init RX
     radio_init_rx_MF();
-        
+
     // Init TX
     radio_init_tx();
-        
+
     // Set initial IF ADC clock frequency
     set_IF_clock_frequency(
         scm3c_hw_interface_vars.IF_coarse,
@@ -1225,18 +1227,17 @@ void initialize_mote(){
 
     // Turn on RC 2M for cal
     set_asc_bit(1114);
-        
+
     // Set initial LO frequency
-    LC_monotonic(DEFUALT_INIT_LC_CODE);
-    
+    LC_FREQCHANGE(DEFAULT_INIT_LC_COARSE, DEFAULT_INIT_LC_MID, DEFAULT_INIT_LC_FINE);
+
     // Init divider settings
     radio_init_divider(2000);
-    
+
     // Program analog scan chain
     analog_scan_chain_write();
     analog_scan_chain_load();
     //--------------------------------------------------------
-    
 }
 
 unsigned int estimate_temperature_2M_32k(){
@@ -1473,6 +1474,14 @@ void clear_asc_bit(unsigned int position){
     //scm3c_hw_interface_vars.ASC[position/32] &= ~(1 << (position%32));
 }
 
+void dump_asc(void){
+
+    unsigned int i;
+    for (i = 0; i < ASC_LEN; ++i){
+        printf("ASC[%u] = 0x%x\n", i, scm3c_hw_interface_vars.ASC[i]);
+    }
+}
+
 
 //==== from bucket_o_functions.h
 
@@ -1597,27 +1606,29 @@ void enable_1mhz_ble_ASC() {
 void disable_1mhz_ble_ASC() {
     scm3c_hw_interface_vars.ASC[32] |= 0x00060000;
 }
+
 void set_PA_supply(unsigned int code) {
     // 7-bit setting (between 0 and 127)
     // MSB is a "panic" bit that engages the high-voltage settings
     unsigned int code_ASC = ((~code)&0x0000007F) << 13;
     scm3c_hw_interface_vars.ASC[30] &= 0xFFF01FFF;
     scm3c_hw_interface_vars.ASC[30] |= code_ASC;
-    
 }
+
 void set_LO_supply(unsigned int code, unsigned char panic) {
     // 7-bit setting (between 0 and 127)
     // MSB is a "panic" bit that engages the high-voltage settings
     unsigned int code_ASC = ((~code)&0x0000007F) << 5;
-    scm3c_hw_interface_vars.ASC[30] &= 0xFFFFF017;
+    scm3c_hw_interface_vars.ASC[30] &= 0xFFFFF01F;
     scm3c_hw_interface_vars.ASC[30] |= code_ASC;
 }
+
 void set_DIV_supply(unsigned int code, unsigned char panic) {
     // 7-bit setting (between 0 and 127)
     // MSB is a "panic" bit that engages the high-voltage settings
-    unsigned int code_ASC = ((~code)&0x0000007F) << 5;
-    scm3c_hw_interface_vars.ASC[30] &= 0xFFF01FFF;
-    scm3c_hw_interface_vars.ASC[30] |= code_ASC;
+    unsigned int code_ASC = ((~code)&0x0000007F) << 13;
+    scm3c_hw_interface_vars.ASC[31] &= 0xFFF01FFF;
+    scm3c_hw_interface_vars.ASC[31] |= code_ASC;
 }
 
 void prescaler(int code) {

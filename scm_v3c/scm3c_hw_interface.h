@@ -88,6 +88,7 @@ unsigned int flip_lsb8(unsigned int in);
 void update_PN31_byte(unsigned int* current_lfsr);
 void set_asc_bit(unsigned int position);
 void clear_asc_bit(unsigned int position);
+void dump_asc(void);
 
 //==== from bucket_o_functions.h
 

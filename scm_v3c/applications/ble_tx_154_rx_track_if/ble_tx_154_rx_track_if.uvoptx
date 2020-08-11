@@ -22,7 +22,7 @@
   </DaveTm>
 
   <Target>
-    <TargetName>freq_sweep_lc_count</TargetName>
+    <TargetName>ble_tx_154_rx_track_if</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
@@ -179,11 +179,11 @@
       <GroupNumber>1</GroupNumber>
       <FileNumber>1</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\freq_sweep_lc_count.c</PathWithFileName>
-      <FilenameWithoutPath>freq_sweep_lc_count.c</FilenameWithoutPath>
+      <PathWithFileName>.\ble_tx_154_rx_track_if.c</PathWithFileName>
+      <FilenameWithoutPath>ble_tx_154_rx_track_if.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

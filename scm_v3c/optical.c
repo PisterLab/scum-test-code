@@ -9,12 +9,26 @@
 
 //=========================== defines =========================================
 
+#define LC_CAL_COARSE_MIN    23
+#define LC_CAL_COARSE_MAX    25
+#define LC_CAL_MID_MIN       0
+#define LC_CAL_MID_MAX       31
+#define LC_CAL_FINE_MIN      15
+#define LC_CAL_FINE_MAX      15
+
 //=========================== variables =======================================
 
 typedef struct {
     uint8_t     optical_cal_iteration;
-    uint8_t     optical_cal_finished;
-    
+    bool        optical_cal_finished;
+
+    bool        optical_LC_cal_enable;
+    bool        optical_LC_cal_finished;
+    uint8_t     cal_LC_coarse;
+    uint8_t     cal_LC_mid;
+    uint8_t     cal_LC_fine;
+    uint32_t    cal_LC_diff;
+
     uint32_t    num_32k_ticks_in_100ms;
     uint32_t    num_2MRC_ticks_in_100ms;
     uint32_t    num_IFclk_ticks_in_100ms;
@@ -23,7 +37,9 @@ typedef struct {
 
     // reference to calibrate
     uint32_t    LC_target;
-    uint32_t    LC_code;
+    uint8_t     LC_coarse;
+    uint8_t     LC_mid;
+    uint8_t     LC_fine;
 } optical_vars_t;
 
 optical_vars_t optical_vars;
@@ -35,16 +51,44 @@ optical_vars_t optical_vars;
 void optical_init(void) {
     
     memset(&optical_vars, 0, sizeof(optical_vars_t));
-    
-    // Target radio LO freq = 2.4025G
+
     // Divide ratio is currently 480*2
     // Calibration counts for 100ms
-    optical_vars.LC_target  = REFERENCE_LC_TARGET;
-    optical_vars.LC_code    = DEFUALT_INIT_LC_CODE;
+    optical_vars.LC_target = REFERENCE_LC_TARGET;
+    optical_vars.LC_coarse = DEFAULT_INIT_LC_COARSE;
+    optical_vars.LC_mid = DEFAULT_INIT_LC_MID;
+    optical_vars.LC_fine = DEFAULT_INIT_LC_FINE;
 }
 
-uint8_t optical_getCalibrationFinshed(void) {
+void optical_enableLCCalibration(void) {
+    optical_vars.optical_LC_cal_enable = true;
+    optical_vars.optical_LC_cal_finished = false;
+
+    optical_vars.cal_LC_coarse = LC_CAL_COARSE_MIN;
+    optical_vars.cal_LC_mid = LC_CAL_MID_MIN;
+    optical_vars.cal_LC_fine = LC_CAL_FINE_MIN;
+    optical_vars.cal_LC_diff = 0xFFFFFFFF;
+    LC_FREQCHANGE(optical_vars.cal_LC_coarse, optical_vars.cal_LC_mid, optical_vars.cal_LC_fine);
+}
+
+bool optical_getCalibrationFinished(void) {
     return optical_vars.optical_cal_finished;
+}
+
+void optical_setLCTarget(uint32_t LC_target) {
+    optical_vars.LC_target = LC_target;
+}
+
+uint8_t optical_getLCCoarse(void) {
+    return optical_vars.LC_coarse & 0x1F;
+}
+
+uint8_t optical_getLCMid(void) {
+    return optical_vars.LC_mid & 0x1F;
+}
+
+uint8_t optical_getLCFine(void) {
+    return optical_vars.LC_fine & 0x1F;
 }
 
 void optical_enable(void){
@@ -129,13 +173,13 @@ void optical_sfd_isr(){
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000);
     count_IF = rdata_lsb + (rdata_msb << 16);
-    
+
     // Reset all counters
     ANALOG_CFG_REG__0 = 0x0000;        
-    
+
     // Enable all counters
     ANALOG_CFG_REG__0 = 0x3FFF;    
-        
+
     // Don't make updates on the first two executions of this ISR
     if(optical_vars.optical_cal_iteration > 2){
         
@@ -147,20 +191,48 @@ void optical_sfd_isr(){
         if(count_HFclock > 2003000) {
             HF_CLOCK_fine++;
         }
-        
+
         set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
         scm3c_hw_interface_set_HF_CLOCK_coarse(HF_CLOCK_coarse);
         scm3c_hw_interface_set_HF_CLOCK_fine(HF_CLOCK_fine);
-        
+
         // Do correction on LC
-        if(count_LC > (optical_vars.LC_target + 0)) {
-            optical_vars.LC_code -= 1;
+        if (optical_vars.optical_LC_cal_enable && !optical_vars.optical_LC_cal_finished) {
+            if ((count_LC <= optical_vars.LC_target) && (optical_vars.LC_target - count_LC < optical_vars.cal_LC_diff)) {
+                optical_vars.cal_LC_diff = optical_vars.LC_target - count_LC;
+                optical_vars.LC_coarse = optical_vars.cal_LC_coarse;
+                optical_vars.LC_mid = optical_vars.cal_LC_mid;
+                optical_vars.LC_fine = optical_vars.cal_LC_fine;
+            } else if ((count_LC > optical_vars.LC_target) && (count_LC - optical_vars.LC_target < optical_vars.cal_LC_diff)) {
+                optical_vars.cal_LC_diff = count_LC - optical_vars.LC_target;
+                optical_vars.LC_coarse = optical_vars.cal_LC_coarse;
+                optical_vars.LC_mid = optical_vars.cal_LC_mid;
+                optical_vars.LC_fine = optical_vars.cal_LC_fine;
+            }
+
+            printf("count_LC: %u, LC_target: %u, LC_diff: %u\n", count_LC, optical_vars.LC_target, optical_vars.cal_LC_diff);
+
+            ++optical_vars.cal_LC_fine;
+            if (optical_vars.cal_LC_fine > LC_CAL_FINE_MAX) {
+                optical_vars.cal_LC_fine = LC_CAL_FINE_MIN;
+                ++optical_vars.cal_LC_mid;
+                if (optical_vars.cal_LC_mid > LC_CAL_MID_MAX) {
+                    optical_vars.cal_LC_mid = LC_CAL_MID_MIN;
+                    ++optical_vars.cal_LC_coarse;
+                    if (optical_vars.cal_LC_coarse > LC_CAL_COARSE_MAX) {
+                        optical_vars.optical_LC_cal_finished = true;
+                        printf("coarse: %u, mid: %u, fine: %u\n", optical_vars.LC_coarse, optical_vars.LC_mid, optical_vars.LC_fine);
+                    }
+                }
+            }
+
+            if (!optical_vars.optical_LC_cal_finished) {
+                LC_FREQCHANGE(optical_vars.cal_LC_coarse, optical_vars.cal_LC_mid, optical_vars.cal_LC_fine);
+            } else {
+                LC_FREQCHANGE(optical_vars.LC_coarse, optical_vars.LC_mid, optical_vars.LC_fine);
+            }
         }
-        if(count_LC < (optical_vars.LC_target - 0)) {
-            optical_vars.LC_code += 1;
-        }
-        LC_monotonic(optical_vars.LC_code);
-            
+
         // Do correction on 2M RC
         // Coarse step ~1100 counts, fine ~150 counts, superfine ~25
         // Too fast
@@ -208,17 +280,17 @@ void optical_sfd_isr(){
         scm3c_hw_interface_set_IF_fine(IF_fine);
         
         analog_scan_chain_write();
-        analog_scan_chain_load();    
+        analog_scan_chain_load();
     }
     
     // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,optical_vars.LC_code,count_IF,IF_fine); 
+    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d   IF=%d-%d\r\n",count_HFclock,HF_CLOCK_fine,count_2M,RC2M_coarse,RC2M_fine,RC2M_superfine,count_LC,count_IF,IF_fine);
      
-    if(optical_vars.optical_cal_iteration == 25){
+    if(optical_vars.optical_cal_iteration >= 25 && (!optical_vars.optical_LC_cal_enable || optical_vars.optical_LC_cal_finished)){
         // Disable this ISR
         ICER = 0x0800;
         optical_vars.optical_cal_iteration = 0;
-        optical_vars.optical_cal_finished = 1;
+        optical_vars.optical_cal_finished = true;
         
         // Store the last count values
         optical_vars.num_32k_ticks_in_100ms = count_32k;

@@ -18,9 +18,11 @@ unsigned int acfg3_val;
 
 // These coefficients are used for filtering frequency feedback information
 // These are no necessarily the ideal values to use; situationally dependent
-unsigned char FIR_coeff[11] = {4,16,37,64,87,96,87,64,37,16,4};
-unsigned int IF_estimate_history[11] = {500,500,500,500,500,500,500,500,500,500};
-signed short cdr_tau_history[11] = {0};
+#define FILTER_WINDOWS_LEN       11
+
+uint8_t FIR_coeff[FILTER_WINDOWS_LEN] = {4,16,37,64,87,96,87,64,37,16,4};
+uint32_t IF_estimate_history[FILTER_WINDOWS_LEN] = {500,500,500,500,500,500,500,500,500,500};
+int16_t cdr_tau_history[FILTER_WINDOWS_LEN] = {0};
 
 //=========================== definition ======================================
 
@@ -48,7 +50,6 @@ signed short cdr_tau_history[11] = {0};
 
 #define IF_FREQ_UPDATE_TIMEOUT   10
 #define LO_FREQ_UPDATE_TIMEOUT   10
-#define FILTER_WINDOWS_LEN       11
 #define FIR_COEFF_SCALE          512 // determined by FIR_coeff
 
 #define LC_CODE_RX      700 //Board Q3: tested at Inria A102 room (Oct, 16 2019)
@@ -79,11 +80,14 @@ typedef struct {
             
             uint32_t    rx_channel_codes[NUM_CHANNELS];
             uint32_t    tx_channel_codes[NUM_CHANNELS];
-    
+
     // How many packets must be received before adjusting RX clock rates
     // Should be at least as long as the FIR filters
     volatile uint16_t   frequency_update_rate;
     volatile uint16_t   frequency_update_cooldown_timer;
+
+                  int   IF_est_filtered;
+                 bool   IF_est_filtered_ready;
 } radio_vars_t;
 
 radio_vars_t radio_vars;
@@ -185,19 +189,16 @@ void radio_loadPacket(uint8_t* packet, uint16_t len){
 
 // Turn on the radio for transmit
 // This should be done at least ~50 us before txNow()
-void radio_txEnable(){
-    
+void radio_txEnable(){    
     // Turn on LO, PA, and AUX LDOs
-    
 #ifdef DIV_ON
-    
-    // Turn on DIV if need read LC_count
+    // Turn on DIV to read LC_count
     ANALOG_CFG_REG__10 = 0x0068;
 #else
     // Turn on LO, PA, and AUX LDOs
     ANALOG_CFG_REG__10 = 0x0028;
 #endif
-    
+
     // Turn off polyphase and disable mixer
     ANALOG_CFG_REG__16 = 0x6;
 }
@@ -215,7 +216,7 @@ void radio_rxEnable(){
     
     // Turn on LO, IF, and AUX LDOs via memory mapped register
     
-    // Turn on DIV on if need to read LC_div counter
+    // Turn on DIV to read LC_div counter
     
     // Aux is inverted (0 = on)
     // Memory-mapped LDO control
@@ -280,6 +281,52 @@ void radio_rfOff(){
 
     // Turn off LDOs
     ANALOG_CFG_REG__10 = 0x0000;
+}
+
+int radio_update_IF_estimate(uint32_t IF_estimate, uint32_t LQI_chip_errors) {
+    int sum = 0;
+    int i;
+
+    // Only make adjustments when the chip error rate is <10% (this value was picked as an arbitrary choice)
+    if (LQI_chip_errors < 25) {
+        // When updating LO and IF clock frequncies, must wait long enough for the changes to propagate before changing again
+        // Need to receive as many packets as there are taps in the FIR filter
+        ++radio_vars.frequency_update_cooldown_timer;
+
+        // Shift old samples
+		for (i = 9; i >= 0; --i){
+			IF_estimate_history[i + 1] = IF_estimate_history[i];
+		}
+
+        // New sample
+		IF_estimate_history[0] = IF_estimate;
+
+        // Do FIR convolution
+		for (i = 0; i < FILTER_WINDOWS_LEN; ++i){
+			sum = sum + IF_estimate_history[i] * FIR_coeff[i];
+		}
+
+        // Divide by 512 (sum of the coefficients) to scale output
+		radio_vars.IF_est_filtered = sum / 512;
+
+        if (radio_vars.frequency_update_cooldown_timer >= radio_vars.frequency_update_rate) {
+            radio_vars.IF_est_filtered_ready = true;
+        }
+    }
+}
+
+bool radio_get_IF_estimate_ready(void) {
+    return radio_vars.IF_est_filtered_ready;
+}
+
+int radio_get_IF_estimate(void) {
+    radio_vars.IF_est_filtered_ready = false;
+    radio_vars.frequency_update_cooldown_timer = 0;
+
+    // Reset IF_est_filtered until as many packets arrive as there are taps in the FIR filter
+    // The IF estimate reports how many zero crossings (both pos and neg) there were in a 100us period
+    // The IF should on average be 2.5 MHz, which means the IF estimate will return ~500 when there is no IF error
+    return radio_vars.IF_est_filtered - 500;
 }
 
 void radio_frequency_housekeeping(
@@ -424,7 +471,7 @@ uint32_t radio_getIFestimate(void){
 }
 
 uint32_t radio_getLQIchipErrors(void){
-    return ANALOG_CFG_REG__21;
+    return read_LQI();
 }
 
 int16_t radio_get_cdr_tau_value(void){

@@ -40,6 +40,9 @@ uint32_t    radio_getLQIchipErrors(void);
 int16_t     radio_get_cdr_tau_value(void);
 
 //==== frequency
+int radio_update_IF_estimate(uint32_t IF_estimate, uint32_t LQI_chip_errors);
+bool radio_get_IF_estimate_ready(void);
+int radio_get_IF_estimate(void);
 void radio_frequency_housekeeping(
     uint32_t IF_estimate,
     uint32_t LQI_chip_errors,
