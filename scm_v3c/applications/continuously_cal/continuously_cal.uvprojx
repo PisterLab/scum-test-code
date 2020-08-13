@@ -486,6 +486,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\scm3c_hw_interface.c</FilePath>
             </File>
+            <File>
+              <FileName>ble.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\ble.c</FilePath>
+            </File>
+            <File>
+              <FileName>ble.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\ble.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
