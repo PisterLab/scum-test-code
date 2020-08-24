@@ -17,26 +17,35 @@
 #define CRC_VALUE           (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH         (*((unsigned int *) 0x0000FFF8))
 
-#define CHANNEL              0      // ble channel
+#define CHANNEL             37      // ble channel
 #define PKT_LENGTH          64      // pdu length
 
-#define TXPOWER             0xD5    // used for ibeacon pkt
+#define TXPOWER             0xC5    // used for ibeacon pkt
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 #define TIMER_PERIOD        500  // 500 = 1ms@500kHz
 
+// only this coarse settings are swept, 
+// channel 37 and 0 are known within the setting scope of coarse=24
 #define CFG_COARSE          24
 
 const static uint8_t ble_device_addr[6] = {
     0xaa, 0xbb, 0xcc, 0xcc, 0xbb, 0xaa
 };
 
+//const static uint8_t ble_uuid[16]       = {
+
+//    0xa2, 0x4e, 0x71, 0x12, 0xa0, 0x3f, 
+//    0x46, 0x23, 0xbb, 0x56, 0xae, 0x67,
+//    0xbd, 0x65, 0x3c, 0x73
+//};
+
 const static uint8_t ble_uuid[16]       = {
 
-    0xa2, 0x4e, 0x71, 0x12, 0xa0, 0x3f, 
-    0x46, 0x23, 0xbb, 0x56, 0xae, 0x67,
-    0xbd, 0x65, 0x3c, 0x73
+    0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 
+    0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
+    0xdd, 0xee, 0xff
 };
 
 //=========================== variables =======================================
@@ -136,14 +145,16 @@ int main(void) {
     while (1) {
         
         // loop through all configuration
+        
+        // customize coarse, mid, fine values to change the sweeping range
         for (cfg_coarse=24;cfg_coarse<25;cfg_coarse++) {
-            for (cfg_mid=0;cfg_mid<STEPS_PER_CONFIG;cfg_mid++) {
+            for (cfg_mid=6;cfg_mid<10;cfg_mid++) {
                 for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine++) {
                     
-                    printf(
-                        "coarse=%d, middle=%d, fine=%d\r\n", 
-                        cfg_coarse,cfg_mid,cfg_fine
-                    );
+//                    printf(
+//                        "coarse=%d, middle=%d, fine=%d\r\n", 
+//                        cfg_coarse,cfg_mid,cfg_fine
+//                    );
                     
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
                         
