@@ -24,7 +24,7 @@
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
-#define TIMER_PERIOD        500  // 500 = 1ms@500kHz
+#define TIMER_PERIOD        1000  // 500 = 1ms@500kHz
 
 // only this coarse settings are swept, 
 // channel 37 and 0 are known within the setting scope of coarse=24
@@ -41,11 +41,17 @@ const static uint8_t ble_device_addr[6] = {
 //    0xbd, 0x65, 0x3c, 0x73
 //};
 
+//const static uint8_t ble_uuid[16]       = {
+
+//    0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 
+//    0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
+//    0xdd, 0xee, 0xff
+//};
+
 const static uint8_t ble_uuid[16]       = {
 
-    0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 
-    0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
-    0xdd, 0xee, 0xff
+    0xcf, 0xcf, 0xcf, 0xcf, 0xcf, 0xcf, 0xcf, 0xcf,
+    0xcf, 0xcf, 0xcf, 0xcf, 0xcf, 0xcf, 0xcf, 0xcf
 };
 
 //=========================== variables =======================================
@@ -148,7 +154,7 @@ int main(void) {
         
         // customize coarse, mid, fine values to change the sweeping range
         for (cfg_coarse=24;cfg_coarse<25;cfg_coarse++) {
-            for (cfg_mid=6;cfg_mid<10;cfg_mid++) {
+            for (cfg_mid=5;cfg_mid<11;cfg_mid++) {
                 for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine++) {
                     
 //                    printf(
@@ -157,6 +163,8 @@ int main(void) {
 //                    );
                     
                     for (i=0;i<NUMPKT_PER_CFG;i++) {
+                        
+                        radio_rfOff();
                         
                         app_vars.pdu_len = prepare_pdu();
 //                        app_vars.pdu_len = prepare_freq_setting_pdu(cfg_coarse, cfg_mid, cfg_fine);
