@@ -56,19 +56,25 @@ void optical_init(void) {
     // Calibration counts for 100ms
     optical_vars.LC_target = REFERENCE_LC_TARGET;
     optical_vars.LC_coarse = DEFAULT_INIT_LC_COARSE;
-    optical_vars.LC_mid = DEFAULT_INIT_LC_MID;
-    optical_vars.LC_fine = DEFAULT_INIT_LC_FINE;
+    optical_vars.LC_mid    = DEFAULT_INIT_LC_MID;
+    optical_vars.LC_fine   = DEFAULT_INIT_LC_FINE;
 }
 
 void optical_enableLCCalibration(void) {
-    optical_vars.optical_LC_cal_enable = true;
+    
+    optical_vars.optical_LC_cal_enable   = true;
     optical_vars.optical_LC_cal_finished = false;
 
-    optical_vars.cal_LC_coarse = LC_CAL_COARSE_MIN;
-    optical_vars.cal_LC_mid = LC_CAL_MID_MIN;
-    optical_vars.cal_LC_fine = LC_CAL_FINE_MIN;
-    optical_vars.cal_LC_diff = 0xFFFFFFFF;
-    LC_FREQCHANGE(optical_vars.cal_LC_coarse, optical_vars.cal_LC_mid, optical_vars.cal_LC_fine);
+    optical_vars.cal_LC_coarse  = LC_CAL_COARSE_MIN;
+    optical_vars.cal_LC_mid     = LC_CAL_MID_MIN;
+    optical_vars.cal_LC_fine    = LC_CAL_FINE_MIN;
+    optical_vars.cal_LC_diff    = 0xFFFFFFFF;
+    
+    LC_FREQCHANGE(
+        optical_vars.cal_LC_coarse, 
+        optical_vars.cal_LC_mid, 
+        optical_vars.cal_LC_fine
+    );
 }
 
 bool optical_getCalibrationFinished(void) {
@@ -197,7 +203,10 @@ void optical_sfd_isr(){
         scm3c_hw_interface_set_HF_CLOCK_fine(HF_CLOCK_fine);
 
         // Do correction on LC
-        if (optical_vars.optical_LC_cal_enable && !optical_vars.optical_LC_cal_finished) {
+        if (
+            optical_vars.optical_LC_cal_enable  &&
+            !optical_vars.optical_LC_cal_finished
+        ) {
             if ((count_LC <= optical_vars.LC_target) && (optical_vars.LC_target - count_LC < optical_vars.cal_LC_diff)) {
                 optical_vars.cal_LC_diff = optical_vars.LC_target - count_LC;
                 optical_vars.LC_coarse = optical_vars.cal_LC_coarse;
@@ -210,7 +219,7 @@ void optical_sfd_isr(){
                 optical_vars.LC_fine = optical_vars.cal_LC_fine;
             }
 
-            printf("count_LC: %u, LC_target: %u, LC_diff: %u\n", count_LC, optical_vars.LC_target, optical_vars.cal_LC_diff);
+            printf("count_LC: %u, LC_target: %u, LC_diff: %u\r\n", count_LC, optical_vars.LC_target, optical_vars.cal_LC_diff);
 
             ++optical_vars.cal_LC_fine;
             if (optical_vars.cal_LC_fine > LC_CAL_FINE_MAX) {

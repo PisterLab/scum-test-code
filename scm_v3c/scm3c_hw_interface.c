@@ -731,7 +731,7 @@ void radio_init_rx_MF(){
     scm3c_hw_interface_vars.ASC[15] |= (0xFFE02E03 & ~mask2);   //480-511
 
     // Set clock mux to internal RC oscillator
-     clear_asc_bit(424);
+    clear_asc_bit(424);
     set_asc_bit(425);
 
     // Set gain for I and Q (63 is the max)
@@ -1159,15 +1159,15 @@ void initialize_mote(){
     GPO_control(6,6,6,0);
 
     // Set all GPIOs as outputs
-    GPI_enables(0x0000);    
+    GPI_enables(0x0000);
     GPO_enables(0xFFFF);
 
     // Set HCLK source as HF_CLOCK
     set_asc_bit(1147);
 
     // Set initial coarse/fine on HF_CLOCK
-    //coarse 0:4 = 860 861 875b 876b 877b
-    //fine 0:4 870 871 872 873 874b
+    // coarse 0:4 = 860 861 875b 876b 877b
+    // fine 0:4 870 871 872 873 874b
     set_sys_clk_secondary_freq(
         scm3c_hw_interface_vars.HF_CLOCK_coarse,
         scm3c_hw_interface_vars.HF_CLOCK_fine

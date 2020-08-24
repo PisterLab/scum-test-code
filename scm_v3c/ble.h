@@ -43,7 +43,7 @@
 #define CUSTOM_DATA_GAP_CODE  0xC3 // Custom GAP code for custom data (0xC3 LSB first).
 
 #define ADVA_LENGTH           6    // Advertiser address is 6 bytes long.
-#define PDU_LENGTH            39   // 2 byte PDU header + 37 bytes PDU.
+#define PDU_LENGTH            35   // 2 byte PDU header + 37 bytes PDU.
 #define CRC_LENGTH            3    // CRC is 3 bytes long.
 
 #define MAX_DATA_LENGTH       31   // Maximum data length is 31 bytes.
@@ -73,5 +73,8 @@ void ble_set_temp(double temp);
 void ble_set_data_tx_en(bool data_tx_en);
 void ble_set_data(uint8_t *data);
 void ble_transmit(void);
+void ble_append_crc(uint8_t* pdu_crc, uint16_t pdu_lenght);
+void ble_whitening(uint8_t* pkt, uint16_t lenght);
+void ble_load_packt(uint8_t* pkt);
 
 #endif

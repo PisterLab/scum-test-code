@@ -16,6 +16,7 @@ typedef struct {
             uint8_t     packet[64];
             uint8_t     AdvA[ADVA_LENGTH];
             uint8_t     channel;
+            uint8_t     datawhitening_init;
 
             // BLE packet contents enable.
             // The total data length cannot exceed 31 bytes.
@@ -55,7 +56,7 @@ void ble_init(void) {
     ble_vars.AdvA[4] = 0x80;
     ble_vars.AdvA[5] = 0xC6;
 
-	// Set default channel.
+    // Set default channel.
     ble_vars.channel = 37;
 
     // Set default name.
@@ -71,6 +72,8 @@ void ble_gen_packet(void) {
     uint8_t i = 0, j = 0;
 
     int k;
+    uint8_t m;
+    
     uint8_t common;
     uint8_t crc3 = 0xAA;
     uint8_t crc2 = 0xAA;
@@ -78,7 +81,7 @@ void ble_gen_packet(void) {
 
     uint8_t pdu_crc[PDU_LENGTH + CRC_LENGTH];
 
-    uint8_t lfsr = (ble_vars.channel & 0x3F) | (1 << 6); // [1 channel[6]]
+    uint8_t lfsr = ble_vars.datawhitening_init;
 
     memset(ble_vars.packet, 0, 64 * sizeof(uint8_t));
     memset(pdu_crc, 0, (PDU_LENGTH + CRC_LENGTH) * sizeof(uint8_t));
@@ -105,7 +108,7 @@ void ble_gen_packet(void) {
             pdu_crc[j++] = flipChar(ble_vars.name[k]);
         }
     }
-
+    
     if (ble_vars.lc_freq_codes_tx_en) {
         pdu_crc[j++] = LC_FREQCODES_HEADER;
         pdu_crc[j++] = LC_FREQCODES_GAP_CODE;
@@ -148,32 +151,32 @@ void ble_gen_packet(void) {
             pdu_crc[j++] = flipChar(ble_vars.data[k]);
         }
     }
-
-    for (j = 0; j < PDU_LENGTH; ++j) {
-        for (k = 7; k >= 0; --k) {
-            common = (crc1 & 1) ^ ((pdu_crc[j] & (1 << k)) >> k);
-            crc1 = (crc1 >> 1) | ((crc2 & 1) << 7);
-            crc2 = ((crc2 >> 1) | ((crc3 & 1) << 7)) ^ (common << 6) ^ (common << 5);
-            crc3 = ((crc3 >> 1) | (common << 7)) ^ (common << 6) ^ (common << 4) ^ (common << 3) ^ (common << 1);
-        }
-    }
-
-    crc1 = flipChar(crc1);
-    crc2 = flipChar(crc2);
-    crc3 = flipChar(crc3);
-
-    pdu_crc[j++] = crc1;
-    pdu_crc[j++] = crc2;
-    pdu_crc[j++] = crc3;
-
-    for (j = 0; j < PDU_LENGTH + CRC_LENGTH; ++j) {
-        for (k = 7; k >= 0; --k) {
-            pdu_crc[j] = (pdu_crc[j] & ~(1 << k)) | ((pdu_crc[j] & (1 << k)) ^ ((lfsr & 1) << k));
-            lfsr = ((lfsr >> 1) | ((lfsr & 1) << 6)) ^ ((lfsr & 1) << 2);
-        }
-    }
+    
+    ble_append_crc(&pdu_crc[0] ,PDU_LENGTH);
+    ble_whitening(&pdu_crc[0], PDU_LENGTH + CRC_LENGTH);
 
     memcpy(&ble_vars.packet[i], pdu_crc, PDU_LENGTH + CRC_LENGTH);
+}
+
+void ble_load_packt(uint8_t* pkt){
+    
+    uint8_t i;
+    uint8_t m;
+    
+    memset(ble_vars.packet, 0, 64 * sizeof(uint8_t));
+    
+    i = 0;
+    ble_vars.packet[i++] = BPREAMBLE;
+
+    ble_vars.packet[i++] = BACCESS_ADDRESS1;
+    ble_vars.packet[i++] = BACCESS_ADDRESS2;
+    ble_vars.packet[i++] = BACCESS_ADDRESS3;
+    ble_vars.packet[i++] = BACCESS_ADDRESS4;
+    
+    ble_append_crc(&pkt[0], PDU_LENGTH);   
+    ble_whitening(&pkt[0], PDU_LENGTH + CRC_LENGTH);
+    
+    memcpy(&ble_vars.packet[i], &pkt[0], PDU_LENGTH + CRC_LENGTH);
 }
 
 void ble_gen_test_packet(void) {
@@ -215,7 +218,8 @@ void ble_set_AdvA(uint8_t *AdvA) {
 }
 
 void ble_set_channel(uint8_t channel) {
-    ble_vars.channel = channel;
+    ble_vars.channel            = channel;
+    ble_vars.datawhitening_init = (channel & 0x3F) | (1 << 6);
 }
 
 void ble_set_name_tx_en(bool name_tx_en) {
@@ -379,7 +383,7 @@ void ble_transmit(void) {
     radio_txEnable();
 
     // Wait for LDOs to turn on.
-    for (t = 0; t < 50; ++t);
+    for (t = 0; t < 500; ++t);
 
     // Send the packet.
     transmit_tx_arb_fifo();
@@ -387,15 +391,67 @@ void ble_transmit(void) {
     // Wait for transmission to finish.
     // Don't know if there is some way to know when this has finished or just busy wait (?).
     // This was determined empirically using trial and error.
-    for (t = 0; t < 1000; ++t);
+    for (t = 0; t < 10000; ++t);
 
     radio_rfOff();
+}
+
+void ble_append_crc(uint8_t* pdu_crc, uint16_t pdu_lenght){
+    
+    uint16_t j;
+    int8_t   k;
+    uint8_t  common;
+    uint8_t crc3 = 0xAA;
+    uint8_t crc2 = 0xAA;
+    uint8_t crc1 = 0xAA;
+    
+    printf("calculate CRC\r\n");
+    for (j = 0; j < pdu_lenght; ++j) {
+        printf("pdu_crc = %x initial %x %x %x ", pdu_crc[j], crc1, crc2, crc3);
+        for (k = 7; k >= 0; --k) {
+            common = (crc1 & 1) ^ ((pdu_crc[j] & (1 << k)) >> k);
+            crc1 = (crc1 >> 1) | ((crc2 & 1) << 7);
+            crc2 = ((crc2 >> 1) | ((crc3 & 1) << 7)) ^ (common << 6) ^ (common << 5);
+            crc3 = ((crc3 >> 1) | (common << 7)) ^ (common << 6) ^ (common << 4) ^ (common << 3) ^ (common << 1);
+        }
+        printf("after %x %x %x \r\n", crc1, crc2, crc3);
+        printf("after %x %x %x \r\n", flipChar(crc1), flipChar(crc2), flipChar(crc3));
+    }
+
+    crc1 = flipChar(crc1);
+    crc2 = flipChar(crc2);
+    crc3 = flipChar(crc3);
+
+    pdu_crc[j++] = crc1;
+    pdu_crc[j++] = crc2;
+    pdu_crc[j++] = crc3;
+}
+
+void ble_whitening(uint8_t* pkt, uint16_t lenght){
+    
+    uint8_t i;
+    int8_t  j;
+    
+    uint8_t lfsr;
+    
+    lfsr = ble_vars.datawhitening_init;
+    
+    for (i = 0; i < lenght; ++i) {
+        for (j = 7; j >= 0; --j) {
+            pkt[i] = 
+                (pkt[i] & ~(1 << j)) | 
+                (
+                    (pkt[i] & (1 << j)) ^ ((lfsr & 1) << j) 
+                );
+            lfsr = ((lfsr >> 1) | ((lfsr & 1) << 6)) ^ ((lfsr & 1) << 2);
+        }
+    }
 }
 
 //=========================== private =========================================
 
 void load_tx_arb_fifo(void) {
-	// Initialize variables.
+    // Initialize variables.
     int i;                 // used to loop through the bytes
     int j;                 // used to loop through the 8 bits of each individual byte
 
