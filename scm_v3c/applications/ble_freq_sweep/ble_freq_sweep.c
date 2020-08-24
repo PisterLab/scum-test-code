@@ -17,17 +17,18 @@
 #define CRC_VALUE           (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH         (*((unsigned int *) 0x0000FFF8))
 
-#define TIMER_PERIOD        500000             ///< 500 = 1ms@500kHz
+#define CHANNEL              0      // ble channel
+#define PKT_LENGTH          64      // pdu length
 
-#define BLE_CALIBRATE_LC    true
-#define BLE_SWEEP_FINE      true
-    
-#define CHANNEL             37
-#define PKT_LENGTH          64
+#define TXPOWER             0xD5    // used for ibeacon pkt
 
-#define TXPOWER             0xD5
+#define NUMPKT_PER_CFG      1
+#define STEPS_PER_CONFIG    32
+#define TIMER_PERIOD        500  // 500 = 1ms@500kHz
 
-const static uint8_t ble_device_addr[6] = { 
+#define CFG_COARSE          24
+
+const static uint8_t ble_device_addr[6] = {
     0xaa, 0xbb, 0xcc, 0xcc, 0xbb, 0xaa
 };
 
@@ -45,25 +46,39 @@ typedef struct {
     uint8_t         tx_mid;
     uint8_t         tx_fine;
     
-    bool            txNext;
+    bool            sendDone;
     
-    uint8_t         packet[PDU_LENGTH+CRC_LENGTH];
+    uint8_t         pdu[PDU_LENGTH+CRC_LENGTH]; // protocol data unit
+    uint8_t         pdu_len;
 } app_vars_t;
 
 app_vars_t app_vars;
 
 //=========================== prototypes ======================================
 
+void    cb_endFrame_tx(uint32_t timestamp);
 void    cb_timer(void);
-void    transmit_ble_packet(void);
-void    prepare_packet(void);
-void    prepare_ibeacon_packet(void);
+
+uint8_t prepare_pdu(void);
+uint8_t prepare_freq_setting_pdu(uint8_t coarse, uint8_t mid, uint8_t fine);
+void    delay_tx(void);
+void    delay_lc_setup(void);
 
 //=========================== main ============================================
 
 int main(void) {
 
     uint32_t calc_crc;
+
+    uint8_t cfg_coarse;
+    uint8_t cfg_mid;
+    uint8_t cfg_fine;
+    
+    uint8_t i;
+    uint8_t j;
+    uint8_t offset;
+    
+    uint32_t t;
 
     memset(&app_vars, 0, sizeof(app_vars_t));
 
@@ -74,8 +89,9 @@ int main(void) {
     initialize_mote();
     ble_init_tx();
 
+    radio_setEndFrameTxCb(cb_endFrame_tx);
     rftimer_set_callback(cb_timer);
-
+    
     // Disable interrupts for the radio and rftimer
     radio_disable_interrupts();
     rftimer_disable_interrupts();
@@ -86,43 +102,21 @@ int main(void) {
 
     calc_crc = crc32c(0x0000,CODE_LENGTH);
 
-    if (calc_crc == CRC_VALUE){
+    if (calc_crc == CRC_VALUE) {
         printf("CRC OK\r\n");
     } else {
         printf("\r\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\r\n");
         while(1);
     }
 
-    // Debug output
-    // printf("\r\nCode length is %u bytes",code_length);
-    // printf("\r\nCRC calculated by SCM is: 0x%X",calc_crc);
-
-    // printf("done\r\n");
-
     // After bootloading the next thing that happens is frequency calibration using optical
     printf("Calibrating frequencies...\r\n");
 
     // Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
 
-#if BLE_CALIBRATE_LC
-    optical_enableLCCalibration();
-
-    // Turn on LO, DIV, PA, and IF
-    ANALOG_CFG_REG__10 = 0x78;
-
-    // Turn off polyphase and disable mixer
-    ANALOG_CFG_REG__16 = 0x6;
-
-#if CHANNEL==37
-    // For TX, LC target freq = 2.402G - 0.25M = 2.40175 GHz.
-    optical_setLCTarget(250182);
-#elif CHANNEL==0
-    
-    // For TX, LC target freq = 2.404G - 0.25M = 2.40375 GHz.
-    optical_setLCTarget(250390);
-#endif
-    
-#endif
+    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
+    // by calling radio rxEnable
+    radio_rxEnable();
 
     // Enable optical SFD interrupt for optical calibration
     optical_enable();
@@ -131,33 +125,53 @@ int main(void) {
     while(!optical_getCalibrationFinished());
 
     printf("Cal complete\r\n");
-
-    // Disable static divider to save power
-    divProgram(480, 0, 0);
-
-    // Configure coarse, mid, and fine codes for TX.
-#if BLE_CALIBRATE_LC
-    app_vars.tx_coarse  = optical_getLCCoarse();
-    app_vars.tx_mid     = optical_getLCMid();
-    app_vars.tx_fine    = optical_getLCFine();
-#else
-    // CHANGE THESE VALUES AFTER LC CALIBRATION.
-    app_vars.tx_coarse  = 24;
-    app_vars.tx_mid     = 8;
-    app_vars.tx_fine    = 15;
-#endif
-
-    ble_set_channel(CHANNEL);
-    prepare_ibeacon_packet();
-//    prepare_packet();
     
-    ble_load_packt(&app_vars.packet[0]);
+    // Enable interrupts for the radio FSM (Not working for ble)
+    radio_enable_interrupts();
 
+    radio_rfOff();
+    
+    ble_set_channel(CHANNEL);
+    
     while (1) {
-        transmit_ble_packet();
-        rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD);
-        app_vars.txNext = false;
-        while (!app_vars.txNext);
+        
+        // loop through all configuration
+        for (cfg_coarse=24;cfg_coarse<25;cfg_coarse++) {
+            for (cfg_mid=0;cfg_mid<STEPS_PER_CONFIG;cfg_mid++) {
+                for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine++) {
+                    
+                    printf(
+                        "coarse=%d, middle=%d, fine=%d\r\n", 
+                        cfg_coarse,cfg_mid,cfg_fine
+                    );
+                    
+                    for (i=0;i<NUMPKT_PER_CFG;i++) {
+                        
+                        app_vars.pdu_len = prepare_pdu();
+//                        app_vars.pdu_len = prepare_freq_setting_pdu(cfg_coarse, cfg_mid, cfg_fine);
+                        ble_prepare_packt(&app_vars.pdu[0], app_vars.pdu_len);
+                        
+                        LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
+                        
+                        delay_lc_setup();
+                        
+                        ble_load_tx_arb_fifo();
+                        radio_txEnable();
+                        
+                        delay_tx();
+                        
+                        ble_txNow_tx_arb_fifo();
+                        
+                        // need to make sure the tx is done before 
+                        // starting a new transmission
+                        
+                        rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
+                        app_vars.sendDone = false;
+                        while (app_vars.sendDone==false);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -165,100 +179,125 @@ int main(void) {
 
 //=========================== private =========================================
 
+//==== callback
+
 void cb_timer(void) {
-    app_vars.txNext = true;
+    app_vars.sendDone = true;
 }
 
-void prepare_packet(void) {
+void    cb_endFrame_tx(uint32_t timestamp){
     
-    uint8_t i;
+    printf("this is end of tx \r\n");
     
-    memset(app_vars.packet, 0, sizeof(app_vars.packet));
-    
-    // adv head (to be explained)
-    i = 0;
-    app_vars.packet[i++] = flipChar(0x02);
-    app_vars.packet[i++] = flipChar(0x25);
-    
-    // adv address: 0x00, 0x02, 0x72, 0x32, 0x80, 0xC6
-    
-    app_vars.packet[i++] = flipChar(0xC6);
-    app_vars.packet[i++] = flipChar(0x80);
-    app_vars.packet[i++] = flipChar(0x32);
-    app_vars.packet[i++] = flipChar(0x72);
-    app_vars.packet[i++] = flipChar(0x02);
-    app_vars.packet[i++] = flipChar(0x00);
-    
-    // name: 6 bytes long: 1 byte gap code 0x10, 5 bytes data
-    
-    app_vars.packet[i++] = flipChar(0x06);
-    app_vars.packet[i++] = flipChar(0x08);
-    app_vars.packet[i++] = flipChar('S');
-    app_vars.packet[i++] = flipChar('C');
-    app_vars.packet[i++] = flipChar('U');
-    app_vars.packet[i++] = flipChar('M');
-    app_vars.packet[i++] = flipChar('3');
 }
 
-void prepare_ibeacon_packet(void) {
+//==== delay
+
+// 0x07ff roughly corresponds to 2.8ms
+#define TX_DELAY 0x07ff
+
+void delay_tx(void) {
+    uint16_t i;
+    for (i=0;i<TX_DELAY;i++);
+}
+
+#define LC_SETUP_DELAY 0x02ff
+
+void delay_lc_setup(void) {
+    uint16_t i;
+    for (i=0;i<LC_SETUP_DELAY;i++);
+}
+
+//==== pdu related
+
+uint8_t prepare_freq_setting_pdu(uint8_t coarse, uint8_t mid, uint8_t fine) {
     
     uint8_t i;
     uint8_t j;
     
-    memset(app_vars.packet, 0, sizeof(app_vars.packet));
+    uint8_t field_len;
+    
+    memset(app_vars.pdu, 0, sizeof(app_vars.pdu));
     
     // adv head (to be explained)
     i = 0;
-    app_vars.packet[i++] = flipChar(0x42);
-    app_vars.packet[i++] = flipChar(0x21);
+    field_len = 0;
     
-    // adv address: 0x00, 0x02, 0x72, 0x32, 0x80, 0xC6
+    app_vars.pdu[i++] = flipChar(0x42);
+    i++;    // skip the length field, fill it at last
+    
+    // adv address
     
     for (j=6; j>0; j--) {
-        app_vars.packet[i++] = flipChar(ble_device_addr[j-1]);
+        app_vars.pdu[i++] = flipChar(ble_device_addr[j-1]);
     }
     
-    app_vars.packet[i++] = flipChar(0x1a);
-    app_vars.packet[i++] = flipChar(0xff);
-    app_vars.packet[i++] = flipChar(0x4c);
-    app_vars.packet[i++] = flipChar(0x00);
+    field_len += 6;
     
-    app_vars.packet[i++] = flipChar(0x02);
-    app_vars.packet[i++] = flipChar(0x15);
+    app_vars.pdu[i++] = flipChar(0x04);
+    app_vars.pdu[i++] = flipChar(0xC0);
+    app_vars.pdu[i++] = flipChar(coarse);
+    app_vars.pdu[i++] = flipChar(mid);
+    app_vars.pdu[i++] = flipChar(fine);
+    
+    field_len += 5;
+    
+    app_vars.pdu[1] = flipChar(field_len);
+    
+    // the pdu length = field_len plus 2 bytes header
+    return (field_len+2);
+}
+
+uint8_t prepare_pdu(void) {
+    
+    uint8_t i;
+    uint8_t j;
+    
+    uint8_t field_len;
+    
+    memset(app_vars.pdu, 0, sizeof(app_vars.pdu));
+    
+    // adv head (to be explained)
+    i = 0;
+    field_len = 0;
+    
+    app_vars.pdu[i++] = flipChar(0x42);
+    i++;    // skip the length field, fill it at last
+    
+    // adv address
+    
+    for (j=6; j>0; j--) {
+        app_vars.pdu[i++] = flipChar(ble_device_addr[j-1]);
+    }
+    
+    field_len += 6;    
+    
+    app_vars.pdu[i++] = flipChar(0x1a);
+    app_vars.pdu[i++] = flipChar(0xff);
+    app_vars.pdu[i++] = flipChar(0x4c);
+    app_vars.pdu[i++] = flipChar(0x00);
+    
+    field_len += 4;
+    
+    app_vars.pdu[i++] = flipChar(0x02);
+    app_vars.pdu[i++] = flipChar(0x15);
     for (j=16; j>0; j--) {
-        app_vars.packet[i++] = flipChar(ble_uuid[j-1]);
+        app_vars.pdu[i++] = flipChar(ble_uuid[j-1]);
     }
     
     // major
-    app_vars.packet[i++] = flipChar(0x00);
-    app_vars.packet[i++] = flipChar(0xff);
+    app_vars.pdu[i++] = flipChar(0x00);
+    app_vars.pdu[i++] = flipChar(0xff);
     // minor
-    app_vars.packet[i++] = flipChar(0x00);
-    app_vars.packet[i++] = flipChar(0x0f);
+    app_vars.pdu[i++] = flipChar(0x00);
+    app_vars.pdu[i++] = flipChar(0x0f);
     // power level
-    app_vars.packet[i++] = flipChar(TXPOWER);
-}
-
-void transmit_ble_packet(void) {
-    int t, tx_fine;
-
-#if BLE_SWEEP_FINE
-    for (tx_fine = 0; tx_fine < 32; ++tx_fine) {
-        LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, tx_fine);
-        printf("Transmitting on %u %u %u\r\n", app_vars.tx_coarse, app_vars.tx_mid, tx_fine);
-
-        // Wait for frequency to settle.
-        for (t = 0; t < 5000; ++t);
-
-        ble_transmit();
-    }
-#else
-    LC_FREQCHANGE(app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
-    printf("Transmitting on %u %u %u\r\n", app_vars.tx_coarse, app_vars.tx_mid, app_vars.tx_fine);
-
-    // Wait for frequency to settle.
-    for (t = 0; t < 5000; ++t);
-
-    ble_transmit();
-#endif
+    app_vars.pdu[i++] = flipChar(TXPOWER);
+    
+    field_len += 23;
+    
+    app_vars.pdu[1] = flipChar(field_len);
+    
+    // the pdu length = field_len plus 2 bytes header
+    return (field_len+2);
 }

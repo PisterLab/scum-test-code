@@ -13,34 +13,32 @@
 //=========================== variables =======================================
 
 typedef struct {
-            uint8_t     packet[64];
-            uint8_t     AdvA[ADVA_LENGTH];
-            uint8_t     channel;
-            uint8_t     datawhitening_init;
+    uint8_t     pkt_len;
+    uint8_t     packet[64];
+    uint8_t     AdvA[ADVA_LENGTH];
+    uint8_t     channel;
+    uint8_t     datawhitening_init;
 
-            // BLE packet contents enable.
-            // The total data length cannot exceed 31 bytes.
-            bool        name_tx_en;
-            bool        lc_freq_codes_tx_en;
-            bool        counters_tx_en;
-            bool        temp_tx_en;
-            bool        data_tx_en;
+    // BLE packet contents enable.
+    // The total data length cannot exceed 31 bytes.
+    bool        name_tx_en;
+    bool        lc_freq_codes_tx_en;
+    bool        counters_tx_en;
+    bool        temp_tx_en;
+    bool        data_tx_en;
 
-            // BLE packet data.
-            char        name[NAME_LENGTH];
-            uint16_t    lc_freq_codes;
-            uint32_t    count_2M;
-            uint32_t    count_32k;
-            double      temp;
-            uint8_t     data[CUSTOM_DATA_LENGTH];
+    // BLE packet data.
+    char        name[NAME_LENGTH];
+    uint16_t    lc_freq_codes;
+    uint32_t    count_2M;
+    uint32_t    count_32k;
+    double      temp;
+    uint8_t     data[CUSTOM_DATA_LENGTH];
 } ble_vars_t;
 
 ble_vars_t ble_vars;
 
 //=========================== prototypes ======================================
-
-void load_tx_arb_fifo(void);
-void transmit_tx_arb_fifo(void);
 
 //=========================== public ==========================================
 
@@ -158,7 +156,7 @@ void ble_gen_packet(void) {
     memcpy(&ble_vars.packet[i], pdu_crc, PDU_LENGTH + CRC_LENGTH);
 }
 
-void ble_load_packt(uint8_t* pkt){
+void ble_prepare_packt(uint8_t* pdu, uint8_t pdu_length){
     
     uint8_t i;
     uint8_t m;
@@ -173,10 +171,10 @@ void ble_load_packt(uint8_t* pkt){
     ble_vars.packet[i++] = BACCESS_ADDRESS3;
     ble_vars.packet[i++] = BACCESS_ADDRESS4;
     
-    ble_append_crc(&pkt[0], PDU_LENGTH);   
-    ble_whitening(&pkt[0], PDU_LENGTH + CRC_LENGTH);
+    ble_append_crc(&pdu[0], pdu_length);   
+    ble_whitening(&pdu[0], pdu_length + CRC_LENGTH);
     
-    memcpy(&ble_vars.packet[i], &pkt[0], PDU_LENGTH + CRC_LENGTH);
+    memcpy(&ble_vars.packet[i], &pdu[0], pdu_length + CRC_LENGTH);
 }
 
 void ble_gen_test_packet(void) {
@@ -375,9 +373,10 @@ void ble_init_rx(void) {
 }
 
 void ble_transmit(void) {
+    
     int t;
 
-    load_tx_arb_fifo();
+    ble_load_tx_arb_fifo();
 
     // Turn on LO, PA, and DIV.
     radio_txEnable();
@@ -386,7 +385,7 @@ void ble_transmit(void) {
     for (t = 0; t < 500; ++t);
 
     // Send the packet.
-    transmit_tx_arb_fifo();
+    ble_txNow_tx_arb_fifo();
 
     // Wait for transmission to finish.
     // Don't know if there is some way to know when this has finished or just busy wait (?).
@@ -405,17 +404,13 @@ void ble_append_crc(uint8_t* pdu_crc, uint16_t pdu_lenght){
     uint8_t crc2 = 0xAA;
     uint8_t crc1 = 0xAA;
     
-    printf("calculate CRC\r\n");
     for (j = 0; j < pdu_lenght; ++j) {
-        printf("pdu_crc = %x initial %x %x %x ", pdu_crc[j], crc1, crc2, crc3);
         for (k = 7; k >= 0; --k) {
             common = (crc1 & 1) ^ ((pdu_crc[j] & (1 << k)) >> k);
             crc1 = (crc1 >> 1) | ((crc2 & 1) << 7);
             crc2 = ((crc2 >> 1) | ((crc3 & 1) << 7)) ^ (common << 6) ^ (common << 5);
             crc3 = ((crc3 >> 1) | (common << 7)) ^ (common << 6) ^ (common << 4) ^ (common << 3) ^ (common << 1);
         }
-        printf("after %x %x %x \r\n", crc1, crc2, crc3);
-        printf("after %x %x %x \r\n", flipChar(crc1), flipChar(crc2), flipChar(crc3));
     }
 
     crc1 = flipChar(crc1);
@@ -450,7 +445,7 @@ void ble_whitening(uint8_t* pkt, uint16_t lenght){
 
 //=========================== private =========================================
 
-void load_tx_arb_fifo(void) {
+void ble_load_tx_arb_fifo(void) {
     // Initialize variables.
     int i;                 // used to loop through the bytes
     int j;                 // used to loop through the 8 bits of each individual byte
@@ -491,7 +486,7 @@ void load_tx_arb_fifo(void) {
     }
 }
 
-void transmit_tx_arb_fifo(void) {
+void ble_txNow_tx_arb_fifo(void) {
     uint32_t fifo_ctrl_reg = 0x00000000; // local storage for analog CFG register
 
     // Release data from FIFO
