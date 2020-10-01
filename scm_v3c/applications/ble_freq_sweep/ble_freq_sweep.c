@@ -17,14 +17,13 @@
 #define CRC_VALUE           (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH         (*((unsigned int *) 0x0000FFF8))
 
-#define CHANNEL             37      // ble channel
-#define PKT_LENGTH          64      // pdu length
+#define CHANNEL             0       // ble channel
 
 #define TXPOWER             0xC5    // used for ibeacon pkt
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
-#define TIMER_PERIOD        1000  // 500 = 1ms@500kHz
+#define TIMER_PERIOD        5000  // 500 = 1ms@500kHz
 
 // only this coarse settings are swept, 
 // channel 37 and 0 are known within the setting scope of coarse=24
@@ -33,20 +32,6 @@
 const static uint8_t ble_device_addr[6] = {
     0xaa, 0xbb, 0xcc, 0xcc, 0xbb, 0xaa
 };
-
-//const static uint8_t ble_uuid[16]       = {
-
-//    0xa2, 0x4e, 0x71, 0x12, 0xa0, 0x3f, 
-//    0x46, 0x23, 0xbb, 0x56, 0xae, 0x67,
-//    0xbd, 0x65, 0x3c, 0x73
-//};
-
-//const static uint8_t ble_uuid[16]       = {
-
-//    0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 
-//    0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
-//    0xdd, 0xee, 0xff
-//};
 
 const static uint8_t ble_uuid[16]       = {
 
@@ -74,7 +59,9 @@ app_vars_t app_vars;
 void    cb_endFrame_tx(uint32_t timestamp);
 void    cb_timer(void);
 
-uint8_t prepare_pdu(void);
+uint8_t prepare_pdu_nordic_aoa_beacon(void);
+uint8_t prepare_pdu_ibeacon(void);
+uint8_t prepare_pdu_cte_inline(void);
 uint8_t prepare_freq_setting_pdu(uint8_t coarse, uint8_t mid, uint8_t fine);
 void    delay_tx(void);
 void    delay_lc_setup(void);
@@ -85,7 +72,6 @@ int main(void) {
 
     uint32_t calc_crc;
 
-    uint8_t cfg_coarse;
     uint8_t cfg_mid;
     uint8_t cfg_fine;
     
@@ -128,6 +114,23 @@ int main(void) {
     printf("Calibrating frequencies...\r\n");
 
     // Initial frequency calibration will tune the frequencies for HCLK, the RX/TX chip clocks, and the LO
+    
+    optical_enableLCCalibration();
+
+    // Turn on LO, DIV, PA, and IF
+    ANALOG_CFG_REG__10 = 0x78;
+
+    // Turn off polyphase and disable mixer
+    ANALOG_CFG_REG__16 = 0x6;
+
+#if CHANNEL==37
+    // For TX, LC target freq = 2.402G - 0.25M = 2.40175 GHz.
+    optical_setLCTarget(250182);
+#elif CHANNEL==0
+    
+    // For TX, LC target freq = 2.404G - 0.25M = 2.40375 GHz.
+    optical_setLCTarget(250390);
+#endif
 
     // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
     // by calling radio rxEnable
@@ -153,41 +156,38 @@ int main(void) {
         // loop through all configuration
         
         // customize coarse, mid, fine values to change the sweeping range
-        for (cfg_coarse=24;cfg_coarse<25;cfg_coarse++) {
-            for (cfg_mid=5;cfg_mid<11;cfg_mid++) {
-                for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine++) {
+        for (cfg_mid=8;cfg_mid<11;cfg_mid++) {
+            for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine+=2) {
+                
+                printf(
+                    "coarse=%d, middle=%d, fine=%d\r\n", 
+                    CFG_COARSE,cfg_mid,cfg_fine
+                );
+                
+                for (i=0;i<NUMPKT_PER_CFG;i++) {
                     
-//                    printf(
-//                        "coarse=%d, middle=%d, fine=%d\r\n", 
-//                        cfg_coarse,cfg_mid,cfg_fine
-//                    );
+                    radio_rfOff();
                     
-                    for (i=0;i<NUMPKT_PER_CFG;i++) {
-                        
-                        radio_rfOff();
-                        
-                        app_vars.pdu_len = prepare_pdu();
-//                        app_vars.pdu_len = prepare_freq_setting_pdu(cfg_coarse, cfg_mid, cfg_fine);
-                        ble_prepare_packt(&app_vars.pdu[0], app_vars.pdu_len);
-                        
-                        LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
-                        
-                        delay_lc_setup();
-                        
-                        ble_load_tx_arb_fifo();
-                        radio_txEnable();
-                        
-                        delay_tx();
-                        
-                        ble_txNow_tx_arb_fifo();
-                        
-                        // need to make sure the tx is done before 
-                        // starting a new transmission
-                        
-                        rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
-                        app_vars.sendDone = false;
-                        while (app_vars.sendDone==false);
-                    }
+                    app_vars.pdu_len = prepare_freq_setting_pdu(CFG_COARSE, cfg_mid, cfg_fine);
+                    ble_prepare_packt(&app_vars.pdu[0], app_vars.pdu_len);
+                    
+                    LC_FREQCHANGE(CFG_COARSE, cfg_mid, cfg_fine);
+                    
+                    delay_lc_setup();
+                    
+                    ble_load_tx_arb_fifo();
+                    radio_txEnable();
+                    
+                    delay_tx();
+                    
+                    ble_txNow_tx_arb_fifo();
+                    
+                    // need to make sure the tx is done before 
+                    // starting a new transmission
+                    
+                    rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD);
+                    app_vars.sendDone = false;
+                    while (app_vars.sendDone==false);
                 }
             }
         }
@@ -242,32 +242,44 @@ uint8_t prepare_freq_setting_pdu(uint8_t coarse, uint8_t mid, uint8_t fine) {
     i = 0;
     field_len = 0;
     
-    app_vars.pdu[i++] = flipChar(0x42);
-    i++;    // skip the length field, fill it at last
-    
-    // adv address
-    
-    for (j=6; j>0; j--) {
-        app_vars.pdu[i++] = flipChar(ble_device_addr[j-1]);
-    }
-    
-    field_len += 6;
-    
-    app_vars.pdu[i++] = flipChar(0x04);
-    app_vars.pdu[i++] = flipChar(0xC0);
+    app_vars.pdu[i++] = flipChar(0x20);
+    app_vars.pdu[i++] = flipChar(0x03);
     app_vars.pdu[i++] = flipChar(coarse);
     app_vars.pdu[i++] = flipChar(mid);
     app_vars.pdu[i++] = flipChar(fine);
     
     field_len += 5;
     
-    app_vars.pdu[1] = flipChar(field_len);
+    return field_len;
+}
+
+uint8_t prepare_pdu_cte_inline(void) {
+    
+    uint8_t i;
+    uint8_t j;
+    
+    uint8_t field_len;
+    
+    memset(app_vars.pdu, 0, sizeof(app_vars.pdu));
+    
+    // adv head (to be explained)
+    i = 0;
+    field_len = 0;
+    
+    app_vars.pdu[i++] = flipChar(0x20);
+    app_vars.pdu[i++] = flipChar(0x02);
+    
+    app_vars.pdu[i++] = flipChar(0x03);
+    app_vars.pdu[i++] = flipChar(0xdd);
+    app_vars.pdu[i++] = flipChar(0xff);
+    
+    field_len += 3;
     
     // the pdu length = field_len plus 2 bytes header
     return (field_len+2);
 }
 
-uint8_t prepare_pdu(void) {
+uint8_t prepare_pdu_ibeacon(void) {
     
     uint8_t i;
     uint8_t j;
@@ -316,6 +328,29 @@ uint8_t prepare_pdu(void) {
     field_len += 23;
     
     app_vars.pdu[1] = flipChar(field_len);
+    
+    // the pdu length = field_len plus 2 bytes header
+    return (field_len+2);
+}
+
+uint8_t prepare_pdu_nordic_aoa_beacon(void){
+
+    uint8_t i;
+    uint8_t field_len;
+    
+    memset(app_vars.pdu, 0, sizeof(app_vars.pdu));
+    
+    i         = 0;
+    
+    app_vars.pdu[i++] = flipChar(0x46);
+    app_vars.pdu[i++] = flipChar(0x06);
+    field_len = 6;
+    app_vars.pdu[i++] = flipChar(0x01);
+    app_vars.pdu[i++] = flipChar(0x02);
+    app_vars.pdu[i++] = flipChar(0x03);
+    app_vars.pdu[i++] = flipChar(0x04);
+    app_vars.pdu[i++] = flipChar(0x05);
+    app_vars.pdu[i++] = flipChar(0xc6);
     
     // the pdu length = field_len plus 2 bytes header
     return (field_len+2);

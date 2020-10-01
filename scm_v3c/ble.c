@@ -10,11 +10,14 @@
 
 //=========================== definition ======================================
 
+#define BLE_PKT_LEN 64  // 1 byte preamble + 4 byte address + pkt_len + 3 bytes crc + x bytes (for CTE)
+#define MAX_CTE_LEN 20  // in number of 8us
+
 //=========================== variables =======================================
 
 typedef struct {
     uint8_t     pkt_len;
-    uint8_t     packet[64];
+    uint8_t     packet[BLE_PKT_LEN];
     uint8_t     AdvA[ADVA_LENGTH];
     uint8_t     channel;
     uint8_t     datawhitening_init;
@@ -81,7 +84,7 @@ void ble_gen_packet(void) {
 
     uint8_t lfsr = ble_vars.datawhitening_init;
 
-    memset(ble_vars.packet, 0, 64 * sizeof(uint8_t));
+    memset(ble_vars.packet, 0, BLE_PKT_LEN * sizeof(uint8_t));
     memset(pdu_crc, 0, (PDU_LENGTH + CRC_LENGTH) * sizeof(uint8_t));
 
     ble_vars.packet[i++] = BPREAMBLE;
@@ -158,10 +161,10 @@ void ble_gen_packet(void) {
 
 void ble_prepare_packt(uint8_t* pdu, uint8_t pdu_length){
     
-    uint8_t i;
-    uint8_t m;
+    uint16_t i;
+    uint16_t j;
     
-    memset(ble_vars.packet, 0, 64 * sizeof(uint8_t));
+    memset(ble_vars.packet, 0, BLE_PKT_LEN * sizeof(uint8_t));
     
     i = 0;
     ble_vars.packet[i++] = BPREAMBLE;
@@ -171,10 +174,25 @@ void ble_prepare_packt(uint8_t* pdu, uint8_t pdu_length){
     ble_vars.packet[i++] = BACCESS_ADDRESS3;
     ble_vars.packet[i++] = BACCESS_ADDRESS4;
     
-    ble_append_crc(&pdu[0], pdu_length);   
+    ble_append_crc(&pdu[0], pdu_length);
+    
+    printf("pkt : ");
+    for (j=0;j<pdu_length;j++) {
+        printf("%x ", flipChar(pdu[j]));
+    }
+    printf("%x ", (pdu[j++]));
+    printf("%x ", (pdu[j++]));
+    printf("%x ", (pdu[j++]));
+    printf("\r\n");
+    
     ble_whitening(&pdu[0], pdu_length + CRC_LENGTH);
     
     memcpy(&ble_vars.packet[i], &pdu[0], pdu_length + CRC_LENGTH);
+    
+    i += (pdu_length + CRC_LENGTH);
+    for (j=i;j<(i+MAX_CTE_LEN);j++) {
+        ble_vars.packet[j] = 0xff;
+    }
 }
 
 void ble_gen_test_packet(void) {
@@ -462,7 +480,7 @@ void ble_load_tx_arb_fifo(void) {
     ANALOG_CFG_REG__11 = fifo_ctrl_reg; // load in the configuration settings
 
     // Load packet into FIFO.
-    for (i = 0; i < 64; ++i) {
+    for (i = 0; i < BLE_PKT_LEN; ++i) {
         current_byte = ble_vars.packet[i];     // put a byte into the temporary storage
 
         for (j = 7; j >= 0; --j) {

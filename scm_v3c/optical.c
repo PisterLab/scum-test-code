@@ -9,7 +9,7 @@
 
 //=========================== defines =========================================
 
-#define LC_CAL_COARSE_MIN    23
+#define LC_CAL_COARSE_MIN    24
 #define LC_CAL_COARSE_MAX    25
 #define LC_CAL_MID_MIN       0
 #define LC_CAL_MID_MAX       31
