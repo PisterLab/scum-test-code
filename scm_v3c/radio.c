@@ -177,13 +177,13 @@ void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
 	while (app_vars_rx.changeConfig==false);
 }
 
-void send_ack(uint8_t coarse, uint8_t mid, uint8_t fine) {
+void send_ack(uint8_t coarse, uint8_t mid, uint8_t fine,uint8_t rx_coarse, uint8_t rx_mid, uint8_t rx_fine, uint8_t acknum) {
 	char tx_packet[LEN_TX_PKT];
 	
-	tx_packet[0] = 7;
-	tx_packet[1] = 7;
-	tx_packet[2] = 7;
-	tx_packet[3] = 7;
+	tx_packet[0] = acknum;
+	tx_packet[1] = rx_coarse;
+	tx_packet[2] = rx_mid;
+	tx_packet[3] = rx_fine;
 	
 	send_packet(coarse, mid, fine, tx_packet);
 }

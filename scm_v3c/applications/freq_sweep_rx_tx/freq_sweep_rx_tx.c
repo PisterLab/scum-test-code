@@ -15,29 +15,29 @@
 //=========================== defines =========================================
 	
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 6 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more
-#define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb
+#define MODE 6 // 0 for tx, 1 for rx, 2 for rx then tx, ... and fmore
+#define SOLAR_MODE 0// 1 if on solar, 0 if on power supply/usb
 #define SOLAR_DELAY 5000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
 #define SWEEP_TX 0 // 1 if sweep, 0 if fixed
-#define SWEEP_RX 0 // 1 if sweep, 0 if fixed
+#define SWEEP_RX 0// 1 if sweep, 0 if fixed
 #define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
-#define NUM_ACK 1 // number of acknowledgments to send upon receiving a packet
+#define NUM_ACK 3 // number of acknowledgments to send upon receiving a packet
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
 #define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			 		22
-#define FIXED_LC_FINE_TX				9
+#define FIXED_LC_MID_TX			 		23
+#define FIXED_LC_FINE_TX				21
 
-#define FIXED_LC_COARSE_RX			22
-#define FIXED_LC_MID_RX				  22
-#define FIXED_LC_FINE_RX				19
+#define FIXED_LC_COARSE_RX			24
+#define FIXED_LC_MID_RX				  5
+#define FIXED_LC_FINE_RX				4
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 22
-#define SWEEP_COARSE_END 23
-#define SWEEP_MID_START 15
-#define SWEEP_MID_END 32
+#define SWEEP_COARSE_START 23
+#define SWEEP_COARSE_END 25
+#define SWEEP_MID_START 5
+#define SWEEP_MID_END 9
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
 
@@ -158,9 +158,10 @@ int main(void) {
 				while (1) {}
 				break;
 			case 6: //turn on go to low power and after you are done closing send packet
+				low_power_mode();
 				while(1)
-				{
-					low_power_mode();
+				//for(j=0;j<10;j++)
+				{	
 					sara_start(300,300);
 					//(200,200); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
 					//GPIO_REG__OUTPUT=0x0000;
@@ -168,7 +169,10 @@ int main(void) {
 					for(i=0;i<100;i++);
 					sara_release(300);
 					for(i=0;i<100;i++);
+					printf("toggle!\n");
 				}
+				while(1)
+				{}
 				break;
 			default:
 				printf("Invalid mode\n");
@@ -267,7 +271,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									
 									printf("sending ack %d out of %d\n", j + 1, NUM_ACK);
 									
-									send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX);
+									send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX, cfg_coarse, cfg_mid, cfg_fine, j);
 								}
 								
 								need_to_send_ack = false;
