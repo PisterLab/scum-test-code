@@ -1165,7 +1165,7 @@ void radio_init_tx(){
     set_LC_current(127);
     
     // Set LDO voltages for PA and LO
-    set_PA_supply(63);
+    set_PA_supply(63); // default 63
     set_LO_supply(127,0);
     
 }

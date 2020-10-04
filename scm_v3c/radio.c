@@ -153,10 +153,10 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet) {
 	LC_FREQCHANGE(coarse, mid, fine);
 	
 	// log the packet contents
-	for (i = 0; i < LEN_TX_PKT; i++) {
-		printf("%d ", radio_vars.radio_tx_buffer[i]);
-	}
-	printf("\n");
+	//for (i = 0; i < LEN_TX_PKT; i++) {
+		//printf("%d ", radio_vars.radio_tx_buffer[i]);
+//	}
+	//printf("\n");
 	
 	radio_txEnable();
 	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
@@ -362,7 +362,7 @@ void radio_txEnable(){
     ANALOG_CFG_REG__16 = 0x6;
     
     // Turn on LO, PA, and AUX LDOs
-    ANALOG_CFG_REG__10 = 0x0028;
+    ANALOG_CFG_REG__10 = 0x0028; // default (and correct) is 0x0028;
 }
 
 // Begin modulating the radio output for TX

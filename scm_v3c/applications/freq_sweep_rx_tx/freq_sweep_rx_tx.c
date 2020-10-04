@@ -30,10 +30,10 @@
 
 // RADIO DEFINES
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
-#define OPTICAL_CALIBRATE 0 // 1 if should optical calibrate, 0 if manual
-#define MODE 5 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
-#define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb
-#define SOLAR_DELAY 2000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
+#define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
+#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
+#define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 #define SEND_ACK 0 // 1 if we should send an ack after packet rx and 0 otherwise
@@ -46,19 +46,19 @@
 // "fixed" value we operate it. In other words by fixed we just mean that we aren't sweeping;
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
-#define DEFAULT_FIXED_LC_COARSE_TX			23
-#define DEFAULT_FIXED_LC_MID_TX			 30
-#define DEFAULT_FIXED_LC_FINE_TX		7
+#define DEFAULT_FIXED_LC_COARSE_TX		24
+#define DEFAULT_FIXED_LC_MID_TX			 16
+#define DEFAULT_FIXED_LC_FINE_TX		25
 
 #define DEFAULT_FIXED_LC_COARSE_RX			22
 #define DEFAULT_FIXED_LC_MID_RX				  22
 #define DEFAULT_FIXED_LC_FINE_RX				19
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 23
-#define SWEEP_COARSE_END 24
-#define SWEEP_MID_START 30
-#define SWEEP_MID_END 31
+#define SWEEP_COARSE_START 24
+#define SWEEP_COARSE_END 25
+#define SWEEP_MID_START 0
+#define SWEEP_MID_END 32
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
 
@@ -373,6 +373,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	}
 	
 	while(1){
+		printf("looping...");
 		// loop through all configuration
 		for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse+=1){
 			for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
@@ -410,9 +411,11 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 								case PREDEFINED: // packet content set prior
 									break;
 								case LC_CODES: // packet content will be LC coarse mid fine 
-									tx_packet[1] = cfg_coarse;
-									tx_packet[2] = cfg_mid;
-									tx_packet[3] = cfg_fine;
+//									tx_packet[1] = cfg_coarse;
+//									tx_packet[2] = cfg_mid;
+//									tx_packet[3] = cfg_fine;
+								
+								  sprintf(tx_packet, "%d %d %d", cfg_coarse, cfg_mid, cfg_fine);
 								
 									break;
 								case OPTICAL_VALS: // packet content will be optical settings
