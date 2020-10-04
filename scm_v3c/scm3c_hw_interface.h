@@ -14,8 +14,15 @@
 // austin
 void low_power_mode(void);
 void normal_power_mode(void);
+void enter_low_power_mode_32k(void);
+void exit_low_power_mode_32k(void);
 void optical_calibrate(void);
 void manual_calibrate(int HF_coarse, int HF_fine, int RC2M_coarse, int RC2M_fine, int RC2M_superfine, int IF_coarse, int IF_fine);
+void read_counters_duration(unsigned int measure_time_milliseconds);
+void read_counters();
+void disable_counters(void);
+void enable_counters(void);
+void reset_counters(void);
 
 //==== admin
 void scm3c_hw_interface_init(void);
@@ -29,6 +36,12 @@ uint32_t scm3c_hw_interface_get_RC2M_superfine(void);
 uint32_t scm3c_hw_interface_get_IF_clk_target(void);
 uint32_t scm3c_hw_interface_get_IF_coarse(void);
 uint32_t scm3c_hw_interface_get_IF_fine(void);
+
+unsigned int scm3c_hw_interface_get_count_2M(void);
+unsigned int scm3c_hw_interface_get_count_32k(void);
+unsigned int scm3c_hw_interface_get_count_HF(void);
+unsigned int scm3c_hw_interface_get_count_LC_div(void);
+unsigned int scm3c_hw_interface_get_count_IF(void);
 
 //===== set function
 
@@ -89,7 +102,6 @@ void analog_scan_chain_write(void);
 void analog_scan_chain_load(void);
 void initialize_2M_DAC(void);
 void set_2M_RC_frequency(int coarse1, int coarse2, int coarse3, int fine, int superfine);
-void read_counters(unsigned int* count_2M, unsigned int* count_LC, unsigned int* count_32k);
 unsigned int flip_lsb8(unsigned int in);
 void update_PN31_byte(unsigned int* current_lfsr);
 void set_asc_bit(unsigned int position);
@@ -111,9 +123,6 @@ void set_LO_supply(unsigned int code, unsigned char panic);
 void set_DIV_supply(unsigned int code, unsigned char panic);
 void prescaler(int code);
 void LC_monotonic(int LC_code);
-int LC_monotonic_coarse(int LC_code);
-int LC_monotonic_mid(int LC_code);
-int LC_monotonic_fine(int LC_code);
 void LC_FREQCHANGE(int coarse, int mid, int fine);
 void divProgram(unsigned int div_ratio, unsigned int reset, unsigned int enable);
 

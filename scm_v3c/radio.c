@@ -81,7 +81,7 @@ typedef struct {
 } radio_vars_t;
 
 typedef struct {
-		uint8_t         packet[LEN_TX_PKT];
+		//uint8_t         packet[LEN_TX_PKT];
 		uint8_t         packet_len;
     volatile    bool            sendDone;
 } app_vars_t_tx;
@@ -135,19 +135,28 @@ void radio_setCallbacks(radio_rx_cb rx_cb) { // rx_callback is custom callback s
 	receive_cb = rx_cb;
 }
 
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet) {
 	uint8_t copy_size;
 	uint8_t i;
 	int j;	
 	tx_rx_mode = 0;
 	
+	rftimer_set_callback(cb_timer); // just in case the callback got changed, reset the RF TIMER callback
+	
 	// copy the packet over
-	for (i = 0; i < LEN_TX_PKT; i++) {
-		app_vars_tx.packet[i] = packet[i];
-	}
+//	for (i = 0; i < LEN_TX_PKT; i++) {
+//		app_vars_tx.packet[i] = packet[i];
+//	}
 
-	radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);	
+	//radio_loadPacket(app_vars_tx.packet, LEN_TX_PKT);	
+	radio_loadPacket(packet, LEN_TX_PKT);	
 	LC_FREQCHANGE(coarse, mid, fine);
+	
+	// log the packet contents
+	//for (i = 0; i < LEN_TX_PKT; i++) {
+		//printf("%d ", radio_vars.radio_tx_buffer[i]);
+//	}
+	//printf("\n");
 	
 	radio_txEnable();
 	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
@@ -158,6 +167,8 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet) {
 
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {	
 	int i;
+	
+	rftimer_set_callback(cb_timer); // just in case the callback got changed, reset the RF TIMER callback
 	
 	tx_rx_mode = 1;
 	
@@ -351,7 +362,7 @@ void radio_txEnable(){
     ANALOG_CFG_REG__16 = 0x6;
     
     // Turn on LO, PA, and AUX LDOs
-    ANALOG_CFG_REG__10 = 0x0028;
+    ANALOG_CFG_REG__10 = 0x0028; // default (and correct) is 0x0028;
 }
 
 // Begin modulating the radio output for TX
@@ -381,26 +392,6 @@ void radio_rxEnable(){
     
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = RF_RESET;
-}
-
-#define DIV_ON 1
-
-// LO doesn't need to be on for optical calibration
-void radio_rxEnable_optical() {	
-		// Turn on LO, IF, and AUX LDOs via memory mapped register
-	
-		// Turn on DIV on if need to read LC_div counter. Use while trying to calibrate LC during optical calibration
-    
-    // Aux is inverted (0 = on)
-    // Memory-mapped LDO control
-    // ANALOG_CFG_REG__10 = AUX_EN | DIV_EN | PA_EN | IF_EN | LO_EN | PA_MUX | IF_MUX | LO_MUX
-    // For MUX signals, '1' = FSM control, '0' = memory mapped control
-    // For EN signals, '1' = turn on LDO
-#ifdef DIV_ON
-    ANALOG_CFG_REG__10 = 0x0058;
-#else
-    ANALOG_CFG_REG__10 = 0x0018;
-#endif
 }
 
 // Radio will begin searching for start of packet

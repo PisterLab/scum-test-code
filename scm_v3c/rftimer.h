@@ -21,6 +21,9 @@ void     rftimer_set_callback(rftimer_cbt cb);
 uint32_t rftimer_readCounter(void);
 void     rftimer_enable_interrupts(void);
 void     rftimer_disable_interrupts(void);
+void		 delay_milliseconds(rftimer_cbt callback, unsigned int delay_milli);
+void		 delay_milliseconds_synchronous(unsigned int delay_milli);
+void 		 delay_milliseconds_synchronous_helper(void);
 
 void     rftimer_isr(void);
 

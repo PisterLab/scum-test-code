@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="eb86993e-2fb1-47b2-928b-586dc51da194" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/freq_sweep_rx_tx/Objects/freq_sweep_rx_tx.bin" beforeDir="false" afterPath="$PROJECT_DIR$/applications/freq_sweep_rx_tx/Objects/freq_sweep_rx_tx.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/freq_sweep_rx_tx/Objects/freq_sweep_rx_tx.hex" beforeDir="false" afterPath="$PROJECT_DIR$/applications/freq_sweep_rx_tx/Objects/freq_sweep_rx_tx.hex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/applications/freq_sweep_rx_tx/freq_sweep_rx_tx.c" beforeDir="false" afterPath="$PROJECT_DIR$/applications/freq_sweep_rx_tx/freq_sweep_rx_tx.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/optical.c" beforeDir="false" afterPath="$PROJECT_DIR$/optical.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/radio.c" beforeDir="false" afterPath="$PROJECT_DIR$/radio.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/radio.h" beforeDir="false" afterPath="$PROJECT_DIR$/radio.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rftimer.c" beforeDir="false" afterPath="$PROJECT_DIR$/rftimer.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rftimer.h" beforeDir="false" afterPath="$PROJECT_DIR$/rftimer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scm3c_hw_interface.c" beforeDir="false" afterPath="$PROJECT_DIR$/scm3c_hw_interface.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/temperature.c" beforeDir="false" afterPath="$PROJECT_DIR$/temperature.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/temperature.h" beforeDir="false" afterPath="$PROJECT_DIR$/temperature.h" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1dCaLrrhutompxnkly23k4pXSPu" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="eb86993e-2fb1-47b2-928b-586dc51da194" name="Default Changelist" comment="" />
+      <created>1591931475822</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1591931475822</updated>
+      <workItem from="1591931477953" duration="3237000" />
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="424" y="246" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1591932884823">
+      <screen x="0" y="23" width="1920" height="1123" />
+    </state>
+    <state x="424" y="246" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1920.1123@0.23.1920.1123" timestamp="1591932884823" />
+    <state x="461" y="223" key="SettingsEditor" timestamp="1591981455003">
+      <screen x="0" y="23" width="1920" height="1123" />
+    </state>
+    <state x="461" y="223" key="SettingsEditor/0.23.1920.1123@0.23.1920.1123" timestamp="1591981455003" />
+    <state x="661" y="217" width="598" height="735" key="find.popup" timestamp="1591932431363">
+      <screen x="0" y="23" width="1920" height="1123" />
+    </state>
+    <state x="661" y="217" width="598" height="735" key="find.popup/0.23.1920.1123@0.23.1920.1123" timestamp="1591932431363" />
+  </component>
+</project>

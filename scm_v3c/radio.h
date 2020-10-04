@@ -7,7 +7,7 @@
 //=========================== define ==========================================
 
 #define LENGTH_CRC      2
-#define LEN_TX_PKT          4+LENGTH_CRC  ///< length of tx packet
+#define LEN_TX_PKT          12+LENGTH_CRC  ///< length of tx packet //annecdotally length 7 packet didn't work, but length 8 did... maybe odd packet lengths don't work????
 #define LEN_RX_PKT          4+LENGTH_CRC  ///< length of rx packet
 
 typedef enum {
@@ -37,7 +37,7 @@ void cb_startFrame_rx(uint32_t timestamp);
 void cb_endFrame_rx(uint32_t timestamp);
 void cb_timer(void);
 void radio_rxEnable_optical(void);
-void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, char *packet);
+void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet);
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine);
 void send_ack(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t rx_coarse, uint8_t rx_mid, uint8_t rx_fine, uint8_t acknum);
 

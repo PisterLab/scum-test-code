@@ -4,87 +4,144 @@
 
 #include <string.h>
 
-
+#include <stdio.h>
 #include "scm3c_hw_interface.h"
 #include "memory_map.h"
 #include "rftimer.h"
 #include "radio.h"
 #include "optical.h"
 #include "zappy2.h"
+#include "temperature.h"
+#include "fixed-point.h"
 
 //=========================== defines =========================================
-	
+
+// TEMPERATURE DEFINES
+// LOG_TEMPERATURE_AFTER_OPTICAL_CALIBRATION variable exists in optical.c
+// and indicates whether you want to conduct a measurements of the 32kHz and 2MHz clocks
+// after optical calibration has completed for the purpose of measuring temperature
+// the optical programmer (if programmed to do so) will continue to send optical
+// calibration pulses as a reference.
+#define CLOCK_RATIO_VS_TEMP_SLOPE -19.293 //-19.667 //-30.715 // dummy value
+#define CLOCK_RATIO_VS_TEMP_OFFSET 1298.134 // 1317.511 //1915.142 // y intercept // dummy value
+#define CLOCK_RATIO_VS_FINE_CODE_SLOPE -10.567 //-24.33
+#define CLOCK_RATIO_VS_FINE_CODE_OFFEST 710.411 // 1592.204 // y intercept // dummy value
+#define TEMP_MEASURE_DURATION_MILLISECONDS 100 // duration for which we should measure the 2MHz and 32kHz clocks in order to measure the temperature
+
+// RADIO DEFINES
+// make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 6 // 0 for tx, 1 for rx, 2 for rx then tx, ... and fmore
-#define SOLAR_MODE 0// 1 if on solar, 0 if on power supply/usb
-#define SOLAR_DELAY 5000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
-#define SEND_OPTICAL 0 // 1 if you want to send it 0 if you don't. You do need to have the correct channel
-#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
-#define SWEEP_RX 0// 1 if sweep, 0 if fixed
-#define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
-#define NUM_ACK 3 // number of acknowledgments to send upon receiving a packet
 
-// fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0
-#define FIXED_LC_COARSE_TX			22
-#define FIXED_LC_MID_TX			 		23
-#define FIXED_LC_FINE_TX				21
+#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
+#define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
+#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
+#define SWEEP_RX 1 // 1 if sweep, 0 if fixed
+#define SEND_ACK 0 // 1 if we should send an ack after packet rx and 0 otherwise
+#define NUM_ACK 1 // number of acknowledgments to send upon receiving a packet
 
-#define FIXED_LC_COARSE_RX			24
-#define FIXED_LC_MID_RX				  5
-#define FIXED_LC_FINE_RX				4
+// fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0.
+// these default values are used to set a variable that will represent the fixed LC values
+// the reason these are used to set variables is that these FIXED values can later change
+// in the case of events like a temperature chage, which could trigger a change in the
+// "fixed" value we operate it. In other words by fixed we just mean that we aren't sweeping;
+// the LC values that we transmit or receive at may change (for example compensated due to 
+// temperature changes), but we just won't sweep the LC.
+#define DEFAULT_FIXED_LC_COARSE_TX		24
+#define DEFAULT_FIXED_LC_MID_TX			 16
+#define DEFAULT_FIXED_LC_FINE_TX		25
+
+#define DEFAULT_FIXED_LC_COARSE_RX			22
+#define DEFAULT_FIXED_LC_MID_RX				  22
+#define DEFAULT_FIXED_LC_FINE_RX				19
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 23
+#define SWEEP_COARSE_START 24
 #define SWEEP_COARSE_END 25
-#define SWEEP_MID_START 5
-#define SWEEP_MID_END 9
+#define SWEEP_MID_START 0
+#define SWEEP_MID_END 32
+
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 32
 
-// 1.82V
+// SARA 30.56C 1.778V
+//#define HF_COARSE 3
+//#define HF_FINE 18
+//#define RC2M_COARSE 14
+//#define RC2M_FINE 17
+//#define RC2M_SUPERFINE 13
+//#define IF_COARSE 22
+//#define IF_FINE 20
+
+// SARA 38.5C 1.778V
+//#define HF_COARSE 3
+//#define HF_FINE 19
+//#define RC2M_COARSE 15
+//#define RC2M_FINE 14
+//#define RC2M_SUPERFINE 17
+//#define IF_COARSE 22
+//#define IF_FINE 18
+
+// SARA 1.81V 39.5C
 #define HF_COARSE 3
-#define HF_FINE 24
-#define RC2M_COARSE 22
-#define RC2M_FINE 17
-#define RC2M_SUPERFINE 15
+#define HF_FINE 19
+#define RC2M_COARSE 15
+#define RC2M_FINE 13
+#define RC2M_SUPERFINE 16
 #define IF_COARSE 22
-#define IF_FINE 31
-
-//1.85V
-//#define HF_COARSE 3
-//#define HF_FINE 23
-//#define RC2M_COARSE 22
-//#define RC2M_FINE 17
-//#define RC2M_SUPERFINE 15
-//#define IF_COARSE 22
-//#define IF_FINE 41
-
-//1.89V
-//#define HF_COARSE 3
-//#define HF_FINE 24
-//#define RC2M_COARSE 22
-//#define RC2M_FINE 17
-//#define RC2M_SUPERFINE 15
-//#define IF_COARSE 22
-//#define IF_FINE 41
+#define IF_FINE 20
 
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
 #define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
+typedef enum {
+	PREDEFINED     = 0x01,
+	LC_CODES		   = 0x02,
+	LC_CODES_ASCII = 0x03,
+	OPTICAL_VALS   = 0x04,
+	TEMP					 = 0x05,
+	COUNT_2M_32K	 = 0x06,
+	COMPRESSED_CLOCK = 0x07
+} tx_packet_content_source_t;
+
 //=========================== variables =======================================
 
-char tx_packet[LEN_TX_PKT];
-int rx_count = 0;
+// RADIO VARIABLES
+// Defines what/when data is set for the repeat_rx_tx function (see this function for details on values).
+// note that the value here is simlpy a default (fallback valuee) and in many of this program's "modes" 
+// this value is additionally set
+tx_packet_content_source_t tx_packet_data_source = LC_CODES;
+
+uint8_t tx_packet[LEN_TX_PKT]; // contains the contents of the packet to be transmitted
+int rx_count = 0; // count of the number of packets actually received
+// need_to_send_ack: set to true if should send ack right after the receive completes.
+// Use SEND_ACK to determine whether to send an acknowledgemnets or not.
 bool need_to_send_ack = false;
+
+uint8_t fixed_lc_coarse_tx = DEFAULT_FIXED_LC_COARSE_TX;
+uint8_t fixed_lc_mid_tx = DEFAULT_FIXED_LC_MID_TX;
+uint8_t fixed_lc_fine_tx = DEFAULT_FIXED_LC_FINE_TX;
+
+uint8_t fixed_lc_coarse_rx = DEFAULT_FIXED_LC_COARSE_RX;
+uint8_t fixed_lc_mid_rx = DEFAULT_FIXED_LC_MID_RX;
+uint8_t fixed_lc_fine_rx = DEFAULT_FIXED_LC_FINE_RX;
+
+// TEMPERATURE VARIABLES
+double temp;
+uint32_t count_2M;
+uint32_t count_32k;
+
+uint8_t temp_adjusted_fine_code; // will be set by adjust_tx_fine_with_temp function
 
 //=========================== prototypes ======================================
 
 void		 repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packets);
 void		 radio_delay(void);
 void		 onRx(uint8_t *packet, uint8_t packet_len);
-
+void		 adjust_tx_fine_with_temp(void);
+void		 delay_milliseconds_test_loop(void);
 
 //=========================== main ============================================
 	
@@ -122,13 +179,14 @@ int main(void) {
 
 		switch (MODE) {
 			case 0: // tx indefinite
+				tx_packet_data_source = LC_CODES;
 				repeat_rx_tx(TX, SWEEP_TX, -1);
 				break;
 			case 1: //rx indefinite
 				repeat_rx_tx(RX, SWEEP_RX, -1);
 				break;
-
 			case 2: //single tx then single rx then low power
+				tx_packet_data_source = LC_CODES;
 				printf("going into switching mode!\n");
 				
 				for (i = 0; i < 100; i++) {
@@ -144,13 +202,14 @@ int main(void) {
 				while(1);
 				break;
 			case 3: //tx then rx NONSOLAR
+				tx_packet_data_source = LC_CODES;
 				repeat_rx_tx(TX, SWEEP_TX, 1);
 			
 				for (i = 0; i < 100000; i++){}
 			
 				repeat_rx_tx(RX, SWEEP_RX, 1);
 				break;
-			case 4: // idle normal power
+			case 4: // idle normal power used for doing nothing while letting optical interrupts happen for tmperature mode
 				while (1) {}
 				break;
 			case 5: // idle low power
@@ -174,6 +233,76 @@ int main(void) {
 				while(1)
 				{}
 				break;
+			case 7: // temperature compensated transmit loop
+				while (1) {
+					temp = get_2MHz_32k_ratio_temp_estimate(TEMP_MEASURE_DURATION_MILLISECONDS, CLOCK_RATIO_VS_TEMP_SLOPE, CLOCK_RATIO_VS_TEMP_OFFSET);
+					adjust_tx_fine_with_temp();
+				
+					tx_packet_data_source = TEMP;
+										
+					// will not sweep since that is exactly what we are trying to get rid of by compensating with temperature
+					repeat_rx_tx(TX, 0, 1); // send 1 packet(s)
+				}
+				break;
+			case 8: // test of RF TIMER delay milliseconds function
+				delay_milliseconds_test_loop();
+				while (1) {} // since this is interrupt based we need some loop to stall in while we wait for interrupts
+				break;
+			case 9: // sprintf transmit test
+				sprintf(tx_packet, "2MHz: %d 32kHz: %d", 280000, 50000);
+							
+				tx_packet_data_source = LC_CODES;
+				repeat_rx_tx(TX, SWEEP_TX, -1);
+			
+				while (1) {}
+				break;
+			case 10: // take one measurement of the clocks for temperature measurement and then continuously transmit the result for a certain period, then repeat
+				// note: since this is a sweep, we need to set the sweep coarse and mid code start and end fixed values to be such that the coarse and mid
+				// are always fixed. The fine code sweep should be 0 to 32
+				while (1) {
+					// Get the counts for 2MHz and 32kHz clocks
+					read_counters_duration(TEMP_MEASURE_DURATION_MILLISECONDS);
+					
+					count_2M = scm3c_hw_interface_get_count_2M();
+					count_32k = scm3c_hw_interface_get_count_32k();
+					
+					// Now continuously transimt the clock counts.
+					printf("2M: %u, 32kHz: %u\n", count_2M, count_32k);
+		
+					tx_packet_data_source = COMPRESSED_CLOCK;
+					repeat_rx_tx(TX, 1, 32); // in this case we will always sweep since with different temps we don't know which LC codes will work, so set to 1 not 0
+				}
+				
+				break;
+			case 11: // continuously measure and log 2MHz and 32kHz
+				while (1) {
+					// Get the counts for 2MHz and 32kHz clocks
+					read_counters_duration(TEMP_MEASURE_DURATION_MILLISECONDS);
+					
+					count_2M = scm3c_hw_interface_get_count_2M();
+					count_32k = scm3c_hw_interface_get_count_32k();
+					
+					printf("2M: %u, 32kHz: %u\n", count_2M, count_32k);
+				}
+				break;
+			case 12: // continuously measure and print temperature
+				while (1) {
+					// Get the counts for 2MHz and 32kHz clocks
+					temp = get_2MHz_32k_ratio_temp_estimate(TEMP_MEASURE_DURATION_MILLISECONDS, CLOCK_RATIO_VS_TEMP_SLOPE, CLOCK_RATIO_VS_TEMP_OFFSET);
+					
+					printf("2M: %u, 32kHz: %u, Temp: %d\n", count_2M, count_32k, (int) temp);					
+				}
+				break;
+			case 13: // measure divider current draw
+				while (1) {
+					printf("switching\n");
+					ANALOG_CFG_REG__10 = 0x0058;
+					delay_milliseconds_synchronous(2000);
+					printf("switching\n");
+					ANALOG_CFG_REG__10 = 0x0018;
+					delay_milliseconds_synchronous(2000);
+				}
+				break;
 			default:
 				printf("Invalid mode\n");
 				break;
@@ -186,7 +315,8 @@ int main(void) {
 
 /* Repeateadly sends or receives packets depending on radio_mode
    Will sweep or be at fixed frequency depending on repeat_mode
-	 total_packets indicates the number of packets to send/receive, -1 if infinite*/
+	 total_packets indicates the number of packets to send/receive, -1 if infinite.
+	 If doing tx, need to set tx_packet_data_source variable before use. */
 void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packets) {
 	uint8_t         cfg_coarse;
 	uint8_t         cfg_mid;
@@ -209,7 +339,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	uint8_t IF_coarse;
 	uint8_t IF_fine;
 	
-	unsigned packet_counter = 0;
+	uint8_t i;
+	
+	unsigned packet_counter = 0; // number of times we have transmitted or attempted to receive
 	
 	char* radio_mode_string;
 	
@@ -221,13 +353,13 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 
 	if (!should_sweep) { // fixed frequency mode
 		if (radio_mode == TX) {
-			cfg_coarse_start = FIXED_LC_COARSE_TX;
-			cfg_mid_start = FIXED_LC_MID_TX;
-			cfg_fine_start = FIXED_LC_FINE_TX;
+			cfg_coarse_start = fixed_lc_coarse_tx;
+			cfg_mid_start = fixed_lc_mid_tx;
+			cfg_fine_start = fixed_lc_fine_tx;
 		} else {
-			cfg_coarse_start = FIXED_LC_COARSE_RX;
-			cfg_mid_start = FIXED_LC_MID_RX;
-			cfg_fine_start = FIXED_LC_FINE_RX;
+			cfg_coarse_start = fixed_lc_coarse_rx;
+			cfg_mid_start = fixed_lc_mid_rx;
+			cfg_fine_start = fixed_lc_fine_rx;
 		}
 				
 		cfg_coarse_stop = cfg_coarse_start + 1;
@@ -247,6 +379,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	}
 	
 	while(1){
+		printf("looping...");
 		// loop through all configuration
 		for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse+=1){
 			for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
@@ -270,46 +403,135 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									radio_delay();
 									
 									printf("sending ack %d out of %d\n", j + 1, NUM_ACK);
-									
-									send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX, cfg_coarse, cfg_mid, cfg_fine, j);
+									//send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX, cfg_coarse, cfg_mid, cfg_fine, j);
+									send_ack(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, cfg_coarse, cfg_mid, cfg_fine, j);
+
 								}
 								
 								need_to_send_ack = false;
 							}
 						}
 						else { // TX mode
-							if (!SEND_OPTICAL) {
-								tx_packet[0] = (uint8_t) packet_counter;
-								tx_packet[1] = cfg_coarse;
-								tx_packet[2] = cfg_mid;
-								tx_packet[3] = cfg_fine;
+							tx_packet[0] = (uint8_t) packet_counter;
+							
+							switch (tx_packet_data_source) { // defines how to set packet contents
+								case PREDEFINED: // packet content set prior
+									break;
+								case LC_CODES: // packet content will be LC coarse mid fine 
+//									tx_packet[1] = cfg_coarse;
+//									tx_packet[2] = cfg_mid;
+//									tx_packet[3] = cfg_fine;
 								
-								send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet);
-							} else {
-								HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
-								HF_CLOCK_fine       = scm3c_hw_interface_get_HF_CLOCK_fine();
-								RC2M_coarse         = scm3c_hw_interface_get_RC2M_coarse();
-								RC2M_fine           = scm3c_hw_interface_get_RC2M_fine();
-								RC2M_superfine      = scm3c_hw_interface_get_RC2M_superfine();
-								IF_coarse           = scm3c_hw_interface_get_IF_coarse();
-								IF_fine             = scm3c_hw_interface_get_IF_fine();
+								  sprintf(tx_packet, "%d %d %d", cfg_coarse, cfg_mid, cfg_fine);
 								
-								tx_packet[0] = (uint8_t) packet_counter;
-								tx_packet[1] = (uint8_t) 0;
-								tx_packet[2] = (uint8_t)HF_CLOCK_coarse;
-								tx_packet[3] = (uint8_t)HF_CLOCK_fine;
-//								tx_packet[4] = (uint8_t)RC2M_coarse;
-//								tx_packet[5] = (uint8_t)RC2M_fine;
-//								tx_packet[6] = (uint8_t)RC2M_superfine;
-//								tx_packet[7] = (uint8_t)IF_coarse;
-//								tx_packet[8] = (uint8_t)IF_fine;
-//								tx_packet[9] = (uint8_t) 0;
-//								tx_packet[10] = cfg_coarse;
-//								tx_packet[11] = cfg_mid;
-//								tx_packet[12] = cfg_fine;
-										
-								send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet);
+									break;
+								case OPTICAL_VALS: // packet content will be optical settings
+									HF_CLOCK_coarse     = scm3c_hw_interface_get_HF_CLOCK_coarse();
+									HF_CLOCK_fine       = scm3c_hw_interface_get_HF_CLOCK_fine();
+									RC2M_coarse         = scm3c_hw_interface_get_RC2M_coarse();
+									RC2M_fine           = scm3c_hw_interface_get_RC2M_fine();
+									RC2M_superfine      = scm3c_hw_interface_get_RC2M_superfine();
+									IF_coarse           = scm3c_hw_interface_get_IF_coarse();
+									IF_fine             = scm3c_hw_interface_get_IF_fine();
+									
+									tx_packet[1] = (uint8_t) 0;
+									tx_packet[2] = (uint8_t)HF_CLOCK_coarse;
+									tx_packet[3] = (uint8_t)HF_CLOCK_fine;
+									tx_packet[4] = (uint8_t)RC2M_coarse;
+									tx_packet[5] = (uint8_t)RC2M_fine;
+									tx_packet[6] = (uint8_t)RC2M_superfine;
+									tx_packet[7] = (uint8_t)IF_coarse;
+									tx_packet[8] = (uint8_t)IF_fine;
+									tx_packet[9] = (uint8_t) 0;
+									tx_packet[10] = cfg_coarse;
+									tx_packet[11] = cfg_mid;
+									tx_packet[12] = cfg_fine;
+								
+									break;
+								case TEMP:
+									// format: FF TT.TT
+									//sprintf(tx_packet, "%2d %2.2f", cfg_fine, temp);
+									
+										// had to do it this weird way since the normal double formatting was making the packets stop sending after a while.... I have no clue why
+										sprintf(tx_packet, "%02d %d.%02d", cfg_fine, (uint8_t) temp, (uint8_t) ((temp - (uint8_t) temp) * 100));
+									
+//									tx_packet[1] = (uint8_t) cfg_coarse;
+//									tx_packet[2] = (uint8_t) cfg_mid;
+//									tx_packet[3] = (uint8_t) cfg_fine;
+//									tx_packet[4] = (uint8_t) (int) temp; // two digits left of decimal place
+//									tx_packet[5] = (uint8_t) ((temp - (uint8_t)(temp))*100); // two digits right of decimal place
+//									tx_packet[6] = (uint8_t) 0;
+//									tx_packet[7] = (uint8_t) 0;
+//									tx_packet[8] = (uint8_t) 0;
+//									tx_packet[9] = (uint8_t) 0;
+									
+//									tx_packet[0] = 0;
+//									tx_packet[1] = cfg_fine;
+//									tx_packet[2] = 2;
+//									tx_packet[3] = 3;
+//									tx_packet[4] = 4;
+//									tx_packet[5] = 5;
+//									tx_packet[6] = 6;
+//									tx_packet[7] = 7;
+//									tx_packet[8] = 8;
+//									tx_packet[9] = 9;
+								
+									break;
+								case COUNT_2M_32K:
+									sprintf(tx_packet, "C:%d M:%d F:%d 2MHz:%d 32kHz:%d", cfg_coarse, cfg_mid, cfg_fine, count_2M, count_32k);
+								
+									break;
+								case LC_CODES_ASCII:
+									sprintf(tx_packet, "C:%d M:%d F:%d", cfg_coarse, cfg_mid, cfg_fine);
+								
+									break;
+								case COMPRESSED_CLOCK: // for when on solar and packet length is compressed
+									// since we are on solar and the sweep of 32 fine codes will take a while (probably 1.5 minutes)
+									// and the temperature properly is changing at a faster rate, we can just take a new temp measurement
+									// every time we transmit
+									read_counters_duration(TEMP_MEASURE_DURATION_MILLISECONDS);
+									count_2M = scm3c_hw_interface_get_count_2M();
+									count_32k = scm3c_hw_interface_get_count_32k();
+									printf("2M: %u, 32kHz: %u\n", count_2M, count_32k);
+								
+									// mode for sending the 2MHz clocks and the 32kHz clock as well as fine code
+									// send in a compressed format taking the form of:
+									// 0: packet counter 1: fine 2: 2MHz[5-4] 3: 2MHz[3-2] 4: 2MHz[1-0] 5: 32kHz[3-2] 6: 23kHz[1-0]
+									// where the indices indicate the bits taken from each value (0 is LSB).
+									// example: if 2MHz is 179746, then 2: 17, 3: 97, 4: 46
+									// The point of this is to make the packet as small as possible to send this information so that
+									// we can build a figure that shows the relationship between fine code and clock ratio
+//									tx_packet[1] = (uint8_t) cfg_fine;
+//									tx_packet[2] = (uint8_t) (count_2M / 100000); // highest digit
+//									tx_packet[3] = (uint8_t) ((count_2M / 10000) - (10*tx_packet[2])); // 2nd highest digit
+//									tx_packet[4] = (uint8_t) (((count_2M - ((count_2M / 10000) * 10000))) / 100); // middle 2 digits
+//									tx_packet[5] = (uint8_t) (count_2M % 100); // lower 2 digits
+//									tx_packet[6] = (uint8_t) (count_32k / 100); // upper 2 digits
+//									tx_packet[7] = (uint8_t) (count_32k % 100); // lower 2 digits
+								
+									//FF2222223333; length = 12
+									sprintf(tx_packet, "%2d%d%d", cfg_fine, count_2M, count_32k);
+									
+//									tx_packet[0] = 0;
+//									tx_packet[1] = 1;
+//									tx_packet[2] = 2;
+//									tx_packet[3] = 3;
+//									tx_packet[4] = 4;
+//									tx_packet[5] = 5;
+//									tx_packet[6] = 6;
+//									tx_packet[7] = 7;
+//									tx_packet[8] = 8;
+//									tx_packet[9] = 9;
+									
+
+									break;
+								default:
+									printf("ERROR: unset tx packet content source");
+								
+									break;
 							}
+							
+							send_packet(cfg_coarse, cfg_mid, cfg_fine, tx_packet);
 						}
 
 						// stop after send or received a certain number of times
@@ -317,6 +539,10 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 						
 						if (total_packets > 0) {
 							//printf("packet %d out of %d\n", packet_counter, total_packets);
+						}
+						
+						if (SOLAR_MODE == 1 & should_sweep == 0) {
+//							printf("radio event\n");
 						}
 						
 						if (packet_counter == total_packets) {
@@ -330,12 +556,15 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	}
 }
 
+// TODO: change this function to use delay_milliseconds to use RF TIMER, which is independent of 
+// HCLK so that the timing is more more consistent regardless of clock speed (won't matter whether
+// you are in lower or normal power state).
 void radio_delay(void) {
 	uint16_t j;
 	
 	if (SOLAR_MODE) {
 		low_power_mode();
-		for (j = 0; j < 5000; j++) {}
+		for (j = 0; j < SOLAR_DELAY; j++) {}
 		normal_power_mode();
 	}
 }
@@ -356,4 +585,20 @@ void onRx(uint8_t *packet, uint8_t packet_len) {
 		//printf("Got message to actuate gripper!!!\n");
 		//sara(100, 2,1);
 	}
+}
+
+/* This function will update the fixed fine code based on a linear model relating the 2MHz and 32kHz clock ratios
+ * and fine codes that properly transmit.
+ */
+void adjust_tx_fine_with_temp(void) {
+	// calculate the ratio between the 2M and the 32kHZz clocks
+	double ratio = fix_double(fix_div(fix_init(count_2M), fix_init(count_32k)));
+	
+	fixed_lc_fine_tx = CLOCK_RATIO_VS_FINE_CODE_SLOPE * ratio + CLOCK_RATIO_VS_FINE_CODE_OFFEST;
+}
+
+/* A function used for testing the delay milliseconds functionality. */
+void delay_milliseconds_test_loop(void) {
+	printf("delay over!\n");
+	delay_milliseconds(delay_milliseconds_test_loop, 3000);
 }
