@@ -32,7 +32,7 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 6 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 #define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
@@ -47,17 +47,17 @@
 // "fixed" value we operate it. In other words by fixed we just mean that we aren't sweeping;
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
-#define DEFAULT_FIXED_LC_COARSE_TX		24
-#define DEFAULT_FIXED_LC_MID_TX			 16
-#define DEFAULT_FIXED_LC_FINE_TX		25
+#define DEFAULT_FIXED_LC_COARSE_TX		23
+#define DEFAULT_FIXED_LC_MID_TX			 23
+#define DEFAULT_FIXED_LC_FINE_TX		0
 
 #define DEFAULT_FIXED_LC_COARSE_RX			22
 #define DEFAULT_FIXED_LC_MID_RX				  22
 #define DEFAULT_FIXED_LC_FINE_RX				19
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 24
-#define SWEEP_COARSE_END 25
+#define SWEEP_COARSE_START 22
+#define SWEEP_COARSE_END 24
 #define SWEEP_MID_START 0
 #define SWEEP_MID_END 32
 
@@ -303,6 +303,7 @@ int main(void) {
 					delay_milliseconds_synchronous(2000);
 				}
 				break;
+			case 14
 			default:
 				printf("Invalid mode\n");
 				break;
@@ -563,9 +564,9 @@ void radio_delay(void) {
 	uint16_t j;
 	
 	if (SOLAR_MODE) {
-		low_power_mode();
+		//low_power_mode();
 		for (j = 0; j < SOLAR_DELAY; j++) {}
-		normal_power_mode();
+		//normal_power_mode();
 	}
 }
 
