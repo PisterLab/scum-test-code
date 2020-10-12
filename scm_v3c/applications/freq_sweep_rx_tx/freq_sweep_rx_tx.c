@@ -32,7 +32,7 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 6 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 14 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 #define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
@@ -149,6 +149,8 @@ int main(void) {
     uint32_t calc_crc;
     uint8_t         offset;
 		int i,j;
+		short counter;
+		int gripper_result;
     
     printf("Initializing...");
 	
@@ -303,7 +305,50 @@ int main(void) {
 					delay_milliseconds_synchronous(2000);
 				}
 				break;
-			case 14
+			case 14: // contact sensor development// Alex wrote this code 
+				
+				printf("GPIO ON\n");
+				//enable GPIOs
+				GPO_enables(0xFFFF);
+				GPI_enables(0xFFFF);
+				GPI_control(0,0,0,0);//sets GPI to cortex registers
+				GPO_control(6,6,6,6); //GPIO 0 -15 //sets GP0 to cortex registers
+				// Program analog scan chain
+				analog_scan_chain_write();
+				analog_scan_chain_load();
+				
+				//set gpio to 3.3V 
+				GPIO_REG__OUTPUT=0xFFFF;
+//				if((GPIO_REG__INPUT | 0xFDFF) == 0xFFFF)
+//				{
+//					printf("GPIO9 high\n");
+//				}
+				//disable GPIOs
+				GPO_enables(0x0000);
+				
+				// Program analog scan chain
+				analog_scan_chain_write();
+				analog_scan_chain_load();
+				
+				printf("GPIO OFF\n");
+				//check til GPI turns to zero;
+				counter=0; 
+				while(1){
+					  gripper_result = ~(GPIO_REG__INPUT | 0xFDFF)==0xffff0200;
+						printf("%x\n", GPIO_REG__INPUT);
+						if(gripper_result){
+							counter=counter+1;
+						}	
+						else {
+							counter=0;
+							
+						}
+						if(counter>40){
+							printf("Gripper Closed %d %d \n", counter, gripper_result);
+						}
+				}
+
+			break;
 			default:
 				printf("Invalid mode\n");
 				break;
