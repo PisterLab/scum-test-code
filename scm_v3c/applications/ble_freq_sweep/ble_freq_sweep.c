@@ -23,7 +23,7 @@
 
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
-#define TIMER_PERIOD        5000  // 500 = 1ms@500kHz
+#define TIMER_PERIOD        2000  // 500 = 1ms@500kHz
 
 // only this coarse settings are swept, 
 // channel 37 and 0 are known within the setting scope of coarse=24
@@ -156,8 +156,8 @@ int main(void) {
         // loop through all configuration
         
         // customize coarse, mid, fine values to change the sweeping range
-        for (cfg_mid=8;cfg_mid<11;cfg_mid++) {
-            for (cfg_fine=0;cfg_fine<STEPS_PER_CONFIG;cfg_fine+=2) {
+        for (cfg_mid=6;cfg_mid<9;cfg_mid++) {
+            for (cfg_fine=0;cfg_fine<32;cfg_fine+=1) {
                 
                 printf(
                     "coarse=%d, middle=%d, fine=%d\r\n", 
