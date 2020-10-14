@@ -156,7 +156,7 @@ int main(void) {
         // loop through all configuration
         
         // customize coarse, mid, fine values to change the sweeping range
-        for (cfg_mid=6;cfg_mid<9;cfg_mid++) {
+        for (cfg_mid=6;cfg_mid<10;cfg_mid++) {
             for (cfg_fine=0;cfg_fine<32;cfg_fine+=1) {
                 
                 printf(
