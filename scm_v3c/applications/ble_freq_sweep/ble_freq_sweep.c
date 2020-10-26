@@ -29,6 +29,29 @@
 // channel 37 and 0 are known within the setting scope of coarse=24
 #define CFG_COARSE          24
 
+#define HS_3
+
+#ifdef TEST
+    #define MID_START   0
+    #define MID_END     32
+#endif
+
+#ifdef HS_2
+    #define MID_START   15
+    #define MID_END     20
+#endif
+
+#ifdef HS_1
+    #define MID_START   0
+    #define MID_END     32
+#endif
+
+#ifdef HS_3
+    #define MID_START   17
+    #define MID_END     22
+#endif
+
+
 const static uint8_t ble_device_addr[6] = {
     0xaa, 0xbb, 0xcc, 0xcc, 0xbb, 0xaa
 };
@@ -156,7 +179,7 @@ int main(void) {
         // loop through all configuration
         
         // customize coarse, mid, fine values to change the sweeping range
-        for (cfg_mid=6;cfg_mid<10;cfg_mid++) {
+        for (cfg_mid=MID_START;cfg_mid<MID_END;cfg_mid++) {
             for (cfg_fine=0;cfg_fine<32;cfg_fine+=1) {
                 
                 printf(
