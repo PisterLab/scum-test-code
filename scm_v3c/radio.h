@@ -39,7 +39,7 @@ void cb_timer(void);
 void radio_rxEnable_optical(void);
 void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet);
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine);
-void send_ack(uint8_t coarse, uint8_t mid, uint8_t fine);
+void send_ack(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t rx_coarse, uint8_t rx_mid, uint8_t rx_fine, uint8_t acknum);
 
 //==== admin
 void radio_init(void);

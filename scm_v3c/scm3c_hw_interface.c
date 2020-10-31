@@ -1343,14 +1343,34 @@ void initialize_mote(){
     // set_ALWAYSON_LDO_voltage(0);
         
     // Select banks for GPIO inputs
-    GPI_control(0,0,0,0);
-    
-    // Select banks for GPIO outputs
-    GPO_control(10,10,10,10);
-    
-    // Set all GPIOs as outputs
-    GPI_enables(0x0000);    
-    GPO_enables(0xFFFF);
+//    GPI_control(0,0,0,0);
+//    
+//    // Select banks for GPIO outputs
+//    GPO_control(10,10,10,10);
+//    
+//    // Set all GPIOs as outputs
+//    GPI_enables(0x0000);    
+//    GPO_enables(0xFFFF);
+
+//Enables GPO
+	//GPO_enables(0x00FF);
+	GPO_enables(0x0031); //GPIO 15-0
+	//Enables GPI
+	//GPI_enables(0x0F00);
+	GPI_enables(0x0000);
+		
+	// Select banks for GPIO inputs
+	GPI_control(0,0,0,3);// this setups up GPIO loopback with 3 and 1 setups the Interrupts
+	
+	// // Select banks for GPIO outputs
+	//GPO_control(6,6,6,6);
+	GPO_control(10,6,6,6); //GPIO 0 -15
+	
+	// // Set all GPIOs as outputs
+	//GPI_enables(0x0000);// Shutting off all GPIOs that are not being used to prevent leakage	
+	//GPIO7=Sets sensor but needs to be turned off, GPIO6=CLK, GPIO5= D1, GPIO4=D2, 
+//	GPO_enables(0x00F0);
+
 
     // Set HCLK source as HF_CLOCK
     set_asc_bit(1147);

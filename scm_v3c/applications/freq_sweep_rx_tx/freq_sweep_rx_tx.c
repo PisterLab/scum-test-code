@@ -31,7 +31,8 @@
 // RADIO DEFINES
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+
+#define MODE 14 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 #define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
@@ -46,19 +47,20 @@
 // "fixed" value we operate it. In other words by fixed we just mean that we aren't sweeping;
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
-#define DEFAULT_FIXED_LC_COARSE_TX		22
-#define DEFAULT_FIXED_LC_MID_TX			 20
-#define DEFAULT_FIXED_LC_FINE_TX		14
+
+#define DEFAULT_FIXED_LC_COARSE_TX		23
+#define DEFAULT_FIXED_LC_MID_TX			 23
+#define DEFAULT_FIXED_LC_FINE_TX		0
 
 #define DEFAULT_FIXED_LC_COARSE_RX			22
 #define DEFAULT_FIXED_LC_MID_RX				  22
 #define DEFAULT_FIXED_LC_FINE_RX				19
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 21
-#define SWEEP_COARSE_END 23
+#define SWEEP_COARSE_START 22
+#define SWEEP_COARSE_END 24
 #define SWEEP_MID_START 0
-#define SWEEP_MID_END 31
+#define SWEEP_MID_END 32
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 31
 
@@ -147,6 +149,8 @@ int main(void) {
     uint32_t calc_crc;
     uint8_t         offset;
 		int i,j;
+		short counter;
+		int gripper_result;
     
     printf("Initializing...");
 	
@@ -215,9 +219,10 @@ int main(void) {
 				while (1) {}
 				break;
 			case 6: //turn on go to low power and after you are done closing send packet
+				low_power_mode();
 				while(1)
-				{
-					low_power_mode();
+				//for(j=0;j<10;j++)
+				{	
 					sara_start(300,300);
 					//(200,200); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
 					//GPIO_REG__OUTPUT=0x0000;
@@ -225,7 +230,10 @@ int main(void) {
 					for(i=0;i<100;i++);
 					sara_release(300);
 					for(i=0;i<100;i++);
+					printf("toggle!\n");
 				}
+				while(1)
+				{}
 				break;
 			case 7: // temperature compensated transmit loop
 				while (1) {
@@ -297,6 +305,50 @@ int main(void) {
 					delay_milliseconds_synchronous(2000);
 				}
 				break;
+			case 14: // contact sensor development// Alex wrote this code 
+				
+				printf("GPIO ON\n");
+				//enable GPIOs
+				GPO_enables(0xFFFF);
+				GPI_enables(0xFFFF);
+				GPI_control(0,0,0,0);//sets GPI to cortex registers
+				GPO_control(6,6,6,6); //GPIO 0 -15 //sets GP0 to cortex registers
+				// Program analog scan chain
+				analog_scan_chain_write();
+				analog_scan_chain_load();
+				
+				//set gpio to 3.3V 
+				GPIO_REG__OUTPUT=0xFFFF;
+//				if((GPIO_REG__INPUT | 0xFDFF) == 0xFFFF)
+//				{
+//					printf("GPIO9 high\n");
+//				}
+				//disable GPIOs
+				GPO_enables(0x0000);
+				
+				// Program analog scan chain
+				analog_scan_chain_write();
+				analog_scan_chain_load();
+				
+				printf("GPIO OFF\n");
+				//check til GPI turns to zero;
+				counter=0; 
+				while(1){
+					  gripper_result = ~(GPIO_REG__INPUT | 0xFDFF)==0xffff0200;
+						printf("%x\n", GPIO_REG__INPUT);
+						if(gripper_result){
+							counter=counter+1;
+						}	
+						else {
+							counter=0;
+							
+						}
+						if(counter>40){
+							printf("Gripper Closed %d %d \n", counter, gripper_result);
+						}
+				}
+
+			break;
 			default:
 				printf("Invalid mode\n");
 				break;
@@ -397,8 +449,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									radio_delay();
 									
 									printf("sending ack %d out of %d\n", j + 1, NUM_ACK);
-									
-									send_ack(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx);
+									//send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX, cfg_coarse, cfg_mid, cfg_fine, j);
+									send_ack(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, cfg_coarse, cfg_mid, cfg_fine, j);
+
 								}
 								
 								need_to_send_ack = false;
@@ -556,9 +609,9 @@ void radio_delay(void) {
 	uint16_t j;
 	
 	if (SOLAR_MODE) {
-		low_power_mode();
+		//low_power_mode();
 		for (j = 0; j < SOLAR_DELAY; j++) {}
-		normal_power_mode();
+		//normal_power_mode();
 	}
 }
 
