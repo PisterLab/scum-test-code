@@ -46,6 +46,7 @@
 // "fixed" value we operate it. In other words by fixed we just mean that we aren't sweeping;
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
+
 #define DEFAULT_FIXED_LC_COARSE_TX		23
 #define DEFAULT_FIXED_LC_MID_TX			 23
 #define DEFAULT_FIXED_LC_FINE_TX		0
@@ -59,9 +60,8 @@
 #define SWEEP_COARSE_END 24
 #define SWEEP_MID_START 0
 #define SWEEP_MID_END 32
-
 #define SWEEP_FINE_START 0
-#define SWEEP_FINE_END 32
+#define SWEEP_FINE_END 31
 
 // SARA 30.56C 1.778V
 //#define HF_COARSE 3
