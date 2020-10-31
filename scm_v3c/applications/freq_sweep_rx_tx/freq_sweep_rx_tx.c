@@ -3,7 +3,6 @@
 */
 
 #include <string.h>
-
 #include <stdio.h>
 #include "scm3c_hw_interface.h"
 #include "memory_map.h"
@@ -223,7 +222,7 @@ int main(void) {
 				while(1)
 				//for(j=0;j<10;j++)
 				{	
-					sara_start(300,300);
+					sara_start(1500,60);
 					//(200,200); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
 					//GPIO_REG__OUTPUT=0x0000;
 					
