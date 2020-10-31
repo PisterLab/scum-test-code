@@ -31,7 +31,7 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 #define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 0 // 1 if sweep, 0 if fixed
@@ -48,8 +48,8 @@
 // temperature changes), but we just won't sweep the LC.
 
 #define DEFAULT_FIXED_LC_COARSE_TX		22
-#define DEFAULT_FIXED_LC_MID_TX			 16
-#define DEFAULT_FIXED_LC_FINE_TX		21
+#define DEFAULT_FIXED_LC_MID_TX			 19
+#define DEFAULT_FIXED_LC_FINE_TX		17
 
 #define DEFAULT_FIXED_LC_COARSE_RX			22
 #define DEFAULT_FIXED_LC_MID_RX				  21
@@ -438,7 +438,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	}
 	
 	while(1){
-		printf("looping...");
+		//printf("looping...\n");
 		// loop through all configuration
 		for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse+=1){
 			for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
@@ -603,8 +603,11 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 //							printf("radio event\n");
 						}
 						
-						if (packet_counter == total_packets) {
-							//printf("stopping %s\n", radio_mode_string);
+						//printf("packet counter: %d, rx_count: %d\n", packet_counter, rx_count);
+						
+						if ((radio_mode == TX && packet_counter == total_packets) || (radio_mode == RX && rx_count == total_packets)) {
+							//printf("stopping as we have received/transmitted %d packets\n", packet_counter);
+							rx_count = 0;
 							return;
 						}
 					}
@@ -632,7 +635,7 @@ void onRx(uint8_t *packet, uint8_t packet_len) {
 	uint16_t j;
 	
 	rx_count += 1;
-	printf("received a total of %d packets\n", rx_count);
+	//printf("received a total of %d packets\n", rx_count);
 	
 	if (SEND_ACK)
 		need_to_send_ack = true;
