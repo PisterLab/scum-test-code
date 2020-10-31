@@ -3,7 +3,6 @@
 */
 
 #include <string.h>
-
 #include <stdio.h>
 #include "scm3c_hw_interface.h"
 #include "memory_map.h"
@@ -32,13 +31,13 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 14 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 6//1// 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 #define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
-#define SEND_ACK 0 // 1 if we should send an ack after packet rx and 0 otherwise
-#define NUM_ACK 1 // number of acknowledgments to send upon receiving a packet
+#define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
+#define NUM_ACK 5 // number of acknowledgments to send upon receiving a packet
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0.
 // these default values are used to set a variable that will represent the fixed LC values
@@ -223,7 +222,7 @@ int main(void) {
 				while(1)
 				//for(j=0;j<10;j++)
 				{	
-					sara_start(300,300);
+					sara_start(1500,60);
 					//(200,200); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
 					//GPIO_REG__OUTPUT=0x0000;
 					
