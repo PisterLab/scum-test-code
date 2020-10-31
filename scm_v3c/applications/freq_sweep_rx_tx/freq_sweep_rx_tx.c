@@ -32,13 +32,13 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 14 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 #define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
-#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
-#define SWEEP_RX 1 // 1 if sweep, 0 if fixed
-#define SEND_ACK 0 // 1 if we should send an ack after packet rx and 0 otherwise
-#define NUM_ACK 1 // number of acknowledgments to send upon receiving a packet
+#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
+#define SWEEP_RX 0 // 1 if sweep, 0 if fixed
+#define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
+#define NUM_ACK 3 // number of acknowledgments to send upon receiving a packet
 
 // fixed rx/tx coarse, mid, fine settings used if SWEEP_RX and SWEEP_TX is 0.
 // these default values are used to set a variable that will represent the fixed LC values
@@ -48,19 +48,19 @@
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
 
-#define DEFAULT_FIXED_LC_COARSE_TX		23
-#define DEFAULT_FIXED_LC_MID_TX			 23
-#define DEFAULT_FIXED_LC_FINE_TX		0
+#define DEFAULT_FIXED_LC_COARSE_TX		22
+#define DEFAULT_FIXED_LC_MID_TX			 16
+#define DEFAULT_FIXED_LC_FINE_TX		21
 
 #define DEFAULT_FIXED_LC_COARSE_RX			22
-#define DEFAULT_FIXED_LC_MID_RX				  22
-#define DEFAULT_FIXED_LC_FINE_RX				19
+#define DEFAULT_FIXED_LC_MID_RX				  21
+#define DEFAULT_FIXED_LC_FINE_RX				24
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
 #define SWEEP_COARSE_START 22
 #define SWEEP_COARSE_END 24
 #define SWEEP_MID_START 0
-#define SWEEP_MID_END 32
+#define SWEEP_MID_END 31
 #define SWEEP_FINE_START 0
 #define SWEEP_FINE_END 31
 
@@ -347,8 +347,22 @@ int main(void) {
 							printf("Gripper Closed %d %d \n", counter, gripper_result);
 						}
 				}
+				break;
+			case 15: // SARA final code with rx until packet is received, then send acks, then turn off radio, then operate SARA then loop
+				while (1) {
+					printf("Attempting to receive a packet\n");
+					repeat_rx_tx(RX, SWEEP_RX, 1); // keep looping until we receive a single packet. Sends NUM_ACK acks if SEND_ACK set to 1
+					
+					// if we reach this point it means that we have received a packet and have (optionally) sent acks.
+					printf("packet received. starting SARA toggle!\n");
+					// now trigger SARA. ALEX CHECK THE PARAMETERS HERE
+					sara_start(300,300); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
 
-			break;
+					for(i=0;i<100;i++);
+					sara_release(300);
+					for(i=0;i<100;i++);
+					printf("sara finished. Looping again!\n");
+				}
 			default:
 				printf("Invalid mode\n");
 				break;
@@ -451,7 +465,6 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									printf("sending ack %d out of %d\n", j + 1, NUM_ACK);
 									//send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX, cfg_coarse, cfg_mid, cfg_fine, j);
 									send_ack(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, cfg_coarse, cfg_mid, cfg_fine, j);
-
 								}
 								
 								need_to_send_ack = false;
@@ -626,11 +639,11 @@ void onRx(uint8_t *packet, uint8_t packet_len) {
 		need_to_send_ack = true;
 	
 	//printf("packet first item: %d\n", packet[0]); //there are 20 or 22 packets and they are uint8_t
-	if (packet[1]==1)
-	{
+//	if (packet[1]==1) // THIS IS OUTDATED CODE
+//	{
 		//printf("Got message to actuate gripper!!!\n");
 		//sara(100, 2,1);
-	}
+//	}
 }
 
 /* This function will update the fixed fine code based on a linear model relating the 2MHz and 32kHz clock ratios
