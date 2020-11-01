@@ -31,7 +31,7 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 15 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 //NEED TO UNCOMMENT IN TX? radio_delay
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
@@ -64,12 +64,12 @@
 #define SWEEP_FINE_START_TX 3
 #define SWEEP_FINE_END_TX 9
 
-#define SWEEP_COARSE_START_RX 19
-#define SWEEP_COARSE_END_RX 23
-#define SWEEP_MID_START_RX 0
-#define SWEEP_MID_END_RX 31
-#define SWEEP_FINE_START_RX 0
-#define SWEEP_FINE_END_RX 31
+#define SWEEP_COARSE_START_RX 21
+#define SWEEP_COARSE_END_RX 22
+#define SWEEP_MID_START_RX 20
+#define SWEEP_MID_END_RX 21
+#define SWEEP_FINE_START_RX 6
+#define SWEEP_FINE_END_RX 9
 
 // SARA 30.56C 1.778V
 //#define HF_COARSE 3
