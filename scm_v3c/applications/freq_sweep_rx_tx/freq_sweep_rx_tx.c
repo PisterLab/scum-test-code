@@ -37,6 +37,7 @@
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 0// 1 if sweep, 0 if fixed
+
 #define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
 #define NUM_ACK 3 // number of acknowledgments to send upon receiving a packet
 
@@ -48,9 +49,11 @@
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
 
+
 #define DEFAULT_FIXED_LC_COARSE_TX		20
 #define DEFAULT_FIXED_LC_MID_TX			 21
 #define DEFAULT_FIXED_LC_FINE_TX		1
+
 
 #define DEFAULT_FIXED_LC_COARSE_RX			21
 #define DEFAULT_FIXED_LC_MID_RX				  17
@@ -443,7 +446,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	}
 	
 	while(1){
-		printf("looping...");
+		//printf("looping...\n");
 		// loop through all configuration
 		for (cfg_coarse=cfg_coarse_start;cfg_coarse<cfg_coarse_stop;cfg_coarse+=1){
 			for (cfg_mid=cfg_mid_start;cfg_mid<cfg_mid_stop;cfg_mid += 1){
@@ -608,8 +611,11 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 //							printf("radio event\n");
 						}
 						
-						if (packet_counter == total_packets) {
-							//printf("stopping %s\n", radio_mode_string);
+						//printf("packet counter: %d, rx_count: %d\n", packet_counter, rx_count);
+						
+						if ((radio_mode == TX && packet_counter == total_packets) || (radio_mode == RX && rx_count == total_packets)) {
+							//printf("stopping as we have received/transmitted %d packets\n", packet_counter);
+							rx_count = 0;
 							return;
 						}
 					}
@@ -637,7 +643,7 @@ void onRx(uint8_t *packet, uint8_t packet_len) {
 	uint16_t j;
 	
 	rx_count += 1;
-	printf("received a total of %d packets\n", rx_count);
+	//printf("received a total of %d packets\n", rx_count);
 	
 	if (SEND_ACK)
 		need_to_send_ack = true;
