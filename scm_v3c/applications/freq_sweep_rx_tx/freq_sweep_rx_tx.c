@@ -31,11 +31,12 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
-#define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
-#define SOLAR_DELAY 500 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
-#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
-#define SWEEP_RX 0 // 1 if sweep, 0 if fixed
+#define MODE 0// 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
+//NEED TO UNCOMMENT IN TX? radio_delay
+#define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
+#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
+#define SWEEP_RX 0// 1 if sweep, 0 if fixed
 #define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
 #define NUM_ACK 3 // number of acknowledgments to send upon receiving a packet
 
@@ -47,17 +48,17 @@
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
 
-#define DEFAULT_FIXED_LC_COARSE_TX		22
-#define DEFAULT_FIXED_LC_MID_TX			 16
-#define DEFAULT_FIXED_LC_FINE_TX		21
+#define DEFAULT_FIXED_LC_COARSE_TX		20
+#define DEFAULT_FIXED_LC_MID_TX			 21
+#define DEFAULT_FIXED_LC_FINE_TX		1
 
-#define DEFAULT_FIXED_LC_COARSE_RX			22
-#define DEFAULT_FIXED_LC_MID_RX				  21
-#define DEFAULT_FIXED_LC_FINE_RX				24
+#define DEFAULT_FIXED_LC_COARSE_RX			21
+#define DEFAULT_FIXED_LC_MID_RX				  17
+#define DEFAULT_FIXED_LC_FINE_RX				22
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 22
-#define SWEEP_COARSE_END 24
+#define SWEEP_COARSE_START 15
+#define SWEEP_COARSE_END 26
 #define SWEEP_MID_START 0
 #define SWEEP_MID_END 31
 #define SWEEP_FINE_START 0
@@ -355,12 +356,16 @@ int main(void) {
 					// if we reach this point it means that we have received a packet and have (optionally) sent acks.
 					printf("packet received. starting SARA toggle!\n");
 					// now trigger SARA. ALEX CHECK THE PARAMETERS HERE
-					sara_start(300,300); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
-
+					low_power_mode();
+					sara_start(1500,60);
+					//(200,200); //second argument affects rate of GPIO 4 and 5 and 6. GPIO 6 is clock. Set to (300, 250) for 96 Hz to test motors
+					//GPIO_REG__OUTPUT=0x0000;
+					
 					for(i=0;i<100;i++);
 					sara_release(300);
 					for(i=0;i<100;i++);
-					printf("sara finished. Looping again!\n");
+					printf("toggle!\n");
+					normal_power_mode();
 				}
 			default:
 				printf("Invalid mode\n");
