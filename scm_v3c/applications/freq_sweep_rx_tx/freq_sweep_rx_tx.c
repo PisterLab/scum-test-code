@@ -32,7 +32,7 @@
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
 #define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
-#define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
+#define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 //NEED TO UNCOMMENT IN TX? radio_delay
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
 #define SWEEP_TX 1 // 1 if sweep, 0 if fixed
@@ -57,18 +57,18 @@
 #define DEFAULT_FIXED_LC_FINE_RX				22
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START_TX 22
-#define SWEEP_COARSE_END_TX 23
-#define SWEEP_MID_START_TX 20
-#define SWEEP_MID_END_TX 21
-#define SWEEP_FINE_START_TX 10
-#define SWEEP_FINE_END_TX 18
+#define SWEEP_COARSE_START_TX 20
+#define SWEEP_COARSE_END_TX 21
+#define SWEEP_MID_START_TX 27
+#define SWEEP_MID_END_TX 28
+#define SWEEP_FINE_START_TX 3
+#define SWEEP_FINE_END_TX 9
 
-#define SWEEP_COARSE_START_RX 22
+#define SWEEP_COARSE_START_RX 19
 #define SWEEP_COARSE_END_RX 23
-#define SWEEP_MID_START_RX 21
-#define SWEEP_MID_END_RX 22
-#define SWEEP_FINE_START_RX 20
+#define SWEEP_MID_START_RX 0
+#define SWEEP_MID_END_RX 31
+#define SWEEP_FINE_START_RX 0
 #define SWEEP_FINE_END_RX 31
 
 // SARA 30.56C 1.778V
