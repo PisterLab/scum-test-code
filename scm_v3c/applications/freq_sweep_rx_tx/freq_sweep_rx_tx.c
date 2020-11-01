@@ -31,7 +31,7 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 1 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 15 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 //NEED TO UNCOMMENT IN TX? radio_delay
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
@@ -57,18 +57,18 @@
 #define DEFAULT_FIXED_LC_FINE_RX				22
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START_TX 20
-#define SWEEP_COARSE_END_TX 21
-#define SWEEP_MID_START_TX 27
-#define SWEEP_MID_END_TX 28
-#define SWEEP_FINE_START_TX 3
-#define SWEEP_FINE_END_TX 9
+#define SWEEP_COARSE_START_TX 22
+#define SWEEP_COARSE_END_TX 23
+#define SWEEP_MID_START_TX 20
+#define SWEEP_MID_END_TX 21
+#define SWEEP_FINE_START_TX 10
+#define SWEEP_FINE_END_TX 18
 
-#define SWEEP_COARSE_START_RX 19
+#define SWEEP_COARSE_START_RX 22
 #define SWEEP_COARSE_END_RX 23
-#define SWEEP_MID_START_RX 0
-#define SWEEP_MID_END_RX 31
-#define SWEEP_FINE_START_RX 0
+#define SWEEP_MID_START_RX 21
+#define SWEEP_MID_END_RX 22
+#define SWEEP_FINE_START_RX 20
 #define SWEEP_FINE_END_RX 31
 
 // SARA 30.56C 1.778V
@@ -485,24 +485,24 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 							receive_packet(cfg_coarse, cfg_mid, cfg_fine);
 							
 							if (need_to_send_ack) {
-								for (j = 0; j < NUM_ACK; j++) {
-									radio_delay();
-									
-									printf("sending ack %d out of %d\n", j + 1, NUM_ACK);
-									//send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX, cfg_coarse, cfg_mid, cfg_fine, j);
-									//send_ack(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, cfg_coarse, cfg_mid, cfg_fine, j);
-									
-									// send the acks by sweeping through another call to repeat_rx_tx
-									saved_tx_packet_data_source = tx_packet_data_source;
-									tx_packet_data_source = CUSTOM;
-									
-									sprintf(custom_tx_packet, "%d %d %d", cfg_coarse, cfg_mid, cfg_fine);
-									
-									repeat_rx_tx(TX, SWEEP_TX, NUM_ACK);
-									
-									tx_packet_data_source = saved_tx_packet_data_source;
-									//tx_packet_data_source = LC_CODES;
-								}
+								radio_delay();
+								
+								printf("START sending acks\n");
+								//send_ack(FIXED_LC_COARSE_TX, FIXED_LC_MID_TX, FIXED_LC_FINE_TX, cfg_coarse, cfg_mid, cfg_fine, j);
+								//send_ack(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, cfg_coarse, cfg_mid, cfg_fine, j);
+								
+								// send the acks by sweeping through another call to repeat_rx_tx
+								saved_tx_packet_data_source = tx_packet_data_source;
+								tx_packet_data_source = CUSTOM;
+								
+								sprintf(custom_tx_packet, "%d %d %d", cfg_coarse, cfg_mid, cfg_fine);
+								
+								repeat_rx_tx(TX, SWEEP_TX, NUM_ACK);
+								
+								printf("DONE sending acks\n");
+								
+								tx_packet_data_source = saved_tx_packet_data_source;
+								//tx_packet_data_source = LC_CODES;
 								
 								need_to_send_ack = false;
 							}
@@ -646,9 +646,13 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 						
 						//printf("packet counter: %d, rx_count: %d\n", packet_counter, rx_count);
 						
+						//printf("rx_count %d total packets %d\n", rx_count, total_packets);
+						
 						if ((radio_mode == TX && packet_counter == total_packets) || (radio_mode == RX && rx_count == total_packets)) {
 							//printf("stopping as we have received/transmitted %d packets\n", packet_counter);
-							rx_count = 0;
+							if (radio_mode == RX) {
+								rx_count = 0;
+							}
 							return;
 						}
 					}
