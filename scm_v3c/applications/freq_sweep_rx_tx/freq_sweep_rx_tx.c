@@ -110,7 +110,8 @@ typedef enum {
 	OPTICAL_VALS   = 0x04,
 	TEMP					 = 0x05,
 	COUNT_2M_32K	 = 0x06,
-	COMPRESSED_CLOCK = 0x07
+	COMPRESSED_CLOCK = 0x07,
+	CUSTOM = 0x08
 } tx_packet_content_source_t;
 
 //=========================== variables =======================================
@@ -139,6 +140,9 @@ uint8_t fixed_lc_fine_rx = DEFAULT_FIXED_LC_FINE_RX;
 double temp;
 uint32_t count_2M;
 uint32_t count_32k;
+
+// HACK SOLUTION TO GET ACK TO SEND RX CODES NEED TO FIX LATER
+uint8_t custom_tx_packet[LEN_TX_PKT];
 
 uint8_t temp_adjusted_fine_code; // will be set by adjust_tx_fine_with_temp function
 
@@ -412,6 +416,8 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 	
 	uint8_t i;
 	
+	tx_packet_content_source_t saved_tx_packet_data_source;
+	
 	unsigned packet_counter = 0; // number of times we have transmitted or attempted to receive
 	
 	char* radio_mode_string;
@@ -487,7 +493,15 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									//send_ack(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, cfg_coarse, cfg_mid, cfg_fine, j);
 									
 									// send the acks by sweeping through another call to repeat_rx_tx
+									saved_tx_packet_data_source = tx_packet_data_source;
+									tx_packet_data_source = CUSTOM;
+									
+									sprintf(custom_tx_packet, "%d %d %d", cfg_coarse, cfg_mid, cfg_fine);
+									
 									repeat_rx_tx(TX, SWEEP_TX, NUM_ACK);
+									
+									tx_packet_data_source = saved_tx_packet_data_source;
+									//tx_packet_data_source = LC_CODES;
 								}
 								
 								need_to_send_ack = false;
@@ -607,6 +621,9 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									
 
 									break;
+								case CUSTOM:
+									memcpy(&tx_packet[0],custom_tx_packet,LEN_TX_PKT);
+								  break;
 								default:
 									printf("ERROR: unset tx packet content source");
 								
