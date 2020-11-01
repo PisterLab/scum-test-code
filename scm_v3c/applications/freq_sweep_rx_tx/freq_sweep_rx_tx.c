@@ -35,8 +35,8 @@
 #define SOLAR_MODE 1 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 //NEED TO UNCOMMENT IN TX? radio_delay
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
-#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
-#define SWEEP_RX 0// 1 if sweep, 0 if fixed
+#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
+#define SWEEP_RX 1// 1 if sweep, 0 if fixed
 
 #define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
 #define NUM_ACK 3 // number of acknowledgments to send upon receiving a packet
@@ -51,8 +51,8 @@
 
 
 #define DEFAULT_FIXED_LC_COARSE_TX		20
-#define DEFAULT_FIXED_LC_MID_TX			 21
-#define DEFAULT_FIXED_LC_FINE_TX		1
+#define DEFAULT_FIXED_LC_MID_TX			 27
+#define DEFAULT_FIXED_LC_FINE_TX		6
 
 
 #define DEFAULT_FIXED_LC_COARSE_RX			21
@@ -60,8 +60,8 @@
 #define DEFAULT_FIXED_LC_FINE_RX				22
 
 // if SWEEP_TX = 0 or SWEEP_RX = 0 then these values define the LC range to sweep. used for both sweeping Rx and Tx
-#define SWEEP_COARSE_START 15
-#define SWEEP_COARSE_END 26
+#define SWEEP_COARSE_START 20
+#define SWEEP_COARSE_END 21
 #define SWEEP_MID_START 0
 #define SWEEP_MID_END 31
 #define SWEEP_FINE_START 0
