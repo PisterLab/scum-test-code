@@ -57,6 +57,10 @@ signed short cdr_tau_history[11] = {0};
 #define TIMER_PERIOD_TX        2000           ///< 500 = 1ms@500kHz
 #define TIMER_PERIOD_RX        2000           ///< 500 = 1ms@500kHz
 
+//===== RFTIMER params
+
+#define RFTIMER_COMPAREID 		 0
+
 //=========================== variables =======================================
 
 typedef struct {
@@ -131,7 +135,7 @@ void radio_setCallbacks(radio_rx_cb rx_cb) { // rx_callback is custom callback s
 	radio_setEndFrameTxCb(cb_endFrame_tx);
 	radio_setStartFrameRxCb(cb_startFrame_rx);
 	radio_setEndFrameRxCb(cb_endFrame_rx);
-	rftimer_set_callback(cb_timer); // see if we can have two callbacks that we switch between based on rx/tx
+	rftimer_set_callback(cb_timer, RFTIMER_COMPAREID); // see if we can have two callbacks that we switch between based on rx/tx
 	receive_cb = rx_cb;
 }
 
@@ -141,7 +145,7 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet) {
 	int j;	
 	tx_rx_mode = 0;
 	
-	rftimer_set_callback(cb_timer); // just in case the callback got changed, reset the RF TIMER callback
+	rftimer_set_callback(cb_timer, RFTIMER_COMPAREID); // just in case the callback got changed, reset the RF TIMER callback // see if we can delete this now that there is a unique callback for each RFTIMER
 	
 	// copy the packet over
 //	for (i = 0; i < LEN_TX_PKT; i++) {
@@ -159,7 +163,7 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet) {
 	//printf("\n");
 	
 	radio_txEnable();
-	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX);
+	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_TX, RFTIMER_COMPAREID);
 	app_vars_tx.sendDone = false;
 		
 	while (app_vars_tx.sendDone==false);
@@ -168,7 +172,7 @@ void send_packet(uint8_t coarse, uint8_t mid, uint8_t fine, uint8_t *packet) {
 void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {	
 	int i;
 	
-	rftimer_set_callback(cb_timer); // just in case the callback got changed, reset the RF TIMER callback
+	rftimer_set_callback(cb_timer, RFTIMER_COMPAREID); // just in case the callback got changed, reset the RF TIMER callback // see if can remove now that there is a callback for all 8 interrupts
 	
 	tx_rx_mode = 1;
 	
@@ -181,7 +185,7 @@ void receive_packet(uint8_t coarse, uint8_t mid, uint8_t fine) {
 	LC_FREQCHANGE(app_vars_rx.cfg_coarse,app_vars_rx.cfg_mid,app_vars_rx.cfg_fine);
 	radio_rxEnable();
 	radio_rxNow();
-	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_RX);
+	rftimer_setCompareIn(rftimer_readCounter()+TIMER_PERIOD_RX, RFTIMER_COMPAREID);
 	app_vars_rx.changeConfig = false;
 	// the first check is to wait until the timer period is up
 	// the second check is to wait until the end frame rx is done (could take a while if sending ack packets)

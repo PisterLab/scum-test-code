@@ -137,7 +137,7 @@ void read_counters_duration(unsigned int measure_time_milliseconds) {
 	reset_counters();
 	enable_counters();
 	
-	delay_milliseconds_synchronous(measure_time_milliseconds);
+	delay_milliseconds_synchronous(measure_time_milliseconds, 2);
 	
 	read_counters();
 }

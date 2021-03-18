@@ -12,6 +12,7 @@
 #include "zappy2.h"
 #include "temperature.h"
 #include "fixed-point.h"
+#include "spi.h"
 
 //=========================== defines =========================================
 
@@ -31,11 +32,11 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 16 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 //NEED TO UNCOMMENT IN TX? radio_delay
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
-#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
+#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 #define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
 #define NUM_ACK 10 // number of acknowledgments to send upon receiving a packet
@@ -48,9 +49,9 @@
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
 
-#define DEFAULT_FIXED_LC_COARSE_TX		22
-#define DEFAULT_FIXED_LC_MID_TX			 21
-#define DEFAULT_FIXED_LC_FINE_TX		22
+#define DEFAULT_FIXED_LC_COARSE_TX		22//22
+#define DEFAULT_FIXED_LC_MID_TX			 16//21
+#define DEFAULT_FIXED_LC_FINE_TX		15//22
 
 #define DEFAULT_FIXED_LC_COARSE_RX			21
 #define DEFAULT_FIXED_LC_MID_RX				  17
@@ -71,7 +72,7 @@
 //#define SWEEP_FINE_START_RX 20
 //#define SWEEP_FINE_END_RX 31
 #define SWEEP_COARSE_START_TX 20
-#define SWEEP_COARSE_END_TX 28
+#define SWEEP_COARSE_END_TX 23
 #define SWEEP_MID_START_TX 0
 #define SWEEP_MID_END_TX 31
 #define SWEEP_FINE_START_TX 0
@@ -116,6 +117,10 @@
 #define NUMPKT_PER_CFG      1
 #define STEPS_PER_CONFIG    32
 
+
+
+#define DELAY_RFTIMER_COMPAREID		1
+
 typedef enum {
 	PREDEFINED     = 0x01,
 	LC_CODES		   = 0x02,
@@ -124,7 +129,8 @@ typedef enum {
 	TEMP					 = 0x05,
 	COUNT_2M_32K	 = 0x06,
 	COMPRESSED_CLOCK = 0x07,
-	CUSTOM = 0x08
+	IMU_DATA = 0x08,
+	CUSTOM = 0x09
 } tx_packet_content_source_t;
 
 //=========================== variables =======================================
@@ -166,6 +172,7 @@ void		 radio_delay(void);
 void		 onRx(uint8_t *packet, uint8_t packet_len);
 void		 adjust_tx_fine_with_temp(void);
 void		 delay_milliseconds_test_loop(void);
+void		 test_rf_timer_callback(void);
 
 //=========================== main ============================================
 	
@@ -323,10 +330,10 @@ int main(void) {
 				while (1) {
 					printf("switching\n");
 					ANALOG_CFG_REG__10 = 0x0058;
-					delay_milliseconds_synchronous(2000);
+					delay_milliseconds_synchronous(2000, DELAY_RFTIMER_COMPAREID);
 					printf("switching\n");
 					ANALOG_CFG_REG__10 = 0x0018;
-					delay_milliseconds_synchronous(2000);
+					delay_milliseconds_synchronous(2000, DELAY_RFTIMER_COMPAREID);
 				}
 				break;
 			case 14: // contact sensor development// Alex wrote this code 
@@ -391,6 +398,28 @@ int main(void) {
 					printf("toggle!\n");
 					normal_power_mode();
 				}
+			case 16: // testing new RF timer code that allows easier use of all 8 COMPARE interrupts
+//				printf("starting COMPARE0\n");
+//				rftimer_set_callback(test_rf_timer_callback, 0);
+//				delay_milliseconds_synchronous(3000, 0);
+//				printf("ending COMPARE0\n");
+//				printf("starting COMPARE1\n");
+//				//rftimer_set_callback(test_rf_timer_callback, 1);
+//				delay_milliseconds_synchronous(10000, 1);
+//				printf("ending COMPARE1\n");
+			
+//				rftimer_set_callback(test_rf_timer_callback, 7);
+				rftimer_set_repeat(true, 7);
+				delay_milliseconds_asynchronous(1000, 7);
+			
+//				rftimer_set_callback(test_rf_timer_callback, 6);
+				rftimer_set_repeat(true, 6);
+				delay_milliseconds_asynchronous(2000, 6);
+			
+				while (1) {
+					//printf("halted");
+				}
+				break;
 			default:
 				printf("Invalid mode\n");
 				break;
@@ -634,6 +663,38 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									
 
 									break;
+//								case IMU_DATA:
+//									// first take an IMU measurement
+//								
+//								
+//									//place packet type code in first byte of packet
+//									send_packet[0] = IMU_CODE;
+//									
+//									//place imu acc x data into the rest of the packet (lsb first)
+//									send_packet[1] = imu_measurement.acc_x.bytes[0];
+//									send_packet[2] = imu_measurement.acc_x.bytes[1];
+//									
+//									//place acceleration y data into packet
+//									send_packet[3] = imu_measurement.acc_y.bytes[0];
+//									send_packet[4] = imu_measurement.acc_y.bytes[1];
+//									
+//									//place acceleration z data into packet
+//									send_packet[5] = imu_measurement.acc_z.bytes[0];
+//									send_packet[6] = imu_measurement.acc_z.bytes[1];
+//									
+//									//place gyro x data into packet
+//									send_packet[7] = imu_measurement.gyro_x.bytes[0];
+//									send_packet[8] = imu_measurement.gyro_x.bytes[1];
+//									
+//									//place gyro y data into packet
+//									send_packet[9] = imu_measurement.gyro_y.bytes[0];
+//									send_packet[10] = imu_measurement.gyro_y.bytes[1];
+//									
+//									//place gyro z data into packet
+//									send_packet[11] = imu_measurement.gyro_z.bytes[0];
+//									send_packet[12] = imu_measurement.gyro_z.bytes[1];
+//	
+//									sprintf(tx_packet, );
 								case CUSTOM:
 									memcpy(&tx_packet[0],custom_tx_packet,LEN_TX_PKT);
 								  break;
@@ -719,5 +780,10 @@ void adjust_tx_fine_with_temp(void) {
 /* A function used for testing the delay milliseconds functionality. */
 void delay_milliseconds_test_loop(void) {
 	printf("delay over!\n");
-	delay_milliseconds(delay_milliseconds_test_loop, 3000);
+	rftimer_set_callback(delay_milliseconds_test_loop, DELAY_RFTIMER_COMPAREID);
+	delay_milliseconds_asynchronous(3000, DELAY_RFTIMER_COMPAREID);
+}
+
+void test_rf_timer_callback(void) {
+	printf("RF timer callback called!\n");
 }
