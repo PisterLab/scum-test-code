@@ -1352,19 +1352,19 @@ void initialize_mote(){
 //    GPI_enables(0x0000);    
 //    GPO_enables(0xFFFF);
 
-//Enables GPO
-	//GPO_enables(0x00FF);
-	GPO_enables(0x0031); //GPIO 15-0
-	//Enables GPI
-	//GPI_enables(0x0F00);
-	GPI_enables(0x0000);
-		
 	// Select banks for GPIO inputs
-	GPI_control(0,0,0,3);// this setups up GPIO loopback with 3 and 1 setups the Interrupts
+	GPI_control(0,0,1,0);// this setups up GPIO loopback with 3 and 1 setups the Interrupts
 	
 	// // Select banks for GPIO outputs
 	//GPO_control(6,6,6,6);
-	GPO_control(10,6,6,6); //GPIO 0 -15
+	GPO_control(0,6,6,6); //GPIO 0-15
+
+//Enables GPO
+	//GPO_enables(0x00FF);
+	GPO_enables(0xD0FF); //GPIO 15-0 // enable GPO 12,14,15 for IMU
+	//Enables GPI
+	//GPI_enables(0x0F00);
+	GPI_enables(0x2F08); // enable GPI13 to read from IMU	
 	
 	// // Set all GPIOs as outputs
 	//GPI_enables(0x0000);// Shutting off all GPIOs that are not being used to prevent leakage	

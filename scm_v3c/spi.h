@@ -18,6 +18,8 @@ unsigned int read_gyro_x();
 unsigned int read_gyro_y();
 unsigned int read_gyro_z();
 
+void initialize_imu(void);
+
 void spi_write(unsigned char writeByte);
 
 unsigned char spi_read();
@@ -30,8 +32,10 @@ unsigned int read_acc_y();
 
 unsigned int read_acc_z();
 
-imu_data_t test_imu_life();
+void test_imu_life();
 
 unsigned char read_imu_register(unsigned char reg);
 
 void write_imu_register(unsigned char reg, unsigned char data);
+
+void read_all_imu_data(imu_data_t* imu_measurement);

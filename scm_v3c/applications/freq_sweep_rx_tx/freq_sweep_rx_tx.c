@@ -32,11 +32,11 @@
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 
-#define MODE 16 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 17 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 //NEED TO UNCOMMENT IN TX? radio_delay
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
-#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
+#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 #define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
 #define NUM_ACK 10 // number of acknowledgments to send upon receiving a packet
@@ -50,8 +50,8 @@
 // temperature changes), but we just won't sweep the LC.
 
 #define DEFAULT_FIXED_LC_COARSE_TX		22//22
-#define DEFAULT_FIXED_LC_MID_TX			 16//21
-#define DEFAULT_FIXED_LC_FINE_TX		15//22
+#define DEFAULT_FIXED_LC_MID_TX			 18//21
+#define DEFAULT_FIXED_LC_FINE_TX		29//22
 
 #define DEFAULT_FIXED_LC_COARSE_RX			21
 #define DEFAULT_FIXED_LC_MID_RX				  17
@@ -71,7 +71,7 @@
 //#define SWEEP_MID_END_RX 22
 //#define SWEEP_FINE_START_RX 20
 //#define SWEEP_FINE_END_RX 31
-#define SWEEP_COARSE_START_TX 20
+#define SWEEP_COARSE_START_TX 22
 #define SWEEP_COARSE_END_TX 23
 #define SWEEP_MID_START_TX 0
 #define SWEEP_MID_END_TX 31
@@ -165,6 +165,9 @@ uint8_t custom_tx_packet[LEN_TX_PKT];
 
 uint8_t temp_adjusted_fine_code; // will be set by adjust_tx_fine_with_temp function
 
+// IMU variables
+imu_data_t imu_measurement;
+
 //=========================== prototypes ======================================
 
 void		 repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packets);
@@ -173,6 +176,8 @@ void		 onRx(uint8_t *packet, uint8_t packet_len);
 void		 adjust_tx_fine_with_temp(void);
 void		 delay_milliseconds_test_loop(void);
 void		 test_rf_timer_callback(void);
+void		 imu_read_callback(void);
+void		 log_imu_data(void);
 
 //=========================== main ============================================
 	
@@ -209,6 +214,8 @@ int main(void) {
 		} else {
 			manual_calibrate(HF_COARSE, HF_FINE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
+		
+		initialize_imu();
 
 		switch (MODE) {
 			case 0: // tx indefinite
@@ -420,10 +427,21 @@ int main(void) {
 					//printf("halted");
 				}
 				break;
+			case 17: // Read IMU loop
+				rftimer_set_callback(imu_read_callback, 1);
+				rftimer_set_repeat(true, 1);
+				delay_milliseconds_asynchronous(1000, 1);
+				//GPIO_REG__OUTPUT=0x0000;
+//				analog_scan_chain_write();
+//				analog_scan_chain_load();
+				//printf("turned GPIOs off!\n");
+				break;
 			default:
 				printf("Invalid mode\n");
 				break;
 		}
+		
+		while (1) {}
 }
 
 //=========================== public ==========================================
@@ -786,4 +804,28 @@ void delay_milliseconds_test_loop(void) {
 
 void test_rf_timer_callback(void) {
 	printf("RF timer callback called!\n");
+}
+
+void imu_read_callback(void) {
+	//printf("reading IMU data\n");
+
+	test_imu_life();
+	//read_all_imu_data(&imu_measurement);
+	//log_imu_data();
+}
+
+void log_imu_data(void) {
+	printf("AX: %d %d, AY: %d %d, AZ: %d %d, GX: %d %d, GY: %d %d, GZ: %d %d\n", 
+		imu_measurement.acc_x.bytes[0],
+		imu_measurement.acc_x.bytes[1],
+		imu_measurement.acc_y.bytes[0],
+		imu_measurement.acc_y.bytes[1],
+		imu_measurement.acc_z.bytes[0],
+		imu_measurement.acc_z.bytes[1],
+		imu_measurement.gyro_x.bytes[0],
+		imu_measurement.gyro_x.bytes[1],
+		imu_measurement.gyro_y.bytes[0],
+		imu_measurement.gyro_y.bytes[1],
+		imu_measurement.gyro_z.bytes[0],
+		imu_measurement.gyro_z.bytes[1]);
 }
