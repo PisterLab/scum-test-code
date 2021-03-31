@@ -215,7 +215,7 @@ int main(void) {
 			manual_calibrate(HF_COARSE, HF_FINE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
 		
-		initialize_imu();
+		//initialize_imu();
 
 		switch (MODE) {
 			case 0: // tx indefinite
@@ -428,13 +428,14 @@ int main(void) {
 				}
 				break;
 			case 17: // Read IMU loop
-				rftimer_set_callback(imu_read_callback, 1);
-				rftimer_set_repeat(true, 1);
-				delay_milliseconds_asynchronous(1000, 1);
-				//GPIO_REG__OUTPUT=0x0000;
-//				analog_scan_chain_write();
-//				analog_scan_chain_load();
-				//printf("turned GPIOs off!\n");
+				//rftimer_set_callback(imu_read_callback, 1);
+				//rftimer_set_repeat(true, 1);
+				//delay_milliseconds_asynchronous(1000, 1);
+			
+			
+				while (1) {
+					imu_read_callback();
+				}
 				break;
 			default:
 				printf("Invalid mode\n");
@@ -761,9 +762,9 @@ void radio_delay(void) {
 	uint16_t j;
 	
 	if (SOLAR_MODE) {
-		//low_power_mode();
+		low_power_mode();
 		for (j = 0; j < SOLAR_DELAY; j++) {}
-		//normal_power_mode();
+		normal_power_mode();
 	}
 }
 

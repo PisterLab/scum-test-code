@@ -3,8 +3,16 @@
 
 #define CS_PIN		15
 #define CLK_PIN		14
-#define DIN_PIN		13
-#define DATA_PIN	12
+#define DIN_PIN		12 // Used when reading data from the IMU thus a SCuM input
+#define DATA_PIN	13 // Used when writing to the IMU thus a SCuM output
+
+// GPIO 12 - IMU SDO // SCuM receives from this IMU output
+// GPIO 13 - IMU SDI // SCuM outputs to this IMU input
+// GPIO 14 - SCLK
+// GPIO 15 - CS (chip select)
+
+// DIN_PIN is where SCuM reads in from IMU
+// DATA_PIN is where SCuM writes out to IMU
 
 void initialize_imu(void) {
 	int i;
@@ -168,7 +176,8 @@ void test_imu_life() {
 		//imu_measurement.acc_x.value = 11;
 	}
 	else {
-		printf("My IMU is not working :( \n");
+		printf("My IMU is not working :( ");
+		printf("byte returned was %d\n", read_byte);
 		//imu_measurement.acc_x.value = 22;
 	}
 	
@@ -177,8 +186,8 @@ void test_imu_life() {
 
 unsigned char read_imu_register(unsigned char reg) {
 	unsigned char read_byte;
-	reg &= 0x7F;
-	reg |= 0x80;						// guarantee that the function input is a valid input (not necessarily a valid, and readable, register)
+	reg &= 0x7F; //01111111
+	reg |= 0x80; //10000000						// guarantee that the function input is a valid input (not necessarily a valid, and readable, register)
 	
 	spi_chip_select();      // drop chip select
 	spi_write(reg);         // write the selected register to the port
