@@ -30,7 +30,7 @@
 
 // RADIO DEFINES
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
-#define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
+#define OPTICAL_CALIBRATE 0 // 1 if should optical calibrate, 0 if manual
 
 #define MODE 17 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
@@ -215,7 +215,7 @@ int main(void) {
 			manual_calibrate(HF_COARSE, HF_FINE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
 		
-		//initialize_imu();
+		initialize_imu();
 
 		switch (MODE) {
 			case 0: // tx indefinite
@@ -428,14 +428,14 @@ int main(void) {
 				}
 				break;
 			case 17: // Read IMU loop
-				//rftimer_set_callback(imu_read_callback, 1);
-				//rftimer_set_repeat(true, 1);
-				//delay_milliseconds_asynchronous(1000, 1);
+				rftimer_set_callback(imu_read_callback, 1);
+				rftimer_set_repeat(true, 1);
+				delay_milliseconds_asynchronous(100, 1);
 			
 			
-				while (1) {
-					imu_read_callback();
-				}
+				//while (1) {
+				//	imu_read_callback();
+				//}
 				break;
 			default:
 				printf("Invalid mode\n");
@@ -810,13 +810,13 @@ void test_rf_timer_callback(void) {
 void imu_read_callback(void) {
 	//printf("reading IMU data\n");
 
-	test_imu_life();
-	//read_all_imu_data(&imu_measurement);
-	//log_imu_data();
+	//test_imu_life();
+	read_all_imu_data(&imu_measurement);
+	log_imu_data();
 }
 
 void log_imu_data(void) {
-	printf("AX: %d %d, AY: %d %d, AZ: %d %d, GX: %d %d, GY: %d %d, GZ: %d %d\n", 
+	printf("AX: %3d %3d, AY: %3d %3d, AZ: %3d %3d, GX: %3d %3d, GY: %3d %3d, GZ: %3d %3d\n", 
 		imu_measurement.acc_x.bytes[0],
 		imu_measurement.acc_x.bytes[1],
 		imu_measurement.acc_y.bytes[0],

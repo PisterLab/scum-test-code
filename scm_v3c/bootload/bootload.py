@@ -104,14 +104,14 @@ def program_cortex(teensy_port="COM10", scum_port=None, binary_image="../AllGPIO
 
         # Display confirmation message from Teensy
         print(teensy_ser.readline())
-        teensy_ser.write(b'opti_cal\n');
+        teensy_ser.write(b'opti_cal\n')
     elif boot_mode == '3wb':
         # Execute 3-wire bus bootloader on Teensy
         teensy_ser.write(b'boot3wb\n')
 
         # Display confirmation message from Teensy
         print(teensy_ser.readline())
-        print(teensy_ser.readline())
+        # print(teensy_ser.readline()) # Austin: commented this out since it looks like the Teensy code only sends one line back (code was getting stuck here)
         teensy_ser.write(b'3wb_cal\n')
     else:
         raise ValueError("Boot mode '{}' invalid.".format(boot_mode))

@@ -1366,7 +1366,7 @@ void initialize_mote(){
 	//Enables GPI
 	//GPI_enables(0x0F00);
 	//when this is 0xDF08 I get value read always 255 from IMU, but when 0xFF08 I get 0 always read from IMU
-	GPI_enables(0x1000); // Need GPIO12 to be an input
+	GPI_enables(0x1F00); // Need GPIO12 to be an input
 	//GPI_enables(0x2F08); // enable GPI13 to read from IMU	
 	
 	// // Set all GPIOs as outputs

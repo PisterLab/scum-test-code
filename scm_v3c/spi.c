@@ -171,7 +171,8 @@ void test_imu_life() {
 	read_byte = read_imu_register(write_byte);	
 
 	if (read_byte == 0xEA) {
-		printf("My IMU is alive!!!\n");
+		printf("My IMU is alive!!!");
+		printf(" byte read: %x\n", read_byte);
 
 		//imu_measurement.acc_x.value = 11;
 	}
