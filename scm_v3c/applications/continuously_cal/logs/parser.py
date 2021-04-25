@@ -193,8 +193,10 @@ for key, raw_data in result.items():
         ax2.set_ylim(25, 45)
         ax2.set_ylabel('temperature ($^\circ$C)')
         # ax2.legend()
-        
-        ax.set_xlim(-2.5,50)  
+        if 'failed' in LOG_FILE:
+            ax.set_xlim(-0.1,3)
+        else:
+            ax.set_xlim(-2.5,50)
         ax.set_xlabel('time (minutes)')
         
         lines = setting_line+temp_line
