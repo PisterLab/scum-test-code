@@ -61,7 +61,7 @@ def parser_line(line):
         temp                = int(info[21].split('=')[-1][:-1]) - TEMP_OFFSET
         
     except:
-        print line.split(' ')
+        print(line.split(' '))
     return tx_setting, avg_if, rx_setting, avg_fo, rc_2m_setting, avg_2m_counts, temp
     
 # find maxlength_setting_list
@@ -146,7 +146,7 @@ for i in result['avg_2m_counts']:
         twom_1000_ppm += 1
         
 all = float(len(result['avg_2m_counts']))
-print "if_40_ppm = {0} fo_40_ppm = {1} 2m_count_1000_ppm = {2}".format(if_40_ppm/all, fo_40_ppm/all, twom_1000_ppm/all)
+print("if_40_ppm = {0} fo_40_ppm = {1} 2m_count_1000_ppm = {2}".format(if_40_ppm/all, fo_40_ppm/all, twom_1000_ppm/all))
 
 # plot
 
@@ -160,25 +160,25 @@ for key, raw_data in result.items():
     
         fig, ax = plt.subplots(dpi=300)
     
-        DOTSIZE  = 2
+        DOTSIZE  = 7
         
         if key == 'tx_setting':
             
-            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC frequency setting (TX)')
+            setting_line = ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC frequency setting (TX)', markersize=DOTSIZE)
             # ax.plot(x_axis, [maxlength_list_tx[0] for i in x_axis], 'k--', markersize=DOTSIZE)
             # ax.plot(x_axis, [maxlength_list_tx[-1] for i in x_axis], 'k--', markersize=DOTSIZE)
             yticks = [16*i + (maxlength_list_tx[0] & 0xFFE0) for i in range(9)]
         
         if key == 'rx_setting':
         
-            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC frequency setting (RX)', markersize=DOTSIZE)
+            setting_line = ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='LC OSC frequency setting (RX)', markersize=DOTSIZE)
             # ax.plot(x_axis, [maxlength_list_rx[0] for i in x_axis], 'k--', markersize=DOTSIZE)
             # ax.plot(x_axis, [maxlength_list_rx[-1] for i in x_axis], 'k--', markersize=DOTSIZE)
             yticks = [16*i + (maxlength_list_rx[0] & 0xFFE0) for i in range(9)]
             
         if key == 'rc_2m_setting':
             
-            ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='2M RC OSC frequency settings', markersize=DOTSIZE)
+            setting_line = ax.plot(x_axis, raw_data, '.',  color='#0000FF', label='2M RC OSC frequency settings', markersize=DOTSIZE)
             yticks = [16*i + (raw_data[0] & 0xFFE0) for i in range(12)]
         
         ylabel = [converter_config_linear_2_text(i) for i in yticks]
@@ -186,18 +186,24 @@ for key, raw_data in result.items():
         ax.set_yticks(yticks)
         ax.set_yticklabels(ylabel)
         ax.set_ylabel('frequency settings (coarse.mid.fine)')
-        ax.legend()
+        # ax.legend()
         
         ax2 = ax.twinx()  # instantiate a second axes that shares the same x-axis
-        ax2.plot(x_axis, result['temp'], 'r-',label='temperature ($^\circ$C)')
+        temp_line = ax2.plot(x_axis, result['temp'], 'r-',label='temperature ($^\circ$C)')
         ax2.set_ylim(25, 45)
         ax2.set_ylabel('temperature ($^\circ$C)')
-        ax2.legend()
+        # ax2.legend()
         
         ax.set_xlim(-2.5,50)  
         ax.set_xlabel('time (minutes)')
-             
-        ax.legend(markerscale=0.7, scatterpoints=1, loc=2)
+        
+        lines = setting_line+temp_line
+        labels = [l.get_label() for l in lines]
+        
+        lgnd = ax.legend(lines, labels, markerscale=0.7, scatterpoints=1, loc=0)
+        
+        lgnd.legendHandles[0]._legmarker.set_markersize(7)
+        
         ax.grid(True)
         
         fig.set_size_inches(8, 4)
