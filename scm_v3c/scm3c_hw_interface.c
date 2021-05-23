@@ -1362,11 +1362,23 @@ void initialize_mote(){
 //Enables GPO
 	//GPO_enables(0x00FF);
 	//GPO_enables(0xD0FF); //GPIO 15-0 // enable GPO 12,14,15 for IMU // 13 = 1101
-	GPO_enables(0xEF00); // 13,14,15 0b1110 = 0xE needs to be configured as outputs, 12 should not be an output
+	
 	//Enables GPI
 	//GPI_enables(0x0F00);
 	//when this is 0xDF08 I get value read always 255 from IMU, but when 0xFF08 I get 0 always read from IMU
-	GPI_enables(0x1F00); // Need GPIO12 to be an input
+	
+	
+	// 0ld IMU setup
+	//GPO_enables(0xEF00); // 13,14,15 0b1110 = 0xE needs to be configured as outputs, 12 should not be an output
+	//GPI_enables(0x1F00); // Need GPIO12 to be an input
+	
+	
+	// New IMU setup
+	GPO_enables(0xDF00); // 12,14,15 0b1101 = 0xD needs to be configured as outputs, 13 should not be an output
+	GPI_enables(0x2F00); // Need GPIO13 to be an input
+	
+	
+	
 	//GPI_enables(0x2F08); // enable GPI13 to read from IMU	
 	
 	// // Set all GPIOs as outputs

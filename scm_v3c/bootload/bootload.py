@@ -1,6 +1,28 @@
 import serial
 import random
 import argparse
+import signal
+import sys
+
+# Serial connections
+teensy_ser = None
+uart_ser = None
+
+
+def signal_handler(sig, frame):
+    """
+    Gracefully handle exiting the script by closing both serial connections.
+    """
+    print('You pressed Control+C... closing serial ports')
+    if teensy_ser:
+        teensy_ser.close()
+    if uart_ser:
+        uart_ser.close()
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler) # setup exit handler
+
 
 def program_cortex(teensy_port="COM10", scum_port=None, binary_image="../AllGPIOToggle.bin",
         boot_mode='optical', skip_reset=False, insert_CRC=False,
@@ -11,7 +33,9 @@ def program_cortex(teensy_port="COM10", scum_port=None, binary_image="../AllGPIO
             is connected to.
         scum_port: String. Name of the COM port that the UART 
             is connected to. If None, does not attempt to connect
-            to SCM via UART.
+            to SCM via UART. If 'Teensy', then use Teensy as a UART
+            pass-through to communicate with SCuM (used with Spock
+            development boards).
         binary_image: String. Path to the binary file to 
             feed to Teensy to program SCM. This binary file shold be
             compiled using whatever software is meant to end up 
@@ -39,6 +63,8 @@ def program_cortex(teensy_port="COM10", scum_port=None, binary_image="../AllGPIO
         success when programming. In particular, too small a third value can
         cause the optical programmer to lose/eat the short pulses.
     """
+    global teensy_ser, uart_ser
+
     # Open COM port to Teensy
     teensy_ser = serial.Serial(
         port=teensy_port,
@@ -117,25 +143,28 @@ def program_cortex(teensy_port="COM10", scum_port=None, binary_image="../AllGPIO
     else:
         raise ValueError("Boot mode '{}' invalid.".format(boot_mode))
 
-    teensy_ser.close()
+    is_using_teensy_pass_through = scum_port == 'Teensy'
+
+    if not is_using_teensy_pass_through:
+        teensy_ser.close()
 
     # Open UART connection to SCM
-    if scum_port != None:
-        uart_ser = serial.Serial(
-            port=scum_port,
-            baudrate=19200,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=.5)
+    if scum_port:
+        print('Logging UART received from SCuM:')
+        if is_using_teensy_pass_through:
+            uart_ser = teensy_ser
+        else:
+            uart_ser = serial.Serial(
+                port=scum_port,
+                baudrate=19200,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=.5)
 
-        # After programming, several lines are sent from SCM over UART
-        for _ in range(5):
+        while True:
             print(uart_ser.readline())
 
-        uart_ser.close()
-
-    return
 
 if __name__ == "__main__":
     
@@ -155,7 +184,9 @@ if __name__ == "__main__":
         default=None,
         help='Name of the COM port that the UART \
             is connected to. If None, does not attempt to connect\
-            to SCM via UART.'
+            to SCM via UART. If \'Teensy\', then use Teensy as a UART\
+            pass-through to communicate with SCuM (used with Spock)\
+            development boards).'
     )
     
     parser.add_argument('-i','--image',
