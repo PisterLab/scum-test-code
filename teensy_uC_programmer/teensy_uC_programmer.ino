@@ -51,7 +51,7 @@
 
 
 // PIN MAPPINGS (Teensy 3.6)
-// ---------------
+// -------- New "Spock" development board (start) -------
 // digital data output
 const int CLK_OUT = 0;
 const int DATA_OUT = 1;
@@ -81,6 +81,39 @@ const int aPHIb = 38;
 const int aLOAD = 35;
 const int aSCANIN = 34;
 const int aSCANOUT = 36;
+// -------- New "Spock" development board (end) -------
+
+// -------- Old development board (start) -------
+//// digital data output
+//const int CLK_OUT = 0;
+//const int DATA_OUT = 1;
+//
+//// 3wb bootloader
+//const int clkPin = 16;
+//const int enablePin = 15;
+//const int dataPin = 14;
+//const int hReset = 17;
+//
+//const int sReset = 18;
+//
+//// Optical bootloader
+//const int optical_out = 24;
+//
+//// Digital Scan Chain (DSC)
+//const int dPHI = 32;
+//const int dPHIb = 31;
+//const int dSCANi0o1 = 30;
+//const int dSCANOUT = 29;
+//const int dSCANIN = 28;
+//
+//// Analog Scan Chain (ASC)
+//const int asc_source_select = 33;
+//const int aPHI = 37;
+//const int aPHIb = 38;
+//const int aLOAD = 35;
+//const int aSCANIN = 34;
+//const int aSCANOUT = 36;
+// -------- Old development board (end) -------
 
 // Number of optical SFD interrupts to send
 const int numSfdInterrupts = 40;
@@ -1382,8 +1415,8 @@ void cal_3wb() {
 
   int jj;
 
-  for(jj=0; jj<30; jj++){
-  
+  for(jj=0; jj<40; jj++){
+      
     digitalWriteFast(clkPin,HIGH);
     delayMicroseconds(1); //Pulse stays high long enough to trigger interrupt (at least one HCLK cycle)
     digitalWriteFast(clkPin,LOW);
