@@ -30,13 +30,14 @@
 
 // RADIO DEFINES
 // make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
-#define OPTICAL_CALIBRATE 0 // 1 if should optical calibrate, 0 if manual
+#define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
+#define INITIALIZE_IMU 1 // 1 if IMU should be configured to make accel and gyro measurements and 0 otherwise
 
 #define MODE 17 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 //NEED TO UNCOMMENT IN TX? radio_delay
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
-#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
+#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 #define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
 #define NUM_ACK 10 // number of acknowledgments to send upon receiving a packet
@@ -49,9 +50,9 @@
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
 
-#define DEFAULT_FIXED_LC_COARSE_TX		22//22
-#define DEFAULT_FIXED_LC_MID_TX			 18//21
-#define DEFAULT_FIXED_LC_FINE_TX		29//22
+#define DEFAULT_FIXED_LC_COARSE_TX		20//22//20//23//21//20//22//23//22//20//22
+#define DEFAULT_FIXED_LC_MID_TX			  19//16//20//0//3//20//30//0//30//20//21
+#define DEFAULT_FIXED_LC_FINE_TX		  23//13//18//24//6//10//27//24//26//7//22
 
 #define DEFAULT_FIXED_LC_COARSE_RX			21
 #define DEFAULT_FIXED_LC_MID_RX				  17
@@ -71,8 +72,8 @@
 //#define SWEEP_MID_END_RX 22
 //#define SWEEP_FINE_START_RX 20
 //#define SWEEP_FINE_END_RX 31
-#define SWEEP_COARSE_START_TX 22
-#define SWEEP_COARSE_END_TX 23
+#define SWEEP_COARSE_START_TX 20
+#define SWEEP_COARSE_END_TX 25
 #define SWEEP_MID_START_TX 0
 #define SWEEP_MID_END_TX 31
 #define SWEEP_FINE_START_TX 0
@@ -124,20 +125,19 @@
 typedef enum {
 	PREDEFINED     = 0x01,
 	LC_CODES		   = 0x02,
-	LC_CODES_ASCII = 0x03,
-	OPTICAL_VALS   = 0x04,
-	TEMP					 = 0x05,
-	COUNT_2M_32K	 = 0x06,
-	COMPRESSED_CLOCK = 0x07,
-	IMU_DATA = 0x08,
-	CUSTOM = 0x09
+	OPTICAL_VALS   = 0x03,
+	TEMP					 = 0x04,
+	COUNT_2M_32K	 = 0x05,
+	COMPRESSED_CLOCK = 0x06,
+	IMU_DATA = 0x07,
+	CUSTOM = 0x08
 } tx_packet_content_source_t;
 
 //=========================== variables =======================================
 
 // RADIO VARIABLES
 // Defines what/when data is set for the repeat_rx_tx function (see this function for details on values).
-// note that the value here is simlpy a default (fallback valuee) and in many of this program's "modes" 
+// note that the value here is simlpy a default (fallback value) and in many of this program's "modes" 
 // this value is additionally set
 tx_packet_content_source_t tx_packet_data_source = LC_CODES;
 
@@ -215,11 +215,13 @@ int main(void) {
 			manual_calibrate(HF_COARSE, HF_FINE, RC2M_COARSE, RC2M_FINE, RC2M_SUPERFINE, IF_COARSE, IF_FINE);
 		}
 		
-		initialize_imu();
+		if (INITIALIZE_IMU) {
+			initialize_imu();
+		}
 
 		switch (MODE) {
 			case 0: // tx indefinite
-				tx_packet_data_source = LC_CODES;
+				//tx_packet_data_source = LC_CODES;
 				repeat_rx_tx(TX, SWEEP_TX, -1);
 				break;
 			case 1: //rx indefinite
@@ -437,6 +439,10 @@ int main(void) {
 				//	imu_read_callback();
 				//}
 				break;
+			case 18:
+				while (1) {
+					printf("Idle\n");
+				}
 			default:
 				printf("Invalid mode\n");
 				break;
@@ -579,7 +585,7 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 //									tx_packet[2] = cfg_mid;
 //									tx_packet[3] = cfg_fine;
 								
-								  sprintf(tx_packet, "%d %d %d", cfg_coarse, cfg_mid, cfg_fine);
+								  sprintf(tx_packet, "%d %d %d test test test test", cfg_coarse, cfg_mid, cfg_fine);
 								
 									break;
 								case OPTICAL_VALS: // packet content will be optical settings
@@ -638,10 +644,6 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									sprintf(tx_packet, "C:%d M:%d F:%d 2MHz:%d 32kHz:%d", cfg_coarse, cfg_mid, cfg_fine, count_2M, count_32k);
 								
 									break;
-								case LC_CODES_ASCII:
-									sprintf(tx_packet, "C:%d M:%d F:%d", cfg_coarse, cfg_mid, cfg_fine);
-								
-									break;
 								case COMPRESSED_CLOCK: // for when on solar and packet length is compressed
 									// since we are on solar and the sweep of 32 fine codes will take a while (probably 1.5 minutes)
 									// and the temperature properly is changing at a faster rate, we can just take a new temp measurement
@@ -682,38 +684,52 @@ void repeat_rx_tx(radio_mode_t radio_mode, uint8_t should_sweep, int total_packe
 									
 
 									break;
-//								case IMU_DATA:
-//									// first take an IMU measurement
-//								
-//								
-//									//place packet type code in first byte of packet
-//									send_packet[0] = IMU_CODE;
+								case IMU_DATA:
+									// first take an IMU measurement
+									read_all_imu_data(&imu_measurement);
+									log_imu_data();
 //									
 //									//place imu acc x data into the rest of the packet (lsb first)
-//									send_packet[1] = imu_measurement.acc_x.bytes[0];
-//									send_packet[2] = imu_measurement.acc_x.bytes[1];
+//									tx_packet[1] = imu_measurement.acc_x.bytes[0];
+//									tx_packet[2] = imu_measurement.acc_x.bytes[1];
 //									
 //									//place acceleration y data into packet
-//									send_packet[3] = imu_measurement.acc_y.bytes[0];
-//									send_packet[4] = imu_measurement.acc_y.bytes[1];
+//									tx_packet[3] = imu_measurement.acc_y.bytes[0];
+//									tx_packet[4] = imu_measurement.acc_y.bytes[1];
 //									
 //									//place acceleration z data into packet
-//									send_packet[5] = imu_measurement.acc_z.bytes[0];
-//									send_packet[6] = imu_measurement.acc_z.bytes[1];
+//									tx_packet[5] = imu_measurement.acc_z.bytes[0];
+//									tx_packet[6] = imu_measurement.acc_z.bytes[1];
 //									
 //									//place gyro x data into packet
-//									send_packet[7] = imu_measurement.gyro_x.bytes[0];
-//									send_packet[8] = imu_measurement.gyro_x.bytes[1];
+//									tx_packet[7] = imu_measurement.gyro_x.bytes[0];
+//									tx_packet[8] = imu_measurement.gyro_x.bytes[1];
 //									
 //									//place gyro y data into packet
-//									send_packet[9] = imu_measurement.gyro_y.bytes[0];
-//									send_packet[10] = imu_measurement.gyro_y.bytes[1];
+//									tx_packet[9] = imu_measurement.gyro_y.bytes[0];
+//									tx_packet[10] = imu_measurement.gyro_y.bytes[1];
 //									
 //									//place gyro z data into packet
-//									send_packet[11] = imu_measurement.gyro_z.bytes[0];
-//									send_packet[12] = imu_measurement.gyro_z.bytes[1];
-//	
-//									sprintf(tx_packet, );
+//									tx_packet[11] = imu_measurement.gyro_z.bytes[0];
+//									tx_packet[12] = imu_measurement.gyro_z.bytes[1];
+	
+									sprintf(tx_packet, "%d %d %d %d %d %d", 
+										imu_measurement.acc_x.bytes[0],
+										imu_measurement.acc_x.bytes[1],
+										imu_measurement.acc_y.bytes[0],
+										imu_measurement.acc_y.bytes[1],
+										imu_measurement.acc_z.bytes[0],
+										imu_measurement.acc_z.bytes[1]);
+
+										//sprintf(tx_packet, "test");
+//										imu_measurement.gyro_x.bytes[0],
+//										imu_measurement.gyro_x.bytes[1],
+//										imu_measurement.gyro_y.bytes[0],
+//										imu_measurement.gyro_y.bytes[1],
+//										imu_measurement.gyro_z.bytes[0],
+//										imu_measurement.gyro_z.bytes[1]
+									break;
+										
 								case CUSTOM:
 									memcpy(&tx_packet[0],custom_tx_packet,LEN_TX_PKT);
 								  break;

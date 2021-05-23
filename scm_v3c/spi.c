@@ -3,8 +3,8 @@
 
 #define CS_PIN		15
 #define CLK_PIN		14
-#define DIN_PIN		12 // Used when reading data from the IMU thus a SCuM input
-#define DATA_PIN	13 // Used when writing to the IMU thus a SCuM output
+#define DIN_PIN		13 // for v1 new boards use 12, use 13 for v2 boards // Used when reading data from the IMU thus a SCuM input
+#define DATA_PIN	12 // for v1 new boards use 13, use 12 for v2 boards // Used when writing to the IMU thus a SCuM output
 
 // GPIO 12 - IMU SDO // SCuM receives from this IMU output
 // GPIO 13 - IMU SDI // SCuM outputs to this IMU input

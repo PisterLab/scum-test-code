@@ -7,7 +7,7 @@
 //=========================== define ==========================================
 
 #define LENGTH_CRC      2
-#define LEN_TX_PKT          8+LENGTH_CRC  ///< length of tx packet //annecdotally length 7 packet didn't work, but length 8 did... maybe odd packet lengths don't work????
+#define LEN_TX_PKT          32+LENGTH_CRC  ///< length of tx packet //annecdotally length 7 packet didn't work, but length 8 did... maybe odd packet lengths don't work????
 #define LEN_RX_PKT          4+LENGTH_CRC  ///< length of rx packet
 
 typedef enum {

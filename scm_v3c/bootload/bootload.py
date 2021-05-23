@@ -113,6 +113,7 @@ def program_cortex(teensy_port="COM10", scum_port=None, binary_image="../AllGPIO
         print(teensy_ser.readline())
         # print(teensy_ser.readline()) # Austin: commented this out since it looks like the Teensy code only sends one line back (code was getting stuck here)
         teensy_ser.write(b'3wb_cal\n')
+        print('sent 3wb_cal to teensy')
     else:
         raise ValueError("Boot mode '{}' invalid.".format(boot_mode))
 

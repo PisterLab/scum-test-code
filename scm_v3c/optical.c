@@ -55,7 +55,7 @@ uint8_t optical_getCalibrationFinshed(void) {
 }
 
 void optical_enable(void){
-    ISER = 0x0800;
+    ISER = 0x1800; // 1 is for enabling GPIO8 ext interrupt and 8 is for enabling optical interrupt // TODO 3wb
 }
 
 //=========================== interrupt =======================================
@@ -240,7 +240,7 @@ void optical_sfd_isr(){
 						ANALOG_CFG_REG__0 = 0x0000;
 					
 						// Disable this ISR
-						ICER = 0x0800;
+						ICER = 0x1800; // TODO 3WB
 						//optical_vars.optical_cal_iteration = 0;
 						optical_vars.optical_cal_finished = 1;					
 				}
