@@ -33,11 +33,11 @@
 #define OPTICAL_CALIBRATE 1 // 1 if should optical calibrate, 0 if manual
 #define INITIALIZE_IMU 1 // 1 if IMU should be configured to make accel and gyro measurements and 0 otherwise
 
-#define MODE 17 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
+#define MODE 0 // 0 for tx, 1 for rx, 2 for rx then tx, ... and more (see switch statement below)
 #define SOLAR_MODE 0 // 1 if on solar, 0 if on power supply/usb (this enables/disables the SOLAR_DELAY delay)
 //NEED TO UNCOMMENT IN TX? radio_delay
 #define SOLAR_DELAY 25000 // for loop iteration count for delay while on solar between radio periods (5000 = ~3 seconds at 500KHz clock, which is low_power_mode)
-#define SWEEP_TX 1 // 1 if sweep, 0 if fixed
+#define SWEEP_TX 0 // 1 if sweep, 0 if fixed
 #define SWEEP_RX 1 // 1 if sweep, 0 if fixed
 #define SEND_ACK 1 // 1 if we should send an ack after packet rx and 0 otherwise
 #define NUM_ACK 10 // number of acknowledgments to send upon receiving a packet
@@ -50,9 +50,9 @@
 // the LC values that we transmit or receive at may change (for example compensated due to 
 // temperature changes), but we just won't sweep the LC.
 
-#define DEFAULT_FIXED_LC_COARSE_TX		20//22//20//23//21//20//22//23//22//20//22
-#define DEFAULT_FIXED_LC_MID_TX			  19//16//20//0//3//20//30//0//30//20//21
-#define DEFAULT_FIXED_LC_FINE_TX		  23//13//18//24//6//10//27//24//26//7//22
+#define DEFAULT_FIXED_LC_COARSE_TX		22
+#define DEFAULT_FIXED_LC_MID_TX			  15
+#define DEFAULT_FIXED_LC_FINE_TX		  24
 
 #define DEFAULT_FIXED_LC_COARSE_RX			21
 #define DEFAULT_FIXED_LC_MID_RX				  17
