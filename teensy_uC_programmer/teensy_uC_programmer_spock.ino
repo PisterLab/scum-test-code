@@ -49,9 +49,45 @@
 //  Open-drain for hard reset to prevent SCM damage (that pin can't handle 3.3V)
 //  Add support to 3wb for doing initial frequency calibration after programming
 
+#define USB_SERIAL Serial
+#define PASSTHROUGH_SERIAL Serial5 // Serial port used for UART passthrough between computer and SCuM
 
 // PIN MAPPINGS (Teensy 3.6)
-// ---------------
+// -------- New "Spock" development board (start) -------
+const int UNUSED_PIN = 25; // for use when a pin isn't used on the Spock board
+// digital data output
+const int CLK_OUT = 0;
+const int DATA_OUT = 1;
+
+// 3wb bootloader
+const int clkPin = 19;
+const int enablePin = 18;
+const int dataPin = 17;
+const int hReset = 20;
+
+const int sReset = UNUSED_PIN;
+
+// Optical bootloader
+const int optical_out = 24;
+
+// Digital Scan Chain (DSC)
+const int dPHI = 32;
+const int dPHIb = 31;
+const int dSCANi0o1 = 30;
+const int dSCANOUT = 29;
+const int dSCANIN = 28;
+
+// Analog Scan Chain (ASC)
+const int asc_source_select = UNUSED_PIN; // mistake on Spock board
+const int aPHI = 39;
+const int aPHIb = 13;
+const int aLOAD = 38;
+const int aSCANIN = 37;
+const int aSCANOUT = 36;
+// -------- New "Spock" development board (end) -------
+
+// -------- Old development board (start) -------
+/*
 // digital data output
 const int CLK_OUT = 0;
 const int DATA_OUT = 1;
@@ -81,6 +117,8 @@ const int aPHIb = 38;
 const int aLOAD = 35;
 const int aSCANIN = 34;
 const int aSCANOUT = 36;
+*/
+// -------- Old development board (end) -------
 
 // Number of optical SFD interrupts to send
 const int numSfdInterrupts = 40;
@@ -111,7 +149,8 @@ int p1, p2, p3, p4;
 // Runs once at power-on
 void setup() {
   // Open USB serial port; baud doesn't matter; 12Mbps regardless of setting
-  Serial.begin(9600);
+  USB_SERIAL.begin(9600);
+  PASSTHROUGH_SERIAL.begin(19200); // Baud rate of SCuM UART
 
   // Reserve 200 bytes for the inputString:
   inputString.reserve(200);
@@ -277,7 +316,7 @@ void loop() {
 
 
 void transfer_sram() {
-  Serial.println("Executing SRAM Transfer - SCM3B Rev 2");
+  USB_SERIAL.println("Executing SRAM Transfer - SCM3B Rev 2");
   int doneflag = 0;
   iindex = 0;
 
@@ -285,20 +324,20 @@ void transfer_sram() {
   while (!doneflag) {
 
     // Retrieve SRAM contents over serial
-    if (Serial.available()) {
-      ram[iindex] = (byte)Serial.read();
+    if (USB_SERIAL.available()) {
+      ram[iindex] = (byte)USB_SERIAL.read();
       iindex++;
     }
 
     if (iindex == 65536)  {
       doneflag = 1;
-      //Serial.println("SRAM Transfer Complete");
+      //USB_SERIAL.println("SRAM Transfer Complete");
     }
   }
 }
 
 void transfer_sram_4b5b() {
-  Serial.println("Executing SRAM Transfer");
+  USB_SERIAL.println("Executing SRAM Transfer");
   int doneflag = 0;
   iindex = 0;
 
@@ -306,14 +345,14 @@ void transfer_sram_4b5b() {
   while (!doneflag) {
 
     // Retrieve SRAM contents over serial
-    if (Serial.available()) {
-      ram[iindex] = (byte)Serial.read();
+    if (USB_SERIAL.available()) {
+      ram[iindex] = (byte)USB_SERIAL.read();
       iindex++;
     }
 
     if (iindex == 81920)  {
       doneflag = 1;
-      Serial.println("SRAM Transfer Complete");
+      USB_SERIAL.println("SRAM Transfer Complete");
     }
   }
 
@@ -321,10 +360,10 @@ void transfer_sram_4b5b() {
   // For checking if Teensy-based 4b5b encoding matches matlab
   //  for (int i = 0; i < 81920; i++) {
   //    if (ram[i] != payload4b5b[i]) {
-  //      Serial.println("ram = " + String(ram[i]) + ", 4b5b = " + String(payload4b5b[i]) + ", i =" + String(i));
+  //      USB_SERIAL.println("ram = " + String(ram[i]) + ", 4b5b = " + String(payload4b5b[i]) + ", i =" + String(i));
   //    }
   //  }
-  //Serial.println("OK");
+  //USB_SERIAL.println("OK");
 
 
 
@@ -334,7 +373,7 @@ void transfer_sram_4b5b() {
 
 // Transmits 32 bits over 3wb for debugging
 void bootload_3wb_debug()  {
-  //Serial.println("Executing 3wb Bootload");
+  //USB_SERIAL.println("Executing 3wb Bootload");
 
   //ram[0] = 0;
   //ram[1] = 255;
@@ -367,13 +406,13 @@ void bootload_3wb_debug()  {
       delayMicroseconds(1);
     }
   }
-Serial.println("3WB Debug Complete");
+USB_SERIAL.println("3WB Debug Complete");
 }
 
 
 
 void transfer_dig_data() {
-  //Serial.println("Executing Digital Data Transfer");
+  //USB_SERIAL.println("Executing Digital Data Transfer");
   int doneflag = 0;
   iindex = 0;
 
@@ -381,14 +420,14 @@ void transfer_dig_data() {
   while (!doneflag) {
 
     // Retrieve SRAM contents over serial
-    if (Serial.available()) {
-      ram[iindex] = (byte)Serial.read();
+    if (USB_SERIAL.available()) {
+      ram[iindex] = (byte)USB_SERIAL.read();
       iindex++;
     }
 
     if (iindex == dig_data_bytes)  {
       doneflag = 1;
-      //Serial.println("Digital Data Transfer Complete");
+      //USB_SERIAL.println("Digital Data Transfer Complete");
     }
   }
 }
@@ -396,7 +435,7 @@ void transfer_dig_data() {
 // Call this function to configure pulse widths for optical TX
 void optical_config() {
 
-  //Serial.println("Calling optical config");
+  //USB_SERIAL.println("Calling optical config");
 
   // Reset to listen for a new '\n' terminated string over serial
   inputString = "";
@@ -407,7 +446,7 @@ void optical_config() {
   }
 
   p1 = inputString.toInt();
-  //Serial.println("Received " + String(p1));
+  //USB_SERIAL.println("Received " + String(p1));
 
   // Reset to listen for a new '\n' terminated string over serial
   inputString = "";
@@ -417,7 +456,7 @@ void optical_config() {
     serialEvent();
   }
   p2 = inputString.toInt();
-  //Serial.println("Received " + String(p2));
+  //USB_SERIAL.println("Received " + String(p2));
 
   // Reset to listen for a new '\n' terminated string over serial
   inputString = "";
@@ -427,7 +466,7 @@ void optical_config() {
     serialEvent();
   }
   p3 = inputString.toInt();
-  //Serial.println("Received " + String(p3));
+  //USB_SERIAL.println("Received " + String(p3));
 
   // Reset to listen for a new '\n' terminated string over serial
   inputString = "";
@@ -437,7 +476,7 @@ void optical_config() {
     serialEvent();
   }
   p4 = inputString.toInt();
-  //Serial.println("Received "  + String(p4));
+  //USB_SERIAL.println("Received "  + String(p4));
 
   // Reset to listen for a new '\n' terminated string over serial
   inputString = "";
@@ -592,7 +631,7 @@ void bootload_opt_4b5b(int p1, int p2, int p3, int p4) {
   }
 
   interrupts();
-  Serial.println("Optical Boot Complete");
+  USB_SERIAL.println("Optical Boot Complete");
 }
 
 
@@ -714,7 +753,7 @@ void bootload_opt_4b5b_no_reset(int p1, int p2, int p3, int p4) {
   }
 
   interrupts();
-  Serial.println("Optical Boot Complete - No Reset");
+  USB_SERIAL.println("Optical Boot Complete - No Reset");
 }
 
 
@@ -881,14 +920,14 @@ void output_digital_data() {
     }
   }
   interrupts();
-  Serial.println("Digital data output complete.");
+  USB_SERIAL.println("Digital data output complete.");
 }
 
 
 // Receives 1200 analog scan chain bits over serial
 // Then bitbangs them out to ASC
 void asc_write() {
-  Serial.println("Executing ASC Write");
+  USB_SERIAL.println("Executing ASC Write");
   int count = 0;
   char scanbits[1200];
 
@@ -899,8 +938,8 @@ void asc_write() {
   while (count != 1200) {
 
     // Read one bit at a time over serial
-    if (Serial.available()) {
-      scanbits[count] = Serial.read();
+    if (USB_SERIAL.available()) {
+      scanbits[count] = USB_SERIAL.read();
       count++;
     }
   }
@@ -915,18 +954,18 @@ void asc_write() {
     }
     else {
       // There was an error reading in the bits over uart
-      Serial.println("Error in ASC Write");
+      USB_SERIAL.println("Error in ASC Write");
     }
     // Pulse PHI and PHIB
     atick();
   }
-  Serial.println("ASC Write Complete");
+  USB_SERIAL.println("ASC Write Complete");
 }
 
 // Latches the loaded data to the outputs of the scan chain
 // Must call asc_write() before asc_load()
 void asc_load() {
-  Serial.println("Executing ASC Load");
+  USB_SERIAL.println("Executing ASC Load");
   digitalWrite(aLOAD, HIGH);
   digitalWrite(aLOAD, LOW);
 
@@ -938,7 +977,7 @@ void asc_load() {
 
 // Transmits 64kB binary over wired 3wb
 void bootload_3wb_4b5b()  {
-  Serial.println("Executing 3wb Bootload");
+  USB_SERIAL.println("Executing 3wb Bootload");
 
   int start_symbol[4] = {169, 176, 167, 50};
   int preamble = 85;
@@ -1022,7 +1061,7 @@ void toggle_3wb_enable()  {
 
 // Transmits 64kB binary over wired 3wb
 void bootload_3wb()  {
-  //Serial.println("Executing 3wb Bootload");
+  //USB_SERIAL.println("Executing 3wb Bootload");
 
   // Execute hard reset
   pinMode(hReset, OUTPUT);  //Drive low
@@ -1087,7 +1126,7 @@ void bootload_3wb()  {
   }
 
 
-  Serial.println("3WB Bootload Complete");
+  USB_SERIAL.println("3WB Bootload Complete");
 }
 
 
@@ -1099,7 +1138,7 @@ void transmit_chips()  {
   int lpval = 5;
   int xx;
 
-  Serial.println("Executing Raw Chip Output");
+  USB_SERIAL.println("Executing Raw Chip Output");
 
   for (int i = 1; i < dig_data_bytes; i++) {
 
@@ -1159,7 +1198,7 @@ void dsc_debug() {
 //Note that Serial.println has a 697 char (699 out) max.
 //2157 = 600 + 600 + 600 + 357
 void dsc_read() {
-  //Serial.println("Executing DSC Read");
+  //USB_SERIAL.println("Executing DSC Read");
   String st = "";
   int val = 0;
 
@@ -1193,7 +1232,7 @@ void dsc_read() {
     else
       st = String(st + "0");
   }
-  Serial.print(st);
+  USB_SERIAL.print(st);
   st = "";
 
    //digitalWrite(dSCANIN, HIGH);
@@ -1207,7 +1246,7 @@ void dsc_read() {
     else
       st = String(st + "0");
   }
-  Serial.print(st);
+  USB_SERIAL.print(st);
   st = "";
 
 
@@ -1220,7 +1259,7 @@ void dsc_read() {
     else
       st = String(st + "0");
   }
-  Serial.print(st);
+  USB_SERIAL.print(st);
   st = "";
 
   //digitalWrite(dSCANIN, LOW);
@@ -1235,10 +1274,10 @@ void dsc_read() {
     else
       st = String(st + "0");
   }
-  Serial.print(st);
+  USB_SERIAL.print(st);
   st = "";
 
-  Serial.println(); //Terminator
+  USB_SERIAL.println(); //Terminator
 
   // Set pins back to hi-Z
   pinMode(dPHI, INPUT);
@@ -1268,7 +1307,7 @@ void atick() {
 //Note that Serial.println has a 697 char (699 out) max.
 //1200 = 600 + 600
 void asc_read() {
-  //Serial.println("Executing ASC Read");
+  //USB_SERIAL.println("Executing ASC Read");
   String st = "";
   int val = 0;
 
@@ -1294,7 +1333,7 @@ void asc_read() {
     else
       st = String(st + "0");
   }
-  Serial.print(st);
+  USB_SERIAL.print(st);
   st = "";
 
   //601-1200
@@ -1306,10 +1345,10 @@ void asc_read() {
     else
       st = String(st + "0");
   }
-  Serial.print(st);
+  USB_SERIAL.print(st);
   st = "";
 
-  Serial.println(); //Terminator
+  USB_SERIAL.println(); //Terminator
 
   // Set scan chain source back to internal
   digitalWrite(asc_source_select, LOW);
@@ -1382,8 +1421,8 @@ void cal_3wb() {
 
   int jj;
 
-  for(jj=0; jj<30; jj++){
-  
+  for(jj=0; jj<40; jj++){
+      
     digitalWriteFast(clkPin,HIGH);
     delayMicroseconds(1); //Pulse stays high long enough to trigger interrupt (at least one HCLK cycle)
     digitalWriteFast(clkPin,LOW);
@@ -1525,9 +1564,9 @@ void encode_4b5b() {
 
   // For debug printing
   //  for (byte ii = 0; ii < 15 ; ii = ii + 1) {
-  //    Serial.println(payload4b5b[ii]);
+  //    USB_SERIAL.println(payload4b5b[ii]);
   //  }
-  // Serial.println("Encoding Done");
+  // USB_SERIAL.println("Encoding Done");
 
 }
 
@@ -1607,8 +1646,8 @@ void insert_crc() {
   ram[65532] =  calculated_crc & 0x000000FF;
 
   // For debugging
-  //Serial.println("Code length = " + String(code_length) + " -- " + String(ram[65529]) + " - " + String(ram[65528]));
-  //Serial.println("Calculated CRC = " + String(calculated_crc));
+  //USB_SERIAL.println("Code length = " + String(code_length) + " -- " + String(ram[65529]) + " - " + String(ram[65528]));
+  //USB_SERIAL.println("Calculated CRC = " + String(calculated_crc));
 }
 
 
@@ -1618,9 +1657,9 @@ void insert_crc() {
   delay response. Multiple bytes of data may be available.
 */
 void serialEvent() {
-  if (Serial.available()) {
+  if (USB_SERIAL.available()) {
     // get the new byte:
-    char inChar = (char)Serial.read();
+    char inChar = (char)USB_SERIAL.read();
     // add it to the inputString:
     inputString += inChar;
     // if the incoming character is a newline, set a flag so the main loop can
@@ -1628,5 +1667,12 @@ void serialEvent() {
     if (inChar == '\n') {
       stringComplete = true;
     }
+  }
+  
+  if (PASSTHROUGH_SERIAL.available()) {
+    // get the new byte:
+    char inChar = (char)PASSTHROUGH_SERIAL.read();
+    // relay the byte through the USB port
+    USB_SERIAL.println(inChar);
   }
 }
