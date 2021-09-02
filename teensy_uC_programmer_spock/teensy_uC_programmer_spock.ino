@@ -54,6 +54,7 @@
 
 // PIN MAPPINGS (Teensy 3.6)
 // -------- New "Spock" development board (start) -------
+/*
 const int UNUSED_PIN = 25; // for use when a pin isn't used on the Spock board
 // digital data output
 const int CLK_OUT = 0;
@@ -84,10 +85,11 @@ const int aPHIb = 13;
 const int aLOAD = 38;
 const int aSCANIN = 37;
 const int aSCANOUT = 36;
+*/
 // -------- New "Spock" development board (end) -------
 
 // -------- Old development board (start) -------
-/*
+
 // digital data output
 const int CLK_OUT = 0;
 const int DATA_OUT = 1;
@@ -117,7 +119,7 @@ const int aPHIb = 38;
 const int aLOAD = 35;
 const int aSCANIN = 34;
 const int aSCANOUT = 36;
-*/
+
 // -------- Old development board (end) -------
 
 // Number of optical SFD interrupts to send

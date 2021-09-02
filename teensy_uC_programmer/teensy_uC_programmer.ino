@@ -83,7 +83,7 @@ const int aSCANIN = 34;
 const int aSCANOUT = 36;
 
 // Number of optical SFD interrupts to send
-const int numSfdInterrupts = 40;
+const int numSfdInterrupts = 100;
 
 // Clock output
 const int clock_out = 20;
