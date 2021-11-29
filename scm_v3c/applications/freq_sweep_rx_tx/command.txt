@@ -1,0 +1,2 @@
+python bootload.py --teensy_port COM16 --image ../applications/freq_sweep_rx_tx/Objects/freq_sweep_rx_tx.bin
+python bootload.py --teensy_port COM16 --image ../applications/freq_sweep_rx_tx/Objects/freq_sweep_rx_tx.bin
