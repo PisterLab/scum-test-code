@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
+#include "spi.h"
+
 typedef enum pulse_type_t{AZ=0,AZ_SKIP=1,EL=2,EL_SKIP=3,LASER=4,INVALID = 5} pulse_type_t;
 typedef enum lh_id_t {A = 0, B = 1} lh_id_t;
 typedef enum angle_type_t {AZIMUTH = 0, ELEVATION = 1} angle_type_t;
@@ -11,20 +14,6 @@ typedef struct gpio_tran_t {
 	unsigned short gpio;
 	unsigned int timestamp_tran;
 }gpio_tran_t;
-
-typedef union int16_buff_t{
-	int16_t value;
-	uint8_t bytes[2];
-} int16_buff_t;
-
-typedef struct imu_data_t{
-	int16_buff_t acc_x;
-	int16_buff_t acc_y;
-	int16_buff_t acc_z;
-	int16_buff_t gyro_x;
-	int16_buff_t gyro_y;
-	int16_buff_t gyro_z;
-} imu_data_t;
 
 #define DEBUG_STATE 0
 #define DEB_THRESH 2

@@ -1,12 +1,16 @@
-#include "Memory_Map.h"
-#include "lighthouse.h"
 #include "spi.h"
+#include "Memory_Map.h"
+
+#define CS_PIN		15
+#define CLK_PIN		14
+#define DIN_PIN		13 // Used when reading data from the IMU thus a SCuM input
+#define DATA_PIN	12 // Used when writing to the IMU thus a SCuM output
 
 void spi_write(unsigned char writeByte) {
 	int j;
 	int t=0;
-	int clk_pin = 14;
-	int data_pin = 12;
+	int clk_pin = CLK_PIN;
+	int data_pin = DATA_PIN;
 	
 	for (j=7;j>=0;j--) {
 		if ((writeByte&(0x01<<j)) != 0) {
@@ -28,8 +32,8 @@ unsigned char spi_read() {
 	unsigned char readByte;
 	int j;
 	int t = 0;
-	int clk_pin = 14;
-	int din_pin = 13;
+	int clk_pin = CLK_PIN;
+	int din_pin = DIN_PIN;
 	readByte=0;
 
 	
@@ -46,8 +50,8 @@ unsigned char spi_read() {
 
 void spi_chip_select() {
 	int t = 0;
-	int dout_pin = 12;
-	int cs_pin = 15;
+	int dout_pin = DATA_PIN;
+	int cs_pin = CS_PIN;
 	// drop chip select low to select the chip
 	GPIO_REG__OUTPUT &= ~(1 << cs_pin);
 	GPIO_REG__OUTPUT &= ~(1 << dout_pin);
@@ -55,9 +59,18 @@ void spi_chip_select() {
 }
 
 void spi_chip_deselect() {
-	int cs_pin = 15;
+	int cs_pin = CS_PIN;
 	// hold chip select high to deselect the chip
 	GPIO_REG__OUTPUT |= (1 << cs_pin);
+}
+
+void initialize_imu(void) {
+	int i;
+	
+	write_imu_register(0x06,0x41);
+	for(i=0; i<50000; i++);
+	write_imu_register(0x06,0x01);
+	for(i=0; i<50000; i++);
 }
 
 unsigned int read_acc_x() {
@@ -135,25 +148,17 @@ unsigned int read_gyro_z() {
 }
 
 void test_imu_life() {
-	imu_data_t imu_measurement;
 	int i = 0;
 	unsigned char read_byte;
 	unsigned char write_byte = 0x00;
-	
-	imu_measurement.acc_x.value = 66;
+
 	read_byte = read_imu_register(write_byte);	
 
 	if (read_byte == 0xEA) {
 		printf("My IMU is alive!!!\n");
-
-		imu_measurement.acc_x.value = 11;
-		send_imu_packet(imu_measurement);
 	}
 	else {
-		printf("My IMU is not working :( \n");
-		imu_measurement.acc_x.value = 22;
-		send_imu_packet(imu_measurement);
-	}
+		printf("My IMU is not working :( \n");	}
 }
 
 unsigned char read_imu_register(unsigned char reg) {
@@ -179,4 +184,27 @@ void write_imu_register(unsigned char reg, unsigned char data) {
 	
 }
 
+void read_all_imu_data(imu_data_t* imu_measurement) {
+	imu_measurement->acc_x.value = read_acc_x();
+	imu_measurement->acc_y.value = read_acc_y();
+	imu_measurement->acc_z.value = read_acc_z();
+	imu_measurement->gyro_x.value = read_gyro_x();
+	imu_measurement->gyro_y.value = read_gyro_y();
+	imu_measurement->gyro_z.value = read_gyro_z();
+}
 
+void log_imu_data(imu_data_t* imu_measurement) {
+	printf("AX: %3d %3d, AY: %3d %3d, AZ: %3d %3d, GX: %3d %3d, GY: %3d %3d, GZ: %3d %3d\n",
+		imu_measurement->acc_x.bytes[0],
+		imu_measurement->acc_x.bytes[1],
+		imu_measurement->acc_y.bytes[0],
+		imu_measurement->acc_y.bytes[1],
+		imu_measurement->acc_z.bytes[0],
+		imu_measurement->acc_z.bytes[1],
+		imu_measurement->gyro_x.bytes[0],
+		imu_measurement->gyro_x.bytes[1],
+		imu_measurement->gyro_y.bytes[0],
+		imu_measurement->gyro_y.bytes[1],
+		imu_measurement->gyro_z.bytes[0],
+		imu_measurement->gyro_z.bytes[1]);
+}
