@@ -48,7 +48,7 @@ uint8_t optical_getCalibrationFinshed(void) {
 }
 
 void optical_enable(void){
-		ISER = 0x1800; // 1 is for enabling GPIO8 ext interrupt (3WB cal) and 8 is for enabling optical interrupt
+    ISER = 0x1800; // 1 is for enabling GPIO8 ext interrupt (3WB cal) and 8 is for enabling optical interrupt
 }
 
 //=========================== interrupt =======================================

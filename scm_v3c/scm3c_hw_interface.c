@@ -1157,7 +1157,7 @@ void initialize_mote(){
     GPO_control(6,6,0,6); // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
     
     // Set GPIO enables
-		GPI_enables(0x0100); // Enable GPI8 for 3WB cal clk interrupt
+    GPI_enables(0x0100); // Enable GPI8 for 3WB cal clk interrupt
     GPO_enables(0xFFFF);
 
     // Set HCLK source as HF_CLOCK
