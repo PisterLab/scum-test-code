@@ -1151,13 +1151,13 @@ void initialize_mote(){
     // set_ALWAYSON_LDO_voltage(0);
         
     // Select banks for GPIO inputs
-    GPI_control(0,0,0,0);
+    GPI_control(0,0,1,0); // 1 in 3rd arg connects GPI8 to EXT_INTERRUPT<1> needed for 3WB cal 
     
     // Select banks for GPIO outputs
-    GPO_control(6,6,6,0);
+    GPO_control(6,6,0,6); // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
     
-    // Set all GPIOs as outputs
-    GPI_enables(0x0000);    
+    // Set GPIO enables
+		GPI_enables(0x0100); // Enable GPI8 for 3WB cal clk interrupt
     GPO_enables(0xFFFF);
 
     // Set HCLK source as HF_CLOCK
