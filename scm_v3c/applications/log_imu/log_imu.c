@@ -1,5 +1,10 @@
 /**
 \brief This program calibrates, then repeatedly logs IMU measurements over serial.
+Pin setup (See configuration in spi.c):
+Chip select: GPO15
+Clock:       GPO14
+Data in:     GPI13
+Data out:    GPO12
 */
 
 #include <string.h>
