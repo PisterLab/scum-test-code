@@ -127,3 +127,6 @@ venv.bak/
 
 # Build files
 Objects
+
+# DS Store
+.DS_Store
