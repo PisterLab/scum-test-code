@@ -23,6 +23,10 @@
 #define INIT_IF_COARSE              22
 #define INIT_IF_FINE                18
 
+// CRC
+#define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
+#define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
+
 //=========================== variable ========================================
 
 // default setting
@@ -181,6 +185,23 @@ unsigned int crc32c(unsigned char *message, unsigned int length) {
         i = i + 1;
     }
     return reverse(~crc);
+}
+
+void crc_check(void) {
+  uint32_t calc_crc;
+  
+  // Check CRC to ensure there were no errors during optical programming
+  printf("\r\n-------------------\r\n");
+  printf("Validating program integrity..."); 
+
+  calc_crc = crc32c(0x0000,CODE_LENGTH);
+
+  if(calc_crc == CRC_VALUE){
+      printf("CRC OK\r\n");
+  } else{
+      printf("\r\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\r\n");
+      while(1);
+  }
 }
 
 unsigned char flipChar(unsigned char b) {

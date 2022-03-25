@@ -51,6 +51,23 @@ void optical_enable(void){
     ISER = 0x1800; // 1 is for enabling GPIO8 ext interrupt (3WB cal) and 8 is for enabling optical interrupt
 }
 
+void perform_calibration(void) {
+    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
+    // by calling radio rxEnable
+    radio_rxEnable();
+    
+    // Enable optical SFD interrupt for optical calibration
+    optical_enable();
+    
+    // Wait for optical cal to finish
+    while(optical_getCalibrationFinshed() == 0);
+    
+    // Disable the radio now that it is calibrated
+    radio_rfOff();
+
+    printf("Calibration complete\r\n");
+}
+
 //=========================== interrupt =======================================
 
 // This interrupt goes off every time 32 new bits of data have been shifted into the optical register
@@ -230,9 +247,7 @@ void optical_sfd_isr(){
         // Debug prints
         //printf("LC_code=%d\r\n", optical_vars.LC_code);
         //printf("IF_fine=%d\r\n", IF_fine);
-        
-        printf("done\r\n");
-                
+                        
         // This was an earlier attempt to build out a complete table of LC_code for TX/RX on each channel
         // It doesn't really work well yet so leave it commented
         //printf("Building channel table...");
