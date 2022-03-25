@@ -37,7 +37,7 @@ int main(void) {
   
     repeat_params.packet_count = -1;
     repeat_params.pkt_len = TX_PACKET_LEN;
-    repeat_params.radio_mode = TX;
+    repeat_params.radio_mode = TX_MODE;
     repeat_params.repeat_mode = SWEEP;
     repeat_params.fill_tx_packet = fill_tx_packet;
     repeat_params.sweep_lc_coarse_start = 20;

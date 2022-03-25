@@ -15,8 +15,8 @@ typedef enum {
 } radio_freq_t;
 
 typedef enum {
-   TX                        = 0x01,
-   RX                        = 0x02,
+   TX_MODE                        = 0x01,
+   RX_MODE                        = 0x02,
 } radio_mode_t;
 
 typedef enum {
@@ -60,12 +60,12 @@ typedef struct {
 //==== admin
 void send_packet(uint8_t *packet, uint8_t pkt_len);
 void receive_packet(uint8_t pkt_len);
-void cb_startFrame_tx(uint32_t timestamp);
-void cb_endFrame_tx(uint32_t timestamp);
-void cb_startFrame_rx(uint32_t timestamp);
-void cb_endFrame_rx(uint32_t timestamp);
+void cb_startFrame_tx_radio(uint32_t timestamp);
+void cb_endFrame_tx_radio(uint32_t timestamp);
+void cb_startFrame_rx_radio(uint32_t timestamp);
+void cb_endFrame_rx_radio(uint32_t timestamp);
 void default_radio_rx_cb(uint8_t *packet, uint8_t packet_len);
-void cb_timer(void);
+void cb_timer_radio(void);
 void radio_setRxCb(radio_rx_cbt radio_rx_cb);
 void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params);
 
