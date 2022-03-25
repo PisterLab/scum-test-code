@@ -126,11 +126,11 @@ void        build_TX_channel_table(
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
 void send_packet(uint8_t *packet, uint8_t pkt_len) {
-    radio_vars.radio_mode = TX;
+    radio_vars.radio_mode = TX_MODE;
 
-    rftimer_set_callback(cb_timer);
+    rftimer_set_callback(cb_timer_radio);
 
-    radio_loadPacket(packet, pkt_len);		
+    radio_loadPacket(packet, pkt_len);
     radio_txEnable();
 
     rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_TX);
@@ -141,10 +141,10 @@ void send_packet(uint8_t *packet, uint8_t pkt_len) {
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
 void receive_packet(uint8_t pkt_len) {
-    radio_vars.radio_mode = RX;
+    radio_vars.radio_mode = RX_MODE;
     radio_vars.rxPacket_len = pkt_len;
 
-    rftimer_set_callback(cb_timer);
+    rftimer_set_callback(cb_timer_radio);
 
     radio_vars.rxFrameStarted = false;
     radio_rxEnable();
@@ -155,19 +155,19 @@ void receive_packet(uint8_t pkt_len) {
     while (radio_vars.receiveDone==false);
 }
 
-void cb_startFrame_tx(uint32_t timestamp){
+void cb_startFrame_tx_radio(uint32_t timestamp){
 }
 
-void cb_endFrame_tx(uint32_t timestamp){
+void cb_endFrame_tx_radio(uint32_t timestamp){
     radio_rfOff();
     radio_vars.sendDone = true;
 }
 
-void cb_startFrame_rx(uint32_t timestamp){
+void cb_startFrame_rx_radio(uint32_t timestamp){
     radio_vars.rxFrameStarted = true;
 }
 
-void cb_endFrame_rx(uint32_t timestamp){		
+void cb_endFrame_rx_radio(uint32_t timestamp){		
     uint8_t packet_len;
     
     radio_vars.rxPacket = (uint8_t*) malloc(radio_vars.rxPacket_len * sizeof(uint8_t));
@@ -217,7 +217,7 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
     
     uint8_t i;
 
-    if (repeat_rx_tx_params.radio_mode == TX) {
+    if (repeat_rx_tx_params.radio_mode == TX_MODE) {
         radio_mode_string = "transmit";
 
     } else {
@@ -259,10 +259,10 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                     
                     LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
 
-                    if (repeat_rx_tx_params.radio_mode == RX) {
+                    if (repeat_rx_tx_params.radio_mode == RX_MODE) {
                         receive_packet(repeat_rx_tx_params.pkt_len);
                     }
-                    else if (repeat_rx_tx_params.radio_mode == TX) {                        
+                    else if (repeat_rx_tx_params.radio_mode == TX_MODE) {                        
                         for(i = 1; i < repeat_rx_tx_params.pkt_len; i++) {
                           repeat_rx_tx_params.txPacket[i] = ' ';
                         }
@@ -296,11 +296,11 @@ void default_radio_rx_cb(uint8_t *packet, uint8_t packet_len) {
     printf("\n");
 }
 
-void cb_timer(void) {
-    if (radio_vars.radio_mode == TX) {
+void cb_timer_radio(void) {
+    if (radio_vars.radio_mode == TX_MODE) {
         // Tranmit the packet
         radio_txNow();
-    } else if (radio_vars.radio_mode == RX){
+    } else if (radio_vars.radio_mode == RX_MODE){
         // Stop attempting to receive
         radio_vars.receiveDone = true;
         radio_rfOff();
@@ -339,10 +339,10 @@ void radio_init(void) {
     RFCONTROLLER_REG__ERROR_CONFIG  = RX_CRC_ERROR_EN;
     
     // Set interrupt callbacks
-    radio_setStartFrameTxCb(cb_startFrame_tx);
-    radio_setEndFrameTxCb(cb_endFrame_tx);
-    radio_setStartFrameRxCb(cb_startFrame_rx);
-    radio_setEndFrameRxCb(cb_endFrame_rx);
+    radio_setStartFrameTxCb(cb_startFrame_tx_radio);
+    radio_setEndFrameTxCb(cb_endFrame_tx_radio);
+    radio_setStartFrameRxCb(cb_startFrame_rx_radio);
+    radio_setEndFrameRxCb(cb_endFrame_rx_radio);
     radio_setRxCb(default_radio_rx_cb);
 }
 

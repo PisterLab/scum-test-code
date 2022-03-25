@@ -24,6 +24,7 @@ __pycache__/
 disasm.txt
 *.Bak
 *.uvguix*
+*.uvgui*
 
 # Distribution / packaging
 .Python
