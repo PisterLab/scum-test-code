@@ -39,7 +39,7 @@ void scm3c_hw_interface_set_asc(uint32_t* asc_profile);
 
 //==== from scm3c_hardware_interface.h
 unsigned reverse(unsigned x);
-unsigned int crc32c(unsigned char*, unsigned int);
+unsigned int crc32c(unsigned char *message, unsigned int length);
 void crc_check(void);
 unsigned char flipChar(unsigned char b);
 void init_ldo_control(void);

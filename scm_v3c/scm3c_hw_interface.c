@@ -163,7 +163,7 @@ unsigned reverse(unsigned x) {
        ((x >> 8) & 0xFF00) | (x >> 24);
     return x;
 }
-    
+
 // Computes 32-bit crc from a starting address over 'length' dwords
 unsigned int crc32c(unsigned char *message, unsigned int length) {
     int i, j;
