@@ -2,6 +2,10 @@
 
 Confluence for SCuM Documentation and Guides: https://crystalfree.atlassian.net/wiki/spaces/SCUM/overview?homepageId=229432
 
+## Preface
+- Windows is the recommended OS for SCuM development.
+- Current version of SCuM is `scm_v3c`
+
 ## Contributing
 - Create a fork of this repo onto your own Github account
 - Create a branch off of the `develop` branch
