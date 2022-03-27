@@ -1,7 +1,3 @@
-/**
-\brief This program sweeps LC codes during radio receive.
-*/
-
 #include <string.h>
 
 #include "scm3c_hw_interface.h"

@@ -1,7 +1,3 @@
-/**
-\brief This program calibrates, then continuously prints out a hello world message.
-*/
-
 #include <string.h>
 
 #include "scm3c_hw_interface.h"
