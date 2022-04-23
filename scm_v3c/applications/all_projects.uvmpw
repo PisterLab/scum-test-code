@@ -69,8 +69,11 @@
 
   <project>
     <PathAndName>.\rftimer_test\rftimer_test.uvprojx</PathAndName>
+  </project>
+
+  <project>
+    <PathAndName>.\channel_cal\channel_cal.uvprojx</PathAndName>
     <NodeIsActive>1</NodeIsActive>
-    <NodeIsExpanded>1</NodeIsExpanded>
   </project>
 
 </ProjectWorkspace>
