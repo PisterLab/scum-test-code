@@ -7,10 +7,10 @@
 
   <Targets>
     <Target>
-      <TargetName>freq_tx_rx_transit</TargetName>
+      <TargetName>rftimer_test</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
+      <pCCUsed>5060183::V5.06 update 2 (build 183)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>ARMCM0</Device>
@@ -48,7 +48,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>freq_tx_rx_transit</OutputName>
+          <OutputName>rftimer_test</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -81,8 +81,8 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>1</RunUserProg2>
-            <UserProg1Name>fromelf --bin .\Objects\freq_tx_rx_transit.axf -o .\Objects\freq_tx_rx_transit.bin</UserProg1Name>
-            <UserProg2Name>fromelf -cvf .\Objects\freq_tx_rx_transit.axf -o .\Objects\disasm.txt</UserProg2Name>
+            <UserProg1Name>fromelf --bin .\Objects\rftimer_test.axf -o .\Objects\rftimer_test.bin</UserProg1Name>
+            <UserProg2Name>fromelf -cvf .\Objects\rftimer_test.axf -o .\Objects\disasm.txt</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -364,7 +364,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>freq_tx_rx_transit.sct</ScatterFile>
+            <ScatterFile>rftimer_test.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -378,9 +378,9 @@
           <GroupName>app</GroupName>
           <Files>
             <File>
-              <FileName>freq_tx_rx_transit.c</FileName>
+              <FileName>rftimer_test.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\freq_tx_rx_transit.c</FilePath>
+              <FilePath>.\rftimer_test.c</FilePath>
             </File>
           </Files>
         </Group>

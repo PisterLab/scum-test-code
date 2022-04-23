@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdio.h>
-#include "memory_map.h"
+#include "Memory_Map.h"
 #include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
@@ -15,7 +15,7 @@
 // ========================== variable ========================================
 
 typedef struct {
-    rftimer_cbt      rftimer_cb[8];
+    rftimer_cbt      rftimer_cbs[8];
     rftimer_cbt      rftimer_action_cb;
     uint32_t         last_compare_value;
     uint8_t          noNeedClearFlag;
@@ -52,14 +52,14 @@ void rftimer_set_callback(rftimer_cbt cb){
 }
 
 void rftimer_set_callback_by_id(rftimer_cbt cb, uint8_t id){
-    rftimer_vars.rftimer_cb[id] = cb;
+    rftimer_vars.rftimer_cbs[id] = cb;
 }
 
 void rftimer_setCompareIn(uint32_t val){
     rftimer_setCompareIn_by_id(val, 0);
 }
 
-void rftimer_setCompareIn_by_id(uint32_t val, unit8_t id){
+void rftimer_setCompareIn_by_id(uint32_t val, uint8_t id){
     
     rftimer_enable_interrupts();
     
@@ -110,14 +110,14 @@ void rftimer_disable_interrupts(void){
     rftimer_disable_interrupts_by_id(0);
 }
 
-void rftimer_disable_interrupts_by_id(uint8_t){
+void rftimer_disable_interrupts_by_id(uint8_t id){
     // disable compare interrupt
     *RF_TIMER_REG_CONTROL_ADDRESES[id] = 0x0000;
     ICER = 0x80;
 }
 
 void rftimer_clear_interrupts(void){
-    rftimer_clear_interrupts(0);
+    rftimer_clear_interrupts_by_id(0);
 }
 
 void rftimer_clear_interrupts_by_id(uint8_t id){
