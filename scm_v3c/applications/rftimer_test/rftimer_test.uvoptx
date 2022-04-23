@@ -22,7 +22,7 @@
   </DaveTm>
 
   <Target>
-    <TargetName>freq_sweep_rx</TargetName>
+    <TargetName>rftimer_test</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
@@ -172,8 +172,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\freq_sweep_rx.c</PathWithFileName>
-      <FilenameWithoutPath>freq_sweep_rx.c</FilenameWithoutPath>
+      <PathWithFileName>.\rftimer_test.c</PathWithFileName>
+      <FilenameWithoutPath>rftimer_test.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

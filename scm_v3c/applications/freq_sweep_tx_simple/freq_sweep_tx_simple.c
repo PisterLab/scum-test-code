@@ -42,9 +42,9 @@ int main(void) {
     repeat_params.sweep_lc_mid_end = 31;
     repeat_params.sweep_lc_fine_start = 0;
     repeat_params.sweep_lc_fine_end = 31;
-    repeat_params.fixed_lc_coarse = 25;
-    repeat_params.fixed_lc_mid = 2;
-    repeat_params.fixed_lc_fine = 21;
+    repeat_params.fixed_lc_coarse = 22;
+    repeat_params.fixed_lc_mid = 30;
+    repeat_params.fixed_lc_fine = 22;
     
     repeat_rx_tx(repeat_params);
 }
