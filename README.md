@@ -46,6 +46,8 @@ pingpong_test: TODO
 
 quick_cal: TODO
 
+channel_cal: [README](scm_v3c/applications/channel_cal/README.md)
+
 ### Creating a new project
 - Create new directory `scm_v3c/applications/<project_name>`
 - Copy `hello_world.c`, `hello_world.uvoptx`, and `hello_world.uvprojx` from `scm_v3c/applications/hello_world/` into new directory (replace `hello_world` with `<project_name>` in the file name for these three files)
