@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "memory_map.h"
 #include "scm3c_hw_interface.h"
@@ -63,27 +64,49 @@ signed short cdr_tau_history[11] = {0};
 #define  PANID_HBYTE_PKT_INDEX   0x05
 #define  DEFAULT_PANID           0xcafe
 
+//===== RFTIMER
+#define TIMER_PERIOD_TX        4000           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD_RX        4000           ///< 500 = 1ms@500kHz
+
 //=========================== variables =======================================
 
 typedef struct {
+    radio_mode_t radio_mode;
+    
     radio_capture_cbt   startFrame_tx_cb;
     radio_capture_cbt   endFrame_tx_cb;
     radio_capture_cbt   startFrame_rx_cb;
     radio_capture_cbt   endFrame_rx_cb;
-            uint8_t     radio_tx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
-                                                            ((aligned (4)));
-            uint8_t     radio_rx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
-                                                            ((aligned (4)));
-            uint8_t     current_frequency;
-            bool        crc_ok;
-            
-            uint32_t    rx_channel_codes[NUM_CHANNELS];
-            uint32_t    tx_channel_codes[NUM_CHANNELS];
+    uint8_t     radio_tx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
+                                                    ((aligned (4)));
+    uint8_t     radio_rx_buffer[MAXLENGTH_TRX_BUFFER] __attribute__ \
+                                                    ((aligned (4)));
+    uint8_t     current_frequency;
+    bool        crc_ok;
+    
+    uint32_t    rx_channel_codes[NUM_CHANNELS];
+    uint32_t    tx_channel_codes[NUM_CHANNELS];
     
     // How many packets must be received before adjusting RX clock rates
     // Should be at least as long as the FIR filters
     volatile uint16_t   frequency_update_rate;
     volatile uint16_t   frequency_update_cooldown_timer;
+    
+    // TX parameters
+    volatile bool       sendDone;
+    
+    // RX parameters
+    uint8_t*            rxPacket;
+    uint8_t             rxPacket_len;
+    radio_rx_cbt        radio_rx_cb; 
+    int8_t              rxpk_rssi;
+    uint8_t             rxpk_lqi;
+    volatile bool       rxpk_crc;
+    volatile bool       receiveDone;
+    volatile bool       rxFrameStarted;
+    volatile uint32_t   IF_estimate;
+    volatile uint32_t   LQI_chip_errors;
+    volatile uint32_t   cdr_tau_value;
 } radio_vars_t;
 
 radio_vars_t radio_vars;
@@ -101,6 +124,188 @@ void        build_TX_channel_table(
 
 //=========================== public ==========================================
 
+// pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
+void send_packet(uint8_t *packet, uint8_t pkt_len) {
+    radio_vars.radio_mode = TX_MODE;
+
+    rftimer_set_callback(cb_timer_radio);
+
+    radio_loadPacket(packet, pkt_len);
+    radio_txEnable();
+
+    rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_TX);
+    radio_vars.sendDone = false;
+        
+    while (radio_vars.sendDone==false);
+}
+
+// pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
+void receive_packet(uint8_t pkt_len) {
+    radio_vars.radio_mode = RX_MODE;
+    radio_vars.rxPacket_len = pkt_len;
+
+    rftimer_set_callback(cb_timer_radio);
+
+    radio_vars.rxFrameStarted = false;
+    radio_rxEnable();
+    radio_rxNow();
+    rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_RX);
+    radio_vars.receiveDone = false;
+
+    while (radio_vars.receiveDone==false);
+}
+
+void cb_startFrame_tx_radio(uint32_t timestamp){
+}
+
+void cb_endFrame_tx_radio(uint32_t timestamp){
+    radio_rfOff();
+    radio_vars.sendDone = true;
+}
+
+void cb_startFrame_rx_radio(uint32_t timestamp){
+    radio_vars.rxFrameStarted = true;
+}
+
+void cb_endFrame_rx_radio(uint32_t timestamp){		
+    uint8_t packet_len;
+    
+    radio_vars.rxPacket = (uint8_t*) malloc(radio_vars.rxPacket_len * sizeof(uint8_t));
+    
+    radio_getReceivedFrame(
+        &(radio_vars.rxPacket[0]),
+        &packet_len,
+        radio_vars.rxPacket_len,
+        &radio_vars.rxpk_rssi,
+        &radio_vars.rxpk_lqi
+    );
+        
+    radio_rfOff();
+    
+    if(packet_len == radio_vars.rxPacket_len && radio_getCrcOk()) {
+        // Only record IF estimate, LQI, and CDR tau for valid packets
+        radio_vars.IF_estimate        = radio_getIFestimate();
+        radio_vars.LQI_chip_errors    = radio_getLQIchipErrors();
+        
+        radio_vars.radio_rx_cb(radio_vars.rxPacket, packet_len);
+    }
+    
+    free(radio_vars.rxPacket);
+    
+    radio_vars.rxFrameStarted = false;
+}
+
+// Repeatedly perform a radio operation. Supports RX/TX and sweeping/fixed LC frequencies.
+void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
+    repeat_rx_tx_state_t state;
+    
+    uint8_t cfg_coarse;
+    uint8_t cfg_mid;
+    uint8_t cfg_fine;
+    
+    uint8_t cfg_coarse_start;
+    uint8_t cfg_mid_start;
+    uint8_t cfg_fine_start;
+    
+    uint8_t cfg_coarse_stop;
+    uint8_t cfg_mid_stop;
+    uint8_t cfg_fine_stop;
+    
+    int pkt_count = 0;
+    char* radio_mode_string;
+    char* repeat_mode_string;
+    
+    uint8_t i;
+
+    if (repeat_rx_tx_params.radio_mode == TX_MODE) {
+        radio_mode_string = "transmit";
+
+    } else {
+        radio_mode_string = "receive";
+    }
+    
+    if (repeat_rx_tx_params.repeat_mode == FIXED) {
+        cfg_coarse_start = repeat_rx_tx_params.fixed_lc_coarse;
+        cfg_mid_start = repeat_rx_tx_params.fixed_lc_mid;
+        cfg_fine_start = repeat_rx_tx_params.fixed_lc_fine;
+
+        cfg_coarse_stop = cfg_coarse_start + 1;
+        cfg_mid_stop = cfg_mid_start + 1;
+        cfg_fine_stop = cfg_fine_start + 1;
+
+        printf("Fixed %s at c:%u m:%u f:%u\n", radio_mode_string, cfg_coarse_start, cfg_mid_start, cfg_fine_start);
+    } else { // sweep mode
+        cfg_coarse_start = repeat_rx_tx_params.sweep_lc_coarse_start;
+        cfg_coarse_stop = repeat_rx_tx_params.sweep_lc_coarse_end;
+        cfg_mid_start = repeat_rx_tx_params.sweep_lc_mid_start;
+        cfg_mid_stop = repeat_rx_tx_params.sweep_lc_mid_end;
+        cfg_fine_start = repeat_rx_tx_params.sweep_lc_fine_start;
+        cfg_fine_stop = repeat_rx_tx_params.sweep_lc_fine_end;
+        printf("Sweeping %s from Coarse: %d-%d  Mid: %d-%d  Fine: %d-%d\n", radio_mode_string, cfg_coarse_start, cfg_coarse_stop, cfg_mid_start, cfg_mid_stop, cfg_fine_start, cfg_fine_stop);
+    }
+
+    while(1){
+        // loop through all LC configuration
+        for (cfg_coarse=cfg_coarse_start; cfg_coarse < cfg_coarse_stop; cfg_coarse += 1){
+            for (cfg_mid=cfg_mid_start;  cfg_mid < cfg_mid_stop; cfg_mid += 1){
+                for (cfg_fine=cfg_fine_start; cfg_fine < cfg_fine_stop; cfg_fine += 1){
+                    state.cfg_coarse = cfg_coarse;
+                    state.cfg_mid = cfg_mid;
+                    state.cfg_fine = cfg_fine;
+                    
+                    if (repeat_rx_tx_params.repeat_mode == SWEEP) {
+                        printf( "coarse=%d, middle=%d, fine=%d\r\n", cfg_coarse, cfg_mid, cfg_fine);
+                    }
+                    
+                    LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
+
+                    if (repeat_rx_tx_params.radio_mode == RX_MODE) {
+                        receive_packet(repeat_rx_tx_params.pkt_len);
+                    }
+                    else if (repeat_rx_tx_params.radio_mode == TX_MODE) {                        
+                        for(i = 1; i < repeat_rx_tx_params.pkt_len; i++) {
+                          repeat_rx_tx_params.txPacket[i] = ' ';
+                        }
+                        
+                        repeat_rx_tx_params.fill_tx_packet(repeat_rx_tx_params.txPacket, repeat_rx_tx_params.pkt_len, state);
+                        
+                        send_packet(repeat_rx_tx_params.txPacket, repeat_rx_tx_params.pkt_len);
+                    }
+
+                    pkt_count += 1;   
+                    
+                    if (repeat_rx_tx_params.packet_count == pkt_count) {
+                        printf("Stopping rx/tx as we have received/transmitted %d packets\n", pkt_count);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void default_radio_rx_cb(uint8_t *packet, uint8_t packet_len) {
+    uint8_t i;
+    
+    // Log the packet
+    printf("Received Packet. Contents: ");
+    
+    for (i = 0; i < packet_len - LENGTH_CRC; i++) {
+        printf("%d ", radio_vars.rxPacket[i]);
+    }
+    printf("\n");
+}
+
+void cb_timer_radio(void) {
+    if (radio_vars.radio_mode == TX_MODE) {
+        // Tranmit the packet
+        radio_txNow();
+    } else if (radio_vars.radio_mode == RX_MODE){
+        // Stop attempting to receive
+        radio_vars.receiveDone = true;
+        radio_rfOff();
+    }
+}
 
 void radio_init(void) {
 
@@ -132,6 +337,13 @@ void radio_init(void) {
 //                                      RX_CUTOFF_ERROR_EN;
                                       
     RFCONTROLLER_REG__ERROR_CONFIG  = RX_CRC_ERROR_EN;
+    
+    // Set interrupt callbacks
+    radio_setStartFrameTxCb(cb_startFrame_tx_radio);
+    radio_setEndFrameTxCb(cb_endFrame_tx_radio);
+    radio_setStartFrameRxCb(cb_startFrame_rx_radio);
+    radio_setEndFrameRxCb(cb_endFrame_rx_radio);
+    radio_setRxCb(default_radio_rx_cb);
 }
 
 void radio_setStartFrameTxCb(radio_capture_cbt cb) {
@@ -148,6 +360,10 @@ void radio_setStartFrameRxCb(radio_capture_cbt cb) {
 
 void radio_setEndFrameRxCb(radio_capture_cbt cb) {
     radio_vars.endFrame_rx_cb      = cb;
+}
+
+void radio_setRxCb(radio_rx_cbt radio_rx_cb) {
+    radio_vars.radio_rx_cb = radio_rx_cb;
 }
 
 void radio_reset(void) {

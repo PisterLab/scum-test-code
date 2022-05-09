@@ -98,7 +98,24 @@ uint8_t optical_getLCFine(void) {
 }
 
 void optical_enable(void){
-    ISER = 0x0800;
+    ISER = 0x1800; // 1 is for enabling GPIO8 ext interrupt (3WB cal) and 8 is for enabling optical interrupt
+}
+
+void perform_calibration(void) {
+    // For the LO, calibration for RX channel 11, so turn on AUX, IF, and LO LDOs
+    // by calling radio rxEnable
+    radio_rxEnable();
+    
+    // Enable optical SFD interrupt for optical calibration
+    optical_enable();
+    
+    // Wait for optical cal to finish
+    while(optical_getCalibrationFinshed() == 0);
+    
+    // Disable the radio now that it is calibrated
+    radio_rfOff();
+
+    printf("Calibration complete\r\n");
 }
 
 //=========================== interrupt =======================================
@@ -191,11 +208,25 @@ void optical_sfd_isr(){
         
         // Do correction on HF CLOCK
         // Fine DAC step size is about 6000 counts
-        if(count_HFclock < 1997000) {
-            HF_CLOCK_fine--;
+        if(count_HFclock < 1997000) { // 1997000 original value
+						if (HF_CLOCK_fine == 0) {
+								HF_CLOCK_coarse--;
+								HF_CLOCK_fine = 10;
+								optical_vars.optical_cal_iteration = 3;
+						}
+						else {
+								HF_CLOCK_fine--;
+						}
         }
-        if(count_HFclock > 2003000) {
-            HF_CLOCK_fine++;
+        if(count_HFclock > 2003000) { // new value I picked was 2010000, originally 2003000
+						if (HF_CLOCK_fine == 31) {
+								HF_CLOCK_coarse++;
+								HF_CLOCK_fine = 20;
+								optical_vars.optical_cal_iteration = 3;
+						}
+						else {
+								HF_CLOCK_fine++;
+						}
         }
 
         set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
@@ -297,7 +328,7 @@ void optical_sfd_isr(){
      
     if(optical_vars.optical_cal_iteration >= 25 && (!optical_vars.optical_LC_cal_enable || optical_vars.optical_LC_cal_finished)){
         // Disable this ISR
-        ICER = 0x0800;
+        ICER = 0x1800;
         optical_vars.optical_cal_iteration = 0;
         optical_vars.optical_cal_finished = true;
         
@@ -311,9 +342,7 @@ void optical_sfd_isr(){
         // Debug prints
         //printf("LC_code=%d\r\n", optical_vars.LC_code);
         //printf("IF_fine=%d\r\n", IF_fine);
-        
-        printf("done\r\n");
-                
+                        
         // This was an earlier attempt to build out a complete table of LC_code for TX/RX on each channel
         // It doesn't really work well yet so leave it commented
         //printf("Building channel table...");

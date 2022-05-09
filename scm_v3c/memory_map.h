@@ -80,6 +80,24 @@
 
 // ========================== RFTIMER Registers ===============================
 
+#define RFTIMER_REG__COMPARE0_ADDR          (unsigned int*)(AHB_RFTIMER_BASE + 0x10)
+#define RFTIMER_REG__COMPARE1_ADDR          (unsigned int*)(AHB_RFTIMER_BASE + 0x14)
+#define RFTIMER_REG__COMPARE2_ADDR          (unsigned int*)(AHB_RFTIMER_BASE + 0x18)
+#define RFTIMER_REG__COMPARE3_ADDR          (unsigned int*)(AHB_RFTIMER_BASE + 0x1C)
+#define RFTIMER_REG__COMPARE4_ADDR          (unsigned int*)(AHB_RFTIMER_BASE + 0x20)
+#define RFTIMER_REG__COMPARE5_ADDR          (unsigned int*)(AHB_RFTIMER_BASE + 0x24)
+#define RFTIMER_REG__COMPARE6_ADDR          (unsigned int*)(AHB_RFTIMER_BASE + 0x28)
+#define RFTIMER_REG__COMPARE7_ADDR          (unsigned int*)(AHB_RFTIMER_BASE + 0x2C)
+
+#define RFTIMER_REG__COMPARE0_CONTROL_ADDR  (unsigned int*)(AHB_RFTIMER_BASE + 0x30)
+#define RFTIMER_REG__COMPARE1_CONTROL_ADDR  (unsigned int*)(AHB_RFTIMER_BASE + 0x34)
+#define RFTIMER_REG__COMPARE2_CONTROL_ADDR  (unsigned int*)(AHB_RFTIMER_BASE + 0x38)
+#define RFTIMER_REG__COMPARE3_CONTROL_ADDR  (unsigned int*)(AHB_RFTIMER_BASE + 0x3C)
+#define RFTIMER_REG__COMPARE4_CONTROL_ADDR  (unsigned int*)(AHB_RFTIMER_BASE + 0x40)
+#define RFTIMER_REG__COMPARE5_CONTROL_ADDR  (unsigned int*)(AHB_RFTIMER_BASE + 0x44)
+#define RFTIMER_REG__COMPARE6_CONTROL_ADDR  (unsigned int*)(AHB_RFTIMER_BASE + 0x48)
+#define RFTIMER_REG__COMPARE7_CONTROL_ADDR  (unsigned int*)(AHB_RFTIMER_BASE + 0x4C)
+
 #define RFTIMER_REG__CONTROL           *(unsigned int*)(AHB_RFTIMER_BASE + 0x00)
 #define RFTIMER_REG__COUNTER           *(unsigned int*)(AHB_RFTIMER_BASE + 0x04)
 #define RFTIMER_REG__MAX_COUNT         *(unsigned int*)(AHB_RFTIMER_BASE + 0x08)

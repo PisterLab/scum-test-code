@@ -25,6 +25,10 @@
 #define INIT_IF_FINE                18
 
 //=========================== variable ========================================
+#define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))
+#define CODE_LENGTH       (*((unsigned int *) 0x0000FFF8))
+
+// default setting
 
 // default setting
 static const uint32_t default_dac_2m_setting[] = {31,31,29,2,2};
@@ -182,6 +186,23 @@ unsigned int crc32c(unsigned char *message, unsigned int length) {
         i = i + 1;
     }
     return reverse(~crc);
+}
+
+void crc_check(void) {
+  uint32_t calc_crc;
+  
+  // Check CRC to ensure there were no errors during optical programming
+  printf("\r\n-------------------\r\n");
+  printf("Validating program integrity..."); 
+
+  calc_crc = crc32c(0x0000,CODE_LENGTH);
+
+  if(calc_crc == CRC_VALUE){
+      printf("CRC OK\r\n");
+  } else{
+      printf("\r\nProgramming Error - CRC DOES NOT MATCH - Halting Execution\r\n");
+      while(1);
+  }
 }
 
 unsigned char flipChar(unsigned char b) {
@@ -1153,14 +1174,18 @@ void initialize_mote(){
     // set_ALWAYSON_LDO_voltage(0);
 
     // Select banks for GPIO inputs
-    GPI_control(0,0,0,0);
+    GPI_control(0,0,1,0); // 1 in 3rd arg connects GPI8 to EXT_INTERRUPT<1> needed for 3WB cal 
 
     // Select banks for GPIO outputs
-    GPO_control(6,6,6,0);
+    GPO_control(6,6,0,6); // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
 
     // Set all GPIOs as outputs
-    GPI_enables(0x0000);
-    GPO_enables(0xFFFF);
+    // Set GPI enables
+    // Hex entry 2: 0x1 = 1 = 0b0001 = GPI 8 on for 3WB cal clk interrupt
+    GPI_enables(0x0100);
+
+    // Set HCLK source as HF_CLOCK
+    GPO_enables(0xFFFF); 
 
     // Set HCLK source as HF_CLOCK
     set_asc_bit(1147);

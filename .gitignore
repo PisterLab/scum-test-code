@@ -24,6 +24,7 @@ __pycache__/
 disasm.txt
 *.Bak
 *.uvguix*
+*.uvgui*
 
 # Distribution / packaging
 .Python
@@ -121,3 +122,12 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Intellij
+.idea
+
+# Build files
+Objects
+
+# DS Store
+.DS_Store

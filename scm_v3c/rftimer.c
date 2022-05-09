@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdio.h>
-#include "memory_map.h"
+#include "Memory_Map.h"
 #include "scm3c_hw_interface.h"
 #include "radio.h"
 #include "rftimer.h"
@@ -10,11 +10,12 @@
 
 #define MINIMUM_COMPAREVALUE_ADVANCE    5
 #define LARGEST_INTERVAL                0xffff
+#define NUM_INTERRUPTS 8
 
 // ========================== variable ========================================
 
 typedef struct {
-    rftimer_cbt      rftimer_cb;
+    rftimer_cbt      rftimer_cbs[8];
     rftimer_cbt      rftimer_action_cb;
     uint32_t         last_compare_value;
     uint8_t          noNeedClearFlag;
@@ -22,7 +23,17 @@ typedef struct {
 
 rftimer_vars_t rftimer_vars;
 
+bool delay_completed[NUM_INTERRUPTS]; // flag indicating whether the delay has completed. For use by delay_milliseoncds_synchronous method
+bool is_repeating[NUM_INTERRUPTS]; // flag indicating whethere each COMPARE will repeat at a fixed rate
+unsigned int timer_durations[NUM_INTERRUPTS]; // indicates length each COMPARE interrupt was set to run for. Used for repeating delay.
+
+unsigned int* RF_TIMER_REG_ADDRESSES[] = {RFTIMER_REG__COMPARE0_ADDR, RFTIMER_REG__COMPARE1_ADDR, RFTIMER_REG__COMPARE2_ADDR, RFTIMER_REG__COMPARE3_ADDR, RFTIMER_REG__COMPARE4_ADDR, RFTIMER_REG__COMPARE5_ADDR, RFTIMER_REG__COMPARE6_ADDR, RFTIMER_REG__COMPARE7_ADDR};
+
+unsigned int* RF_TIMER_REG_CONTROL_ADDRESES[] = {RFTIMER_REG__COMPARE0_CONTROL_ADDR, RFTIMER_REG__COMPARE1_CONTROL_ADDR, RFTIMER_REG__COMPARE2_CONTROL_ADDR, RFTIMER_REG__COMPARE3_CONTROL_ADDR, RFTIMER_REG__COMPARE4_CONTROL_ADDR, RFTIMER_REG__COMPARE5_CONTROL_ADDR, RFTIMER_REG__COMPARE6_CONTROL_ADDR, RFTIMER_REG__COMPARE7_CONTROL_ADDR};
+
 // ========================== prototype =======================================
+
+void handle_interrupt(uint8_t id);
 
 // ========================== public ==========================================
 
@@ -37,10 +48,18 @@ void rftimer_init(void){
 }
 
 void rftimer_set_callback(rftimer_cbt cb){
-    rftimer_vars.rftimer_cb = cb;
+    rftimer_set_callback_by_id(cb, 0);
+}
+
+void rftimer_set_callback_by_id(rftimer_cbt cb, uint8_t id){
+    rftimer_vars.rftimer_cbs[id] = cb;
 }
 
 void rftimer_setCompareIn(uint32_t val){
+    rftimer_setCompareIn_by_id(val, 0);
+}
+
+void rftimer_setCompareIn_by_id(uint32_t val, uint8_t id){
     
     rftimer_enable_interrupts();
     
@@ -65,7 +84,7 @@ void rftimer_setCompareIn(uint32_t val){
         RFTIMER_REG__INT = 0x0001;
     }
     
-    RFTIMER_REG__COMPARE0           = val & RFTIMER_MAX_COUNT;
+    *RF_TIMER_REG_ADDRESSES[id]  = val & RFTIMER_MAX_COUNT;
 }
 
 uint32_t rftimer_readCounter(void){
@@ -73,88 +92,96 @@ uint32_t rftimer_readCounter(void){
 }
 
 void rftimer_enable_interrupts(void){
+    rftimer_enable_interrupts_by_id(0);
+}
+
+void rftimer_enable_interrupts_by_id(uint8_t id){
     
     // clear pending bit first
-    rftimer_clear_interrupts();
+    rftimer_clear_interrupts_by_id(id);
     
     // enable compare interrupt (this also cancels any pending interrupts)
-    RFTIMER_REG__COMPARE0_CONTROL   = RFTIMER_COMPARE_ENABLE |   \
+    *RF_TIMER_REG_CONTROL_ADDRESES[id]   = RFTIMER_COMPARE_ENABLE |   \
                                       RFTIMER_COMPARE_INTERRUPT_ENABLE;
     ISER = 0x80;
 }
 
 void rftimer_disable_interrupts(void){
+    rftimer_disable_interrupts_by_id(0);
+}
+
+void rftimer_disable_interrupts_by_id(uint8_t id){
     // disable compare interrupt
-    RFTIMER_REG__COMPARE0_CONTROL = 0x0000;
+    *RF_TIMER_REG_CONTROL_ADDRESES[id] = 0x0000;
     ICER = 0x80;
 }
 
 void rftimer_clear_interrupts(void){
-    RFTIMER_REG__INT_CLEAR = 0x0001;
+    rftimer_clear_interrupts_by_id(0);
+}
+
+void rftimer_clear_interrupts_by_id(uint8_t id){
+    RFTIMER_REG__INT_CLEAR = (uint32_t) (((uint32_t) 0x0001) << id);
+}
+
+// Sets a flag indicating whether to make the desired interrupt repeat right after finishing
+void rftimer_set_repeat(bool should_repeat, uint8_t id) {
+	is_repeating[id] = should_repeat;
+}
+
+/* Delays the chip for a period of time in milliseconds based off the rate
+ * of the 500kHz RF TIMER. Internally, this function uses RFTIMER COMPARE 7.
+ * This is an asynchronous delay, so the program can continue executation and
+ * eventually the interrupt will be called indicating the end of the delay.
+ * You will need to set callback if desired.
+ *
+ * @param delay_milli - the delay in milliseconds
+*/
+void delay_milliseconds_asynchronous(unsigned int delay_milli, uint8_t id) {
+	// RF TIMER is derived from HF timer (20MHz) through a divide ratio of 40, thus it is 500kHz.
+	// the count defined by RFTIMER_REG__MAX_COUNT and RFTIMER_REG__COMPARE1 indicate how many
+	// counts the timer should go through before triggering an interrupt. This is the basis for
+	// the following calculation. For example a count of 0x0000C350 corresponds to 100ms.
+	unsigned int rf_timer_count = delay_milli * 500; // same as (delay_milli * 500000) / 1000;
+	rftimer_enable_interrupts_by_id(id);
+	timer_durations[id] = delay_milli;
+
+	rftimer_setCompareIn_by_id(rftimer_readCounter()+rf_timer_count, id);
+}
+
+/* Performs a delay that will not return until the delay has completed.
+ * For additional documentation see the delay_milliseconds function.
+ */
+void delay_milliseconds_synchronous(unsigned int delay_milli, uint8_t id) {
+	delay_completed[id] = false;
+
+	delay_milliseconds_asynchronous(delay_milli, id);
+
+	// do nothing until delay has finished
+	while (delay_completed[id] == false) {}
 }
 
 // ========================== interrupt =======================================
 
 void rftimer_isr(void) {
-    
     uint16_t interrupt;
+    int i = 0;
+    int interrupt_id = 1;
         
     gpio_2_set();
     
     interrupt = RFTIMER_REG__INT;
-    
-    if (interrupt & 0x00000001){
-#ifdef ENABLE_PRINTF
-        printf("COMPARE0 MATCH\r\n");
-#endif
-        if (rftimer_vars.rftimer_cb!=NULL) {
-            rftimer_vars.rftimer_cb();
+
+    for (i = 0; i < 8; i++) {
+        if (interrupt & interrupt_id) {
+            #ifdef ENABLE_PRINTF
+                printf("COMPARE%d MATCH\r\n", i);
+            #endif
+
+            handle_interrupt(i);
         }
-    }
-    
-    if (interrupt & 0x00000002){
-#ifdef ENABLE_PRINTF
-        printf("COMPARE1 MATCH\r\n");
-#endif
-    }
-    
-    if (interrupt & 0x00000004){
-#ifdef ENABLE_PRINTF
-        printf("COMPARE2 MATCH\r\n");
-#endif
-    }
-    
-    // Watchdog has expired - no packet received
-    if (interrupt & 0x00000008){
-#ifdef ENABLE_PRINTF
-        printf("COMPARE3 MATCH\r\n");
-#endif
-    }
-    
-    // Turn on transmitter to allow frequency to settle
-    if (interrupt & 0x00000010){
-#ifdef ENABLE_PRINTF
-        printf("COMPARE4 MATCH\r\n");
-#endif
-    }
-    
-    // Transmit now
-    if (interrupt & 0x00000020){
-#ifdef ENABLE_PRINTF
-        printf("COMPARE5 MATCH\r\n");
-#endif
-    }
-    
-    if (interrupt & 0x00000040) {
-#ifdef ENABLE_PRINTF
-        printf("COMPARE6 MATCH\r\n");
-#endif
-    }
-    
-    if (interrupt & 0x00000080) {
-#ifdef ENABLE_PRINTF
-        printf("COMPARE7 MATCH\r\n");
-#endif
+
+        interrupt_id = interrupt_id << 1;
     }
     
     if (interrupt & 0x00000100) {
@@ -208,4 +235,18 @@ void rftimer_isr(void) {
     RFTIMER_REG__INT_CLEAR = interrupt;
     
     gpio_2_clr();
+}
+
+void handle_interrupt(uint8_t id) {
+	delay_completed[id] = true; // used for delay synchronous function
+
+	if (is_repeating[id]) {
+		delay_milliseconds_asynchronous(timer_durations[id], id);
+	}
+
+	if (rftimer_vars.rftimer_cbs[id] != NULL) {
+		rftimer_vars.rftimer_cbs[id]();
+  } else {
+		printf("interrupt %d called, but had no callback defined.\n", id);
+	}
 }
