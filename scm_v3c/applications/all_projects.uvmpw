@@ -14,6 +14,8 @@
 
   <project>
     <PathAndName>.\freq_sweep_tx_simple\freq_sweep_tx_simple.uvprojx</PathAndName>
+    <NodeIsActive>1</NodeIsActive>
+    <NodeIsExpanded>1</NodeIsExpanded>
     <NodeIsCheckedInBatchBuild>1</NodeIsCheckedInBatchBuild>
   </project>
 
@@ -73,7 +75,6 @@
 
   <project>
     <PathAndName>.\channel_cal\channel_cal.uvprojx</PathAndName>
-    <NodeIsActive>1</NodeIsActive>
   </project>
 
 </ProjectWorkspace>

@@ -127,7 +127,6 @@ void        build_TX_channel_table(
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
 void send_packet(uint8_t *packet, uint8_t pkt_len) {
     radio_vars.radio_mode = TX_MODE;
-
     rftimer_set_callback(cb_timer_radio);
 
     radio_loadPacket(packet, pkt_len);
@@ -136,7 +135,11 @@ void send_packet(uint8_t *packet, uint8_t pkt_len) {
     rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_TX);
     radio_vars.sendDone = false;
         
-    while (radio_vars.sendDone==false);
+    while (radio_vars.sendDone==false)
+		{
+			LC_FREQCHANGE(22, 27, 9);
+			LC_FREQCHANGE(23, 27, 9);
+		}
 }
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
