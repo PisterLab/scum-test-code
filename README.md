@@ -13,7 +13,7 @@ Confluence for SCuM Documentation and Guides: https://crystalfree.atlassian.net/
 
 ## Build
 
-* Install ARM Keil: https://www.keil.com/demo/eval/arm.htm, default settings (`MDK528A.EXE` known to work)
+* Install ARM Keil: https://www.keil.com/demo/eval/arm.htm, default settings (`MDK528A.EXE` and `MDK525.EXE` known to work. `MDK537.exe` (latest version as of writing) does not work out of the box since it uses compiler version 6, when we should be using compiler version 5. Perhaps this can be fixed or configured after installing.)
 * Open `scm_v3c/applications/all_projects.uvmpw`
 * In Keil project/workspace pane, right click desired project and click `Set as Active Project`
 * Press build button to generate `.bin` file for active project (`scm_v3c/applications/<app_name>/Objects/<app_name>.bin`)
