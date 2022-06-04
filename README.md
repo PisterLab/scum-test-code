@@ -59,6 +59,8 @@ channel_cal: [README](scm_v3c/applications/channel_cal/README.md)
 
 ## Bootload
 
+You can program SCuM using either a nRF52840DK (recommended) or a Teensy.
+
 ### nRF52840DK Bootloader (for wired bootloading; this is the preferred approach)
 Bootload & Wiring Guide: https://crystalfree.atlassian.net/wiki/spaces/SCUM/pages/1901559821/Sulu+Programming+With+nRF+Setup
 
