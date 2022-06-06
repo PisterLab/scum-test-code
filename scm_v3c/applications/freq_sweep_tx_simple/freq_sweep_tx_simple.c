@@ -37,8 +37,8 @@ int main(void) {
     repeat_params.radio_mode = TX_MODE;
     repeat_params.repeat_mode = FIXED;
     repeat_params.fill_tx_packet = fill_tx_packet;
-    repeat_params.sweep_lc_coarse_start = 23;
-    repeat_params.sweep_lc_coarse_end = 24;
+    repeat_params.sweep_lc_coarse_start = 18;
+    repeat_params.sweep_lc_coarse_end = 25;
     repeat_params.sweep_lc_mid_start = 0;
     repeat_params.sweep_lc_mid_end = 31;
     repeat_params.sweep_lc_fine_start = 0;
@@ -46,7 +46,7 @@ int main(void) {
     repeat_params.fixed_lc_coarse = 22;
     repeat_params.fixed_lc_mid = 27;
     repeat_params.fixed_lc_fine = 9;
-    
+ 
     repeat_rx_tx(repeat_params);
 }
 
@@ -54,7 +54,7 @@ int main(void) {
 void fill_tx_packet(uint8_t *packet, uint8_t packet_len, repeat_rx_tx_state_t state) {
 		int i=0;
 		unsigned char temp [] = "1";
-		//sprintf(packet, "%d %d %d", state.cfg_coarse, state.cfg_mid, state.cfg_fine);
+		sprintf(packet, "%d %d %d", state.cfg_coarse, state.cfg_mid, state.cfg_fine);
 
 		packet[packet_len-3]=NULL;
 		packet[0]=NULL;
