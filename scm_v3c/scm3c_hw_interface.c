@@ -992,10 +992,14 @@ void radio_init_tx(){
     ANALOG_CFG_REG__11 = 0x0080;
     
     // Set current in LC tank
-    set_LC_current(127);
+		set_LC_current(0);
+    //set_LC_current(127);
+
     
     // Set LDO voltages for PA and LO
-    set_PA_supply(63);
+//    set_PA_supply(63);
+//    set_LO_supply(127,0);
+		set_PA_supply(63);
     set_LO_supply(127,0);
     
 }

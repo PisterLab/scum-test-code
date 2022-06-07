@@ -99,6 +99,9 @@ void radio_build_channel_table(uint32_t channel_11_LC_code);
 void radio_loadPacket(uint8_t* packet, uint16_t len);
 void radio_txEnable(void);
 void radio_txNow(void);
+void radio_tx_FSK_high(void); 
+void radio_tx_FSK_low(void); 
+void change_tone_spacing(int bit []);
 
 //==== rx
 void radio_rxEnable(void);

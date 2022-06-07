@@ -18,6 +18,8 @@ app_vars_t app_vars;
 
 //=========================== prototypes ======================================
 void fill_tx_packet(uint8_t *packet, uint8_t packet_len, repeat_rx_tx_state_t state);
+void calibrate_tone_spacing();
+
 
 //=========================== main ============================================
 
@@ -35,44 +37,49 @@ int main(void) {
     repeat_params.pkt_len = TX_PACKET_LEN;
 		printf("%d\n", TX_PACKET_LEN);
     repeat_params.radio_mode = TX_MODE;
-    repeat_params.repeat_mode = FIXED;
+    repeat_params.repeat_mode = SWEEP;
     repeat_params.fill_tx_packet = fill_tx_packet;
-    repeat_params.sweep_lc_coarse_start = 22;
-    repeat_params.sweep_lc_coarse_end = 25;
+    repeat_params.sweep_lc_coarse_start = 21;
+    repeat_params.sweep_lc_coarse_end = 24;
     repeat_params.sweep_lc_mid_start = 0;
     repeat_params.sweep_lc_mid_end = 31;
     repeat_params.sweep_lc_fine_start = 0;
     repeat_params.sweep_lc_fine_end = 31;
     repeat_params.fixed_lc_coarse = 23;
-    repeat_params.fixed_lc_mid = 2;
-    repeat_params.fixed_lc_fine = 0;
+    repeat_params.fixed_lc_mid = 0;
+    repeat_params.fixed_lc_fine = 14;
  
     repeat_rx_tx(repeat_params);
 }
 
 //=========================== private =========================================
+void calibrate_tone_spacing()
+{
+	radio_txEnable();
+	
+}
 void fill_tx_packet(uint8_t *packet, uint8_t packet_len, repeat_rx_tx_state_t state) {
 		int i=0;
 		unsigned char temp [] = "1";
-		//sprintf(packet, "%d %d %d", state.cfg_coarse, state.cfg_mid, state.cfg_fine);
+		sprintf(packet, "%d %d %d", state.cfg_coarse, state.cfg_mid, state.cfg_fine);
 
-		packet[packet_len-3]=NULL;
-		packet[0]=NULL;
-		while(packet[packet_len-3]==NULL)
-		{
-			sprintf(temp, "%d", i);
-			
-			strcat(packet, temp);
-	
-			if(i!=9)
-			{
-				i=i+1;
-			}
-			else 
-			{
-				i=0;	
-			}
-		}
+//		packet[packet_len-3]=NULL;
+//		packet[0]=NULL;
+//		while(packet[packet_len-3]==NULL)
+//		{
+//			sprintf(temp, "%d", i);
+//			
+//			strcat(packet, temp);
+//	
+//			if(i!=9)
+//			{
+//				i=i+1;
+//			}
+//			else 
+//			{
+//				i=0;	
+//			}
+//		}
 		printf("%s\r\n",packet); 
 //		
 }

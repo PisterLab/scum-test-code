@@ -222,6 +222,8 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
     uint8_t cfg_fine_stop;
     
     int pkt_count = 0;
+		int loop_count = 0; 
+		int fsk[3] = {0, 0, 0}; 
     char* radio_mode_string;
     char* repeat_mode_string;
     
@@ -255,16 +257,78 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
     }
 
     while(1){
+
+				switch(loop_count)
+				{
+					case 1: 
+						fsk[0] = 1;
+						fsk[1] = 0;
+						fsk[2] = 0;
+						change_tone_spacing(fsk);
+						break;
+					case 2:
+						fsk[0] = 0;
+						fsk[1] = 1;
+						fsk[2] = 0;
+						change_tone_spacing(fsk);
+						break;
+					case 3:
+						fsk[0] = 1;
+						fsk[1] = 1;
+						fsk[2] = 0;
+						change_tone_spacing(fsk);
+						break;
+					case 4: 
+						fsk[0] = 0;
+						fsk[1] = 0;
+						fsk[2] = 1;
+						change_tone_spacing(fsk);
+						break;
+					case 5:
+						fsk[0] = 1;
+						fsk[1] = 0;
+						fsk[2] = 1;
+						change_tone_spacing(fsk);
+						break;
+					case 6:
+						fsk[0] = 0;
+						fsk[1] = 1;
+						fsk[2] = 1;
+						change_tone_spacing(fsk);
+						break;
+					case 7:
+						fsk[0] = 1;
+						fsk[1] = 1;
+						fsk[2] = 1;
+						change_tone_spacing(fsk);
+						break;
+					case 8:
+						fsk[0] = 0;
+						fsk[1] = 0;
+						fsk[2] = 0;
+						change_tone_spacing(fsk);
+						loop_count=0;
+						break;
+					default: 
+						fsk[0] = 0;
+						fsk[1] = 0;
+						fsk[2] = 0;
+						change_tone_spacing(fsk);
+						
+							
+				}
         // loop through all LC configuration
         for (cfg_coarse=cfg_coarse_start; cfg_coarse < cfg_coarse_stop; cfg_coarse += 1){
             for (cfg_mid=cfg_mid_start;  cfg_mid < cfg_mid_stop; cfg_mid += 1){
                 for (cfg_fine=cfg_fine_start; cfg_fine < cfg_fine_stop; cfg_fine += 1){
-                    state.cfg_coarse = cfg_coarse;
+
+										
+										state.cfg_coarse = cfg_coarse;
                     state.cfg_mid = cfg_mid;
                     state.cfg_fine = cfg_fine;
                     
                     if (repeat_rx_tx_params.repeat_mode == SWEEP) {
-                        printf( "coarse=%d, middle=%d, fine=%d\r\n", cfg_coarse, cfg_mid, cfg_fine);
+                        printf( "coarse=%d, middle=%d, fine=%d, fsk[2]=%d, fsk[1]=%d, fsk[0]=%d\r\n", cfg_coarse, cfg_mid, cfg_fine, fsk[2], fsk[1], fsk[0]);
                     }
                     
                     LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
@@ -277,8 +341,8 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                           repeat_rx_tx_params.txPacket[i] = ' ';
                         }
                         
-                        repeat_rx_tx_params.fill_tx_packet(repeat_rx_tx_params.txPacket, repeat_rx_tx_params.pkt_len, state);
-                        
+                        //repeat_rx_tx_params.fill_tx_packet(repeat_rx_tx_params.txPacket, repeat_rx_tx_params.pkt_len, state);
+                        sprintf(repeat_rx_tx_params.txPacket, "%d %d %d %d %d %d", state.cfg_coarse, state.cfg_mid, state.cfg_fine, fsk[2], fsk[1], fsk[0]);
                         send_packet(repeat_rx_tx_params.txPacket, repeat_rx_tx_params.pkt_len);
                     }
 
@@ -291,7 +355,9 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                 }
             }
         }
-    }
+			loop_count +=1; 
+		}
+		
 }
 
 void default_radio_rx_cb(uint8_t *packet, uint8_t packet_len) {
@@ -435,6 +501,52 @@ void radio_txNow(){
     RFCONTROLLER_REG__CONTROL = TX_SEND;
 }
 
+void change_tone_spacing(int bit [])
+{
+	  if (bit[0]==1)
+		{ 
+			set_asc_bit(1000);
+		}
+		else 
+		{
+			clear_asc_bit(1000);
+		}	
+		if (bit[1]==1)
+		{ 
+			set_asc_bit(1001);
+		}
+		else 
+		{
+			clear_asc_bit(1001);
+		}	
+		if (bit[2]==1)
+		{ 
+			set_asc_bit(1002);
+		}
+		else 
+		{
+			clear_asc_bit(1002);
+		}
+    
+		analog_scan_chain_write();
+    analog_scan_chain_load();
+}
+void radio_tx_FSK_high()
+{
+		set_asc_bit(999);
+    clear_asc_bit(998);
+	  analog_scan_chain_write();
+    analog_scan_chain_load();
+	
+}
+void radio_tx_FSK_low()
+{
+		clear_asc_bit(999);
+    set_asc_bit(998);
+		analog_scan_chain_write();
+    analog_scan_chain_load();
+	
+}
 // Turn on the radio for receive
 // This should be done at least ~50 us before rxNow()
 void radio_rxEnable(){
@@ -829,6 +941,7 @@ void radio_build_channel_table(unsigned int channel_11_LC_code){
         
         radio_rfOff();
 }
+
 
 //=========================== intertupt =======================================
 
