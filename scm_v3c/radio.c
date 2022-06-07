@@ -65,7 +65,7 @@ signed short cdr_tau_history[11] = {0};
 #define  DEFAULT_PANID           0xcafe
 
 //===== RFTIMER
-#define TIMER_PERIOD_TX        4000           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD_TX        100           ///< 500 = 1ms@500kHz
 #define TIMER_PERIOD_RX        4000           ///< 500 = 1ms@500kHz
 
 //=========================== variables =======================================
@@ -133,10 +133,10 @@ void send_packet(uint8_t *packet, uint8_t pkt_len) {
 
     radio_loadPacket(packet, pkt_len);
     radio_txEnable();
-		while(i==0)
-		{
-			
-		}
+//		while(i==0)
+//		{
+//			
+//		}
     rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_TX);
     radio_vars.sendDone = false;
 //    for(i=0;i<delay*8; i++);
