@@ -11,8 +11,8 @@ Message Austin: austinpatel at berkeley dot edu
 
 ## Contributing
 - Create a fork of this repo onto your own Github account
-- Create a branch off of the `develop` branch
-- Submit pull requests from your branch into the `develop` branch
+- Create a branch off of the `develop` branch on your fork
+- Submit pull requests from your branch on your fork into the `develop` branch of this main repository once your code is working
 
 ## Build
 
