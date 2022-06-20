@@ -36,15 +36,15 @@ int main(void) {
     repeat_params.radio_mode = TX_MODE;
     repeat_params.repeat_mode = SWEEP;
     repeat_params.fill_tx_packet = fill_tx_packet;
-    repeat_params.sweep_lc_coarse_start = 20;
-    repeat_params.sweep_lc_coarse_end = 25;
+    repeat_params.sweep_lc_coarse_start = 18;
+    repeat_params.sweep_lc_coarse_end = 26;
     repeat_params.sweep_lc_mid_start = 0;
     repeat_params.sweep_lc_mid_end = 31;
     repeat_params.sweep_lc_fine_start = 0;
     repeat_params.sweep_lc_fine_end = 31;
-    repeat_params.fixed_lc_coarse = 22;
-    repeat_params.fixed_lc_mid = 30;
-    repeat_params.fixed_lc_fine = 22;
+    repeat_params.fixed_lc_coarse = 24;
+    repeat_params.fixed_lc_mid = 5;
+    repeat_params.fixed_lc_fine = 9;
     
     repeat_rx_tx(repeat_params);
 }

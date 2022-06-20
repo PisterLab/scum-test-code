@@ -7,10 +7,10 @@
 
   <Targets>
     <Target>
-      <TargetName>if_estimate_test</TargetName>
+      <TargetName>pwm</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
+      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>if_estimate_test</OutputName>
+          <OutputName>pwm</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -82,8 +82,8 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>1</RunUserProg2>
-            <UserProg1Name>fromelf --bin .\Objects\if_estimate_test.axf -o .\Objects\if_estimate_test.bin</UserProg1Name>
-            <UserProg2Name>fromelf -cvf .\Objects\if_estimate_test.axf -o .\Objects\disasm.txt</UserProg2Name>
+            <UserProg1Name>fromelf --bin .\Objects\pwm.axf -o .\Objects\pwm.bin</UserProg1Name>
+            <UserProg2Name>fromelf -cvf .\Objects\pwm.axf -o .\Objects\disasm.txt</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -368,7 +368,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>if_estimate_test.sct</ScatterFile>
+            <ScatterFile>pwm.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -382,9 +382,9 @@
           <GroupName>app</GroupName>
           <Files>
             <File>
-              <FileName>if_estimate_test.c</FileName>
+              <FileName>pwm.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\if_estimate_test.c</FilePath>
+              <FilePath>.\pwm.c</FilePath>
             </File>
           </Files>
         </Group>
