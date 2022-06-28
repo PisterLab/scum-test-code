@@ -992,7 +992,7 @@ void radio_init_tx(){
     ANALOG_CFG_REG__11 = 0x0080;
     
     // Set current in LC tank
-		set_LC_current(0);
+		set_LC_current(127);
     //set_LC_current(127);
 
     
@@ -1179,7 +1179,7 @@ void initialize_mote(){
     GPI_control(0,0,1,0); // 1 in 3rd arg connects GPI8 to EXT_INTERRUPT<1> needed for 3WB cal 
     
     // Select banks for GPIO outputs
-    GPO_control(6,6,0,6); // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
+    GPO_control(6,10,0,6); // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
     
     // Set GPI enables
     // Hex entry 2: 0x1 = 1 = 0b0001 = GPI 8 on for 3WB cal clk interrupt

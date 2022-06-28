@@ -37,17 +37,20 @@ int main(void) {
     repeat_params.pkt_len = TX_PACKET_LEN;
 		printf("%d\n", TX_PACKET_LEN);
     repeat_params.radio_mode = TX_MODE;
-    repeat_params.repeat_mode = SWEEP;
+    repeat_params.repeat_mode = FIXED;
     repeat_params.fill_tx_packet = fill_tx_packet;
-    repeat_params.sweep_lc_coarse_start = 21;
-    repeat_params.sweep_lc_coarse_end = 24;
-    repeat_params.sweep_lc_mid_start = 0;
-    repeat_params.sweep_lc_mid_end = 31;
+    repeat_params.sweep_lc_coarse_start = 22;
+    repeat_params.sweep_lc_coarse_end = 23;
+    repeat_params.sweep_lc_mid_start =10;
+    repeat_params.sweep_lc_mid_end = 20;
     repeat_params.sweep_lc_fine_start = 0;
     repeat_params.sweep_lc_fine_end = 31;
-    repeat_params.fixed_lc_coarse = 23;
-    repeat_params.fixed_lc_mid = 0;
-    repeat_params.fixed_lc_fine = 14;
+    repeat_params.fixed_lc_coarse = 22;
+    repeat_params.fixed_lc_mid = 19;
+    repeat_params.fixed_lc_fine = 10;
+//    repeat_params.fixed_lc_coarse = 22;
+//    repeat_params.fixed_lc_mid = 13;
+//    repeat_params.fixed_lc_fine = 6;
  
     repeat_rx_tx(repeat_params);
 }
@@ -80,6 +83,6 @@ void fill_tx_packet(uint8_t *packet, uint8_t packet_len, repeat_rx_tx_state_t st
 //				i=0;	
 //			}
 //		}
-		printf("%s\r\n",packet); 
+		//printf("%s\r\n",packet); 
 //		
 }

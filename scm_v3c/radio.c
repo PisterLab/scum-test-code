@@ -142,11 +142,36 @@ void send_packet(uint8_t *packet, uint8_t pkt_len) {
 //    for(i=0;i<delay*8; i++);
     while (radio_vars.sendDone==false)
 		{
-//			LC_FREQCHANGE(22, 27, 9);
+		
+
+//			delay_milliseconds_synchronous(2,1);
+//			LC_FREQCHANGE(22, 19, 9);
+//			delay_milliseconds_synchronous(2,1);
+//			LC_FREQCHANGE(22, 19, 7);
+//			delay_milliseconds_synchronous(4,1);
+//			LC_FREQCHANGE(22, 19, 6);
+//			delay_milliseconds_synchronous(2,1);
+//			LC_FREQCHANGE(22, 19, 4);
+			delay_milliseconds_synchronous(12,1);
+			LC_FREQCHANGE(22, 19, 3);
+////			delay_milliseconds_synchronous(2,1);
+////			LC_FREQCHANGE(22, 19, 1);
+////			delay_milliseconds_synchronous(2,1);
+////			LC_FREQCHANGE(22, 18, 9);
+////			delay_milliseconds_synchronous(2,1);
+////			LC_FREQCHANGE(22, 18, 7);
+			delay_milliseconds_synchronous(10,1);
+			LC_FREQCHANGE(22, 18, 5);
+//			delay_milliseconds_synchronous(10,1);
+//			LC_FREQCHANGE(22, 18, 0);
+			delay_milliseconds_synchronous(10,1);
+			LC_FREQCHANGE(22, 17, 5);
+////			
 //			for(i=0;i<delay; i++);
 //			LC_FREQCHANGE(22, 27, 10);
 //			for(i=0;i<delay; i++);
 		}
+		LC_FREQCHANGE(22, 19, 10);
 }
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
@@ -258,65 +283,63 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
 
     while(1){
 
-				switch(loop_count)
-				{
-					case 1: 
-						fsk[0] = 1;
-						fsk[1] = 0;
-						fsk[2] = 0;
-						change_tone_spacing(fsk);
-						break;
-					case 2:
-						fsk[0] = 0;
-						fsk[1] = 1;
-						fsk[2] = 0;
-						change_tone_spacing(fsk);
-						break;
-					case 3:
-						fsk[0] = 1;
-						fsk[1] = 1;
-						fsk[2] = 0;
-						change_tone_spacing(fsk);
-						break;
-					case 4: 
-						fsk[0] = 0;
-						fsk[1] = 0;
-						fsk[2] = 1;
-						change_tone_spacing(fsk);
-						break;
-					case 5:
-						fsk[0] = 1;
-						fsk[1] = 0;
-						fsk[2] = 1;
-						change_tone_spacing(fsk);
-						break;
-					case 6:
-						fsk[0] = 0;
-						fsk[1] = 1;
-						fsk[2] = 1;
-						change_tone_spacing(fsk);
-						break;
-					case 7:
-						fsk[0] = 1;
-						fsk[1] = 1;
-						fsk[2] = 1;
-						change_tone_spacing(fsk);
-						break;
-					case 8:
-						fsk[0] = 0;
-						fsk[1] = 0;
-						fsk[2] = 0;
-						change_tone_spacing(fsk);
-						loop_count=0;
-						break;
-					default: 
-						fsk[0] = 0;
-						fsk[1] = 0;
-						fsk[2] = 0;
-						change_tone_spacing(fsk);
-						
-							
-				}
+//				switch(loop_count)
+//				{
+//					case 1: 
+//						fsk[0] = 1;
+//						fsk[1] = 0;
+//						fsk[2] = 0;
+//						change_tone_spacing(fsk);
+//						break;
+//					case 2:
+//						fsk[0] = 0;
+//						fsk[1] = 1;
+//						fsk[2] = 0;
+//						change_tone_spacing(fsk);
+//						break;
+//					case 3:
+//						fsk[0] = 1;
+//						fsk[1] = 1;
+//						fsk[2] = 0;
+//						change_tone_spacing(fsk);
+//						break;
+//					case 4: 
+//						fsk[0] = 0;
+//						fsk[1] = 0;
+//						fsk[2] = 1;
+//						change_tone_spacing(fsk);
+//						break;
+//					case 5:
+//						fsk[0] = 1;
+//						fsk[1] = 0;
+//						fsk[2] = 1;
+//						change_tone_spacing(fsk);
+//						break;
+//					case 6:
+//						fsk[0] = 0;
+//						fsk[1] = 1;
+//						fsk[2] = 1;
+//						change_tone_spacing(fsk);
+//						break;
+//					case 7:
+//						fsk[0] = 1;
+//						fsk[1] = 1;
+//						fsk[2] = 1;
+//						change_tone_spacing(fsk);
+//						break;
+//					case 8:
+//						fsk[0] = 0;
+//						fsk[1] = 0;
+//						fsk[2] = 0;
+//						change_tone_spacing(fsk);
+//						loop_count=0;
+//						break;
+//					default: 
+//						fsk[0] = 0;
+//						fsk[1] = 0;
+//						fsk[2] = 0;
+//						change_tone_spacing(fsk);							
+//				}
         // loop through all LC configuration
         for (cfg_coarse=cfg_coarse_start; cfg_coarse < cfg_coarse_stop; cfg_coarse += 1){
             for (cfg_mid=cfg_mid_start;  cfg_mid < cfg_mid_stop; cfg_mid += 1){
@@ -328,7 +351,7 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                     state.cfg_fine = cfg_fine;
                     
                     if (repeat_rx_tx_params.repeat_mode == SWEEP) {
-                        printf( "coarse=%d, middle=%d, fine=%d, fsk[2]=%d, fsk[1]=%d, fsk[0]=%d\r\n", cfg_coarse, cfg_mid, cfg_fine, fsk[2], fsk[1], fsk[0]);
+                        printf( "coarse=%d, middle=%d, fine=%d\r\n", cfg_coarse, cfg_mid, cfg_fine);
                     }
                     
                     LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
@@ -341,9 +364,11 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                           repeat_rx_tx_params.txPacket[i] = ' ';
                         }
                         
-                        //repeat_rx_tx_params.fill_tx_packet(repeat_rx_tx_params.txPacket, repeat_rx_tx_params.pkt_len, state);
-                        sprintf(repeat_rx_tx_params.txPacket, "%d %d %d %d %d %d", state.cfg_coarse, state.cfg_mid, state.cfg_fine, fsk[2], fsk[1], fsk[0]);
+                        repeat_rx_tx_params.fill_tx_packet(repeat_rx_tx_params.txPacket, repeat_rx_tx_params.pkt_len, state);
+                        
                         send_packet(repeat_rx_tx_params.txPacket, repeat_rx_tx_params.pkt_len);
+												//delay_milliseconds_synchronous(2000, 1);
+												delay_milliseconds_synchronous(4000, 1);
                     }
 
                     pkt_count += 1;   

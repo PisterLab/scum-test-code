@@ -142,7 +142,7 @@ void delay_milliseconds_asynchronous(unsigned int delay_milli, uint8_t id) {
 	// the count defined by RFTIMER_REG__MAX_COUNT and RFTIMER_REG__COMPARE1 indicate how many
 	// counts the timer should go through before triggering an interrupt. This is the basis for
 	// the following calculation. For example a count of 0x0000C350 corresponds to 100ms.
-	unsigned int rf_timer_count = delay_milli * 500; // same as (delay_milli * 500000) / 1000;
+	unsigned int rf_timer_count = delay_milli * 50; // same as (delay_milli * 500000) / 1000;
 	rftimer_enable_interrupts_by_id(id);
 	timer_durations[id] = delay_milli;
 
@@ -247,6 +247,6 @@ void handle_interrupt(uint8_t id) {
 	if (rftimer_vars.rftimer_cbs[id] != NULL) {
 		rftimer_vars.rftimer_cbs[id]();
   } else {
-		printf("interrupt %d called, but had no callback defined.\n", id);
+		//printf("interrupt %d called, but had no callback defined.\n", id);
 	}
 }
