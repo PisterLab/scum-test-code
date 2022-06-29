@@ -150,37 +150,37 @@ void send_packet(uint8_t *packet, uint8_t pkt_len) {
 //			LC_FREQCHANGE(22, 19, 7);
 			
 			delay_milliseconds_synchronous(2,1);
-			LC_FREQCHANGE(22, 19, 9);
-			delay_milliseconds_synchronous(2,1);
 			LC_FREQCHANGE(22, 19, 8);
-			delay_milliseconds_synchronous(2,1);
-			LC_FREQCHANGE(22, 19, 7);
 			delay_milliseconds_synchronous(2,1);
 			LC_FREQCHANGE(22, 19, 6);
 			delay_milliseconds_synchronous(2,1);
-			LC_FREQCHANGE(22, 19, 5);
-			delay_milliseconds_synchronous(2,1);
-			LC_FREQCHANGE(22, 19, 3);
-			
+			LC_FREQCHANGE(22, 19, 4);
 			delay_milliseconds_synchronous(2,1);
 			LC_FREQCHANGE(22, 19, 2);
-			
-			
 			delay_milliseconds_synchronous(2,1);
 			LC_FREQCHANGE(22, 19, 0);
 			delay_milliseconds_synchronous(2,1);
-			LC_FREQCHANGE(22, 18, 7);
+			LC_FREQCHANGE(22, 18, 8);
+			
 			delay_milliseconds_synchronous(2,1);
 			LC_FREQCHANGE(22, 18, 6);
+			
+			
 			delay_milliseconds_synchronous(2,1);
 			LC_FREQCHANGE(22, 18, 4);
+			delay_milliseconds_synchronous(2,1);
+			LC_FREQCHANGE(22, 18, 2);
+			delay_milliseconds_synchronous(2,1);
+			LC_FREQCHANGE(22, 18, 0);
+			delay_milliseconds_synchronous(2,1);
+			LC_FREQCHANGE(22, 17, 6);
 //			
 			delay_milliseconds_synchronous(2,1); 
-			LC_FREQCHANGE(22, 18, 2);
-			delay_milliseconds_synchronous(2,1); 
-			LC_FREQCHANGE(22, 18, 0);
-			delay_milliseconds_synchronous(2,1); 
 			LC_FREQCHANGE(22, 17, 4);
+			delay_milliseconds_synchronous(2,1); 
+			LC_FREQCHANGE(22, 17, 2);
+			delay_milliseconds_synchronous(2,1); 
+			LC_FREQCHANGE(22, 17, 0);
 //			delay_milliseconds_synchronous(2,1); 
 //			LC_FREQCHANGE(22, 17, 7);
 //			delay_milliseconds_synchronous(2,1); 
