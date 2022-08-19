@@ -401,19 +401,16 @@ void radio_loadPacket(uint8_t* packet, uint16_t len){
 
 // Turn on the radio for transmit
 // This should be done at least ~50 us before txNow()
-void radio_txEnable(){
-    
+void radio_txEnable(){    
     // Turn on LO, PA, and AUX LDOs
-    
 #ifdef DIV_ON
-    
-    // Turn on DIV if need read LC_count
+    // Turn on DIV to read LC_count
     ANALOG_CFG_REG__10 = 0x0068;
 #else
     // Turn on LO, PA, and AUX LDOs
     ANALOG_CFG_REG__10 = 0x0028;
 #endif
-    
+
     // Turn off polyphase and disable mixer
     ANALOG_CFG_REG__16 = 0x6;
 }
@@ -431,7 +428,7 @@ void radio_rxEnable(){
     
     // Turn on LO, IF, and AUX LDOs via memory mapped register
     
-    // Turn on DIV on if need to read LC_div counter
+    // Turn on DIV to read LC_div counter
     
     // Aux is inverted (0 = on)
     // Memory-mapped LDO control
