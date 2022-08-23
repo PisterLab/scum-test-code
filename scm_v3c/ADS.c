@@ -1,147 +1,27 @@
+#include "ADS.h"
 #include "spi.h"
 #include "Memory_Map.h"
+#include <stdio.h>
 
-#define CS_PIN		15
-#define CLK_PIN		14
-#define DIN_PIN		13 // Used when reading data from the IMU thus a SCuM input (MISO)
-#define DATA_PIN	12 // Used when writing to the IMU thus a SCuM output (MOSI)
-#define RST_PIN     7  // need to check IO (output)
-#define DRDY_PIN    6  // need to check IO (input)
-
-void clock_toggle(unsigned char cycle) {
-	int j;
-	int clk_pin = CLK_PIN;
-
-	for (j = 0; j < cycle; j++) {
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-	}
-}
-
-void spi_write(unsigned char writeByte) {
-	int j;
-	int t=0;
-	int clk_pin = CLK_PIN;
-	int data_pin = DATA_PIN;
-
-	// clock low at the beginning
-	GPIO_REG__OUTPUT &= ~(1 << clk_pin);
-//	printf("0x");
-	// sample at falling edge
-	for (j=7;j>=0;j--) {
-		if ((writeByte&(0x01<<j)) != 0) {
-				// printf("1");
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-			GPIO_REG__OUTPUT |= 1 << data_pin; // write a 1
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		}
-		else {
-			// printf("0");
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-			GPIO_REG__OUTPUT &= ~(1 << data_pin); // write a 0
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		}
-	}
-/*	
-	// sample at rising edge
-	for (j=7;j>=0;j--) {
-		if ((writeByte&(0x01<<j)) != 0) {
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-			GPIO_REG__OUTPUT |= 1 << data_pin; // write a 1
-			GPIO_REG__OUTPUT |= 1 << clk_pin; // clock high
-		}
-		else {
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-			GPIO_REG__OUTPUT &= ~(1 << data_pin); // write a 0
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		}
-	}
-*/	
-	GPIO_REG__OUTPUT &= ~(1 << data_pin); // set data out to 0
-//	printf("\n");
-}
-
-unsigned char spi_read() {
-	unsigned char readByte;
-	int j;
-	int t = 0;
-	int clk_pin = CLK_PIN;
-	int din_pin = DIN_PIN;
-	readByte=0;
-
-	// sample at falling edge
-//	GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-	
-	for (j=7;j>=0;j--) {
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		readByte |= ((GPIO_REG__INPUT&(1 << din_pin))>>din_pin)<<j;		
-//		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high		
-	}
-
-	// clock low in the end
-//	GPIO_REG__OUTPUT &= ~(1 << clk_pin);
-/*	
-	// sample at rising edge
-	GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-	
-	for (j=7;j>=0;j--) {
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		readByte |= ((GPIO_REG__INPUT&(1 << din_pin))>>din_pin)<<j;		
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low		
-	}
-*/	
-	return readByte;
-}
-
-void spi_chip_select() {
-	int t = 0;
-	int dout_pin = DATA_PIN;
-	int cs_pin = CS_PIN;
-	// drop chip select low to select the chip
-	GPIO_REG__OUTPUT &= ~(1 << cs_pin);
-	GPIO_REG__OUTPUT &= ~(1 << dout_pin);
-	for(t=0; t<50; t++);
-}
-
-void spi_chip_deselect() {
-	int cs_pin = CS_PIN;
-	// hold chip select high to deselect the chip
-	GPIO_REG__OUTPUT |= (1 << cs_pin);
-}
-
-void initialize_imu(void) {
-	int i;
-	
-	write_imu_register(0x06,0x41);
-	for(i=0; i<50000; i++);
-	write_imu_register(0x06,0x01);
-	for(i=0; i<50000; i++);
-}
+#define CS_PIN      15
+#define CLK_PIN     14
+#define DIN_PIN     13 // Used when reading data from the IMU thus a SCuM input
+#define DATA_PIN    12 // Used when writing to the IMU thus a SCuM output
+#define RST_PIN     11  // need to check IO (output)
+#define DRDY_PIN    10  // need to check IO (input)
 
 void digitalWrite(int pin, int high_low) {
-//	printf("pin: %d high_low =: %d", pin, high_low);
+	printf("pin: %d high_low =: %d", pin, high_low);
     if (high_low) {
         GPIO_REG__OUTPUT |= (1 << pin);
-//			printf("%x\n", GPIO_REG__OUTPUT);
-//				printf("high\n");
+			printf("%x\n", GPIO_REG__OUTPUT);
+				printf("high\n");
 		}
     else {
         GPIO_REG__OUTPUT &= ~(1 << pin);
-//						printf("%x\n", GPIO_REG__OUTPUT);
-//				printf("low\n");
+						printf("%x\n", GPIO_REG__OUTPUT);
+				printf("low\n");
 		}
-}
-
-uint8_t digitalRead(int pin) {
-	uint8_t i = 0;
-	int clk_pin = CLK_PIN;
-
-//	GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-//	GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-	i = (GPIO_REG__INPUT&(1 << pin)) >> pin;
-	// printf("i = %d\n", i);
-	return i;
 }
 
 void ADS_initialize() {
@@ -158,14 +38,14 @@ void ADS_initialize() {
     
     // toggle reset pin
     digitalWrite(rst_pin, 0);    // reset low
-//	    digitalWrite(12, 0);    // reset low
-//    digitalWrite(14, 0);    // reset low
-//    digitalWrite(15, 0);    // reset low
+	    digitalWrite(12, 0);    // reset low
+    digitalWrite(14, 0);    // reset low
+    digitalWrite(15, 0);    // reset low
 
     for (t = 0; t < 10; t++);
 //		digitalWrite(MOSI_pin,0);		// test delay time
-//		printf("run");
-    digitalWrite(rst_pin, 1);     // reset high
+		printf("run");
+/*    digitalWrite(rst_pin, 1);     // reset high
     
     // recommend to wait 18 Tclk
     for (t = 0; t < 20; t++);
@@ -175,9 +55,191 @@ void ADS_initialize() {
     
     // initialize chip select, and reset
     digitalWrite(cs_pin, 1);
-    digitalWrite(rst_pin, 1);
+    digitalWrite(rst_pin, 1);*/
+}
+
+// System Commands
+void ADS_WAKEUP() {
+    int t;
+    
+    digitalWrite(CS_PIN, 0);
+    spi_write(_WAKEUP);
+    digitalWrite(CS_PIN, 1);
+    for (t = 0; t < 10; t++);
+    // must wait 4 tCLK before sending another commands
+}
+
+// only allow to send WAKEUP after sending STANDBY
+void ADS_STANBY() {
+    digitalWrite(CS_PIN, 0);
+    spi_write(_STANDBY);
+    digitalWrite(CS_PIN, 1);
+}
+
+// reset all the registers to defaut settings
+void ADS_RESET() {
+    int t;
+    
+    digitalWrite(CS_PIN, 0);
+    spi_write(_RESET);
+    
+    // must wait 18 tCLK to execute this command
+    for (t = 0; t < 20; t++);
+    
+    digitalWrite(CS_PIN, 1);
+}
+
+// start data conversion
+void ADS_START() {
+    digitalWrite(CS_PIN, 0);
+    spi_write(_START);
+    digitalWrite(CS_PIN, 1);
+}
+
+// stop data conversion
+void ADS_STOP() {
+    digitalWrite(CS_PIN, 0);
+    spi_write(_STOP);
+    digitalWrite(CS_PIN, 1);
+}
+
+void ADS_RDATAC() {
+    int t;
+    
+    digitalWrite(CS_PIN, 0);
+    spi_write(_RDATAC);
+    digitalWrite(CS_PIN, 1);
+    
+    // must wait 4 tCLK after executing thsi command
+    for (t = 0; t < 10; t++);
+}
+
+void ADS_SDATAC() {
+    int t;
+    
+    digitalWrite(CS_PIN, 0);
+    spi_write(_SDATAC);
+    digitalWrite(CS_PIN, 1);
+    
+    // must wait 4 tCLK after executing thsi command
+    for (t = 0; t < 10; t++);
+}
+
+unsigned char ADS_RREG(unsigned char addr) {
+    unsigned char opcode1 = addr + 0x20;
+    unsigned char read_reg;
+    
+    digitalWrite(CS_PIN, 0);
+    spi_write(opcode1);
+    spi_write(0x00);
+    read_reg = spi_read();
+    digitalWrite(CS_PIN, 1);
+    
+    return read_reg;
 }
 /*
+void clock_toggle(unsigned char cycle) {
+	int j;
+	int clk_pin = CLK_PIN;
+
+	for (j = 0; j < cycle; j++) {
+		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
+		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+	}
+}
+*/
+/*
+void spi_write(unsigned char writeByte) {
+	int j;
+	int t=0;
+	int clk_pin = CLK_PIN;
+	int data_pin = DATA_PIN;
+
+	// sample at falling edge
+	for (j=7;j>=0;j--) {
+		if ((writeByte&(0x01<<j)) != 0) {
+			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
+			GPIO_REG__OUTPUT |= 1 << data_pin; // write a 1
+			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+		}
+		else {
+			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
+			GPIO_REG__OUTPUT &= ~(1 << data_pin); // write a 0
+			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+		}
+	}
+	
+	// sample at rising edge
+	for (j=7;j>=0;j--) {
+		if ((writeByte&(0x01<<j)) != 0) {
+			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+			GPIO_REG__OUTPUT |= 1 << data_pin; // write a 1
+			GPIO_REG__OUTPUT |= 1 << clk_pin; // clock high
+		}
+		else {
+			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+			GPIO_REG__OUTPUT &= ~(1 << data_pin); // write a 0
+			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
+		}
+	}
+	
+	GPIO_REG__OUTPUT &= ~(1 << data_pin); // set data out to 0
+}*/
+/*
+unsigned char spi_read() {
+	unsigned char readByte;
+	int j;
+	int t = 0;
+	int clk_pin = CLK_PIN;
+	int din_pin = DIN_PIN;
+	readByte=0;
+
+	// sample at falling edge
+	GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
+	
+	for (j=7;j>=0;j--) {
+		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+		readByte |= ((GPIO_REG__INPUT&(1 << din_pin))>>din_pin)<<j;		
+		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high		
+	}
+	
+	// sample at rising edge
+	GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+	
+	for (j=7;j>=0;j--) {
+		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
+		readByte |= ((GPIO_REG__INPUT&(1 << din_pin))>>din_pin)<<j;		
+		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low		
+	}
+	
+	return readByte;
+}*/
+/*
+void spi_chip_select() {
+	int t = 0;
+	int dout_pin = DATA_PIN;
+	int cs_pin = CS_PIN;
+	// drop chip select low to select the chip
+	GPIO_REG__OUTPUT &= ~(1 << cs_pin);
+	GPIO_REG__OUTPUT &= ~(1 << dout_pin);
+	for(t=0; t<50; t++);
+}
+
+void spi_chip_deselect() {
+	int cs_pin = CS_PIN;
+	// hold chip select high to deselect the chip
+	GPIO_REG__OUTPUT |= (1 << cs_pin);
+}*/
+/*
+void initialize_imu(void) {
+	int i;
+	
+	write_imu_register(0x06,0x41);
+	for(i=0; i<50000; i++);
+	write_imu_register(0x06,0x01);
+	for(i=0; i<50000; i++);
+}
+
 void initialize_ads(void) {
 	start_select();
 	reset_select();
@@ -190,7 +252,7 @@ void start_select() {
 void reset_select() {
 	int reset_pin = RST_PIN;
 	GPIO_REG__OUTPUT |= (1 << reset_pin);
-}*/
+}
 
 unsigned int read_acc_x() {
 	unsigned int acc_x;
@@ -328,53 +390,7 @@ void log_imu_data(imu_data_t* imu_measurement) {
 		imu_measurement->gyro_z.bytes[1]);
 }
 
-void read_ads_register(ads_data_t* ads_measurement) {
-	unsigned char read_reg;
-	int nchan = 8;
-	int i, j;
-	int32_t read_24bit;
 
-//	ADS_START();
-	while (digitalRead(DRDY_PIN));
-	// while (digitalRead(DRDY_PIN) == 0x00);
-	// while (digitalRead(DRDY_PIN) == 0x01);
-
-	digitalWrite(CS_PIN, 0);
-	read_24bit = 0;
-	for (i = 0; i < 3; i++) {
-		read_reg = spi_read();
-		read_24bit = (read_24bit << 8) | read_reg;
-		// printf("%x", read_reg);
-	}
-	// printf("\n");
-	ads_measurement->config = read_24bit;
-	// printf("config = %x\n", read_24bit);
-	for (j = 0; j < nchan; j++) {
-		read_24bit = 0;
-		for (i = 0; i < 3; i++) {
-			read_reg = spi_read();
-			read_24bit = (read_24bit << 8) | read_reg;
-			// printf("%x", read_reg);
-		}
-		// printf("\n");
-		if (read_24bit >> 23) {
-			read_24bit |= 0xFF000000;
-		}
-		else {
-			read_24bit &= 0x00FFFFFF;
-		}
-		ads_measurement->channel[j] = read_24bit;
-		// printf("channel[%d] = %x\n", j, read_24bit);
-	}
-	digitalWrite(CS_PIN, 1);
-
-	// printf("%x\n", ads_measurement->config);
-	// for (j = 0; j < nchan; j++) {
-	// 	printf("%x\n", ads_measurement->channel[j]);
-	// }
-}
-
-/*
 void read_ads_register(ads_data_t* ads_measurement) {
 	unsigned char reg;
 	
@@ -461,8 +477,7 @@ void read_ads_register(ads_data_t* ads_measurement) {
 	
 	ads_measurement->electrode1.value = electrode1_val;
 }
-*/
-/*
+
 void log_ads_data(ads_data_t* ads_measurement) {
 	printf("Results: %x %x %x\n",
 		ads_measurement->electrode1.bytes[0],
@@ -470,108 +485,3 @@ void log_ads_data(ads_data_t* ads_measurement) {
 		ads_measurement->electrode1.bytes[2]);
 }
 */
-
-// System Commands
-void ADS_WAKEUP() {
-    int t;
-    
-    digitalWrite(CS_PIN, 0);
-    spi_write(_WAKEUP);
-    digitalWrite(CS_PIN, 1);
-    for (t = 0; t < 10; t++);
-    // must wait 4 tCLK before sending another commands
-}
-
-// only allow to send WAKEUP after sending STANDBY
-void ADS_STANBY() {
-    digitalWrite(CS_PIN, 0);
-    spi_write(_STANDBY);
-    digitalWrite(CS_PIN, 1);
-}
-
-// reset all the registers to defaut settings
-void ADS_RESET() {
-    int t;
-    
-    digitalWrite(CS_PIN, 0);
-    spi_write(_RESET);
-    
-    // must wait 18 tCLK to execute this command
-    for (t = 0; t < 20; t++);
-    
-    digitalWrite(CS_PIN, 1);
-}
-
-// start data conversion
-void ADS_START() {
-    digitalWrite(CS_PIN, 0);
-    spi_write(_START);
-    digitalWrite(CS_PIN, 1);
-}
-
-// stop data conversion
-void ADS_STOP() {
-    digitalWrite(CS_PIN, 0);
-    spi_write(_STOP);
-    digitalWrite(CS_PIN, 1);
-}
-
-void ADS_RDATAC() {
-    int t;
-    
-    digitalWrite(CS_PIN, 0);
-    spi_write(_RDATAC);
-    digitalWrite(CS_PIN, 1);
-    
-    // must wait 4 tCLK after executing thsi command
-    for (t = 0; t < 10; t++);
-}
-
-void ADS_SDATAC() {
-    int t;
-    
-    digitalWrite(CS_PIN, 0);
-    spi_write(_SDATAC);
-    digitalWrite(CS_PIN, 1);
-    
-    // must wait 4 tCLK after executing thsi command
-    for (t = 0; t < 10; t++);
-}
-
-unsigned char ADS_RREG(unsigned char addr) {
-    unsigned char opcode1 = addr + 0x20;
-    unsigned char read_reg;
-    
-    digitalWrite(CS_PIN, 0);
-    spi_write(opcode1);
-    spi_write(0x00);
-    read_reg = spi_read();
-    digitalWrite(CS_PIN, 1);
-    
-    return read_reg;
-}
-
-void ADS_WREG(unsigned char addr, unsigned char val) {
-	unsigned char opcode1 = addr + 0x40;
-
-	digitalWrite(CS_PIN, 0);
-	spi_write(opcode1);
-	spi_write(0x00);
-	spi_write(val);
-	digitalWrite(CS_PIN, 1);
-}
-
-void ADS_RREGS(unsigned char addr, unsigned char NregminusOne) {
-    unsigned char opcode1 = addr + 0x20;
-    unsigned char read_reg;
-	unsigned char i;
-
-    digitalWrite(CS_PIN, 0);
-    spi_write(opcode1);
-	spi_write(NregminusOne);
-	for (i = 0; i <= NregminusOne; i++) {
-		read_reg = spi_read();
-		printf("%x\n", read_reg);
-	}
-    digitalWrite(CS_PIN, 1);
-}

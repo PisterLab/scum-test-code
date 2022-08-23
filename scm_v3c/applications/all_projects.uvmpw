@@ -45,7 +45,6 @@
 
   <project>
     <PathAndName>.\freq_sweep_tx\freq_sweep_tx.uvprojx</PathAndName>
-    <NodeIsExpanded>1</NodeIsExpanded>
     <NodeIsCheckedInBatchBuild>1</NodeIsCheckedInBatchBuild>
   </project>
 
@@ -75,13 +74,15 @@
 
   <project>
     <PathAndName>.\channel_cal\channel_cal.uvprojx</PathAndName>
-    <NodeIsExpanded>1</NodeIsExpanded>
   </project>
 
   <project>
     <PathAndName>.\pwm\pwm.uvprojx</PathAndName>
+  </project>
+
+  <project>
+    <PathAndName>.\log_ads\log_ads.uvprojx</PathAndName>
     <NodeIsActive>1</NodeIsActive>
-    <NodeIsExpanded>1</NodeIsExpanded>
   </project>
 
 </ProjectWorkspace>

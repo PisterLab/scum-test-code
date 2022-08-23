@@ -22,7 +22,7 @@
   </DaveTm>
 
   <Target>
-    <TargetName>freq_sweep_tx_simple</TargetName>
+    <TargetName>log_ads</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
@@ -73,7 +73,7 @@
         <LExpSel>0</LExpSel>
       </OPTXL>
       <OPTFL>
-        <tvExp>0</tvExp>
+        <tvExp>1</tvExp>
         <tvExpOptDlg>0</tvExpOptDlg>
         <IsCurrentTarget>1</IsCurrentTarget>
       </OPTFL>
@@ -179,11 +179,11 @@
       <GroupNumber>1</GroupNumber>
       <FileNumber>1</FileNumber>
       <FileType>1</FileType>
-      <tvExp>1</tvExp>
+      <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\freq_sweep_tx_simple.c</PathWithFileName>
-      <FilenameWithoutPath>freq_sweep_tx_simple.c</FilenameWithoutPath>
+      <PathWithFileName>.\log_ads.c</PathWithFileName>
+      <FilenameWithoutPath>log_ads.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
