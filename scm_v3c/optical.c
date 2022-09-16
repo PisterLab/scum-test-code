@@ -73,7 +73,7 @@ void perform_calibration(void) {
 // This interrupt goes off every time 32 new bits of data have been shifted into the optical register
 // Do not recommend trying to do any CPU intensive actions while trying to receive optical data
 // ex, printf will mess up the received data values
-void optical_32_isr(){
+void optical_32_isr(void){
     //printf("Optical 32-bit interrupt triggered\r\n");
     
     //unsigned int LSBs, MSBs, optical_shiftreg;
@@ -92,7 +92,7 @@ void optical_32_isr(){
 // This interrupt goes off when the optical register holds the value {221, 176, 231, 47}
 // This interrupt can also be used to synchronize to the start of an optical data transfer
 // Need to make sure a new bit has been clocked in prior to returning from this ISR, or else it will immediately execute again
-void optical_sfd_isr(){
+void optical_sfd_isr(void){
     
     int32_t t;
     uint32_t rdata_lsb, rdata_msb; 
