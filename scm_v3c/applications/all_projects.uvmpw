@@ -8,6 +8,11 @@
   <WorkspaceName>WorkSpace</WorkspaceName>
 
   <project>
+    <PathAndName>.\sensor_adc\sensor_adc.uvprojx</PathAndName>
+    <NodeIsCheckedInBatchBuild>1</NodeIsCheckedInBatchBuild>
+  </project>
+
+  <project>
     <PathAndName>.\freq_sweep_rx_simple\freq_sweep_rx_simple.uvprojx</PathAndName>
     <NodeIsCheckedInBatchBuild>1</NodeIsCheckedInBatchBuild>
   </project>
