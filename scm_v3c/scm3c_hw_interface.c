@@ -7,6 +7,7 @@
 #include "optical.h"
 #include "rftimer.h"
 #include "scum_defs.h"
+#include "adc.h"
 
 //=========================== definition ======================================
 
@@ -1255,6 +1256,33 @@ void initialize_mote(){
     
     // Init divider settings
     radio_init_divider(2000);
+		
+		// SENSOR ADC INITIALIZATION
+		if (1) {
+			unsigned int sel_reset 			= 0;
+			unsigned int sel_convert 		= 0;
+			unsigned int sel_pga_amplify 	= 0;
+			unsigned int pga_gain[8] 		= {0,0,0,0, 0,0,0,0};
+			unsigned int adc_settle[8] 		= {0,0,0,0, 0,0,0,0};
+			unsigned int bgr_tune[7] 		= {0,0,0, 0,0,0,1};
+			unsigned int constgm_tune[8] 	= {1,1,1,1, 1,1,1,1};
+			unsigned int vbatDiv4_en 		= 1;
+			unsigned int ldo_en 			= 1;
+			unsigned int input_mux_sel[2] 	= {0,1};
+			unsigned int pga_byp 			= 1;
+
+			// Set GPIOs for loopback
+			// loopback_control_config_adc();
+
+			scan_config_adc(sel_reset, sel_convert, sel_pga_amplify,
+							pga_gain, adc_settle, 
+							bgr_tune, constgm_tune,
+							vbatDiv4_en, ldo_en,
+							input_mux_sel, pga_byp);
+			
+			adc_enable_interrupts();
+		}
+
     
     // Program analog scan chain
     analog_scan_chain_write();
