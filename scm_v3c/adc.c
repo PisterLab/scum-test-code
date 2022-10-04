@@ -185,7 +185,7 @@ void adc_disable_interrupt(void) {
 }
 
 void adc_isr(void) {
-    printf("ADC conversion complete.\n");
+    // printf("ADC conversion complete.\n");
     g_adc_output.data = ADC_REG__DATA;
     g_adc_output.valid = true;
 }
