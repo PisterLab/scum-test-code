@@ -25,7 +25,7 @@ signed short cdr_tau_history[11] = {0};
 
 //=========================== definition ======================================
 
-#define DIV_ON
+//#define DIV_ON
 
 #define MAXLENGTH_TRX_BUFFER    128     // 1B length, 125B data, 2B CRC
 #define NUM_CHANNELS            16
@@ -65,8 +65,11 @@ signed short cdr_tau_history[11] = {0};
 #define  DEFAULT_PANID           0xcafe
 
 //===== RFTIMER
-#define TIMER_PERIOD_TX        4000           ///< 500 = 1ms@500kHz
-#define TIMER_PERIOD_RX        4000           ///< 500 = 1ms@500kHz
+//#define TIMER_PERIOD_TX        250000           ///< 500 = 1ms@500kHz
+//#define TIMER_PERIOD_RX        200000           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD_TX        2000           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD_RX        2000           ///< 500 = 1ms@
+//#define TIMER_PERIOD_RX        10000           ///< 500 = 1ms@500kHz
 
 //=========================== variables =======================================
 
@@ -126,6 +129,7 @@ void        build_TX_channel_table(
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
 void send_packet(uint8_t *packet, uint8_t pkt_len) {
+		gpio_12_set();
     radio_vars.radio_mode = TX_MODE;
 
     rftimer_set_callback(cb_timer_radio);
@@ -137,6 +141,7 @@ void send_packet(uint8_t *packet, uint8_t pkt_len) {
     radio_vars.sendDone = false;
         
     while (radio_vars.sendDone==false);
+		gpio_12_clr();
 }
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
@@ -151,8 +156,19 @@ void receive_packet(uint8_t pkt_len) {
     radio_rxNow();
     rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_RX);
     radio_vars.receiveDone = false;
-
+		//printf("rftimer set %d to %d \r\n", rftimer_readCounter(), rftimer_readCounter() + TIMER_PERIOD_RX);
     while (radio_vars.receiveDone==false);
+		//printf("rftimer released\r\n");
+}
+
+void receive_packet_indefinitely(uint8_t pkt_len) {
+		radio_vars.radio_mode = RX_MODE;
+		radio_vars.rxPacket_len = pkt_len;
+		radio_vars.rxFrameStarted = false;
+		radio_rxEnable();
+		radio_rxNow();
+		radio_vars.receiveDone = false;
+		while(radio_vars.receiveDone==false);
 }
 
 void cb_startFrame_tx_radio(uint32_t timestamp){
@@ -165,6 +181,7 @@ void cb_endFrame_tx_radio(uint32_t timestamp){
 
 void cb_startFrame_rx_radio(uint32_t timestamp){
     radio_vars.rxFrameStarted = true;
+		gpio_13_set();
 }
 
 void cb_endFrame_rx_radio(uint32_t timestamp){		
@@ -179,20 +196,26 @@ void cb_endFrame_rx_radio(uint32_t timestamp){
         &radio_vars.rxpk_rssi,
         &radio_vars.rxpk_lqi
     );
-        
-    radio_rfOff();
-    
-    if(packet_len == radio_vars.rxPacket_len && radio_getCrcOk()) {
+    //if(packet_len == radio_vars.rxPacket_len && radio_getCrcOk()) {
+		if(radio_getCrcOk()) {
         // Only record IF estimate, LQI, and CDR tau for valid packets
         radio_vars.IF_estimate        = radio_getIFestimate();
         radio_vars.LQI_chip_errors    = radio_getLQIchipErrors();
-        
         radio_vars.radio_rx_cb(radio_vars.rxPacket, packet_len);
+				gpio_14_toggle();
+				//printf("IF: %d \r\n", radio_vars.IF_estimate);
     }
+		else {
+				// go back to receiving...
+				radio_rxEnable();
+				radio_rxNow();
+		}
+		radio_rfOff();
     
     free(radio_vars.rxPacket);
     
     radio_vars.rxFrameStarted = false;
+		radio_vars.receiveDone = true;
 }
 
 // Repeatedly perform a radio operation. Supports RX/TX and sweeping/fixed LC frequencies.
@@ -423,6 +446,7 @@ void radio_txEnable(){
 void radio_txNow(){
     
     RFCONTROLLER_REG__CONTROL = TX_SEND;
+		gpio_12_set();
 }
 
 // Turn on the radio for receive
@@ -463,6 +487,8 @@ void radio_rxNow(){
 
     // Start RX FSM
     RFCONTROLLER_REG__CONTROL = RX_START;
+		// toggle debug GPIO
+		gpio_13_set();
 }
 
 void radio_getReceivedFrame(uint8_t* pBufRead,
@@ -485,6 +511,10 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
         memcpy(pBufRead,&(radio_vars.radio_rx_buffer[1]),*pLenRead);
     }
 }
+void radio_rfOn(void) {
+		// clear reset pin
+		RFCONTROLLER_REG__CONTROL		&=	~RF_RESET;
+}
 
 void radio_rfOff(){
     
@@ -496,6 +526,9 @@ void radio_rfOff(){
 
     // Turn off LDOs
     ANALOG_CFG_REG__10 = 0x0000;
+		// debug
+		gpio_13_clr();
+		gpio_12_clr();
 }
 
 void radio_frequency_housekeeping(
