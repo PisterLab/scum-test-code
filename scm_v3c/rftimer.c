@@ -61,7 +61,7 @@ void rftimer_setCompareIn(uint32_t val){
 
 void rftimer_setCompareIn_by_id(uint32_t val, uint8_t id){
     
-    rftimer_enable_interrupts();
+    rftimer_enable_interrupts_by_id(id);
     
     // A timer scheudled in the past
     
@@ -113,7 +113,7 @@ void rftimer_disable_interrupts(void){
 void rftimer_disable_interrupts_by_id(uint8_t id){
     // disable compare interrupt
     *RF_TIMER_REG_CONTROL_ADDRESES[id] = 0x0000;
-    ICER = 0x80;
+    //ICER = 0x80;
 }
 
 void rftimer_clear_interrupts(void){
