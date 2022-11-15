@@ -180,7 +180,7 @@ void    cb_endFrame_rx(uint32_t timestamp){
     radio_rfOff();
     
     if(
-        app_vars.packet_len == LEN_RX_PKT && (radio_getCrcOk())
+        radio_getCrcOk()
     ){
         // Only record IF estimate, LQI, and CDR tau for valid packets
         app_vars.IF_estimate        = radio_getIFestimate();
