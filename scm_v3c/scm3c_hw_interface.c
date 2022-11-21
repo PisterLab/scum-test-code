@@ -14,9 +14,8 @@
 #define DAC_2M_SETTING_LEN          5
 
 // initialized value for frequency configuration
-#define INIT_HF_CLOCK_FINE          30
+#define INIT_HF_CLOCK_FINE          17
 #define INIT_HF_CLOCK_COARSE        3
-//#define INIT_HF_CLOCK_COARSE        6
 #define INIT_RC2M_COARSE            21
 #define INIT_RC2M_FINE              15
 #define INIT_RC2M_SUPERFINE         15
