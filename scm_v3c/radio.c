@@ -129,7 +129,6 @@ void        build_TX_channel_table(
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
 void send_packet(uint8_t *packet, uint8_t pkt_len) {
-		gpio_12_set();
     radio_vars.radio_mode = TX_MODE;
 
     rftimer_set_callback(cb_timer_radio);
@@ -141,7 +140,6 @@ void send_packet(uint8_t *packet, uint8_t pkt_len) {
     radio_vars.sendDone = false;
         
     while (radio_vars.sendDone==false);
-		gpio_12_clr();
 }
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
@@ -181,7 +179,6 @@ void cb_endFrame_tx_radio(uint32_t timestamp){
 
 void cb_startFrame_rx_radio(uint32_t timestamp){
     radio_vars.rxFrameStarted = true;
-		gpio_13_set();
 }
 
 void cb_endFrame_rx_radio(uint32_t timestamp){		
@@ -197,25 +194,23 @@ void cb_endFrame_rx_radio(uint32_t timestamp){
         &radio_vars.rxpk_lqi
     );
     //if(packet_len == radio_vars.rxPacket_len && radio_getCrcOk()) {
-		if(radio_getCrcOk()) {
+    if(radio_getCrcOk()) {
         // Only record IF estimate, LQI, and CDR tau for valid packets
         radio_vars.IF_estimate        = radio_getIFestimate();
         radio_vars.LQI_chip_errors    = radio_getLQIchipErrors();
         radio_vars.radio_rx_cb(radio_vars.rxPacket, packet_len);
-				gpio_14_toggle();
-				//printf("IF: %d \r\n", radio_vars.IF_estimate);
+        //printf("IF: %d \r\n", radio_vars.IF_estimate);
     }
-		else {
-				// go back to receiving...
-				radio_rxEnable();
-				radio_rxNow();
-		}
-		radio_rfOff();
+    else {
+        // go back to receiving...
+        radio_rxEnable();
+        radio_rxNow();
+    }
     
     free(radio_vars.rxPacket);
     
     radio_vars.rxFrameStarted = false;
-		radio_vars.receiveDone = true;
+    radio_vars.receiveDone = true;
 }
 
 // Repeatedly perform a radio operation. Supports RX/TX and sweeping/fixed LC frequencies.
@@ -444,9 +439,7 @@ void radio_txEnable(){
 // Begin modulating the radio output for TX
 // Note that you need some delay before txNow() to allow txLoad() to finish loading the packet
 void radio_txNow(){
-    
     RFCONTROLLER_REG__CONTROL = TX_SEND;
-		gpio_12_set();
 }
 
 // Turn on the radio for receive
@@ -487,8 +480,6 @@ void radio_rxNow(){
 
     // Start RX FSM
     RFCONTROLLER_REG__CONTROL = RX_START;
-		// toggle debug GPIO
-		gpio_13_set();
 }
 
 void radio_getReceivedFrame(uint8_t* pBufRead,
@@ -526,9 +517,6 @@ void radio_rfOff(){
 
     // Turn off LDOs
     ANALOG_CFG_REG__10 = 0x0000;
-		// debug
-		gpio_13_clr();
-		gpio_12_clr();
 }
 
 void radio_frequency_housekeeping(
