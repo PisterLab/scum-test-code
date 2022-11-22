@@ -87,12 +87,12 @@ int main(void) {
         //printf("Hello World! %d\n", app_vars.count);
         app_vars.count += 1;
         #if SCUM_TX==1
-						app_vars.packet_counter++;
-						app_vars.tx_packet[0]=app_vars.packet_counter;
-						send_packet(app_vars.tx_packet, TX_PACKET_LEN);
-				#elif SCUM_RX==1
-						receive_packet(RX_PACKET_LEN);
-				#endif
+				app_vars.packet_counter++;
+				app_vars.tx_packet[0]=app_vars.packet_counter;
+				send_packet(app_vars.tx_packet, TX_PACKET_LEN);
+		#elif SCUM_RX==1
+				receive_packet_length(RX_PACKET_LEN, false);
+		#endif
 
     }
 }

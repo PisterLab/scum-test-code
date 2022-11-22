@@ -137,7 +137,7 @@ int main(void) {
 		radio_delay();
 		//receive_packet(SWEEP_COARSE_START_RX, SWEEP_MID_START_RX, SWEEP_FINE_START_RX, 1);
 		LC_FREQCHANGE(SWEEP_COARSE_START_RX, SWEEP_MID_START_RX, SWEEP_FINE_START_RX);
-		receive_packet(1);
+		receive_packet_length(1, true);
 	
 		fixed_lc_coarse_tx = SWEEP_COARSE_START_TX;
 		fixed_lc_mid_tx = SWEEP_MID_START_TX;
@@ -222,7 +222,7 @@ int main(void) {
 								radio_delay();
 								//receive_packet(fixed_lc_coarse_rx, fixed_lc_mid_rx, fixed_lc_fine_rx, LEN_RX_PKT);
 								LC_FREQCHANGE(fixed_lc_coarse_rx, fixed_lc_mid_rx, fixed_lc_fine_rx);
-								receive_packet(LEN_RX_PKT);
+								receive_packet_length(LEN_RX_PKT, true);
 						}
 
 						if ((fixed_lc_fine_rx==SWEEP_FINE_START_RX)&&(fixed_lc_mid_rx==SWEEP_MID_START_RX)&&(fixed_lc_coarse_rx>SWEEP_COARSE_END_RX)) { // switch back to TX mode

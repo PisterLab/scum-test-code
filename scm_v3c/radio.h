@@ -59,8 +59,8 @@ typedef struct {
 
 //==== admin
 void send_packet(uint8_t *packet, uint8_t pkt_len);
-void receive_packet(uint8_t pkt_len);
-void receive_packet_indefinitely(uint8_t pkt_len);
+void receive_packet(bool timeout);
+void receive_packet_length(uint8_t pkt_len, bool timeout);
 void cb_startFrame_tx_radio(uint32_t timestamp);
 void cb_endFrame_tx_radio(uint32_t timestamp);
 void cb_startFrame_rx_radio(uint32_t timestamp);
