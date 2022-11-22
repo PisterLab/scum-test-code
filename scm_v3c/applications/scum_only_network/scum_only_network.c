@@ -76,6 +76,7 @@ int main(void) {
 		rftimer_init();
 		rftimer_set_callback_by_id(timer_cb,1);
 		rftimer_enable_interrupts_by_id(1);
+		rftimer_enable_interrupts();
 		rftimer_setCompareIn_by_id(rftimer_readCounter() + RFTIMER_CAL_DURATION, 1);
 	
 		cal_vars.cal_finished = 1;

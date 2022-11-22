@@ -407,7 +407,9 @@ void test_rf_timer_callback(void) {
 		
 		// restart timer
 		//rftimer_enable_interrupts(7);
+		
 		rftimer_enable_interrupts_by_id(7);
+		rftimer_enable_interrupts();
 		//rftimer_setCompareIn(rftimer_readCounter() + 500*20, 7);
 		rftimer_setCompareIn_by_id(rftimer_readCounter() + 500*20, 7);
 	
