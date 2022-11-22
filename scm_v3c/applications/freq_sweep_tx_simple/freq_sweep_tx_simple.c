@@ -53,6 +53,4 @@ int main(void) {
 //=========================== private =========================================
 void fill_tx_packet(uint8_t *packet, uint8_t packet_len, repeat_rx_tx_state_t state) {
     sprintf(packet, "%d %d %d", state.cfg_coarse, state.cfg_mid, state.cfg_fine);
-		packet[0] = app_vars.index;
-		app_vars.index++;
 }
