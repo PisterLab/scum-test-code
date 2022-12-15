@@ -61,7 +61,7 @@ void rftimer_setCompareIn(uint32_t val){
 
 void rftimer_setCompareIn_by_id(uint32_t val, uint8_t id){
     
-    rftimer_enable_interrupts();
+    rftimer_enable_interrupts_by_id(id);
     
     // A timer scheudled in the past
     
@@ -91,29 +91,35 @@ uint32_t rftimer_readCounter(void){
     return RFTIMER_REG__COUNTER;
 }
 
+// Enables the RF timer interrupt, which is required for individually enabled 
+// timer registers to fire. Any calls to rftimer_enable_interrupts_by_id must 
+// be followed (or preceded) by a call to this function.
 void rftimer_enable_interrupts(void){
-    rftimer_enable_interrupts_by_id(0);
+    ISER = 0x80;
 }
 
+// Enables the RF timer interrupt for a specific timer register. The RF timer
+// interrupt must be enabled for any timer compare registers to fire the interrupt. 
 void rftimer_enable_interrupts_by_id(uint8_t id){
-    
     // clear pending bit first
     rftimer_clear_interrupts_by_id(id);
     
     // enable compare interrupt (this also cancels any pending interrupts)
     *RF_TIMER_REG_CONTROL_ADDRESES[id]   = RFTIMER_COMPARE_ENABLE |   \
                                       RFTIMER_COMPARE_INTERRUPT_ENABLE;
-    ISER = 0x80;
 }
 
+// Disables the RF timer interrupt. This will disable all timer compare registers
+// from firing the interrupt, but will not disable the registers themselves.
+// To disable a specific timer compare register, use rftimer_disable_interrupts_by_id.
 void rftimer_disable_interrupts(void){
-    rftimer_disable_interrupts_by_id(0);
+    ICER = 0x80;
 }
 
+// Disables the RF timer interrupt for a specific timer register.
 void rftimer_disable_interrupts_by_id(uint8_t id){
     // disable compare interrupt
     *RF_TIMER_REG_CONTROL_ADDRESES[id] = 0x0000;
-    ICER = 0x80;
 }
 
 void rftimer_clear_interrupts(void){

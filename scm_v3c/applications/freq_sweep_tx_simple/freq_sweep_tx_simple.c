@@ -12,6 +12,7 @@
 
 typedef struct {
     uint8_t dummy;
+		uint8_t index;
 } app_vars_t;
 
 app_vars_t app_vars;

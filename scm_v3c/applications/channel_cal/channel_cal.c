@@ -29,14 +29,14 @@
 
 // range of sweep values for channel search - this range can be dramatically reduced if you want to find fewer than all 16 channels
 #define SWEEP_COARSE_START_TX 22
-#define SWEEP_COARSE_END_TX 30
+#define SWEEP_COARSE_END_TX 35
 #define SWEEP_MID_START_TX 1
 #define SWEEP_MID_END_TX 31
 #define SWEEP_FINE_START_TX 1
 #define SWEEP_FINE_END_TX 31
 
 #define SWEEP_COARSE_START_RX 22
-#define SWEEP_COARSE_END_RX 29
+#define SWEEP_COARSE_END_RX 25
 #define SWEEP_MID_START_RX 0
 #define SWEEP_MID_END_RX 31
 #define SWEEP_FINE_START_RX 0
@@ -137,7 +137,7 @@ int main(void) {
 		radio_delay();
 		//receive_packet(SWEEP_COARSE_START_RX, SWEEP_MID_START_RX, SWEEP_FINE_START_RX, 1);
 		LC_FREQCHANGE(SWEEP_COARSE_START_RX, SWEEP_MID_START_RX, SWEEP_FINE_START_RX);
-		receive_packet(1);
+		receive_packet_length(1, true);
 	
 		fixed_lc_coarse_tx = SWEEP_COARSE_START_TX;
 		fixed_lc_mid_tx = SWEEP_MID_START_TX;
@@ -193,13 +193,26 @@ int main(void) {
 				}
 				
 				else if (scum_tx_or_rx == 1) { // RX+ack mode
+						radio_delay();
 					
 						if (need_to_send_ack == 1){
-								for (i=0;i<2;i++) {
-										radio_delay();
-										//send_packet(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, tx_packet);
-										LC_FREQCHANGE(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx);
-										send_packet(tx_packet, LEN_TX_PKT);
+								if (tx_packet[4] == 0x00) {
+										for (i=0;i<2;i++) {
+												radio_delay();
+												//send_packet(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, tx_packet);
+												LC_FREQCHANGE(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx);
+												send_packet(tx_packet, LEN_TX_PKT);										}
+								}
+								else if (tx_packet[4] == 0xFF) {
+										for (i=0;i<3;i++) {
+												radio_delay();
+												//send_packet(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx, tx_packet);
+												LC_FREQCHANGE(fixed_lc_coarse_tx, fixed_lc_mid_tx, fixed_lc_fine_tx);
+												send_packet(tx_packet, LEN_TX_PKT);
+												radio_delay();
+												radio_delay();
+												radio_delay();
+										}
 								}
 								need_to_send_ack = 0;
 								//rftimer_setCompareIn(rftimer_readCounter()+500*50, 7); // reset timeout timer
@@ -209,7 +222,7 @@ int main(void) {
 								radio_delay();
 								//receive_packet(fixed_lc_coarse_rx, fixed_lc_mid_rx, fixed_lc_fine_rx, LEN_RX_PKT);
 								LC_FREQCHANGE(fixed_lc_coarse_rx, fixed_lc_mid_rx, fixed_lc_fine_rx);
-								receive_packet(LEN_RX_PKT);
+								receive_packet_length(LEN_RX_PKT, true);
 						}
 
 						if ((fixed_lc_fine_rx==SWEEP_FINE_START_RX)&&(fixed_lc_mid_rx==SWEEP_MID_START_RX)&&(fixed_lc_coarse_rx>SWEEP_COARSE_END_RX)) { // switch back to TX mode
@@ -310,6 +323,7 @@ void onRx(uint8_t *packet, uint8_t packet_len) {
 				printf("%d ", scum_tx_channel_codes[(current_channel-11)*4+k/4][k%4]);
 		}
 		printf("\r\n");
+		printf("IF estimate: %d\r\n",current_IF_estimate);
 		
 		if ((current_IF_estimate < 525)&&(current_IF_estimate > 475)) { // a good fit for a receive code
 				printf("rx chan found: %d %d %d\r\n", fixed_lc_coarse_rx, fixed_lc_mid_rx, fixed_lc_fine_rx);
@@ -393,7 +407,9 @@ void test_rf_timer_callback(void) {
 		
 		// restart timer
 		//rftimer_enable_interrupts(7);
+		
 		rftimer_enable_interrupts_by_id(7);
+		rftimer_enable_interrupts();
 		//rftimer_setCompareIn(rftimer_readCounter() + 500*20, 7);
 		rftimer_setCompareIn_by_id(rftimer_readCounter() + 500*20, 7);
 	
@@ -403,6 +419,8 @@ void test_rf_timer_callback(void) {
 				fixed_lc_mid_tx = SWEEP_MID_START_TX;
 				fixed_lc_fine_tx = SWEEP_FINE_START_TX;
 		}
+		
+		//printf("timed out on %d %d %d\n",fixed_lc_coarse_rx, fixed_lc_mid_rx, fixed_lc_fine_rx);
 }
 
 void increment_RX_code(void) {

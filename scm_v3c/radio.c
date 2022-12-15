@@ -25,7 +25,7 @@ signed short cdr_tau_history[11] = {0};
 
 //=========================== definition ======================================
 
-#define DIV_ON
+//#define DIV_ON
 
 #define MAXLENGTH_TRX_BUFFER    128     // 1B length, 125B data, 2B CRC
 #define NUM_CHANNELS            16
@@ -65,8 +65,14 @@ signed short cdr_tau_history[11] = {0};
 #define  DEFAULT_PANID           0xcafe
 
 //===== RFTIMER
-#define TIMER_PERIOD_TX        4000           ///< 500 = 1ms@500kHz
-#define TIMER_PERIOD_RX        4000           ///< 500 = 1ms@500kHz
+//#define TIMER_PERIOD_TX        250000           ///< 500 = 1ms@500kHz
+//#define TIMER_PERIOD_RX        200000           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD_TX        2000           ///< 500 = 1ms@500kHz
+#define TIMER_PERIOD_RX        2000           ///< 500 = 1ms@
+//#define TIMER_PERIOD_RX        10000           ///< 500 = 1ms@500kHz
+
+#define RX_PKT_ANY_LEN          0xFF    // A packet of length 255 is impossible by both IEEE 802.15.4 and BLE, and
+                                        // is used to indicate that the packet length is not known in advance.
 
 //=========================== variables =======================================
 
@@ -139,19 +145,29 @@ void send_packet(uint8_t *packet, uint8_t pkt_len) {
     while (radio_vars.sendDone==false);
 }
 
+// Receive a packet of any length.
+// If timeout is set false, then the function may block indefinitely
+void receive_packet(bool timeout) {
+    receive_packet_length(RX_PKT_ANY_LEN, timeout);
+}
+
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
-void receive_packet(uint8_t pkt_len) {
+// Includes a timeout in case no packet is received.
+//  Timeout determined by TIMER_PERIOD_RX
+// If timeout is set false, then the function may block indefinitely
+void receive_packet_length(uint8_t pkt_len, bool timeout) {
     radio_vars.radio_mode = RX_MODE;
     radio_vars.rxPacket_len = pkt_len;
 
-    rftimer_set_callback(cb_timer_radio);
+    if(timeout)
+        rftimer_set_callback(cb_timer_radio);
 
     radio_vars.rxFrameStarted = false;
     radio_rxEnable();
     radio_rxNow();
-    rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_RX);
+    if(timeout)
+        rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_RX);
     radio_vars.receiveDone = false;
-
     while (radio_vars.receiveDone==false);
 }
 
@@ -179,20 +195,25 @@ void cb_endFrame_rx_radio(uint32_t timestamp){
         &radio_vars.rxpk_rssi,
         &radio_vars.rxpk_lqi
     );
-        
-    radio_rfOff();
-    
-    if(packet_len == radio_vars.rxPacket_len && radio_getCrcOk()) {
+
+    // CRC must be ok and packet must be of correct length (if specified a priori)
+    if(radio_getCrcOk() && (radio_vars.rxPacket_len == RX_PKT_ANY_LEN || packet_len == radio_vars.rxPacket_len)) {
         // Only record IF estimate, LQI, and CDR tau for valid packets
         radio_vars.IF_estimate        = radio_getIFestimate();
         radio_vars.LQI_chip_errors    = radio_getLQIchipErrors();
-        
         radio_vars.radio_rx_cb(radio_vars.rxPacket, packet_len);
+        //printf("IF: %d \r\n", radio_vars.IF_estimate);
+    }
+    else {
+        // go back to receiving...
+        radio_rxEnable();
+        radio_rxNow();
     }
     
     free(radio_vars.rxPacket);
     
     radio_vars.rxFrameStarted = false;
+    radio_vars.receiveDone = true;
 }
 
 // Repeatedly perform a radio operation. Supports RX/TX and sweeping/fixed LC frequencies.
@@ -260,7 +281,7 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                     LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
 
                     if (repeat_rx_tx_params.radio_mode == RX_MODE) {
-                        receive_packet(repeat_rx_tx_params.pkt_len);
+                        receive_packet_length(repeat_rx_tx_params.pkt_len, true);
                     }
                     else if (repeat_rx_tx_params.radio_mode == TX_MODE) {                        
                         for(i = 1; i < repeat_rx_tx_params.pkt_len; i++) {
@@ -421,7 +442,6 @@ void radio_txEnable(){
 // Begin modulating the radio output for TX
 // Note that you need some delay before txNow() to allow txLoad() to finish loading the packet
 void radio_txNow(){
-    
     RFCONTROLLER_REG__CONTROL = TX_SEND;
 }
 
@@ -484,6 +504,10 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
     if (*pLenRead<=maxBufLen) {
         memcpy(pBufRead,&(radio_vars.radio_rx_buffer[1]),*pLenRead);
     }
+}
+void radio_rfOn(void) {
+		// clear reset pin
+		RFCONTROLLER_REG__CONTROL		&=	~RF_RESET;
 }
 
 void radio_rfOff(){

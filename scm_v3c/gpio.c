@@ -14,6 +14,17 @@ void gpio_init(void){
 }
 
 // frame
+void gpio_0_set(void){
+    GPIO_REG__OUTPUT    |=  0x0001;
+}
+void gpio_0_clr(void){
+    GPIO_REG__OUTPUT    &= ~0x0001;
+}
+void gpio_0_toggle(void){
+    GPIO_REG__OUTPUT    ^=  0x0001;
+}
+
+// frame
 void gpio_1_set(void){
     GPIO_REG__OUTPUT    |=  0x0002;
 }
@@ -97,6 +108,76 @@ void gpio_8_clr(void){
 }
 void gpio_8_toggle(void){
     GPIO_REG__OUTPUT    ^=  0x0100;
+}
+
+void gpio_9_set(void){
+    GPIO_REG__OUTPUT    |=  0x0200;
+}
+void gpio_9_clr(void){
+    GPIO_REG__OUTPUT    &= ~0x0200;
+}
+void gpio_9_toggle(void){
+    GPIO_REG__OUTPUT    ^=  0x0200;
+}
+
+void gpio_10_set(void){
+    GPIO_REG__OUTPUT    |=  0x0400;
+}
+void gpio_10_clr(void){
+    GPIO_REG__OUTPUT    &= ~0x0400;
+}
+void gpio_10_toggle(void){
+    GPIO_REG__OUTPUT    ^=  0x0400;
+}
+
+void gpio_11_set(void){
+    GPIO_REG__OUTPUT    |=  0x0800;
+}
+void gpio_11_clr(void){
+    GPIO_REG__OUTPUT    &= ~0x0800;
+}
+void gpio_11_toggle(void){
+    GPIO_REG__OUTPUT    ^=  0x0800;
+}
+
+void gpio_12_set(void){
+    GPIO_REG__OUTPUT    |=  0x1000;
+}
+void gpio_12_clr(void){
+    GPIO_REG__OUTPUT    &= ~0x1000;
+}
+void gpio_12_toggle(void){
+    GPIO_REG__OUTPUT    ^=  0x1000;
+}
+
+void gpio_13_set(void){
+    GPIO_REG__OUTPUT    |=  0x2000;
+}
+void gpio_13_clr(void){
+    GPIO_REG__OUTPUT    &= ~0x2000;
+}
+void gpio_13_toggle(void){
+    GPIO_REG__OUTPUT    ^=  0x2000;
+}
+
+void gpio_14_set(void){
+    GPIO_REG__OUTPUT    |=  0x4000;
+}
+void gpio_14_clr(void){
+    GPIO_REG__OUTPUT    &= ~0x4000;
+}
+void gpio_14_toggle(void){
+    GPIO_REG__OUTPUT    ^=  0x4000;
+}
+
+void gpio_15_set(void){
+    GPIO_REG__OUTPUT    |=  0x8000;
+}
+void gpio_15_clr(void){
+    GPIO_REG__OUTPUT    &= ~0x8000;
+}
+void gpio_15_toggle(void){
+    GPIO_REG__OUTPUT    ^=  0x8000;
 }
 
 // ISRs for external interrupts

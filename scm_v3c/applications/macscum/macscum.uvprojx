@@ -7,11 +7,11 @@
 
   <Targets>
     <Target>
-      <TargetName>freq_sweep_rx_simple</TargetName>
+      <TargetName>macscum</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
-      <uAC6>8</uAC6>
+      <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
           <Device>ARMCM0</Device>
@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>freq_sweep_rx_simple</OutputName>
+          <OutputName>macscum</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -82,8 +82,8 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>1</RunUserProg2>
-            <UserProg1Name>fromelf --bin .\Objects\freq_sweep_rx_simple.axf -o .\Objects\freq_sweep_rx_simple.bin</UserProg1Name>
-            <UserProg2Name>fromelf -cvf .\Objects\freq_sweep_rx_simple.axf -o .\Objects\disasm.txt</UserProg2Name>
+            <UserProg1Name>fromelf --bin .\Objects\macscum.axf -o .\Objects\macscum.bin</UserProg1Name>
+            <UserProg2Name>fromelf -cvf .\Objects\macscum.axf -o .\Objects\disasm.txt</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -370,7 +370,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>freq_sweep_rx_simple.sct</ScatterFile>
+            <ScatterFile>macscum.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -384,9 +384,9 @@
           <GroupName>app</GroupName>
           <Files>
             <File>
-              <FileName>freq_sweep_rx_simple.c</FileName>
+              <FileName>macscum.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\freq_sweep_rx_simple.c</FilePath>
+              <FilePath>.\macscum.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -540,7 +540,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>freq_sweep_rx_simple</OutputName>
+          <OutputName>macscum</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -573,8 +573,8 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>1</RunUserProg2>
-            <UserProg1Name>fromelf --bin .\Objects\freq_sweep_rx_simple.axf -o .\Objects\freq_sweep_rx_simple.bin</UserProg1Name>
-            <UserProg2Name>fromelf -cvf .\Objects\freq_sweep_rx_simple.axf -o .\Objects\disasm.txt</UserProg2Name>
+            <UserProg1Name>fromelf --bin .\Objects\macscum.axf -o .\Objects\macscum.bin</UserProg1Name>
+            <UserProg2Name>fromelf -cvf .\Objects\macscum.axf -o .\Objects\disasm.txt</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -861,7 +861,7 @@
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>freq_sweep_rx_simple.sct</ScatterFile>
+            <ScatterFile>macscum.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -875,9 +875,9 @@
           <GroupName>app</GroupName>
           <Files>
             <File>
-              <FileName>freq_sweep_rx_simple.c</FileName>
+              <FileName>macscum.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\freq_sweep_rx_simple.c</FilePath>
+              <FilePath>.\macscum.c</FilePath>
             </File>
           </Files>
         </Group>
