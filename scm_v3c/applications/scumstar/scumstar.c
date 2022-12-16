@@ -19,6 +19,7 @@
 //#define RX_PACKET_LEN 9+2 // 2 for CRC
 #define RX_PACKET_LEN 125+2
 #define TX_PACKET_LEN 18+2
+#define TX_DATA_PACKET_LEN	64+2
 
 // === NETWORK STATES === //
 #define DESYNCHED 0 // INITIAL STATE, BUSY LISTEN FOR PACKETS
@@ -268,7 +269,7 @@
 		#define RX_LC_FINE_SYNC			RX_LC_FINE+RX_FINE_CODE_FUDGE
 		#define TX_LC_COARSE				25
 		#define TX_LC_MID						26
-		#define TX_LC_FINE					15
+		#define TX_LC_FINE					17
 		
 		// address
 		#define MY_ADDRESS					0xAB47
@@ -281,7 +282,7 @@
 		#define ONLY_LISTEN					0
 		
 		// time nonsense
-		#define EB_TIMER_SKEW								15000
+		#define EB_TIMER_SKEW								25000
 
 #elif SELECTED_SCUM==49
 		// LC CODES, CHANNEL 17
@@ -895,26 +896,33 @@ void join_request_timer_callback(void) {
 		
 }
 void transmit_EB_timer_callback(void) {
+		
 		// transmit an EB packet
-	
 		time_sync_vars.current_downlink_time = rftimer_readCounter()+5000;
 		
 		LC_FREQCHANGE(channel_vars.tx_coarse, channel_vars.tx_mid, channel_vars.tx_fine);
 		// prepare packet:
 		app_vars.tx_packet[0] = (uint8_t)(MY_ADDRESS>>8);
 		app_vars.tx_packet[1] = (uint8_t)(MY_ADDRESS&0xFF);
-		app_vars.tx_packet[2] = 0xFF;
-		app_vars.tx_packet[3] = 0xFF;
+		app_vars.tx_packet[2] = 0x12;
+		app_vars.tx_packet[3] = 0x34; // uplink to the "root"
 		app_vars.tx_packet[4] = (uint8_t)((time_sync_vars.tx_EB_timer_from_parent>>8)&0x00FF);
 		app_vars.tx_packet[5] = (uint8_t)(time_sync_vars.tx_EB_timer_from_parent & 0x00FF);
-		app_vars.tx_packet[6] = 0x66;
-		app_vars.tx_packet[7] = 0x66;
-		app_vars.tx_packet[8] = 0x12;
+		app_vars.tx_packet[6] = 'f';
+		app_vars.tx_packet[7] = 'a';
+		app_vars.tx_packet[8] = 'k';
+		app_vars.tx_packet[9] = 'e';
+		app_vars.tx_packet[10] = ' ';
+		app_vars.tx_packet[11] = 'D';
+		app_vars.tx_packet[12] = 'a';
+		app_vars.tx_packet[13] = 't';
+		app_vars.tx_packet[14] = 'a';
+		app_vars.tx_packet[15] = '!';
 	
-		radio_loadPacket(app_vars.tx_packet, TX_PACKET_LEN);
+		radio_loadPacket(app_vars.tx_packet, TX_DATA_PACKET_LEN);
 		radio_txEnable();
 		rftimer_setCompareIn_by_id(time_sync_vars.current_downlink_time, TIMER_CB_TX_RDY_WAIT);
-		// indicate that I do not want to listen for an ACK because this is an EB
+		// indicate that I do not want to listen for an ACK because this is an EB - OK for debugging
 		scumpong_vars.listen_for_ack = DO_NOT_LISTEN_FOR_ACK;
 	
 		// set up timer to listen for join request:
