@@ -300,13 +300,11 @@ void radio_init_rx_MF_lighthouse() {
     set_asc_bit(97);
 
     // Memory mapped config registers
-    // analog_cfg[239:224]	AGC		{gain_imbalance_select 1, gain_offset 3,
-    // vga_ctrl_Q_analogcfg 6, vga_ctrl_I_analogcfg 6}
-    // ANALOG_CFG_REG__14 analog_cfg[255:240]	AGC
-    // {envelope_threshold 4, wait_time 12}		ANALOG_CFG_REG__15
-    // gain_imbalance_select
-    // '0' = subtract 'gain_offset' from Q channel
-    // '1' = subtract 'gain_offset' from I channel
+    // analog_cfg[239:224]	AGC		{gain_imbalance_select 1,
+    // gain_offset 3, vga_ctrl_Q_analogcfg 6, vga_ctrl_I_analogcfg 6}
+    // ANALOG_CFG_REG__14 analog_cfg[255:240]	AGC {envelope_threshold 4,
+    // wait_time 12} ANALOG_CFG_REG__15 gain_imbalance_select '0' = subtract
+    // 'gain_offset' from Q channel '1' = subtract 'gain_offset' from I channel
     // envelope_threshold = the max-min value of signal that will cause gain
     // reduction wait_time = how long FSM waits for settling before making
     // another adjustment
@@ -353,13 +351,13 @@ void radio_init_rx_MF_lighthouse() {
     // For polyphase (1=enabled),
     // 	mux select signal ASC<746>=0 gives control to ASC<971>
     //	mux select signal ASC<746>=1 gives control to analog_cfg<256> (bit 0 of
-    //ANALOG_CFG_REG__16)
+    // ANALOG_CFG_REG__16)
     // --
     // For mixers (0=enabled), both I and Q should be enabled for matched filter
     // mode 	mux select signals ASC<744>=0 and ASC<745>=0 give control to
     // ASC<298> and ASC<307>
     //	mux select signals ASC<744>=1 and ASC<745>=1 give control to
-    //analog_cfg<257> analog_cfg<258> (bits 1 and 2 in ANALOG_CFG_REG__16)
+    // analog_cfg<257> analog_cfg<258> (bits 1 and 2 in ANALOG_CFG_REG__16)
 
     // Set mixer and polyphase control signals to memory mapped I/O
     set_asc_bit(744);

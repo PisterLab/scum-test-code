@@ -85,12 +85,10 @@
 
 // === CHOOSE BETWEEN THE SCUMS === //
 #define SELECTED_SCUM 17  // PROG PORT 27, UART PORT// 17
-// #define SELECTED_SCUM							6 // PROG PORT 37,
-// UART PORT 6
-// #define SELECTED_SCUM						4 // PROG PORT 4, UART
-// PORT LOGIC ANALYZER
-// #define SELECTED_SCUM						77 // TEENSY OPTICAL PROG.
-// PORT, NO UART
+// #define SELECTED_SCUM							6 // PROG
+// PORT 37, UART PORT 6 #define SELECTED_SCUM
+// 4 // PROG PORT 4, UART PORT LOGIC ANALYZER #define SELECTED_SCUM
+// 77 // TEENSY OPTICAL PROG. PORT, NO UART
 
 // === DEBUG FLAGS === //
 #define EB_ONLY 1
@@ -698,7 +696,7 @@ void radio_rx_cb(uint32_t timestamp) {
             // time_sync_vars.tx_EB_timer_from_parent - RX_IF_BACKOFF,
             // TIMER_CB_TX_EB ); // send an EB if (EB_ONLY == 1) {
             //		time_sync_vars.tx_EB_timer_from_parent =
-            //time_sync_vars.rx_EB_timer - EB_TIMER_SKEW;
+            // time_sync_vars.rx_EB_timer - EB_TIMER_SKEW;
             // }
             if (EB_ONLY == 1) {
                 rftimer_setCompareIn_by_id(
@@ -960,10 +958,11 @@ void rx_timeout_callback(void) {
         //}
         // else if (scumpong_vars.desync_risk == 1) {
         //		rftimer_setCompareIn_by_id(app_vars.current_count +
-        //time_sync_vars.rx_EB_timer, TIMER_CB_RX_EB);
+        // time_sync_vars.rx_EB_timer, TIMER_CB_RX_EB);
         //		rftimer_setCompareIn_by_id(app_vars.current_count +
-        //time_sync_vars.tx_EB_timer_from_parent, TIMER_CB_TX_EB ); // still
-        //send an EB 		time_sync_vars.rx_EB_timer = time_sync_vars.rx_EB_timer;
+        // time_sync_vars.tx_EB_timer_from_parent, TIMER_CB_TX_EB ); // still
+        // send an EB 		time_sync_vars.rx_EB_timer =
+        // time_sync_vars.rx_EB_timer;
         //}
 
         LC_FREQCHANGE(channel_vars.rx_coarse, channel_vars.rx_mid,

@@ -8,6 +8,7 @@
 #include "optical.h"
 #include "scm3c_hw_interface.h"
 
+// ADC configuration.
 static const adc_config_t g_adc_config = {
     .reset_source = ADC_RESET_SOURCE_FSM,
     .convert_source = ADC_CONVERT_SOURCE_FSM,
