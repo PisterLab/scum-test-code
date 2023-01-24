@@ -83,36 +83,56 @@ static void adc_set_settling_time_asc_bits(uint8_t settling_time) {
     adc_set_asc_bit(ADC_SETTLING_TIME_7_ASC_BIT, settling_time & 0x1);
 }
 
-static void adc_set_bandgap_refernce_tuning_code_asc_bits(uint8_t bandgap_reference_tuning_code) {
-    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_0_ASC_BIT, (bandgap_reference_tuning_code >> 6) & 0x1);
-    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_1_ASC_BIT, (bandgap_reference_tuning_code >> 5) & 0x1);
-    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_2_ASC_BIT, (bandgap_reference_tuning_code >> 4) & 0x1);
-    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_3_ASC_BIT, (bandgap_reference_tuning_code >> 3) & 0x1);
-    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_4_ASC_BIT, (bandgap_reference_tuning_code >> 2) & 0x1);
-    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_5_ASC_BIT, (bandgap_reference_tuning_code >> 1) & 0x1);
-    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_6_ASC_BIT, bandgap_reference_tuning_code & 0x1);
+static void adc_set_bandgap_refernce_tuning_code_asc_bits(
+    uint8_t bandgap_reference_tuning_code) {
+    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_0_ASC_BIT,
+                    (bandgap_reference_tuning_code >> 6) & 0x1);
+    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_1_ASC_BIT,
+                    (bandgap_reference_tuning_code >> 5) & 0x1);
+    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_2_ASC_BIT,
+                    (bandgap_reference_tuning_code >> 4) & 0x1);
+    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_3_ASC_BIT,
+                    (bandgap_reference_tuning_code >> 3) & 0x1);
+    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_4_ASC_BIT,
+                    (bandgap_reference_tuning_code >> 2) & 0x1);
+    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_5_ASC_BIT,
+                    (bandgap_reference_tuning_code >> 1) & 0x1);
+    adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_6_ASC_BIT,
+                    bandgap_reference_tuning_code & 0x1);
 }
 
-static void adc_set_const_gm_tuning_code_asc_bits(uint8_t const_gm_tuning_code) {
-    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_0_ASC_BIT, (const_gm_tuning_code >> 7) & 0x1);
-    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_1_ASC_BIT, (const_gm_tuning_code >> 6) & 0x1);
-    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_2_ASC_BIT, (const_gm_tuning_code >> 5) & 0x1);
-    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_3_ASC_BIT, (const_gm_tuning_code >> 4) & 0x1);
-    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_4_ASC_BIT, (const_gm_tuning_code >> 3) & 0x1);
-    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_5_ASC_BIT, (const_gm_tuning_code >> 2) & 0x1);
-    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_6_ASC_BIT, (const_gm_tuning_code >> 1) & 0x1);
-    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_7_ASC_BIT, const_gm_tuning_code & 0x1);
+static void adc_set_const_gm_tuning_code_asc_bits(
+    uint8_t const_gm_tuning_code) {
+    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_0_ASC_BIT,
+                    (const_gm_tuning_code >> 7) & 0x1);
+    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_1_ASC_BIT,
+                    (const_gm_tuning_code >> 6) & 0x1);
+    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_2_ASC_BIT,
+                    (const_gm_tuning_code >> 5) & 0x1);
+    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_3_ASC_BIT,
+                    (const_gm_tuning_code >> 4) & 0x1);
+    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_4_ASC_BIT,
+                    (const_gm_tuning_code >> 3) & 0x1);
+    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_5_ASC_BIT,
+                    (const_gm_tuning_code >> 2) & 0x1);
+    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_6_ASC_BIT,
+                    (const_gm_tuning_code >> 1) & 0x1);
+    adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_7_ASC_BIT,
+                    const_gm_tuning_code & 0x1);
 }
 
-void adc_config(adc_config_t* adc_config) {
+void adc_config(const adc_config_t* adc_config) {
     // Set the ASC bit for the ADC reset signal source.
-    adc_set_asc_bit(ADC_RESET_SOURCE_ASC_BIT, (uint8_t)adc_config->reset_source);
+    adc_set_asc_bit(ADC_RESET_SOURCE_ASC_BIT,
+                    (uint8_t)adc_config->reset_source);
 
     // Set the ASC bit for the ADC convert signal source.
-    adc_set_asc_bit(ADC_CONVERT_SOURCE_ASC_BIT, (uint8_t)adc_config->convert_source);
+    adc_set_asc_bit(ADC_CONVERT_SOURCE_ASC_BIT,
+                    (uint8_t)adc_config->convert_source);
 
     // Set the ASC bit for the PGA amplify signal source.
-    adc_set_asc_bit(ADC_PGA_AMPLIFY_SOURCE_ASC_BIT, (uint8_t)adc_config->pga_amplify_source);
+    adc_set_asc_bit(ADC_PGA_AMPLIFY_SOURCE_ASC_BIT,
+                    (uint8_t)adc_config->pga_amplify_source);
 
     // Set the ASC bits for the PGA gain.
     adc_set_pga_gain_asc_bits(adc_config->pga_gain);
@@ -121,20 +141,24 @@ void adc_config(adc_config_t* adc_config) {
     adc_set_settling_time_asc_bits(adc_config->settling_time);
 
     // Set the ASC bits for the bandgap reference tuning code.
-    adc_set_bandgap_refernce_tuning_code_asc_bits(adc_config->bandgap_reference_tuning_code);
+    adc_set_bandgap_refernce_tuning_code_asc_bits(
+        adc_config->bandgap_reference_tuning_code);
 
     // Set the ASC bits for the const gm device tuning code.
     adc_set_const_gm_tuning_code_asc_bits(adc_config->const_gm_tuning_code);
 
     // Set the ASC bit for enabling the VBAT / 4 input.
-    adc_set_asc_bit(ADC_VBAT_DIV_4_ENABLED_ASC_BIT, adc_config->vbat_div_4_enabled);
+    adc_set_asc_bit(ADC_VBAT_DIV_4_ENABLED_ASC_BIT,
+                    adc_config->vbat_div_4_enabled);
 
     // Set the ASC bit for enabling the on-chip LDO.
     adc_set_asc_bit(ADC_LDO_ENABLED_ASC_BIT, adc_config->ldo_enabled);
 
     // Set the ASC bits for the ADC input mux select.
-    adc_set_asc_bit(ADC_INPUT_MUX_SELECT_0_ASC_BIT, (adc_config->input_mux_select >> 1) & 0x1);
-    adc_set_asc_bit(ADC_INPUT_MUX_SELECT_1_ASC_BIT, adc_config->input_mux_select & 0x1);
+    adc_set_asc_bit(ADC_INPUT_MUX_SELECT_0_ASC_BIT,
+                    (adc_config->input_mux_select >> 1) & 0x1);
+    adc_set_asc_bit(ADC_INPUT_MUX_SELECT_1_ASC_BIT,
+                    adc_config->input_mux_select & 0x1);
 
     // Set the ASC bit for bypassing the PGA.
     adc_set_asc_bit(ADC_PGA_BYPASS_ASC_BIT, adc_config->pga_bypass);

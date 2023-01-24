@@ -4,10 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-//=========================== define ==========================================
-
-//=========================== typedef =========================================
-
 // ADC reset signal source enum.
 typedef enum {
     ADC_RESET_SOURCE_INVALID = -1,
@@ -49,24 +45,28 @@ typedef struct {
     // PGA amplify signal source.
     adc_pga_amplify_source_t pga_amplify_source;
 
-    // 8-bit PGA gain. The actual gain is pga_gain + 1 for a range from 1 to 256.
+    // 8-bit PGA gain. The actual gain is pga_gain + 1 for a range from 1 to
+    // 256.
     uint8_t pga_gain;
 
-    // 8-bit ADC settling time. 0x00 gives the ADC roughly 1.72 us to retrieve all 10 bits,
-    // and 0xFF gives the ADC roughly 0.35 us to retrieve all 10 bits.
+    // 8-bit ADC settling time. 0x00 gives the ADC roughly 1.72 us to retrieve
+    // all 10 bits, and 0xFF gives the ADC roughly 0.35 us to retrieve all 10
+    // bits.
     uint8_t settling_time;
 
-    // 7-bit bandgap reference tuning code to control the reference voltage to the LDO.
-    // The MSB is the panic bit and sets the reference voltage to the maximum, which is
-    // around 1.2 V. 0x00 sets the reference voltage to the minimum, which is around 0.8 V.
+    // 7-bit bandgap reference tuning code to control the reference voltage to
+    // the LDO. The MSB is the panic bit and sets the reference voltage to the
+    // maximum, which is around 1.2 V. 0x00 sets the reference voltage to the
+    // minimum, which is around 0.8 V.
     uint8_t bandgap_reference_tuning_code;
 
-    // 8-bit const gm device tuning code to control the reference current used in the ADC's
-    // comparator and the PGA. Increasing the tuning code decreases the reference current.
+    // 8-bit const gm device tuning code to control the reference current used
+    // in the ADC's comparator and the PGA. Increasing the tuning code decreases
+    // the reference current.
     uint8_t const_gm_tuning_code;
 
-    // If true, the VBAT / 4 input to the mux is enabled. Note that this not choose VBAT / 4
-    // as the output of the mux.
+    // If true, the VBAT / 4 input to the mux is enabled. Note that this does
+    // not choose VBAT / 4 as the output of the mux.
     bool vbat_div_4_enabled;
 
     // If true, the on-chip LDO is enabled.
@@ -88,15 +88,11 @@ typedef struct {
     uint16_t data;
 } adc_output_t;
 
-//=========================== variables =======================================
-
 // ADC output.
 extern adc_output_t g_adc_output;
 
-//=========================== prototypes ======================================
-
 // Configure the ADC according to the given ADC config.
-void adc_config(adc_config_t* adc_config);
+void adc_config(const adc_config_t* adc_config);
 
 // Trigger an ADC read.
 void adc_trigger(void);
