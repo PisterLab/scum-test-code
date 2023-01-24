@@ -1,17 +1,17 @@
 #include <stdint.h>
 
-typedef union int16_buff_t{
-	int16_t value;
-	uint8_t bytes[2];
+typedef union int16_buff_t {
+    int16_t value;
+    uint8_t bytes[2];
 } int16_buff_t;
 
-typedef struct imu_data_t{
-	int16_buff_t acc_x;
-	int16_buff_t acc_y;
-	int16_buff_t acc_z;
-	int16_buff_t gyro_x;
-	int16_buff_t gyro_y;
-	int16_buff_t gyro_z;
+typedef struct imu_data_t {
+    int16_buff_t acc_x;
+    int16_buff_t acc_y;
+    int16_buff_t acc_z;
+    int16_buff_t gyro_x;
+    int16_buff_t gyro_y;
+    int16_buff_t gyro_z;
 } imu_data_t;
 
 unsigned int read_gyro_x();
