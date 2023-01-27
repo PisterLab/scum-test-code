@@ -131,7 +131,7 @@ void build_TX_channel_table(uint32_t channel_11_LC_code,
 //=========================== public ==========================================
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
-void send_packet(uint8_t* packet, uint8_t pkt_len) {
+void send_packet(void* packet, uint8_t pkt_len) {
     radio_vars.radio_mode = TX_MODE;
 
     rftimer_set_callback(cb_timer_radio);
@@ -416,7 +416,7 @@ void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {
     }
 }
 
-void radio_loadPacket(uint8_t* packet, uint16_t len) {
+void radio_loadPacket(void* packet, uint16_t len) {
     memcpy(&radio_vars.radio_tx_buffer[0], packet, len);
 
     // load packet in TXFIFO

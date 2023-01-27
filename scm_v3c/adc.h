@@ -9,21 +9,21 @@ typedef enum {
     ADC_RESET_SOURCE_INVALID = -1,
     ADC_RESET_SOURCE_FSM = 0,
     ADC_RESET_SOURCE_GPI = 1,
-} adc_reset_source_t;
+} adc_reset_source_e;
 
 // ADC convert signal source enum.
 typedef enum {
     ADC_CONVERT_SOURCE_INVALID = -1,
     ADC_CONVERT_SOURCE_FSM = 0,
     ADC_CONVERT_SOURCE_GPI = 1,
-} adc_convert_source_t;
+} adc_convert_source_e;
 
 // PGA amplify signal source enum.
 typedef enum {
     ADC_PGA_AMPLIFY_SOURCE_INVALID = -1,
     ADC_PGA_AMPLIFY_SOURCE_FSM = 0,
     ADC_PGA_AMPLIFY_SOURCE_GPI = 1,
-} adc_pga_amplify_source_t;
+} adc_pga_amplify_source_e;
 
 // ADC input mux select enum.
 typedef enum {
@@ -32,18 +32,18 @@ typedef enum {
     ADC_INPUT_MUX_SELECT_V_BAT_DIV_4 = 1,
     ADC_INPUT_MUX_SELECT_EXTERNAL_SIGNAL = 2,
     ADC_INPUT_MUX_SELECT_FLOATING = 3,
-} adc_input_mux_select_t;
+} adc_input_mux_select_e;
 
 // ADC config.
-typedef struct {
+typedef struct __attribute__((packed)) {
     // ADC reset signal source.
-    adc_reset_source_t reset_source;
+    adc_reset_source_e reset_source;
 
     // ADC convert signal source.
-    adc_convert_source_t convert_source;
+    adc_convert_source_e convert_source;
 
     // PGA amplify signal source.
-    adc_pga_amplify_source_t pga_amplify_source;
+    adc_pga_amplify_source_e pga_amplify_source;
 
     // 8-bit PGA gain. The actual gain is pga_gain + 1 for a range from 1 to
     // 256.
@@ -73,19 +73,19 @@ typedef struct {
     bool ldo_enabled;
 
     // 2-bit ADC input mux select.
-    adc_input_mux_select_t input_mux_select;
+    adc_input_mux_select_e input_mux_select;
 
     // If true, the PGA is bypassed.
     bool pga_bypass;
 } adc_config_t;
 
 // ADC output.
-typedef struct {
-    // If true, ADC conversion has finished and the output is valid.
-    bool valid;
-
+typedef struct __attribute__((packed)) {
     // 10-bit ADC output.
     uint16_t data;
+
+    // If true, ADC conversion has finished and the output is valid.
+    bool valid;
 } adc_output_t;
 
 // ADC output.
@@ -103,4 +103,4 @@ void adc_enable_interrupt(void);
 // Disable the ADC interrupt.
 void adc_disable_interrupt(void);
 
-#endif
+#endif  // __ADC_H
