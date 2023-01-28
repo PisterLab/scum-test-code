@@ -46,10 +46,6 @@ void spi_chip_deselect();
 
 void initialize_imu(void);
 
-void digitalWrite(int pin, int high_low);
-
-uint8_t digitalRead(int pin);
-
 unsigned int read_acc_y();
 
 unsigned int read_acc_z();
