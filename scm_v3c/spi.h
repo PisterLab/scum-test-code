@@ -29,10 +29,6 @@ typedef struct imu_data_t{
 	int16_buff_t gyro_z;
 } imu_data_t;
 
-typedef struct ads_data_t{
-	uint32_t config;
-	int32_t channel[8];
-} ads_data_t;
 
 unsigned int read_gyro_x();
 unsigned int read_gyro_y();
@@ -54,8 +50,6 @@ void digitalWrite(int pin, int high_low);
 
 uint8_t digitalRead(int pin);
 
-void ADS_initialize();
-
 unsigned int read_acc_y();
 
 unsigned int read_acc_z();
@@ -73,14 +67,3 @@ void log_imu_data(imu_data_t* imu_measurement);
 void read_ads_register(ads_data_t* ads_measurement);
 
 void log_ads_data(ads_data_t* ads_measurement);
-
-void ADS_WAKEUP();
-void ADS_STANDBY();
-void ADS_RESET();
-void ADS_START();
-void ADS_STOP();
-void ADS_RDATAC();
-void ADS_SDATAC();
-unsigned char ADS_RREG(unsigned char addr);
-void ADS_WREG(unsigned char addr, unsigned char val);
-void ADS_RREGS(unsigned char addr, unsigned char NregminusOne);

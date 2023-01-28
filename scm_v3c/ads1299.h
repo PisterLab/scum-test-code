@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "spi.h"
 
 //SPI Command Definition Byte Assignments (Datasheet, p35)
 #define _WAKEUP 0x02 // Wake-up from standby mode
@@ -36,30 +37,12 @@
 #define MISC1 0x15
 #define MISC2 0x16
 #define CONFIG4 0x17
-/*
-typedef union int16_buff_t{
-	int16_t value;
-	uint8_t bytes[2];
-} int16_buff_t;
-
-typedef union int24_buff_t{
-	int32_t value;
-	uint8_t bytes[3];
-} int24_buff_t;
-
-typedef struct imu_data_t{
-	int16_buff_t acc_x;
-	int16_buff_t acc_y;
-	int16_buff_t acc_z;
-	int16_buff_t gyro_x;
-	int16_buff_t gyro_y;
-	int16_buff_t gyro_z;
-} imu_data_t;
 
 typedef struct ads_data_t{
-	int24_buff_t electrode1;
+	uint32_t config;
+	int32_t channel[8];
 } ads_data_t;
-*/
+
 void digitalWrite(int pin, int high_low);
 
 void ADS_initialize();

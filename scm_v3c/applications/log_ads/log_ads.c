@@ -4,8 +4,7 @@
 #include "scm3c_hw_interface.h"
 #include "memory_map.h"
 #include "optical.h"
-#include "spi.h"
-//#include "ADS.h"
+#include "ads1299.h"
 //=========================== defines =========================================
 
 #define CRC_VALUE         (*((unsigned int *) 0x0000FFFC))

@@ -1,8 +1,8 @@
-#include "ADS.h"
-#include "spi.h"
+#include "ads1299.h"
 #include "Memory_Map.h"
 #include <stdio.h>
 
+// TODO: move this into the spi_config struct
 #define CS_PIN      15
 #define CLK_PIN     14
 #define DIN_PIN     13 // Used when reading data from the IMU thus a SCuM input
