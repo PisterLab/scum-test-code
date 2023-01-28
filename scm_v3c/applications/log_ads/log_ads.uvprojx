@@ -491,6 +491,16 @@
               <FileType>5</FileType>
               <FilePath>..\..\spi.h</FilePath>
             </File>
+            <File>
+              <FileName>ads1299.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\ads1299.c</FilePath>
+            </File>
+            <File>
+              <FileName>ads1299.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\ads1299.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

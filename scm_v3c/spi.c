@@ -2,12 +2,12 @@
 
 #include "Memory_Map.h"
 
-#define CS_PIN		15
+#define CS_PIN		11
 #define CLK_PIN		14
-#define DIN_PIN		13 // Used when reading data from the IMU thus a SCuM input (MISO)
-#define DATA_PIN	12 // Used when writing to the IMU thus a SCuM output (MOSI)
-#define RST_PIN     7  // need to check IO (output)
-#define DRDY_PIN    6  // need to check IO (input)
+#define DIN_PIN		13  // Used when reading data from the IMU thus a SCuM input (MISO)
+#define DATA_PIN	12  // Used when writing to the IMU thus a SCuM output (MOSI)
+#define RST_PIN     15  // need to check IO (output)
+#define DRDY_PIN    3   // need to check IO (input)
 
 void clock_toggle(unsigned char cycle) {
 	int j;

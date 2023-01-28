@@ -3,25 +3,33 @@
 #include <stdio.h>
 
 // TODO: move this into the spi_config struct
-#define CS_PIN      15
+// SPI bus definitions
+#define CS_PIN      11
 #define CLK_PIN     14
 #define DIN_PIN     13 // Used when reading data from the IMU thus a SCuM input
 #define DATA_PIN    12 // Used when writing to the IMU thus a SCuM output
-#define RST_PIN     11  // need to check IO (output)
-#define DRDY_PIN    10  // need to check IO (input)
+// ADS pin definitions
+#define RST_PIN     15  // need to check IO (output)
+#define DRDY_PIN    3  // need to check IO (input)
+#define ADS_DVDD 	7	// ADS1299 is powered by SCuM's GPIO pin 7, supplies 1.8V
+
 
 void digitalWrite(int pin, int high_low) {
-	printf("pin: %d high_low =: %d", pin, high_low);
+	printf("wrote pin: %d high_low =: %d\r\n", pin, high_low);
     if (high_low) {
         GPIO_REG__OUTPUT |= (1 << pin);
-			printf("%x\n", GPIO_REG__OUTPUT);
-				printf("high\n");
-		}
+	}
     else {
         GPIO_REG__OUTPUT &= ~(1 << pin);
-						printf("%x\n", GPIO_REG__OUTPUT);
-				printf("low\n");
-		}
+	}
+}
+
+uint8_t digitalRead(int pin) {
+	uint8_t i = 0;
+	int clk_pin = CLK_PIN;
+	i = (GPIO_REG__INPUT&(1 << pin)) >> pin;
+	// printf("i = %d\n", i);
+	return i;
 }
 
 void ADS_initialize() {
@@ -31,6 +39,9 @@ void ADS_initialize() {
     int clk_pin = CLK_PIN;
     int cs_pin = CS_PIN;
     int MOSI_pin = DATA_PIN;
+
+	// Enable power to the ADS1299
+	digitalWrite(ADS_DVDD, 1);
     
     // cortex clock 2MHz(0.5us)
     // power up ~32ms
@@ -38,13 +49,13 @@ void ADS_initialize() {
     
     // toggle reset pin
     digitalWrite(rst_pin, 0);    // reset low
-	    digitalWrite(12, 0);    // reset low
-    digitalWrite(14, 0);    // reset low
-    digitalWrite(15, 0);    // reset low
+	digitalWrite(DATA_PIN, 0);    // reset low
+    digitalWrite(CLK_PIN, 0);    // reset low
+    digitalWrite(CS_PIN, 0);    // reset low
 
     for (t = 0; t < 10; t++);
 //		digitalWrite(MOSI_pin,0);		// test delay time
-		printf("run");
+	printf("Initialized ADS1299\r\n");
 /*    digitalWrite(rst_pin, 1);     // reset high
     
     // recommend to wait 18 Tclk
@@ -137,351 +148,75 @@ unsigned char ADS_RREG(unsigned char addr) {
     
     return read_reg;
 }
-/*
-void clock_toggle(unsigned char cycle) {
-	int j;
-	int clk_pin = CLK_PIN;
 
-	for (j = 0; j < cycle; j++) {
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+void ADS_WREG(unsigned char addr, unsigned char val) {
+	unsigned char opcode1 = addr + 0x40;
+
+	digitalWrite(CS_PIN, 0);
+	spi_write(opcode1);
+	spi_write(0x00);
+	spi_write(val);
+	digitalWrite(CS_PIN, 1);
+}
+
+void ADS_RREGS(unsigned char addr, unsigned char NregminusOne) {
+    unsigned char opcode1 = addr + 0x20;
+    unsigned char read_reg;
+	unsigned char i;
+
+    digitalWrite(CS_PIN, 0);
+    spi_write(opcode1);
+	spi_write(NregminusOne);
+	for (i = 0; i <= NregminusOne; i++) {
+		read_reg = spi_read();
+		printf("%x\n", read_reg);
 	}
+    digitalWrite(CS_PIN, 1);
 }
-*/
-/*
-void spi_write(unsigned char writeByte) {
-	int j;
-	int t=0;
-	int clk_pin = CLK_PIN;
-	int data_pin = DATA_PIN;
-
-	// sample at falling edge
-	for (j=7;j>=0;j--) {
-		if ((writeByte&(0x01<<j)) != 0) {
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-			GPIO_REG__OUTPUT |= 1 << data_pin; // write a 1
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		}
-		else {
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-			GPIO_REG__OUTPUT &= ~(1 << data_pin); // write a 0
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		}
-	}
-	
-	// sample at rising edge
-	for (j=7;j>=0;j--) {
-		if ((writeByte&(0x01<<j)) != 0) {
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-			GPIO_REG__OUTPUT |= 1 << data_pin; // write a 1
-			GPIO_REG__OUTPUT |= 1 << clk_pin; // clock high
-		}
-		else {
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-			GPIO_REG__OUTPUT &= ~(1 << data_pin); // write a 0
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		}
-	}
-	
-	GPIO_REG__OUTPUT &= ~(1 << data_pin); // set data out to 0
-}*/
-/*
-unsigned char spi_read() {
-	unsigned char readByte;
-	int j;
-	int t = 0;
-	int clk_pin = CLK_PIN;
-	int din_pin = DIN_PIN;
-	readByte=0;
-
-	// sample at falling edge
-	GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-	
-	for (j=7;j>=0;j--) {
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		readByte |= ((GPIO_REG__INPUT&(1 << din_pin))>>din_pin)<<j;		
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high		
-	}
-	
-	// sample at rising edge
-	GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-	
-	for (j=7;j>=0;j--) {
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		readByte |= ((GPIO_REG__INPUT&(1 << din_pin))>>din_pin)<<j;		
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low		
-	}
-	
-	return readByte;
-}*/
-/*
-void spi_chip_select() {
-	int t = 0;
-	int dout_pin = DATA_PIN;
-	int cs_pin = CS_PIN;
-	// drop chip select low to select the chip
-	GPIO_REG__OUTPUT &= ~(1 << cs_pin);
-	GPIO_REG__OUTPUT &= ~(1 << dout_pin);
-	for(t=0; t<50; t++);
-}
-
-void spi_chip_deselect() {
-	int cs_pin = CS_PIN;
-	// hold chip select high to deselect the chip
-	GPIO_REG__OUTPUT |= (1 << cs_pin);
-}*/
-/*
-void initialize_imu(void) {
-	int i;
-	
-	write_imu_register(0x06,0x41);
-	for(i=0; i<50000; i++);
-	write_imu_register(0x06,0x01);
-	for(i=0; i<50000; i++);
-}
-
-void initialize_ads(void) {
-	start_select();
-	reset_select();
-}
-
-void start_select() {
-	int start_pin = START_PIN;
-	GPIO_REG__OUTPUT |= (1 << start_pin);
-}
-void reset_select() {
-	int reset_pin = RST_PIN;
-	GPIO_REG__OUTPUT |= (1 << reset_pin);
-}
-
-unsigned int read_acc_x() {
-	unsigned int acc_x;
-	unsigned char read_byte;
-	unsigned char write_byte = 0x2D;
-	
-	acc_x = (read_imu_register(write_byte))<<8;	
-	write_byte = 0x2E;
-	acc_x |= read_imu_register(write_byte);
-	
-	return acc_x;
-	
-}
-
-unsigned int read_acc_y() {
-	unsigned int acc_y;
-	unsigned char read_byte;
-	unsigned char write_byte = 0x2F;
-	
-	acc_y = (read_imu_register(write_byte))<<8;	
-	write_byte = 0x30;
-	acc_y |= read_imu_register(write_byte);
-	
-	return acc_y;
-}
-
-unsigned int read_acc_z() {
-	unsigned int acc_z;
-	unsigned char read_byte;
-	unsigned char write_byte = 0x31;
-	
-	acc_z = (read_imu_register(write_byte))<<8;
-	write_byte = 0x32;
-	acc_z |= read_imu_register(write_byte);
-	
-	return acc_z;
-}
-
-
-unsigned int read_gyro_x() {
-	unsigned int gyro_x;
-	unsigned char read_byte;
-	unsigned char write_byte = 0x33;
-	
-	gyro_x = (read_imu_register(write_byte))<<8;
-	write_byte = 0x34;
-	gyro_x |= read_imu_register(write_byte);
-	
-	return gyro_x;
-}
-
-unsigned int read_gyro_y() {
-	unsigned int gyro_y;
-	unsigned char read_byte;
-	unsigned char write_byte = 0x35;
-	
-	gyro_y = (read_imu_register(write_byte))<<8;
-	write_byte = 0x36;
-	gyro_y |= read_imu_register(write_byte);
-	
-	return gyro_y;
-}
-
-unsigned int read_gyro_z() {
-	unsigned int gyro_z;
-	unsigned char read_byte;
-	unsigned char write_byte = 0x37;
-	
-	gyro_z = (read_imu_register(write_byte))<<8;
-	write_byte = 0x38;
-	gyro_z |= read_imu_register(write_byte);
-	
-	return gyro_z;
-}
-
-void test_imu_life() {
-	int i = 0;
-	unsigned char read_byte;
-	unsigned char write_byte = 0x00;
-
-	read_byte = read_imu_register(write_byte);	
-
-	if (read_byte == 0xEA) {
-		printf("My IMU is alive!!!\n");
-	}
-	else {
-		printf("My IMU is not working :( \n");	}
-}
-
-unsigned char read_imu_register(unsigned char reg) {
-	unsigned char read_byte;
-	reg &= 0x7F;
-	reg |= 0x80;						// guarantee that the function input is a valid input (not necessarily a valid, and readable, register)
-	
-	spi_chip_select();      // drop chip select
-	spi_write(reg);         // write the selected register to the port
-	read_byte = spi_read(); // clock out the bits and read them
-	spi_chip_deselect();    // raise chip select
-	
-	return read_byte;
-}
-
-void write_imu_register(unsigned char reg, unsigned char data) {
-	reg &= 0x7F;						// guarantee that the function input is valid (not necessarily a valid, and readable, register)
-	
-	spi_chip_select();			// drop chip select
-	spi_write(reg);					// write the selected register to the port
-	spi_write(data);				// write the desired register contents
-	spi_chip_deselect();		// raise chip select
-	
-}
-
-void read_all_imu_data(imu_data_t* imu_measurement) {
-	imu_measurement->acc_x.value = read_acc_x();
-	imu_measurement->acc_y.value = read_acc_y();
-	imu_measurement->acc_z.value = read_acc_z();
-	imu_measurement->gyro_x.value = read_gyro_x();
-	imu_measurement->gyro_y.value = read_gyro_y();
-	imu_measurement->gyro_z.value = read_gyro_z();
-}
-
-void log_imu_data(imu_data_t* imu_measurement) {
-	printf("AX: %3d %3d, AY: %3d %3d, AZ: %3d %3d, GX: %3d %3d, GY: %3d %3d, GZ: %3d %3d\n",
-		imu_measurement->acc_x.bytes[0],
-		imu_measurement->acc_x.bytes[1],
-		imu_measurement->acc_y.bytes[0],
-		imu_measurement->acc_y.bytes[1],
-		imu_measurement->acc_z.bytes[0],
-		imu_measurement->acc_z.bytes[1],
-		imu_measurement->gyro_x.bytes[0],
-		imu_measurement->gyro_x.bytes[1],
-		imu_measurement->gyro_y.bytes[0],
-		imu_measurement->gyro_y.bytes[1],
-		imu_measurement->gyro_z.bytes[0],
-		imu_measurement->gyro_z.bytes[1]);
-}
-
 
 void read_ads_register(ads_data_t* ads_measurement) {
-	unsigned char reg;
-	
-	unsigned char status1;
-	unsigned char status2;
-	unsigned char status3;
-	unsigned char electrode1_1;
-	unsigned char electrode1_2;
-	unsigned char electrode1_3;
-	unsigned char electrode2_1;
-	unsigned char electrode2_2;
-	unsigned char electrode2_3;
-	unsigned char electrode3_1;
-	unsigned char electrode3_2;
-	unsigned char electrode3_3;
-	unsigned char electrode4_1;
-	unsigned char electrode4_2;
-	unsigned char electrode4_3;
-	unsigned char electrode5_1;
-	unsigned char electrode5_2;
-	unsigned char electrode5_3;
-	unsigned char electrode6_1;
-	unsigned char electrode6_2;
-	unsigned char electrode6_3;
-	unsigned char electrode7_1;
-	unsigned char electrode7_2;
-	unsigned char electrode7_3;
-	unsigned char electrode8_1;
-	unsigned char electrode8_2;
-	unsigned char electrode8_3;
-	
-	unsigned int electrode1_val;
-	
-//	reg &= 0x12;
-//	reg |= 0x12;						
-//	reg = 0x12;
-	
-	spi_chip_select();      // drop chip select
-	reg = 0x11;
-	spi_write(reg);
-//	clock_toggle(4);		// wait for 4 cycle
-//	reg = 0x20;
-//	spi_write(reg);         // write the selected register to the port
-//	reg = 0x01;
-//	spi_write(reg);
-//	status1 = spi_read(); // clock out the bits and read them
-//	status2 = spi_read(); // clock out the bits and read them
-//	status3 = spi_read(); // clock out the bits and read them
-//	printf("Results: %x %x\n",status1, status2);
-	spi_chip_deselect();
-	electrode1_1 = spi_read(); // clock out the bits and read them
-	electrode1_2 = spi_read(); // clock out the bits and read them
-	electrode1_3 = spi_read(); // clock out the bits and read them
-	electrode2_1 = spi_read(); // clock out the bits and read them
-	electrode2_2 = spi_read(); // clock out the bits and read them
-	electrode2_3 = spi_read(); // clock out the bits and read them
-	electrode3_1 = spi_read(); // clock out the bits and read them
-	electrode3_2 = spi_read(); // clock out the bits and read them
-	electrode3_3 = spi_read(); // clock out the bits and read them
-	electrode4_1 = spi_read(); // clock out the bits and read them
-	electrode4_2 = spi_read(); // clock out the bits and read them
-	electrode4_3 = spi_read(); // clock out the bits and read them
-	electrode5_1 = spi_read(); // clock out the bits and read them
-	electrode5_2 = spi_read(); // clock out the bits and read them
-	electrode5_3 = spi_read(); // clock out the bits and read them
-	electrode6_1 = spi_read(); // clock out the bits and read them
-	electrode6_2 = spi_read(); // clock out the bits and read them
-	electrode6_3 = spi_read(); // clock out the bits and read them
-	electrode7_1 = spi_read(); // clock out the bits and read them
-	electrode7_2 = spi_read(); // clock out the bits and read them
-	electrode7_3 = spi_read(); // clock out the bits and read them
-	electrode8_1 = spi_read(); // clock out the bits and read them
-	electrode8_2 = spi_read(); // clock out the bits and read them
-	electrode8_3 = spi_read(); // clock out the bits and read them
-	spi_chip_deselect();    // raise chip select
-	
-	ads_measurement->electrode1.bytes[0] = electrode1_1;
-	ads_measurement->electrode1.bytes[1] = electrode1_2;
-	ads_measurement->electrode1.bytes[2] = electrode1_3;
-	
-	electrode1_val = electrode1_1<<16;
-	electrode1_val |= electrode1_2<<8;
-	electrode1_val |= electrode1_3;
-	
-	ads_measurement->electrode1.value = electrode1_val;
+	unsigned char read_reg;
+	int nchan = 8;
+	int i, j;
+	int32_t read_24bit;
+
+//	ADS_START();
+	while (digitalRead(DRDY_PIN));
+	// while (digitalRead(DRDY_PIN) == 0x00);
+	// while (digitalRead(DRDY_PIN) == 0x01);
+
+	digitalWrite(CS_PIN, 0);
+	read_24bit = 0;
+	for (i = 0; i < 3; i++) {
+		read_reg = spi_read();
+		read_24bit = (read_24bit << 8) | read_reg;
+		// printf("%x", read_reg);
+	}
+	// printf("\n");
+	ads_measurement->config = read_24bit;
+	// printf("config = %x\n", read_24bit);
+	for (j = 0; j < nchan; j++) {
+		read_24bit = 0;
+		for (i = 0; i < 3; i++) {
+			read_reg = spi_read();
+			read_24bit = (read_24bit << 8) | read_reg;
+			// printf("%x", read_reg);
+		}
+		// printf("\n");
+		if (read_24bit >> 23) {
+			read_24bit |= 0xFF000000;
+		}
+		else {
+			read_24bit &= 0x00FFFFFF;
+		}
+		ads_measurement->channel[j] = read_24bit;
+		// printf("channel[%d] = %x\n", j, read_24bit);
+	}
+	digitalWrite(CS_PIN, 1);
+
+	// printf("%x\n", ads_measurement->config);
+	// for (j = 0; j < nchan; j++) {
+	// 	printf("%x\n", ads_measurement->channel[j]);
+	// }
 }
 
-void log_ads_data(ads_data_t* ads_measurement) {
-	printf("Results: %x %x %x\n",
-		ads_measurement->electrode1.bytes[0],
-		ads_measurement->electrode1.bytes[1],
-		ads_measurement->electrode1.bytes[2]);
-}
-*/

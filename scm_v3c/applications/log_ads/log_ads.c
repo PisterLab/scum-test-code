@@ -37,13 +37,20 @@ int main(void) {
     // Configure GPIO
     // Set GPI enables
     // Hex entry 1: 0x2 = 2 = 0b0010 = GPI 13 on for IMU
-		// Hex entry 2: 0x4 = 0b0100 = GPI 6 on for DRDY
-    GPI_enables(0x2040);
+    // Hex entry 3: 
+    // DRDY_PIN 3, DIN_PIN 13, 
+    // DIN_PIN:  10 0000 0000 0000
+    // DRDY_PIN:              1000
+    GPI_enables(0x0208);
 
     // Set GPO enables
-    // Hex entry 1: 0xD = 14 = 0b1101 = GPO 12,14,15 on for IMU
-		// Hex entry 3: 0x8 = 0b1000 = GPO 7 on for reset
-    GPO_enables(0xD080);
+    // Hex nibble 1: 0xD = 14 = 0b1101 
+    //  Pin 15 (ADS_RESET), Pin 14 (SPI_SCLK), Pin 12 (SPI_MOSI)
+		// Hex nibble 2: 0x8 = 0b1000 = 
+    //  Pin 11 (SPI_CS)
+    // Hex nibble 3: 0x8 = 0b1000 =
+    //  Pin 7 (ADS_DVDD 1.8V)
+    GPO_enables(0xD880);
     
     // Program analog scan chain (update GPIO configs)
     analog_scan_chain_write();
@@ -56,19 +63,19 @@ int main(void) {
 		ADS_RESET();
     ADS_SDATAC();
     print_reg = ADS_RREG(0x00);
-		printf("ID: %x\n",  print_reg);
+		printf("ID: %x\r\n",  print_reg);
 		print_reg = ADS_RREG(0x0c);
-		printf("channel8: %x\n",  print_reg);
+		printf("channel8: %x\r\n",  print_reg);
     ADS_WREG(0x0c, 0x60);
     print_reg = ADS_RREG(0x0c);
-		printf("channel8: %x\n",  print_reg);
+		printf("channel8: %x\r\n",  print_reg);
     ADS_WREG(0x03, 0xE0);
     print_reg = ADS_RREG(0x03);
 		printf("CONFIG3: %x\n",  print_reg);
 		
     for (rreg = 0x00; rreg < 0x18; rreg = rreg + 0x01) {
       print_reg = ADS_RREG(rreg);
-      printf("%x\n", print_reg);
+      printf("%x\r\n", print_reg);
     }
 
     ADS_RREGS(0x00, 0x17);
@@ -85,7 +92,7 @@ int main(void) {
     for (i = 0; i < Nsample; i++) {
       // printf("%x\n",app_vars.ads_measurement[i].config);
 	    for (j = 7; j < 8; j++) {
-		    printf("0x%x\n", app_vars.ads_measurement[i].channel[j]);
+		    printf("0x%x\r\n", app_vars.ads_measurement[i].channel[j]);
 	    }
     }
 

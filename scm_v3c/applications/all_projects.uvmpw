@@ -13,7 +13,7 @@
   </project>
 
   <project>
-    <PathAndName>.\freq_sweep_rx_simple\freq_sweep_rx_simple.uvprojx</PathAndName>
+    <PathAndName>D:\nRF5_SDK_17.1.0_ddde560\examples\MyProjects\SCuM-programmer-develop_12\scum-test-code\scm_v3c\applications\freq_sweep_rx_simple\freq_sweep_rx_simple.uvprojx</PathAndName>
     <NodeIsCheckedInBatchBuild>1</NodeIsCheckedInBatchBuild>
   </project>
 
@@ -88,6 +88,7 @@
   <project>
     <PathAndName>.\log_ads\log_ads.uvprojx</PathAndName>
     <NodeIsActive>1</NodeIsActive>
+    <NodeIsExpanded>1</NodeIsExpanded>
   </project>
 
 </ProjectWorkspace>

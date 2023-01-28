@@ -59,7 +59,3 @@ void write_imu_register(unsigned char reg, unsigned char data);
 void read_all_imu_data(imu_data_t* imu_measurement);
 
 void log_imu_data(imu_data_t* imu_measurement);
-
-void read_ads_register(ads_data_t* ads_measurement);
-
-void log_ads_data(ads_data_t* ads_measurement);
