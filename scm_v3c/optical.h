@@ -16,6 +16,6 @@ void optical_init(void);
 uint8_t optical_getCalibrationFinshed(void);
 void optical_enable(void);
 void perform_calibration(void);
-void optical_sfd_isr();
+void optical_sfd_isr(void);
 
 #endif

@@ -2,18 +2,21 @@
 
 Confluence for SCuM Documentation and Guides: https://crystalfree.atlassian.net/wiki/spaces/SCUM/overview?homepageId=229432
 
+## Questions?
+Message Austin: austinpatel at berkeley dot edu
+
 ## Preface
-- Windows is the recommended OS for SCuM development.
+- Native Windows is the only OS you can use for full SCuM development, and even a Windows VM running on macOS has been shown not to work (bootloading SCuM with nRF doesn't work through the VM for some reason). So you will need to stick to a Windows laptop or desktop PC running Windows.
 - Current version of SCuM is `scm_v3c`
 
 ## Contributing
 - Create a fork of this repo onto your own Github account
-- Create a branch off of the `develop` branch
-- Submit pull requests from your branch into the `develop` branch
+- Create a branch off of the `develop` branch on your fork
+- Submit pull requests from your branch on your fork into the `develop` branch of this main repository once your code is working
 
 ## Build
 
-* Install ARM Keil: https://www.keil.com/demo/eval/arm.htm, default settings (`MDK528A.EXE` known to work)
+* Install ARM Keil: https://www.keil.com/demo/eval/arm.htm, default settings (`MDK528A.EXE` and `MDK525.EXE` known to work. `MDK537.exe` (latest version as of writing) does not work out of the box since it uses compiler version 6, when we should be using compiler version 5. Perhaps this can be fixed or configured after installing.)
 * Open `scm_v3c/applications/all_projects.uvmpw`
 * In Keil project/workspace pane, right click desired project and click `Set as Active Project`
 * Press build button to generate `.bin` file for active project (`scm_v3c/applications/<app_name>/Objects/<app_name>.bin`)
@@ -56,10 +59,12 @@ channel_cal: [README](scm_v3c/applications/channel_cal/README.md)
 
 ## Bootload
 
-### nRF52840DK Bootloader
+You can program SCuM using either a nRF52840DK (recommended) or a Teensy.
+
+### nRF52840DK Bootloader (for wired bootloading; this is the preferred approach)
 Bootload & Wiring Guide: https://crystalfree.atlassian.net/wiki/spaces/SCUM/pages/1901559821/Sulu+Programming+With+nRF+Setup
 
-### Teensy bootloader
+### Teensy bootloader (for optical bootloading)
 * install
     * https://www.python.org/downloads/ (`Python 3.7.4` known to work)
     * Arduino IDE (`arduino-1.8.9-windows.zip` known to work)
@@ -68,4 +73,6 @@ Bootload & Wiring Guide: https://crystalfree.atlassian.net/wiki/spaces/SCUM/page
 * run `python scm_v3c\bootload.py --image <path to .bin file>`
 
 ## OpenMote Setup
-[Guide](https://crystalfree.atlassian.net/wiki/spaces/SCUM/pages/2029879415/Basic+OpenMote+Setup+for+scum-test-code)
+You will want to setup an [OpenMote B](https://www.industrialshields.com/shop/product/is-omb-001-openmote-b-721#attr=) if you want to either transmit packets to SCuM or receive packets from SCuM.
+
+[Setup Guide](https://crystalfree.atlassian.net/wiki/spaces/SCUM/pages/2029879415/Basic+OpenMote+Setup+for+scum-test-code)
