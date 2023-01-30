@@ -1,498 +1,349 @@
-/**
-\brief This program should find all (or many) of a given SCuM's 802.15.4
-channels with the help of an OpenMote
-*/
+// This application finds the SCuM's tuning codes for all (or many) 802.15.4
+// channels with the help of an OpenMote.
 
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "802_15_4.h"
 #include "memory_map.h"
+#include "optical.h"
 #include "radio.h"
 #include "rftimer.h"
 #include "scm3c_hw_interface.h"
-// #include "ble.h"
-#include "optical.h"
+#include "tuning.h"
 
-//=========================== defines =========================================
+// Maximum number of TX tuning codes per channel.
+#define MAX_NUM_TX_TUNING_CODES_PER_CHANNEL 4
 
-// RADIO DEFINES
-// make sure to set LEN_TX_PKT and LEN_RX_PKT in radio.h
-#define OPTICAL_CALIBRATE \
-    1  // 1 if should optical calibrate, 0 if settings are initialized by hand
+// Maximum number of RX tuning codes.
+#define MAX_NUM_RX_TUNING_CODES 80
 
-// CODES FOR DEAD SOLDIER BOARD 8 CHANNEL 11
-#define DEFAULT_FIXED_LC_COARSE_TX 23
-#define DEFAULT_FIXED_LC_MID_TX 22
-#define DEFAULT_FIXED_LC_FINE_TX 12
+// Minimum number of IF counts to accept a RX tuning code.
+#define MIN_NUM_IF_COUNTS 475
 
-// CODES FOR DEAD SOLDIER BOARD 8 CHANNEL 11
-#define DEFAULT_FIXED_LC_COARSE_RX 23
-#define DEFAULT_FIXED_LC_MID_RX 16
-#define DEFAULT_FIXED_LC_FINE_RX 14
+// Maximum number of IF counts to accept a RX tuning code.
+#define MAX_NUM_IF_COUNTS 525
 
-// range of sweep values for channel search - this range can be dramatically
-// reduced if you want to find fewer than all 16 channels
-#define SWEEP_COARSE_START_TX 22
-#define SWEEP_COARSE_END_TX 35
-#define SWEEP_MID_START_TX 1
-#define SWEEP_MID_END_TX 31
-#define SWEEP_FINE_START_TX 1
-#define SWEEP_FINE_END_TX 31
+// Minimum RX tuning fine code to proceed to the next 802.15.4 channel.
+#define MIN_RX_TUNING_FINE_CODE 9
 
-#define SWEEP_COARSE_START_RX 22
-#define SWEEP_COARSE_END_RX 25
-#define SWEEP_MID_START_RX 0
-#define SWEEP_MID_END_RX 31
-#define SWEEP_FINE_START_RX 0
-#define SWEEP_FINE_END_RX 31
+// Channel calibration state enum.
+typedef enum {
+    CHANNEL_CAL_STATE_INVALID = -1,
+    CHANNEL_CAL_STATE_TX = 0,
+    CHANNEL_CAL_STATE_RX = 1,
+    CHANNEL_CAL_STATE_RX_ACK = 2,
+    CHANNEL_CAL_STATE_DONE = 3,
+} channel_cal_state_e;
 
-#define CRC_VALUE (*((unsigned int*)0x0000FFFC))
-#define CODE_LENGTH (*((unsigned int*)0x0000FFF8))
+// Channel calibration TX command.
+typedef enum {
+    CHANNEL_CAL_COMMAND_NONE = 0x00,
+    CHANNEL_CAL_COMMAND_CHANGE_CHANNEL = 0xFF,
+} channel_cal_command_e;
 
-#define LENGTH_CRC 2
-#define LEN_TX_PKT \
-    10 + LENGTH_CRC  ///< length of tx packet //annecdotally length 7 packet
-                     ///< didn't work, but length 8 did... maybe odd packet
-                     ///< lengths don't work????
-#define LEN_RX_PKT 16 + LENGTH_CRC  ///< length of rx packet
+// Channel calibration TX packet for acknowledgements.
+typedef struct __attribute__((packed)) {
+    // Sequence number.
+    uint8_t sequence_number;
 
-//=========================== variables =======================================
+    // Reserved.
+    uint8_t reserved1;
 
-// RADIO VARIABLES
-uint8_t tx_packet[LEN_TX_PKT];  // contains the contents of the packet to be
-                                // transmitted
-uint8_t rx_timeout_occurred = 0;
+    // Reserved.
+    uint8_t reserved2;
 
-// IF estimate
-uint32_t current_IF_estimate = 0;
+    // Reserved.
+    uint8_t reserved3;
 
-int rx_count = 0;  // count of the number of packets actually received
-// need_to_send_ack: set to true if should send ack right after the receive
-// completes. Use SEND_ACK to determine whether to send an acknowledgemnets or
-// not.
-bool need_to_send_ack = false;
+    // Command for the OpenMote.
+    channel_cal_command_e command : 8;
 
-// temporary variables to store which settings to use in TX/RX at a given time
-uint8_t fixed_lc_coarse_tx = DEFAULT_FIXED_LC_COARSE_TX;
-uint8_t fixed_lc_mid_tx = DEFAULT_FIXED_LC_MID_TX;
-uint8_t fixed_lc_fine_tx = DEFAULT_FIXED_LC_FINE_TX;
+    // Reserved.
+    uint8_t reserved4;
 
-uint8_t fixed_lc_coarse_rx = DEFAULT_FIXED_LC_COARSE_RX;
-uint8_t fixed_lc_mid_rx = DEFAULT_FIXED_LC_MID_RX;
-uint8_t fixed_lc_fine_rx = DEFAULT_FIXED_LC_FINE_RX;
+    // Tuning code.
+    tuning_code_t tuning_code;
 
-// SCuM's channel settings
-uint8_t scum_rx_channel_buffer[128][3];  // columns: coarse, mid, fine
-uint8_t scum_tx_channel_codes[16 * 4]
-                             [4];  // row: up to four sets of candidate codes
-                                   // per channel, column: coarse, mid, fine
-uint8_t scum_rx_channel_codes[16 * 5]
-                             [4];  // row: up to four sets of candidate codes
-                                   // per channel, column: coarse, mid, fine
+    // Reserved.
+    uint8_t reserved5;
 
-// uint8_t temp_adjusted_fine_code; // will be set by adjust_tx_fine_with_temp
-// function
+    // Reserved.
+    uint8_t reserved6;
 
-// scum channel calibration variables
-uint8_t scum_tx_or_rx;  // zero for SCuM transmitting, one for SCuM receiving
-                        // (and ack-ing).
+    // Reserved.
+    uint8_t reserved7;
+} channel_cal_tx_packet_t;
 
-//=========================== prototypes ======================================
+// Channel calibration RX packet.
+typedef struct __attribute__((packed)) {
+    // Sequence number.
+    uint8_t sequence_number;
 
-void radio_delay(void);
-void onRx(uint8_t* packet, uint8_t packet_len);
-void onRx_endFrame(void);
-void test_rf_timer_callback(void);
-void increment_RX_code(void);
-void increment_TX_code(void);
+    // Channel.
+    uint8_t channel;
 
-//=========================== main ============================================
+    // Transmit tuning codes.
+    tuning_code_t tx_tuning_codes[MAX_NUM_TX_TUNING_CODES_PER_CHANNEL];
+} channel_cal_rx_packet_t;
 
-int main(void) {
-    uint32_t calc_crc;
-    int i, j;
+// Channel calibration RX tuning code.
+typedef struct __attribute__((packed)) {
+    // Channel.
+    uint8_t channel;
 
-    uint8_t cfg_coarse_rx;
-    uint8_t cfg_mid_rx;
-    uint8_t cfg_fine_rx;
+    tuning_code_t tuning_code;
+} channel_cal_rx_tuning_code_t;
 
-    uint8_t cfg_coarse_tx;
-    uint8_t cfg_mid_tx;
-    uint8_t cfg_fine_tx;
+// TX tuning code.
+static tuning_code_t g_tx_tuning_code;
 
-    printf("Initializing...");
+// RX tuning code.
+static tuning_code_t g_rx_tuning_code;
 
-    // Check CRC to ensure there were no errors during optical programming
-    printf("\r\n-------------------\r\n");
-    printf("Validating program integrity...");
+// TX sweep configuration. The sweep range can be reduced if we do not want to
+// find all 802.15.4 channels.
+static const tuning_sweep_config_t g_tx_sweep_config = {
+    .coarse =
+        {
+            .start = 24,
+            .end = 26,
+        },
+    .mid =
+        {
+            .start = TUNING_MIN_CODE,
+            .end = TUNING_MAX_CODE,
+        },
+    .fine =
+        {
+            .start = TUNING_MIN_CODE,
+            .end = TUNING_MAX_CODE,
+        },
+};
 
-    calc_crc = crc32c(0x0000, CODE_LENGTH);
+// RX sweep configuration. The sweep range can be reduced if we do not want to
+// find all 802.15.4 channels.
+static const tuning_sweep_config_t g_rx_sweep_config = {
+    .coarse =
+        {
+            .start = 24,
+            .end = 26,
+        },
+    .mid =
+        {
+            .start = TUNING_MIN_CODE,
+            .end = TUNING_MAX_CODE,
+        },
+    .fine =
+        {
+            .start = TUNING_MIN_CODE,
+            .end = TUNING_MAX_CODE,
+        },
+};
 
-    if (calc_crc == CRC_VALUE) {
-        printf("CRC OK\r\n");
-    } else {
-        printf(
-            "\r\nProgramming Error - CRC DOES NOT MATCH - Halting "
-            "Execution\r\n");
-        while (1)
-            ;
-    }
+// TX packet buffer.
+static channel_cal_tx_packet_t g_tx_packet;
 
-    // Set up mote configuration
-    // This function handles all the analog scan chain setup
-    initialize_mote();
+// Number of packets received.
+static uint32_t g_rx_num_packets_received = 0;
 
-    radio_setRxCb(onRx);
+// TX channel tuning codes.
+static tuning_code_t
+    g_tx_channel_tuning_codes[NUM_802_15_4_CHANNELS]
+                             [MAX_NUM_TX_TUNING_CODES_PER_CHANNEL];
 
-    if (OPTICAL_CALIBRATE) {
-        // optical_calibrate();
-        perform_calibration();
-    }
+// RX channel tuning codes.
+static channel_cal_rx_tuning_code_t
+    g_rx_channel_tuning_codes[MAX_NUM_RX_TUNING_CODES];
 
-    scum_tx_or_rx = 0;
+// Channel calibration state.
+static channel_cal_state_e g_channel_cal_state = CHANNEL_CAL_STATE_INVALID;
 
-    radio_delay();
-    // receive_packet(SWEEP_COARSE_START_RX, SWEEP_MID_START_RX,
-    // SWEEP_FINE_START_RX, 1);
-    LC_FREQCHANGE(SWEEP_COARSE_START_RX, SWEEP_MID_START_RX,
-                  SWEEP_FINE_START_RX);
-    receive_packet_length(1, true);
-
-    fixed_lc_coarse_tx = SWEEP_COARSE_START_TX;
-    fixed_lc_mid_tx = SWEEP_MID_START_TX;
-    fixed_lc_fine_tx = SWEEP_FINE_START_TX;
-
-    while (1) {
-        if (scum_tx_or_rx == 0) {  // TX mode
-
-            // disable timeout interrupt:
-            // rftimer_disable_interrupts(7);
-            rftimer_disable_interrupts_by_id(7);
-
-            radio_delay();
-            // format packet to contain the transmit code
-            tx_packet[0] = 1;
-            tx_packet[6] = fixed_lc_coarse_tx;
-            tx_packet[7] = fixed_lc_mid_tx;
-            tx_packet[8] = fixed_lc_fine_tx;
-
-            // send a packet
-            // send_packet(fixed_lc_coarse_tx, fixed_lc_mid_tx,
-            // fixed_lc_fine_tx, tx_packet);
-            LC_FREQCHANGE(fixed_lc_coarse_tx, fixed_lc_mid_tx,
-                          fixed_lc_fine_tx);
-            send_packet(tx_packet, LEN_TX_PKT);
-
-            // increment TX code
-            fixed_lc_fine_tx++;
-            if (fixed_lc_fine_tx > SWEEP_FINE_END_TX) {
-                fixed_lc_mid_tx++;
-                if (fixed_lc_mid_tx > SWEEP_MID_END_TX) {
-                    fixed_lc_coarse_tx++;
-                }
-            }
-
-            if ((fixed_lc_fine_tx >= SWEEP_FINE_END_TX) &&
-                (fixed_lc_mid_tx >= SWEEP_MID_END_TX) &&
-                (fixed_lc_coarse_tx >=
-                 SWEEP_COARSE_END_TX)) {  // done sweeping, switch to RX
-                scum_tx_or_rx = 1;
-                fixed_lc_coarse_rx = SWEEP_COARSE_START_RX;
-                fixed_lc_mid_rx = SWEEP_MID_START_RX;
-                fixed_lc_fine_rx = SWEEP_FINE_START_RX;
-
-                // set up the timeout timer:
-                // rftimer_set_callback(test_rf_timer_callback, 7);
-                rftimer_set_callback_by_id(test_rf_timer_callback, 7);
-                // rftimer_setCompareIn(rftimer_readCounter()+20*500, 7);
-                rftimer_setCompareIn_by_id(rftimer_readCounter() + 20 * 500, 7);
-            }
-
-            if (fixed_lc_fine_tx > SWEEP_FINE_END_TX) {
-                fixed_lc_fine_tx = SWEEP_FINE_START_TX;
-            }
-            if (fixed_lc_mid_tx > SWEEP_MID_END_TX) {
-                fixed_lc_mid_tx = SWEEP_MID_START_TX;
-            }
-        }
-
-        else if (scum_tx_or_rx == 1) {  // RX+ack mode
-            radio_delay();
-
-            if (need_to_send_ack == 1) {
-                if (tx_packet[4] == 0x00) {
-                    for (i = 0; i < 2; i++) {
-                        radio_delay();
-                        // send_packet(fixed_lc_coarse_tx, fixed_lc_mid_tx,
-                        // fixed_lc_fine_tx, tx_packet);
-                        LC_FREQCHANGE(fixed_lc_coarse_tx, fixed_lc_mid_tx,
-                                      fixed_lc_fine_tx);
-                        send_packet(tx_packet, LEN_TX_PKT);
-                    }
-                } else if (tx_packet[4] == 0xFF) {
-                    for (i = 0; i < 3; i++) {
-                        radio_delay();
-                        // send_packet(fixed_lc_coarse_tx, fixed_lc_mid_tx,
-                        // fixed_lc_fine_tx, tx_packet);
-                        LC_FREQCHANGE(fixed_lc_coarse_tx, fixed_lc_mid_tx,
-                                      fixed_lc_fine_tx);
-                        send_packet(tx_packet, LEN_TX_PKT);
-                        radio_delay();
-                        radio_delay();
-                        radio_delay();
-                    }
-                }
-                need_to_send_ack = 0;
-                // rftimer_setCompareIn(rftimer_readCounter()+500*50, 7); //
-                // reset timeout timer
-                rftimer_setCompareIn_by_id(rftimer_readCounter() + 500 * 50, 7);
-            } else if (need_to_send_ack == 0) {
-                radio_delay();
-                // receive_packet(fixed_lc_coarse_rx, fixed_lc_mid_rx,
-                // fixed_lc_fine_rx, LEN_RX_PKT);
-                LC_FREQCHANGE(fixed_lc_coarse_rx, fixed_lc_mid_rx,
-                              fixed_lc_fine_rx);
-                receive_packet_length(LEN_RX_PKT, true);
-            }
-
-            if ((fixed_lc_fine_rx == SWEEP_FINE_START_RX) &&
-                (fixed_lc_mid_rx == SWEEP_MID_START_RX) &&
-                (fixed_lc_coarse_rx >
-                 SWEEP_COARSE_END_RX)) {  // switch back to TX mode
-                scum_tx_or_rx = 2;
-                fixed_lc_coarse_tx = SWEEP_COARSE_START_TX;
-                fixed_lc_mid_tx = SWEEP_MID_START_TX;
-                fixed_lc_fine_tx = SWEEP_FINE_START_TX;
-                // rftimer_disable_interrupts(7);
-                rftimer_disable_interrupts_by_id(7);
-            }
-        }
-
-        if (scum_tx_or_rx == 2) {
-            // disable timer
-            // rftimer_disable_interrupts(7);
-            rftimer_disable_interrupts_by_id(7);
-
-            // print results of search
-            printf("TX packet results:\r\n");
-            for (i = 0; i < 64; i++) {
-                printf("%d %d %d, ch. %d\r\n", scum_tx_channel_codes[i][0],
-                       scum_tx_channel_codes[i][1], scum_tx_channel_codes[i][2],
-                       scum_tx_channel_codes[i][3]);
-            }
-            printf("RX packet results:\r\n");
-            for (i = 0; i < 80; i++) {
-                printf("%d %d %d, ch. %d\r\n", scum_rx_channel_codes[i][0],
-                       scum_rx_channel_codes[i][1], scum_rx_channel_codes[i][2],
-                       scum_rx_channel_codes[i][3]);
-            }
-            scum_tx_or_rx = 3;
-        }
-    };
-
-    printf("why am I here\r\n");
-
-    while (1) {
-    };
-}
-
-//=========================== public ==========================================
-
-//=========================== private =========================================
-
-// TODO: change this function to use an RF Timer compare register
-void radio_delay(void) {
-    uint16_t j;
-    for (j = 0; j < 5; j++) {
+// Add some delay.
+// TODO(fil): Change this function to use an RF timer compare register.
+static inline void radio_delay(void) {
+    for (uint8_t i = 0; i < 5; ++i) {
     }
 }
 
-void onRx(uint8_t* packet, uint8_t packet_len) {
-    uint8_t i;
-    uint16_t j;
-    uint8_t k;
-    uint8_t current_channel;
-
-    // get IF estimate
-    current_IF_estimate = read_IF_estimate();
-
-    // turn off radio
+static void radio_rx_callback(const uint8_t* packet, const uint8_t packet_len) {
+    const uint32_t if_estimate = read_IF_estimate();
     radio_rfOff();
 
-    // store the RX codes in the buffer
-    scum_rx_channel_buffer[rx_count][0] = fixed_lc_coarse_rx;
-    scum_rx_channel_buffer[rx_count][1] = fixed_lc_mid_rx;
-    scum_rx_channel_buffer[rx_count][2] = fixed_lc_fine_rx;
+    const channel_cal_rx_packet_t* rx_packet =
+        (const channel_cal_rx_packet_t*)packet;
+    const uint8_t channel = rx_packet->channel;
+    memcpy(g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL],
+           rx_packet->tx_tuning_codes,
+           MAX_NUM_TX_TUNING_CODES_PER_CHANNEL * sizeof(tuning_code_t));
 
-    current_channel = packet[1];
-    fixed_lc_coarse_tx = packet[2];
-    fixed_lc_mid_tx = packet[3];
-    fixed_lc_fine_tx = packet[4];
-
-    // default to NOT requesting a channel change on openmote
-    tx_packet[4] = 0x00;
-
-    for (k = 0; k < 3; k++) {
-        scum_tx_channel_codes[(current_channel - 11) * 4][k] = packet[k + 2];
-        scum_tx_channel_codes[(current_channel - 11) * 4 + 1][k] =
-            packet[k + 5];
-        scum_tx_channel_codes[(current_channel - 11) * 4 + 2][k] =
-            packet[k + 8];
-        scum_tx_channel_codes[(current_channel - 11) * 4 + 3][k] =
-            packet[k + 11];
+    // Print the received transmit tuning codes.
+    printf("Channel %u RX: (%u, %u, %u)\n", channel, g_rx_tuning_code.coarse,
+           g_rx_tuning_code.mid, g_rx_tuning_code.fine);
+    printf("IF estimate: %u\n", if_estimate);
+    printf("Channel %u TX:", channel);
+    for (uint8_t i = 0; i < MAX_NUM_TX_TUNING_CODES_PER_CHANNEL; ++i) {
+        printf(" (%u, %u, %u)", rx_packet->tx_tuning_codes[i].coarse,
+               rx_packet->tx_tuning_codes[i].mid,
+               rx_packet->tx_tuning_codes[i].fine);
     }
-    scum_tx_channel_codes[(current_channel - 11) * 4][3] = current_channel;
-    scum_tx_channel_codes[(current_channel - 11) * 4 + 1][3] = current_channel;
-    scum_tx_channel_codes[(current_channel - 11) * 4 + 2][3] = current_channel;
-    scum_tx_channel_codes[(current_channel - 11) * 4 + 3][3] = current_channel;
+    printf("\n");
 
-    if (packet[5] == 0) {
-        fixed_lc_coarse_tx = packet[2];
-        fixed_lc_mid_tx = packet[3];
-        fixed_lc_fine_tx = packet[4];
+    // Use the second set of tuning codes, if there are multiple tuning codes
+    // that the OpenMote reecived from SCuM.
+    if (g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1].coarse !=
+            0 &&
+        g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1].mid != 0 &&
+        g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1].fine !=
+            0) {
+        g_tx_tuning_code =
+            g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1];
     } else {
-        fixed_lc_coarse_tx = packet[5];
-        fixed_lc_mid_tx = packet[6];
-        fixed_lc_fine_tx = packet[7];
+        g_tx_tuning_code =
+            g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][0];
     }
 
-    // print the codes for debug purposes:
-    for (k = 0; k < 12; k++) {
-        printf(
-            "%d ",
-            scum_tx_channel_codes[(current_channel - 11) * 4 + k / 4][k % 4]);
-    }
-    printf("\r\n");
-    printf("IF estimate: %d\r\n", current_IF_estimate);
+    // Prepare the acknowledgement packet.
+    memset(&g_tx_packet, 0, sizeof(channel_cal_tx_packet_t));
 
-    if ((current_IF_estimate < 525) &&
-        (current_IF_estimate > 475)) {  // a good fit for a receive code
-        printf("rx chan found: %d %d %d\r\n", fixed_lc_coarse_rx,
-               fixed_lc_mid_rx, fixed_lc_fine_rx);
+    if (if_estimate >= MIN_NUM_IF_COUNTS && if_estimate <= MAX_NUM_IF_COUNTS) {
+        g_rx_channel_tuning_codes[g_rx_num_packets_received].channel = channel;
+        g_rx_channel_tuning_codes[g_rx_num_packets_received].tuning_code =
+            g_rx_tuning_code;
+        ++g_rx_num_packets_received;
 
-        // store in the RX channel table
-        scum_rx_channel_codes[rx_count][0] = fixed_lc_coarse_rx;
-        scum_rx_channel_codes[rx_count][1] = fixed_lc_mid_rx;
-        scum_rx_channel_codes[rx_count][2] = fixed_lc_fine_rx;
-        scum_rx_channel_codes[rx_count][3] = current_channel;
-
-        // increment channel table counter
-        rx_count += 1;
-
-        // check if this channel is done
-        if (fixed_lc_fine_rx <= 9) {
-            // modify TX ACK packet to include a "change channel" request on the
-            // openmote - 0xFF in the 4th bit
-            tx_packet[4] = 0xFF;
-            printf("finished with this channel\r\n");
-        } else {
-            tx_packet[4] = 0x00;
-            printf("not finished with this channel\r\n");
+        if (g_rx_tuning_code.fine <= MIN_RX_TUNING_FINE_CODE) {
+            g_tx_packet.command = CHANNEL_CAL_COMMAND_CHANGE_CHANNEL;
         }
 
-        // increment mid code
-        fixed_lc_fine_rx = SWEEP_FINE_START_RX;
-        fixed_lc_mid_rx++;
-        if (fixed_lc_mid_rx > SWEEP_MID_END_RX) {
-            fixed_lc_mid_rx = SWEEP_MID_START_RX;
-            fixed_lc_coarse_rx++;
-        }
-
-    } else if (fixed_lc_fine_rx >= 30) {  // received OK packets at/near end of
-                                          // fine range, store it anyways:
-        printf("rx chan found: %d %d %d\r\n", fixed_lc_coarse_rx,
-               fixed_lc_mid_rx, fixed_lc_fine_rx);
-
-        scum_rx_channel_codes[rx_count][0] = fixed_lc_coarse_rx;
-        scum_rx_channel_codes[rx_count][1] = fixed_lc_mid_rx;
-        scum_rx_channel_codes[rx_count][2] = fixed_lc_fine_rx;
-
-        // increment channel table counter
-        rx_count += 1;
-
-        // increment normally
-        fixed_lc_fine_rx++;
-        if (fixed_lc_fine_rx > SWEEP_FINE_END_RX) {
-            fixed_lc_fine_rx = SWEEP_FINE_START_RX;
-            fixed_lc_mid_rx++;
-        }
-        if (fixed_lc_mid_rx > SWEEP_MID_END_RX) {
-            fixed_lc_mid_rx = SWEEP_MID_START_RX;
-            fixed_lc_coarse_rx++;
-        }
-    }
-
-    else {  // continue sweeping through codes
-        // increment RC code
-        fixed_lc_fine_rx++;
-        if (fixed_lc_fine_rx > SWEEP_FINE_END_RX) {
-            fixed_lc_fine_rx = SWEEP_FINE_START_RX;
-            fixed_lc_mid_rx++;
-        }
-        if (fixed_lc_mid_rx > SWEEP_MID_END_RX) {
-            fixed_lc_mid_rx = SWEEP_MID_START_RX;
-            fixed_lc_coarse_rx++;
-        }
+        tuning_increment_mid_code_for_sweep(&g_rx_tuning_code,
+                                            &g_rx_sweep_config);
+    } else {
+        tuning_increment_code_for_sweep(&g_rx_tuning_code, &g_rx_sweep_config);
     }
 
     radio_delay();
-
-    need_to_send_ack = true;
+    rftimer_setCompareIn_by_id(rftimer_readCounter() + 50 * 500, 7);
+    g_channel_cal_state = CHANNEL_CAL_STATE_RX_ACK;
 }
 
-void test_rf_timer_callback(void) {
-    // timeout indicator
-    rx_timeout_occurred = 1;
+static void rf_timer_rx_callback(void) {
+    tuning_increment_code_for_sweep(&g_rx_tuning_code, &g_rx_sweep_config);
+    rftimer_setCompareIn_by_id(rftimer_readCounter() + 20 * 500, 7);
+}
 
-    // increment receive code
-    increment_RX_code();
+int main(void) {
+    initialize_mote();
 
-    // restart timer
-    // rftimer_enable_interrupts(7);
+    radio_setRxCb(radio_rx_callback);
 
-    rftimer_enable_interrupts_by_id(7);
+    analog_scan_chain_write();
+    analog_scan_chain_load();
+
+    crc_check();
+    perform_calibration();
+
+    if (!tuning_validate_sweep_config(&g_tx_sweep_config)) {
+        printf("Invalid TX sweep configuration.\n");
+        return EXIT_FAILURE;
+    }
+    if (!tuning_validate_sweep_config(&g_rx_sweep_config)) {
+        printf("Invalid RX sweep configuration.\n");
+        return EXIT_FAILURE;
+    }
+
+    tuning_init_for_sweep(&g_tx_tuning_code, &g_tx_sweep_config);
+    tuning_init_for_sweep(&g_rx_tuning_code, &g_rx_sweep_config);
+    rftimer_set_callback_by_id(rf_timer_rx_callback, 7);
     rftimer_enable_interrupts();
-    // rftimer_setCompareIn(rftimer_readCounter() + 500*20, 7);
-    rftimer_setCompareIn_by_id(rftimer_readCounter() + 500 * 20, 7);
+    g_channel_cal_state = CHANNEL_CAL_STATE_TX;
+    while (true) {
+        radio_delay();
+        switch (g_channel_cal_state) {
+            case CHANNEL_CAL_STATE_TX: {
+                memset(&g_tx_packet, 0, sizeof(channel_cal_tx_packet_t));
+                g_tx_packet.sequence_number = 1;
+                g_tx_packet.tuning_code = g_tx_tuning_code;
 
-    if ((fixed_lc_coarse_rx >= SWEEP_COARSE_END_RX) &&
-        (fixed_lc_mid_rx >= SWEEP_MID_END_RX) &&
-        (fixed_lc_fine_rx >= SWEEP_FINE_END_RX)) {
-        scum_tx_or_rx = 2;
-        fixed_lc_coarse_tx = SWEEP_COARSE_START_TX;
-        fixed_lc_mid_tx = SWEEP_MID_START_TX;
-        fixed_lc_fine_tx = SWEEP_FINE_START_TX;
-    }
+                tuning_tune_radio(&g_tx_tuning_code);
+                send_packet(&g_tx_packet, sizeof(channel_cal_tx_packet_t));
+                tuning_increment_code_for_sweep(&g_tx_tuning_code,
+                                                &g_tx_sweep_config);
 
-    // printf("timed out on %d %d %d\n",fixed_lc_coarse_rx, fixed_lc_mid_rx,
-    // fixed_lc_fine_rx);
-}
+                if (tuning_end_of_sweep(&g_tx_tuning_code,
+                                        &g_tx_sweep_config)) {
+                    rftimer_enable_interrupts_by_id(7);
+                    rftimer_setCompareIn_by_id(rftimer_readCounter() + 20 * 500,
+                                               7);
+                    g_channel_cal_state = CHANNEL_CAL_STATE_RX;
+                }
+                break;
+            }
+            case CHANNEL_CAL_STATE_RX: {
+                tuning_tune_radio(&g_rx_tuning_code);
+                radio_delay();
+                receive_packet(/*timeout=*/true);
 
-void increment_RX_code(void) {
-    if (fixed_lc_fine_rx >= SWEEP_FINE_END_RX) {
-        fixed_lc_fine_rx = SWEEP_FINE_START_RX;
+                if (tuning_end_of_sweep(&g_rx_tuning_code,
+                                        &g_rx_sweep_config)) {
+                    rftimer_disable_interrupts_by_id(7);
+                    rftimer_disable_interrupts();
+                    g_channel_cal_state = CHANNEL_CAL_STATE_DONE;
+                }
+                break;
+            }
+            case CHANNEL_CAL_STATE_RX_ACK: {
+                if (g_tx_packet.command == CHANNEL_CAL_COMMAND_CHANGE_CHANNEL) {
+                    for (uint8_t i = 0; i < 3; ++i) {
+                        radio_delay();
+                        tuning_tune_radio(&g_tx_tuning_code);
+                        send_packet(&g_tx_packet,
+                                    sizeof(channel_cal_tx_packet_t));
+                        radio_delay();
+                        radio_delay();
+                        radio_delay();
+                    }
+                } else {
+                    for (uint8_t i = 0; i < 2; ++i) {
+                        radio_delay();
+                        tuning_tune_radio(&g_tx_tuning_code);
+                        send_packet(&g_tx_packet,
+                                    sizeof(channel_cal_tx_packet_t));
+                    }
+                }
 
-        if (fixed_lc_mid_rx == SWEEP_MID_END_RX) {
-            fixed_lc_mid_rx = SWEEP_MID_START_RX;
-            fixed_lc_coarse_rx++;
-        } else {
-            fixed_lc_mid_rx++;
-        }
-    } else {
-        fixed_lc_fine_rx = fixed_lc_fine_rx + 1;
-    }
-}
-
-void increment_TX_code(void) {
-    fixed_lc_fine_tx++;
-
-    if (fixed_lc_fine_tx > SWEEP_FINE_END_TX) {
-        fixed_lc_fine_tx = SWEEP_FINE_START_TX;
-
-        fixed_lc_mid_tx++;
-
-        if (fixed_lc_mid_tx > SWEEP_MID_END_TX) {
-            fixed_lc_mid_tx = SWEEP_MID_START_TX;
+                g_channel_cal_state = CHANNEL_CAL_STATE_RX;
+                break;
+            }
+            case CHANNEL_CAL_STATE_DONE: {
+                // Print the channel calibration results.
+                printf("TX packet results:\n");
+                for (uint8_t i = 0; i < NUM_802_15_4_CHANNELS; ++i) {
+                    for (uint8_t j = 0; j < MAX_NUM_TX_TUNING_CODES_PER_CHANNEL;
+                         ++j) {
+                        printf("Channel %u: (%u, %u, %u)\n",
+                               i + MIN_802_15_4_CHANNEL,
+                               g_tx_channel_tuning_codes[i][j].coarse,
+                               g_tx_channel_tuning_codes[i][j].mid,
+                               g_tx_channel_tuning_codes[i][j].fine);
+                    }
+                }
+                printf("RX packet results:\n");
+                for (uint8_t i = 0; i < MAX_NUM_RX_TUNING_CODES; ++i) {
+                    printf("Channel %u: (%u, %u, %u)\n",
+                           g_rx_channel_tuning_codes[i].channel,
+                           g_rx_channel_tuning_codes[i].tuning_code.coarse,
+                           g_rx_channel_tuning_codes[i].tuning_code.mid,
+                           g_rx_channel_tuning_codes[i].tuning_code.fine);
+                }
+                return EXIT_SUCCESS;
+            }
+            case CHANNEL_CAL_STATE_INVALID:
+            default: {
+                return EXIT_FAILURE;
+            }
         }
     }
 }
