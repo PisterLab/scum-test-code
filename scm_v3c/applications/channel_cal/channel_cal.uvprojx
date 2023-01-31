@@ -386,6 +386,16 @@
               <FileType>1</FileType>
               <FilePath>.\channel_cal.c</FilePath>
             </File>
+            <File>
+              <FileName>channel_cal_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\channel_cal_main.c</FilePath>
+            </File>
+            <File>
+              <FileName>channel_cal.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\channel_cal.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

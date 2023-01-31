@@ -1,14 +1,11 @@
-// This application finds the SCuM's tuning codes for all (or many) 802.15.4
-// channels with the help of an OpenMote.
+#include "channel_cal.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "802_15_4.h"
-#include "memory_map.h"
-#include "optical.h"
 #include "radio.h"
 #include "rftimer.h"
 #include "scm3c_hw_interface.h"
@@ -98,76 +95,43 @@ typedef struct __attribute__((packed)) {
 } channel_cal_rx_tuning_code_t;
 
 // TX tuning code.
-static tuning_code_t g_tx_tuning_code;
+static tuning_code_t g_channel_cal_tx_tuning_code;
 
 // RX tuning code.
-static tuning_code_t g_rx_tuning_code;
+static tuning_code_t g_channel_cal_rx_tuning_code;
 
-// TX sweep configuration. The sweep range can be reduced if we do not want to
-// find all 802.15.4 channels.
-static const tuning_sweep_config_t g_tx_sweep_config = {
-    .coarse =
-        {
-            .start = 24,
-            .end = 26,
-        },
-    .mid =
-        {
-            .start = TUNING_MIN_CODE,
-            .end = TUNING_MAX_CODE,
-        },
-    .fine =
-        {
-            .start = TUNING_MIN_CODE,
-            .end = TUNING_MAX_CODE,
-        },
-};
+// TX sweep configuration.
+static tuning_sweep_config_t g_channel_cal_tx_sweep_config;
 
-// RX sweep configuration. The sweep range can be reduced if we do not want to
-// find all 802.15.4 channels.
-static const tuning_sweep_config_t g_rx_sweep_config = {
-    .coarse =
-        {
-            .start = 24,
-            .end = 26,
-        },
-    .mid =
-        {
-            .start = TUNING_MIN_CODE,
-            .end = TUNING_MAX_CODE,
-        },
-    .fine =
-        {
-            .start = TUNING_MIN_CODE,
-            .end = TUNING_MAX_CODE,
-        },
-};
+// RX sweep configuration.
+static tuning_sweep_config_t g_channel_cal_rx_sweep_config;
 
 // TX packet buffer.
-static channel_cal_tx_packet_t g_tx_packet;
+static channel_cal_tx_packet_t g_channel_cal_tx_packet;
 
 // Number of packets received.
-static uint32_t g_rx_num_packets_received = 0;
+static uint32_t g_channel_cal_num_rx_packets = 0;
 
 // TX channel tuning codes.
 static tuning_code_t
-    g_tx_channel_tuning_codes[NUM_802_15_4_CHANNELS]
-                             [MAX_NUM_TX_TUNING_CODES_PER_CHANNEL];
+    g_channel_cal_tx_channel_tuning_codes[NUM_802_15_4_CHANNELS]
+                                         [MAX_NUM_TX_TUNING_CODES_PER_CHANNEL];
 
 // RX channel tuning codes.
 static channel_cal_rx_tuning_code_t
-    g_rx_channel_tuning_codes[MAX_NUM_RX_TUNING_CODES];
+    g_channel_cal_rx_channel_tuning_codes[MAX_NUM_RX_TUNING_CODES];
 
 // Channel calibration state.
 static channel_cal_state_e g_channel_cal_state = CHANNEL_CAL_STATE_INVALID;
 
-// Add some delay.
+// Add some delay for the radio.
 // TODO(fil): Change this function to use an RF timer compare register.
-static inline void radio_delay(void) {
+static inline void channel_cal_radio_delay(void) {
     for (uint8_t i = 0; i < 5; ++i) {
     }
 }
 
+// Radio RX callback function.
 static void radio_rx_callback(const uint8_t* packet, const uint8_t packet_len) {
     const uint32_t if_estimate = read_IF_estimate();
     radio_rfOff();
@@ -175,13 +139,15 @@ static void radio_rx_callback(const uint8_t* packet, const uint8_t packet_len) {
     const channel_cal_rx_packet_t* rx_packet =
         (const channel_cal_rx_packet_t*)packet;
     const uint8_t channel = rx_packet->channel;
-    memcpy(g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL],
-           rx_packet->tx_tuning_codes,
-           MAX_NUM_TX_TUNING_CODES_PER_CHANNEL * sizeof(tuning_code_t));
+    memcpy(
+        g_channel_cal_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL],
+        rx_packet->tx_tuning_codes,
+        MAX_NUM_TX_TUNING_CODES_PER_CHANNEL * sizeof(tuning_code_t));
 
     // Print the received transmit tuning codes.
-    printf("Channel %u RX: (%u, %u, %u)\n", channel, g_rx_tuning_code.coarse,
-           g_rx_tuning_code.mid, g_rx_tuning_code.fine);
+    printf("Channel %u RX: (%u, %u, %u)\n", channel,
+           g_channel_cal_rx_tuning_code.coarse,
+           g_channel_cal_rx_tuning_code.mid, g_channel_cal_rx_tuning_code.fine);
     printf("IF estimate: %u\n", if_estimate);
     printf("Channel %u TX:", channel);
     for (uint8_t i = 0; i < MAX_NUM_TX_TUNING_CODES_PER_CHANNEL; ++i) {
@@ -191,89 +157,142 @@ static void radio_rx_callback(const uint8_t* packet, const uint8_t packet_len) {
     }
     printf("\n");
 
-    // Use the second set of tuning codes, if there are multiple tuning codes
-    // that the OpenMote reecived from SCuM.
-    if (g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1].coarse !=
-            0 &&
-        g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1].mid != 0 &&
-        g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1].fine !=
-            0) {
-        g_tx_tuning_code =
-            g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1];
-    } else {
-        g_tx_tuning_code =
-            g_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][0];
+    if (!channel_cal_get_tx_tuning_code(channel,
+                                        &g_channel_cal_tx_tuning_code)) {
+        printf("No TX tuning code found for channel %u.\n", channel);
     }
-
-    // Prepare the acknowledgement packet.
-    memset(&g_tx_packet, 0, sizeof(channel_cal_tx_packet_t));
+    memset(&g_channel_cal_tx_packet, 0, sizeof(channel_cal_tx_packet_t));
 
     if (if_estimate >= MIN_NUM_IF_COUNTS && if_estimate <= MAX_NUM_IF_COUNTS) {
-        g_rx_channel_tuning_codes[g_rx_num_packets_received].channel = channel;
-        g_rx_channel_tuning_codes[g_rx_num_packets_received].tuning_code =
-            g_rx_tuning_code;
-        ++g_rx_num_packets_received;
+        g_channel_cal_rx_channel_tuning_codes[g_channel_cal_num_rx_packets]
+            .channel = channel;
+        g_channel_cal_rx_channel_tuning_codes[g_channel_cal_num_rx_packets]
+            .tuning_code = g_channel_cal_rx_tuning_code;
+        ++g_channel_cal_num_rx_packets;
 
-        if (g_rx_tuning_code.fine <= MIN_RX_TUNING_FINE_CODE) {
-            g_tx_packet.command = CHANNEL_CAL_COMMAND_CHANGE_CHANNEL;
+        if (g_channel_cal_rx_tuning_code.fine <= MIN_RX_TUNING_FINE_CODE) {
+            g_channel_cal_tx_packet.command =
+                CHANNEL_CAL_COMMAND_CHANGE_CHANNEL;
         }
 
-        tuning_increment_mid_code_for_sweep(&g_rx_tuning_code,
-                                            &g_rx_sweep_config);
+        tuning_increment_mid_code_for_sweep(&g_channel_cal_rx_tuning_code,
+                                            &g_channel_cal_rx_sweep_config);
     } else {
-        tuning_increment_code_for_sweep(&g_rx_tuning_code, &g_rx_sweep_config);
+        tuning_increment_code_for_sweep(&g_channel_cal_rx_tuning_code,
+                                        &g_channel_cal_rx_sweep_config);
     }
 
-    radio_delay();
+    channel_cal_radio_delay();
     rftimer_setCompareIn_by_id(rftimer_readCounter() + 50 * 500, 7);
     g_channel_cal_state = CHANNEL_CAL_STATE_RX_ACK;
 }
 
-static void rf_timer_rx_callback(void) {
-    tuning_increment_code_for_sweep(&g_rx_tuning_code, &g_rx_sweep_config);
+// RF timer callback function.
+static void rf_timer_callback(void) {
+    tuning_increment_code_for_sweep(&g_channel_cal_rx_tuning_code,
+                                    &g_channel_cal_rx_sweep_config);
     rftimer_setCompareIn_by_id(rftimer_readCounter() + 20 * 500, 7);
 }
 
-int main(void) {
-    initialize_mote();
+bool channel_cal_init(const uint8_t start_coarse_code,
+                      const uint8_t end_coarse_code) {
+    if (start_coarse_code > end_coarse_code) {
+        printf(
+            "Start coarse code %u should be smaller than or equal to the end "
+            "coarse code %u.\n",
+            start_coarse_code, end_coarse_code);
+        return false;
+    }
+    if (start_coarse_code < TUNING_MIN_CODE) {
+        printf("Start coarse code %u is out of range [%u, %u].\n",
+               start_coarse_code, TUNING_MIN_CODE, TUNING_MAX_CODE);
+        return false;
+    }
+    if (end_coarse_code > TUNING_MAX_CODE) {
+        printf("End coarse code %u is out of range [%u, %u].\n",
+               end_coarse_code, TUNING_MIN_CODE, TUNING_MAX_CODE);
+        return false;
+    }
 
-    radio_setRxCb(radio_rx_callback);
+    // Set the TX sweep configuration.
+    g_channel_cal_tx_sweep_config = (tuning_sweep_config_t){
+        .coarse =
+            {
+                .start = start_coarse_code,
+                .end = end_coarse_code,
+            },
+        .mid =
+            {
+                .start = TUNING_MIN_CODE,
+                .end = TUNING_MAX_CODE,
+            },
+        .fine =
+            {
+                .start = TUNING_MIN_CODE,
+                .end = TUNING_MAX_CODE,
+            },
+    };
 
-    analog_scan_chain_write();
-    analog_scan_chain_load();
+    // Set the RX sweep configuration.
+    g_channel_cal_rx_sweep_config = (tuning_sweep_config_t){
+        .coarse =
+            {
+                .start = start_coarse_code,
+                .end = end_coarse_code,
+            },
+        .mid =
+            {
+                .start = TUNING_MIN_CODE,
+                .end = TUNING_MAX_CODE,
+            },
+        .fine =
+            {
+                .start = TUNING_MIN_CODE,
+                .end = TUNING_MAX_CODE,
+            },
+    };
 
-    crc_check();
-    perform_calibration();
-
-    if (!tuning_validate_sweep_config(&g_tx_sweep_config)) {
+    // Validate the sweep configurations.
+    if (!tuning_validate_sweep_config(&g_channel_cal_tx_sweep_config)) {
         printf("Invalid TX sweep configuration.\n");
-        return EXIT_FAILURE;
+        return false;
     }
-    if (!tuning_validate_sweep_config(&g_rx_sweep_config)) {
+    if (!tuning_validate_sweep_config(&g_channel_cal_rx_sweep_config)) {
         printf("Invalid RX sweep configuration.\n");
-        return EXIT_FAILURE;
+        return false;
     }
 
-    tuning_init_for_sweep(&g_tx_tuning_code, &g_tx_sweep_config);
-    tuning_init_for_sweep(&g_rx_tuning_code, &g_rx_sweep_config);
-    rftimer_set_callback_by_id(rf_timer_rx_callback, 7);
+    tuning_init_for_sweep(&g_channel_cal_tx_tuning_code,
+                          &g_channel_cal_tx_sweep_config);
+    tuning_init_for_sweep(&g_channel_cal_rx_tuning_code,
+                          &g_channel_cal_rx_sweep_config);
+    radio_setRxCb(radio_rx_callback);
+    rftimer_set_callback_by_id(rf_timer_callback, 7);
+    return true;
+}
+
+bool channel_cal_run(void) {
     rftimer_enable_interrupts();
     g_channel_cal_state = CHANNEL_CAL_STATE_TX;
+
     while (true) {
-        radio_delay();
+        channel_cal_radio_delay();
         switch (g_channel_cal_state) {
             case CHANNEL_CAL_STATE_TX: {
-                memset(&g_tx_packet, 0, sizeof(channel_cal_tx_packet_t));
-                g_tx_packet.sequence_number = 1;
-                g_tx_packet.tuning_code = g_tx_tuning_code;
+                memset(&g_channel_cal_tx_packet, 0,
+                       sizeof(channel_cal_tx_packet_t));
+                g_channel_cal_tx_packet.sequence_number = 1;
+                g_channel_cal_tx_packet.tuning_code =
+                    g_channel_cal_tx_tuning_code;
 
-                tuning_tune_radio(&g_tx_tuning_code);
-                send_packet(&g_tx_packet, sizeof(channel_cal_tx_packet_t));
-                tuning_increment_code_for_sweep(&g_tx_tuning_code,
-                                                &g_tx_sweep_config);
+                tuning_tune_radio(&g_channel_cal_tx_tuning_code);
+                send_packet(&g_channel_cal_tx_packet,
+                            sizeof(channel_cal_tx_packet_t));
+                tuning_increment_code_for_sweep(&g_channel_cal_tx_tuning_code,
+                                                &g_channel_cal_tx_sweep_config);
 
-                if (tuning_end_of_sweep(&g_tx_tuning_code,
-                                        &g_tx_sweep_config)) {
+                if (tuning_end_of_sweep(&g_channel_cal_tx_tuning_code,
+                                        &g_channel_cal_tx_sweep_config)) {
                     rftimer_enable_interrupts_by_id(7);
                     rftimer_setCompareIn_by_id(rftimer_readCounter() + 20 * 500,
                                                7);
@@ -282,12 +301,12 @@ int main(void) {
                 break;
             }
             case CHANNEL_CAL_STATE_RX: {
-                tuning_tune_radio(&g_rx_tuning_code);
-                radio_delay();
+                tuning_tune_radio(&g_channel_cal_rx_tuning_code);
+                channel_cal_radio_delay();
                 receive_packet(/*timeout=*/true);
 
-                if (tuning_end_of_sweep(&g_rx_tuning_code,
-                                        &g_rx_sweep_config)) {
+                if (tuning_end_of_sweep(&g_channel_cal_rx_tuning_code,
+                                        &g_channel_cal_rx_sweep_config)) {
                     rftimer_disable_interrupts_by_id(7);
                     rftimer_disable_interrupts();
                     g_channel_cal_state = CHANNEL_CAL_STATE_DONE;
@@ -295,21 +314,22 @@ int main(void) {
                 break;
             }
             case CHANNEL_CAL_STATE_RX_ACK: {
-                if (g_tx_packet.command == CHANNEL_CAL_COMMAND_CHANGE_CHANNEL) {
+                if (g_channel_cal_tx_packet.command ==
+                    CHANNEL_CAL_COMMAND_CHANGE_CHANNEL) {
                     for (uint8_t i = 0; i < 3; ++i) {
-                        radio_delay();
-                        tuning_tune_radio(&g_tx_tuning_code);
-                        send_packet(&g_tx_packet,
+                        channel_cal_radio_delay();
+                        tuning_tune_radio(&g_channel_cal_tx_tuning_code);
+                        send_packet(&g_channel_cal_tx_packet,
                                     sizeof(channel_cal_tx_packet_t));
-                        radio_delay();
-                        radio_delay();
-                        radio_delay();
+                        channel_cal_radio_delay();
+                        channel_cal_radio_delay();
+                        channel_cal_radio_delay();
                     }
                 } else {
                     for (uint8_t i = 0; i < 2; ++i) {
-                        radio_delay();
-                        tuning_tune_radio(&g_tx_tuning_code);
-                        send_packet(&g_tx_packet,
+                        channel_cal_radio_delay();
+                        tuning_tune_radio(&g_channel_cal_tx_tuning_code);
+                        send_packet(&g_channel_cal_tx_packet,
                                     sizeof(channel_cal_tx_packet_t));
                     }
                 }
@@ -323,27 +343,73 @@ int main(void) {
                 for (uint8_t i = 0; i < NUM_802_15_4_CHANNELS; ++i) {
                     for (uint8_t j = 0; j < MAX_NUM_TX_TUNING_CODES_PER_CHANNEL;
                          ++j) {
-                        printf("Channel %u: (%u, %u, %u)\n",
-                               i + MIN_802_15_4_CHANNEL,
-                               g_tx_channel_tuning_codes[i][j].coarse,
-                               g_tx_channel_tuning_codes[i][j].mid,
-                               g_tx_channel_tuning_codes[i][j].fine);
+                        printf(
+                            "Channel %u: (%u, %u, %u)\n",
+                            i + MIN_802_15_4_CHANNEL,
+                            g_channel_cal_tx_channel_tuning_codes[i][j].coarse,
+                            g_channel_cal_tx_channel_tuning_codes[i][j].mid,
+                            g_channel_cal_tx_channel_tuning_codes[i][j].fine);
                     }
                 }
                 printf("RX packet results:\n");
                 for (uint8_t i = 0; i < MAX_NUM_RX_TUNING_CODES; ++i) {
                     printf("Channel %u: (%u, %u, %u)\n",
-                           g_rx_channel_tuning_codes[i].channel,
-                           g_rx_channel_tuning_codes[i].tuning_code.coarse,
-                           g_rx_channel_tuning_codes[i].tuning_code.mid,
-                           g_rx_channel_tuning_codes[i].tuning_code.fine);
+                           g_channel_cal_rx_channel_tuning_codes[i].channel,
+                           g_channel_cal_rx_channel_tuning_codes[i]
+                               .tuning_code.coarse,
+                           g_channel_cal_rx_channel_tuning_codes[i]
+                               .tuning_code.mid,
+                           g_channel_cal_rx_channel_tuning_codes[i]
+                               .tuning_code.fine);
                 }
-                return EXIT_SUCCESS;
+                return true;
             }
             case CHANNEL_CAL_STATE_INVALID:
             default: {
-                return EXIT_FAILURE;
+                return false;
             }
         }
     }
+}
+
+bool channel_cal_get_tx_tuning_code(const uint8_t channel,
+                                    tuning_code_t* tuning_code) {
+    // Use the second set of tuning codes if there are multiple possible tuning
+    // codes.
+    if (g_channel_cal_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1]
+                .coarse != 0 &&
+        g_channel_cal_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1]
+                .mid != 0 &&
+        g_channel_cal_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1]
+                .fine != 0) {
+        *tuning_code =
+            g_channel_cal_tx_channel_tuning_codes[channel -
+                                                  MIN_802_15_4_CHANNEL][1];
+    } else {
+        *tuning_code =
+            g_channel_cal_tx_channel_tuning_codes[channel -
+                                                  MIN_802_15_4_CHANNEL][0];
+    }
+    return tuning_code->coarse != 0 && tuning_code->mid != 0 &&
+           tuning_code->fine != 0;
+}
+
+bool channel_cal_get_rx_tuning_code(const uint8_t channel,
+                                    tuning_code_t* tuning_code) {
+    // Use the second set of tuning codes if there are multiple possible tuning
+    // codes.
+    for (uint8_t i = 0; i < MAX_NUM_RX_TUNING_CODES; ++i) {
+        if (g_channel_cal_rx_channel_tuning_codes[i].channel == channel) {
+            if (i != MAX_NUM_RX_TUNING_CODES - 1 &&
+                g_channel_cal_rx_channel_tuning_codes[i + 1].channel ==
+                    channel) {
+                *tuning_code =
+                    g_channel_cal_rx_channel_tuning_codes[i + 1].tuning_code;
+                return true;
+            }
+            *tuning_code = g_channel_cal_rx_channel_tuning_codes[i].tuning_code;
+            return true;
+        }
+    }
+    return false;
 }
