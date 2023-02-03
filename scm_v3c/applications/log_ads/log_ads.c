@@ -36,17 +36,16 @@ int main(void) {
     
     // Configure GPIO
     // Set GPI enables
-    // Hex entry 1: 0x2 = 2 = 0b0010 = GPI 13 on for IMU
-    // Hex entry 3: 
-    // DRDY_PIN 3, DIN_PIN 13, 
-    // DIN_PIN:  10 0000 0000 0000
-    // DRDY_PIN:              1000
-    GPI_enables(0x0208);
+	// Hex nibble 1: 0x2 = 0b0010
+	//	Pin 13 (DIN/SPI_MISO)
+	// Hex nibble 4: 0x8 = 0b1000 
+    //  Pin 3	(DRDY)
+    GPI_enables(0x2008);
 
     // Set GPO enables
     // Hex nibble 1: 0xD = 14 = 0b1101 
     //  Pin 15 (ADS_RESET), Pin 14 (SPI_SCLK), Pin 12 (SPI_MOSI)
-		// Hex nibble 2: 0x8 = 0b1000 = 
+	// Hex nibble 2: 0x8 = 0b1000 = 
     //  Pin 11 (SPI_CS)
     // Hex nibble 3: 0x8 = 0b1000 =
     //  Pin 7 (ADS_DVDD 1.8V)
@@ -59,19 +58,19 @@ int main(void) {
 //    initialize_imu();
 //    test_imu_life();
     // 
-		ADS_initialize();
-		ADS_RESET();
+	ADS_initialize();
+	ADS_RESET();
     ADS_SDATAC();
     print_reg = ADS_RREG(0x00);
-		printf("ID: %x\r\n",  print_reg);
-		print_reg = ADS_RREG(0x0c);
-		printf("channel8: %x\r\n",  print_reg);
-    ADS_WREG(0x0c, 0x60);
-    print_reg = ADS_RREG(0x0c);
-		printf("channel8: %x\r\n",  print_reg);
-    ADS_WREG(0x03, 0xE0);
-    print_reg = ADS_RREG(0x03);
-		printf("CONFIG3: %x\n",  print_reg);
+	printf("ID: %x\r\n",  print_reg); // should return 3E
+	print_reg = ADS_RREG(0x0c);
+	printf("channel8: %x\r\n",  print_reg); // print the config off the ADS
+    ADS_WREG(0x0c, 0x60);               // enable channel 8
+    print_reg = ADS_RREG(0x0c);         // confirm channel 8 is enabled
+	printf("channel8: %x\r\n",  print_reg);
+    ADS_WREG(0x03, 0xE0);             // change the config on ADS
+    print_reg = ADS_RREG(0x03);       // confirm the config on ADS
+	printf("CONFIG3: %x\n",  print_reg);
 		
     for (rreg = 0x00; rreg < 0x18; rreg = rreg + 0x01) {
       print_reg = ADS_RREG(rreg);
@@ -83,7 +82,7 @@ int main(void) {
     ADS_START();
     ADS_RDATAC();
 		
-		for (i = 0; i < 10; i++);
+	for (i = 0; i < 10; i++);
 		
     for (i = 0; i < Nsample; i++) {
       read_ads_register(&app_vars.ads_measurement[i]);
@@ -96,9 +95,9 @@ int main(void) {
 	    }
     }
 
-		// ADS_SDATAC();
-		// for (i = 0; i < 10; i++);
-		
+	// ADS_SDATAC();
+	// for (i = 0; i < 10; i++);
+	
     // for (rreg = 0x00; rreg < 0x18; rreg = rreg + 0x01) {
     //   print_reg = ADS_RREG(rreg);
     //   printf("%x\n", print_reg);
