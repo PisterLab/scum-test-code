@@ -104,7 +104,7 @@ typedef struct {
     volatile bool sendDone;
 
     // RX parameters
-    uint8_t* rxPacket;
+    uint8_t rxPacket[RX_PKT_ANY_LEN];
     uint8_t rxPacket_len;
     radio_rx_cbt radio_rx_cb;
     int8_t rxpk_rssi;
@@ -142,8 +142,8 @@ void send_packet(void* packet, uint8_t pkt_len) {
     rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_TX);
     radio_vars.sendDone = false;
 
-    while (radio_vars.sendDone == false)
-        ;
+    while (!radio_vars.sendDone) {
+    }
 }
 
 // Receive a packet of any length.
@@ -158,7 +158,8 @@ void receive_packet(bool timeout) {
 // If timeout is set false, then the function may block indefinitely
 void receive_packet_length(uint8_t pkt_len, bool timeout) {
     radio_vars.radio_mode = RX_MODE;
-    radio_vars.rxPacket_len = pkt_len;
+    radio_vars.rxPacket_len =
+        pkt_len <= RX_PKT_ANY_LEN ? pkt_len : RX_PKT_ANY_LEN;
 
     if (timeout) rftimer_set_callback(cb_timer_radio);
 
@@ -167,8 +168,8 @@ void receive_packet_length(uint8_t pkt_len, bool timeout) {
     radio_rxNow();
     if (timeout) rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_RX);
     radio_vars.receiveDone = false;
-    while (radio_vars.receiveDone == false)
-        ;
+    while (!radio_vars.receiveDone) {
+    }
 }
 
 void cb_startFrame_tx_radio(uint32_t timestamp) {}
@@ -183,12 +184,10 @@ void cb_startFrame_rx_radio(uint32_t timestamp) {
 }
 
 void cb_endFrame_rx_radio(uint32_t timestamp) {
-    uint8_t packet_len;
+    uint8_t packet_len = 0;
 
-    radio_vars.rxPacket =
-        (uint8_t*)malloc(radio_vars.rxPacket_len * sizeof(uint8_t));
-
-    radio_getReceivedFrame(&(radio_vars.rxPacket[0]), &packet_len,
+    memset(radio_vars.rxPacket, 0, RX_PKT_ANY_LEN * sizeof(uint8_t));
+    radio_getReceivedFrame(radio_vars.rxPacket, &packet_len,
                            radio_vars.rxPacket_len, &radio_vars.rxpk_rssi,
                            &radio_vars.rxpk_lqi);
 
@@ -206,8 +205,6 @@ void cb_endFrame_rx_radio(uint32_t timestamp) {
         radio_rxEnable();
         radio_rxNow();
     }
-
-    free(radio_vars.rxPacket);
 
     radio_vars.rxFrameStarted = false;
     radio_vars.receiveDone = true;
@@ -417,10 +414,10 @@ void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {
 }
 
 void radio_loadPacket(void* packet, uint16_t len) {
-    memcpy(&radio_vars.radio_tx_buffer[0], packet, len);
+    memcpy(radio_vars.radio_tx_buffer, packet, len);
 
     // load packet in TXFIFO
-    RFCONTROLLER_REG__TX_DATA_ADDR = &(radio_vars.radio_tx_buffer[0]);
+    RFCONTROLLER_REG__TX_DATA_ADDR = radio_vars.radio_tx_buffer;
     RFCONTROLLER_REG__TX_PACK_LEN = len;
 
     RFCONTROLLER_REG__CONTROL = TX_LOAD;
@@ -471,7 +468,7 @@ void radio_rxEnable() {
     ANALOG_CFG_REG__16 = 0x1;
 
     // Where packet will be stored in memory
-    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);
+    DMA_REG__RF_RX_ADDR = radio_vars.radio_rx_buffer;
 
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = RF_RESET;
@@ -690,15 +687,15 @@ uint32_t build_RX_channel_table(uint32_t channel_11_LC_code) {
     uint32_t count_LC[16];
     uint32_t count_targets[17];
 
-    memset(&count_LC[0], 0, sizeof(count_LC));
-    memset(&count_targets[0], 0, sizeof(count_targets));
+    memset(count_LC, 0, sizeof(count_LC));
+    memset(count_targets, 0, sizeof(count_targets));
 
     radio_vars.rx_channel_codes[0] = channel_11_LC_code;
 
     i = 0;
     while (i < 16) {
         LC_monotonic(radio_vars.rx_channel_codes[i]);
-        // analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+        // analog_scan_chain_write_3B_fromFPGA(ASC);
         // analog_scan_chain_load_3B_fromFPGA();
 
         // Reset all counters
@@ -708,8 +705,8 @@ uint32_t build_RX_channel_table(uint32_t channel_11_LC_code) {
         ANALOG_CFG_REG__0 = 0x3FFF;
 
         // Count for some arbitrary amount of time
-        for (t = 1; t < 16000; t++)
-            ;
+        for (t = 1; t < 16000; t++) {
+        }
 
         // Disable all counters
         ANALOG_CFG_REG__0 = 0x007F;
@@ -768,7 +765,7 @@ void build_TX_channel_table(unsigned int channel_11_LC_code,
     // for(i=0; i<16; i++){
     while (i < 16) {
         LC_monotonic(radio_vars.tx_channel_codes[i]);
-        // analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+        // analog_scan_chain_write_3B_fromFPGA(ASC);
         // analog_scan_chain_load_3B_fromFPGA();
 
         // Reset all counters
@@ -778,8 +775,8 @@ void build_TX_channel_table(unsigned int channel_11_LC_code,
         ANALOG_CFG_REG__0 = 0x3FFF;
 
         // Count for some arbitrary amount of time
-        for (t = 1; t < 16000; t++)
-            ;
+        for (t = 1; t < 16000; t++) {
+        }
 
         // Disable all counters
         ANALOG_CFG_REG__0 = 0x007F;
@@ -978,8 +975,8 @@ void rawchips_32_isr() {
         chip_index = 0;
 
         // Wait for print to complete
-        for (jj = 0; jj < 10000; jj++)
-            ;
+        for (jj = 0; jj < 10000; jj++) {
+        }
 
         // Execute soft reset
         *(unsigned int*)(0xE000ED0C) = 0x05FA0004;
