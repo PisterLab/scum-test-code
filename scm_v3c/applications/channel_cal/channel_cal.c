@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "802_15_4.h"
+#include "ieee_802_15_4.h"
 #include "radio.h"
 #include "rftimer.h"
 #include "scm3c_hw_interface.h"
@@ -114,7 +114,7 @@ static uint32_t g_channel_cal_num_rx_packets = 0;
 
 // TX channel tuning codes.
 static tuning_code_t
-    g_channel_cal_tx_channel_tuning_codes[NUM_802_15_4_CHANNELS]
+    g_channel_cal_tx_channel_tuning_codes[IEEE_802_15_4_NUM_CHANNELS]
                                          [MAX_NUM_TX_TUNING_CODES_PER_CHANNEL];
 
 // RX channel tuning codes.
@@ -133,16 +133,16 @@ static inline void channel_cal_radio_delay(void) {
 
 // Radio RX callback function.
 static void radio_rx_callback(const uint8_t* packet, const uint8_t packet_len) {
-    const uint32_t if_estimate = read_IF_estimate();
-    radio_rfOff();
-
     const channel_cal_rx_packet_t* rx_packet =
         (const channel_cal_rx_packet_t*)packet;
     const uint8_t channel = rx_packet->channel;
-    memcpy(
-        g_channel_cal_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL],
-        rx_packet->tx_tuning_codes,
-        MAX_NUM_TX_TUNING_CODES_PER_CHANNEL * sizeof(tuning_code_t));
+    if (!ieee_802_15_4_validate_channel(channel)) {
+        printf("Received an unexpected packet from channel %u.\n", channel);
+        return;
+    }
+
+    const uint32_t if_estimate = read_IF_estimate();
+    radio_rfOff();
 
     // Print the received transmit tuning codes.
     printf("Channel %u RX: (%u, %u, %u)\n", channel,
@@ -156,6 +156,12 @@ static void radio_rx_callback(const uint8_t* packet, const uint8_t packet_len) {
                rx_packet->tx_tuning_codes[i].fine);
     }
     printf("\n");
+
+    // Copy the received transmit tuning codes.
+    memcpy(&g_channel_cal_tx_channel_tuning_codes[channel -
+                                                  IEEE_802_15_4_MIN_CHANNEL],
+           rx_packet->tx_tuning_codes,
+           MAX_NUM_TX_TUNING_CODES_PER_CHANNEL * sizeof(tuning_code_t));
 
     if (!channel_cal_get_tx_tuning_code(channel,
                                         &g_channel_cal_tx_tuning_code)) {
@@ -340,12 +346,12 @@ bool channel_cal_run(void) {
             case CHANNEL_CAL_STATE_DONE: {
                 // Print the channel calibration results.
                 printf("TX packet results:\n");
-                for (uint8_t i = 0; i < NUM_802_15_4_CHANNELS; ++i) {
+                for (uint8_t i = 0; i < IEEE_802_15_4_NUM_CHANNELS; ++i) {
                     for (uint8_t j = 0; j < MAX_NUM_TX_TUNING_CODES_PER_CHANNEL;
                          ++j) {
                         printf(
                             "Channel %u: (%u, %u, %u)\n",
-                            i + MIN_802_15_4_CHANNEL,
+                            i + IEEE_802_15_4_MIN_CHANNEL,
                             g_channel_cal_tx_channel_tuning_codes[i][j].coarse,
                             g_channel_cal_tx_channel_tuning_codes[i][j].mid,
                             g_channel_cal_tx_channel_tuning_codes[i][j].fine);
@@ -374,21 +380,30 @@ bool channel_cal_run(void) {
 
 bool channel_cal_get_tx_tuning_code(const uint8_t channel,
                                     tuning_code_t* tuning_code) {
+    // Validate the channel.
+    if (!ieee_802_15_4_validate_channel(channel)) {
+        printf("Invalid 802.15.4 channel: %u.\n", channel);
+        return false;
+    }
+
     // Use the second set of tuning codes if there are multiple possible tuning
     // codes.
-    if (g_channel_cal_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1]
+    if (g_channel_cal_tx_channel_tuning_codes[channel -
+                                              IEEE_802_15_4_MIN_CHANNEL][1]
                 .coarse != 0 &&
-        g_channel_cal_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1]
+        g_channel_cal_tx_channel_tuning_codes[channel -
+                                              IEEE_802_15_4_MIN_CHANNEL][1]
                 .mid != 0 &&
-        g_channel_cal_tx_channel_tuning_codes[channel - MIN_802_15_4_CHANNEL][1]
+        g_channel_cal_tx_channel_tuning_codes[channel -
+                                              IEEE_802_15_4_MIN_CHANNEL][1]
                 .fine != 0) {
         *tuning_code =
             g_channel_cal_tx_channel_tuning_codes[channel -
-                                                  MIN_802_15_4_CHANNEL][1];
+                                                  IEEE_802_15_4_MIN_CHANNEL][1];
     } else {
         *tuning_code =
             g_channel_cal_tx_channel_tuning_codes[channel -
-                                                  MIN_802_15_4_CHANNEL][0];
+                                                  IEEE_802_15_4_MIN_CHANNEL][0];
     }
     return tuning_code->coarse != 0 && tuning_code->mid != 0 &&
            tuning_code->fine != 0;
@@ -396,6 +411,12 @@ bool channel_cal_get_tx_tuning_code(const uint8_t channel,
 
 bool channel_cal_get_rx_tuning_code(const uint8_t channel,
                                     tuning_code_t* tuning_code) {
+    // Validate the channel.
+    if (!ieee_802_15_4_validate_channel(channel)) {
+        printf("Invalid 802.15.4 channel: %u.\n", channel);
+        return false;
+    }
+
     // Use the second set of tuning codes if there are multiple possible tuning
     // codes.
     for (uint8_t i = 0; i < MAX_NUM_RX_TUNING_CODES; ++i) {

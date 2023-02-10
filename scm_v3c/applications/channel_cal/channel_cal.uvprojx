@@ -492,9 +492,14 @@
               <FilePath>..\..\scm3c_hw_interface.c</FilePath>
             </File>
             <File>
-              <FileName>802_15_4.h</FileName>
+              <FileName>ieee_802_15_4.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\802_15_4.h</FilePath>
+              <FilePath>..\..\ieee_802_15_4.h</FilePath>
+            </File>
+            <File>
+              <FileName>ieee_802_15_4.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\ieee_802_15_4.c</FilePath>
             </File>
             <File>
               <FileName>tuning.c</FileName>
