@@ -1,6 +1,8 @@
 // The ring buffer assumes a single producer and consumer, which can run in
 // separate threads. The ring buffer is implemented as a lock-free ring buffer.
 
+#include "ring_buffer.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
