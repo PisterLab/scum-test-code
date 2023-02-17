@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 // Maximum number of elements in the ring buffer.
-#define RING_BUFFER_SIZE 512
+#define RING_BUFFER_MAX_SIZE 512
 
 // Ring buffer element type.
 typedef uint8_t ring_buffer_type_t;
@@ -17,7 +17,7 @@ typedef uint8_t ring_buffer_type_t;
     typedef struct {
     // Ring buffer. The extra element is used to signify a full vs. empty ring
     // buffer.
-    ring_buffer_type_t buffer[RING_BUFFER_SIZE + 1];
+    ring_buffer_type_t buffer[RING_BUFFER_MAX_SIZE + 1];
 
     // Head index.
     size_t head;
