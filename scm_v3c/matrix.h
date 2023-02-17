@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// Maximum number of elements in the matrix.
+// Maximum number of elements (i.e., rows x columns) in the matrix.
 #define MATRIX_MAX_SIZE 512
 
 // Matrix element type.
