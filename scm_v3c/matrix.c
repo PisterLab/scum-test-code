@@ -8,13 +8,13 @@
 // Validate that the given row and column are in bounds.
 static inline bool matrix_validate(const matrix_t* matrix, const size_t row,
                                    const size_t col) {
-    return row < matrix_num_rows(matrix) && col < matrix_num_columns(matrix);
+    return row < matrix->rows && col < matrix->cols;
 }
 
 // Return the 1D array index corresponding to the given row and column.
 static inline size_t matrix_index(const matrix_t* matrix, const size_t row,
                                   const size_t col) {
-    return row * matrix_num_columns(matrix) + col;
+    return row * matrix->cols + col;
 }
 
 bool matrix_init(matrix_t* matrix, const size_t rows, const size_t cols) {
@@ -56,12 +56,11 @@ bool matrix_set(matrix_t* matrix, const size_t row, const size_t col,
 
 bool matrix_add(const matrix_t* matrix1, const matrix_t* matrix2,
                 matrix_t* result) {
-    const size_t num_rows = matrix_num_rows(matrix1);
-    const size_t num_cols = matrix_num_columns(matrix1);
+    const size_t num_rows = matrix1->rows;
+    const size_t num_cols = matrix1->cols;
 
     // Validate that the input matrices have the same size.
-    if (num_rows != matrix_num_rows(matrix2) ||
-        num_cols != matrix_num_columns(matrix2)) {
+    if (num_rows != matrix2->rows || num_cols != matrix2->cols) {
         return false;
     }
 
@@ -79,12 +78,12 @@ bool matrix_add(const matrix_t* matrix1, const matrix_t* matrix2,
 
 bool matrix_multiply(const matrix_t* matrix1, const matrix_t* matrix2,
                      matrix_t* result) {
-    const size_t num_rows = matrix_num_rows(matrix1);
-    const size_t num_cols = matrix_num_columns(matrix2);
-    const size_t inner_dimension = matrix_num_columns(matrix1);
+    const size_t num_rows = matrix1->rows;
+    const size_t num_cols = matrix2->cols;
+    const size_t inner_dimension = matrix1->cols;
 
-    // Validate that the input matrices have the compatible dimensions.
-    if (inner_dimension != matrix_num_rows(matrix2)) {
+    // Validate that the input matrices have compatible dimensions.
+    if (inner_dimension != matrix2->rows) {
         return false;
     }
 
