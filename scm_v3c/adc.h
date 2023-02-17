@@ -91,7 +91,7 @@ typedef struct __attribute__((packed)) {
 // ADC output.
 extern adc_output_t g_adc_output;
 
-// Configure the ADC according to the given ADC config.
+// Configure the ADC according to the given ADC configuration.
 void adc_config(const adc_config_t* adc_config);
 
 // Trigger an ADC read.

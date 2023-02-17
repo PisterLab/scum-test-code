@@ -53,7 +53,8 @@ typedef enum {
 // ADC output.
 adc_output_t g_adc_output;
 
-static void adc_set_asc_bit(adc_asc_bit_t asc_bit, uint8_t value) {
+// Set the ASC bit to the specified value.
+static void adc_set_asc_bit(const adc_asc_bit_t asc_bit, const uint8_t value) {
     if ((value & 0x1) == 1) {
         set_asc_bit((unsigned int)asc_bit);
     } else {
@@ -61,7 +62,8 @@ static void adc_set_asc_bit(adc_asc_bit_t asc_bit, uint8_t value) {
     }
 }
 
-static void adc_set_pga_gain_asc_bits(uint8_t pga_gain) {
+// Set the ASC bits for the PGA gain.
+static void adc_set_pga_gain_asc_bits(const uint8_t pga_gain) {
     adc_set_asc_bit(ADC_PGA_GAIN_0_ASC_BIT, (pga_gain >> 7) & 0x1);
     adc_set_asc_bit(ADC_PGA_GAIN_1_ASC_BIT, (pga_gain >> 6) & 0x1);
     adc_set_asc_bit(ADC_PGA_GAIN_2_ASC_BIT, (pga_gain >> 5) & 0x1);
@@ -72,7 +74,8 @@ static void adc_set_pga_gain_asc_bits(uint8_t pga_gain) {
     adc_set_asc_bit(ADC_PGA_GAIN_7_ASC_BIT, pga_gain & 0x1);
 }
 
-static void adc_set_settling_time_asc_bits(uint8_t settling_time) {
+// Set the ASC bits for the ADC settling time.
+static void adc_set_settling_time_asc_bits(const uint8_t settling_time) {
     adc_set_asc_bit(ADC_SETTLING_TIME_0_ASC_BIT, (settling_time >> 7) & 0x1);
     adc_set_asc_bit(ADC_SETTLING_TIME_1_ASC_BIT, (settling_time >> 6) & 0x1);
     adc_set_asc_bit(ADC_SETTLING_TIME_2_ASC_BIT, (settling_time >> 5) & 0x1);
@@ -83,8 +86,9 @@ static void adc_set_settling_time_asc_bits(uint8_t settling_time) {
     adc_set_asc_bit(ADC_SETTLING_TIME_7_ASC_BIT, settling_time & 0x1);
 }
 
+// Set the ASC bits for the bandgap reference.
 static void adc_set_bandgap_refernce_tuning_code_asc_bits(
-    uint8_t bandgap_reference_tuning_code) {
+    const uint8_t bandgap_reference_tuning_code) {
     adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_0_ASC_BIT,
                     (bandgap_reference_tuning_code >> 6) & 0x1);
     adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_1_ASC_BIT,
@@ -101,8 +105,9 @@ static void adc_set_bandgap_refernce_tuning_code_asc_bits(
                     bandgap_reference_tuning_code & 0x1);
 }
 
+// Set the ASC bits to tune the gm.
 static void adc_set_const_gm_tuning_code_asc_bits(
-    uint8_t const_gm_tuning_code) {
+    const uint8_t const_gm_tuning_code) {
     adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_0_ASC_BIT,
                     (const_gm_tuning_code >> 7) & 0x1);
     adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_1_ASC_BIT,
