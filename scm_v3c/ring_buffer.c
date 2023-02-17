@@ -6,7 +6,7 @@
 
 // Return the next index in the ring buffer.
 static inline size_t ring_buffer_next_index(const size_t index) {
-    return (index + 1) % (RING_BUFFER_SIZE + 1);
+    return (index + 1) % (RING_BUFFER_MAX_SIZE + 1);
 }
 
 void ring_buffer_init(ring_buffer_t* ring_buffer) {
