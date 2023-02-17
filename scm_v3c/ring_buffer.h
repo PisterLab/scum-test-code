@@ -14,7 +14,8 @@
 // Ring buffer element type.
 typedef uint8_t ring_buffer_type_t;
 
-    typedef struct {
+// Ring buffer struct.
+typedef struct {
     // Ring buffer. The extra element is used to signify a full vs. empty ring
     // buffer.
     ring_buffer_type_t buffer[RING_BUFFER_MAX_SIZE + 1];
