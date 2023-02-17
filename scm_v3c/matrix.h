@@ -13,6 +13,7 @@
 // Matrix element type.
 typedef uint8_t matrix_type_t;
 
+// Matrix struct.
 typedef struct {
     // Number of rows.
     size_t rows;
