@@ -648,7 +648,7 @@ void radio_frequency_housekeeping(uint32_t IF_estimate,
     }
 }
 
-void radio_enable_interrupts() {
+void radio_enable_interrupts(void) {
     // Enable radio interrupts in NVIC
     ISER = 0x40;
 }
