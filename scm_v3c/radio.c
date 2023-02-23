@@ -505,7 +505,7 @@ void radio_rfOn(void) {
     RFCONTROLLER_REG__CONTROL &= ~RF_RESET;
 }
 
-void radio_rfOff() {
+void radio_rfOff(void) {
     // reset state machine first
     radio_reset();
 
