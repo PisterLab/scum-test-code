@@ -505,7 +505,7 @@ void radio_rfOn(void) {
     RFCONTROLLER_REG__CONTROL &= ~RF_RESET;
 }
 
-void radio_rfOff() {
+void radio_rfOff(void) {
     // reset state machine first
     radio_reset();
 
@@ -648,7 +648,7 @@ void radio_frequency_housekeeping(uint32_t IF_estimate,
     }
 }
 
-void radio_enable_interrupts() {
+void radio_enable_interrupts(void) {
     // Enable radio interrupts in NVIC
     ISER = 0x40;
 }
