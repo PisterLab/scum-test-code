@@ -1442,9 +1442,6 @@ void set_asc_bit(unsigned int position) {
     scm3c_hw_interface_vars.ASC[index] |=
         0x80000000 >> (position - (index << 5));
 
-    // Needed for no 1.1V -> VDDD fix
-    __asm("NOP");
-
     // Possibly more efficient
     // scm3c_hw_interface_vars.ASC[position/32] |= 1 << (position%32);
 }
@@ -1456,9 +1453,6 @@ void clear_asc_bit(unsigned int position) {
 
     scm3c_hw_interface_vars.ASC[index] &=
         ~(0x80000000 >> (position - (index << 5)));
-
-    // Needed for no 1.1V -> VDDD fix
-    __asm("NOP");
 
     // Possibly more efficient
     // scm3c_hw_interface_vars.ASC[position/32] &= ~(1 << (position%32));
