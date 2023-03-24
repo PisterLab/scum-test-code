@@ -43,7 +43,6 @@ typedef struct ads_data_t{
 	int32_t channel[8];
 } ads_data_t;
 
-void digitalWrite(int pin, int high_low);
 
 void ADS_initialize();
 
