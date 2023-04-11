@@ -1441,6 +1441,9 @@ void set_asc_bit(unsigned int position) {
 
     scm3c_hw_interface_vars.ASC[index] |=
         0x80000000 >> (position - (index << 5));
+    
+    // Needed for no 1.1V -> VDDD fix
+    __asm("NOP");
 
     // Possibly more efficient
     // scm3c_hw_interface_vars.ASC[position/32] |= 1 << (position%32);
@@ -1453,6 +1456,9 @@ void clear_asc_bit(unsigned int position) {
 
     scm3c_hw_interface_vars.ASC[index] &=
         ~(0x80000000 >> (position - (index << 5)));
+
+    // Needed for no 1.1V -> VDDD fix
+    __asm("NOP");
 
     // Possibly more efficient
     // scm3c_hw_interface_vars.ASC[position/32] &= ~(1 << (position%32));
@@ -1470,9 +1476,13 @@ void LC_FREQCHANGE(int coarse, int mid, int fine) {
     //        none, it programs the LC radio frequency immediately
 
     // mask to ensure that the coarse, mid, and fine are actually 5-bit
+		// 1.1V (NOP)
     char coarse_m = (char)(coarse & 0x1F);
+		__asm("NOP");
     char mid_m = (char)(mid & 0x1F);
-    char fine_m = (char)(fine & 0x1F);
+		__asm("NOP");
+		char fine_m = (char)(fine & 0x1F);
+		__asm("NOP");
 
     // flip the bit order to make it fit more easily into the ACFG registers
     unsigned int coarse_f = (unsigned int)(flipChar(coarse_m));
