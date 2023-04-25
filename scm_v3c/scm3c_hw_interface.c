@@ -1476,18 +1476,22 @@ void LC_FREQCHANGE(int coarse, int mid, int fine) {
     //        none, it programs the LC radio frequency immediately
 
     // mask to ensure that the coarse, mid, and fine are actually 5-bit
-		// 1.1V (NOP)
+	// 1.1V (NOP)
     char coarse_m = (char)(coarse & 0x1F);
-		__asm("NOP");
+	__asm("NOP");
     char mid_m = (char)(mid & 0x1F);
-		__asm("NOP");
-		char fine_m = (char)(fine & 0x1F);
-		__asm("NOP");
+	__asm("NOP");
+	char fine_m = (char)(fine & 0x1F);
+	__asm("NOP");
 
     // flip the bit order to make it fit more easily into the ACFG registers
+    // 1.1V (NOP)
     unsigned int coarse_f = (unsigned int)(flipChar(coarse_m));
+    __asm("NOP");
     unsigned int mid_f = (unsigned int)(flipChar(mid_m));
+    __asm("NOP");
     unsigned int fine_f = (unsigned int)(flipChar(fine_m));
+    __asm("NOP");
 
     // initialize registers
     unsigned int fcode =
