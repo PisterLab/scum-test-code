@@ -227,9 +227,9 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
     uint8_t cfg_mid_stop;
     uint8_t cfg_fine_stop;
 		
-	// 1.1V (helps reorder assembly code)
-	uint8_t *txPacket_fix = repeat_rx_tx_params.txPacket;
-	uint8_t pkt_len_fix = repeat_rx_tx_params.pkt_len;
+		// 1.1V (helps reorder assembly code)
+		uint8_t *txPacket_fix = repeat_rx_tx_params.txPacket;
+		uint8_t pkt_len_fix = repeat_rx_tx_params.pkt_len;
 
     int pkt_count = 0;
     char* radio_mode_string;
@@ -269,10 +269,11 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
         cfg_fine_start = repeat_rx_tx_params.sweep_lc_fine_start;
         cfg_fine_stop = repeat_rx_tx_params.sweep_lc_fine_end;
         // 1.1V probably can be added back in if broken down
-		//		printf("Sweeping %s from Coarse: %d-%d  Mid: %d-%d  Fine: %d-%d\n",
-        //      radio_mode_string, cfg_coarse_start, cfg_coarse_stop,
-        //      cfg_mid_start, cfg_mid_stop, cfg_fine_start, cfg_fine_stop);
+				//printf("Sweeping %s from Coarse: %d-%d  Mid: %d-%d  Fine: %d-%d\n",
+        //       radio_mode_string, cfg_coarse_start, cfg_coarse_stop,
+        //       cfg_mid_start, cfg_mid_stop, cfg_fine_start, cfg_fine_stop);
     }
+    
 		// 1.1V
 		__asm("NOP");
 		
@@ -306,13 +307,13 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                         }
 
                         // 1.1V
-						txPacket_fix = repeat_rx_tx_params.txPacket;
-					    __asm("NOP");
-						
-                        // 1.1V
+												txPacket_fix = repeat_rx_tx_params.txPacket;
+												__asm("NOP");
+                        
+												// 1.1V
                         repeat_rx_tx_params.fill_tx_packet(
                             txPacket_fix, pkt_len_fix, state);
-						
+												
                         // 1.1V
                         send_packet(txPacket_fix, pkt_len_fix);
                     }

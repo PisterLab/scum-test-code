@@ -95,9 +95,9 @@ void optical_32_isr(void) {
 // to returning from this ISR, or else it will immediately execute again
 void optical_sfd_isr(void) {
     // 1.1V (helps reorder assembly code)
-	uint32_t dummy = 0;
+	  uint32_t dummy = 0;
 	
-	int32_t t;
+	  int32_t t;
     uint32_t rdata_lsb, rdata_msb;
     uint32_t count_LC, count_32k, count_2M, count_HFclock, count_IF;
 
