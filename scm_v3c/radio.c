@@ -227,9 +227,9 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
     uint8_t cfg_mid_stop;
     uint8_t cfg_fine_stop;
 		
-		// 1.1V (helps reorder assembly code)
-		uint8_t *txPacket_fix = repeat_rx_tx_params.txPacket;
-		uint8_t pkt_len_fix = repeat_rx_tx_params.pkt_len;
+	// 1.1V (helps reorder assembly code)
+	uint8_t *txPacket_fix = repeat_rx_tx_params.txPacket;
+	uint8_t pkt_len_fix = repeat_rx_tx_params.pkt_len;
 
     int pkt_count = 0;
     char* radio_mode_string;
