@@ -1,257 +1,194 @@
 #include "spi.h"
 
+#include "scm3c_hw_interface.h"
 #include "Memory_Map.h"
 
-#define CS_PIN		11
-#define CLK_PIN		14
-#define DIN_PIN		13  // Used when reading data from the IMU thus a SCuM input (MISO)
-#define DATA_PIN	12  // Used when writing to the IMU thus a SCuM output (MOSI)
-#define RST_PIN     15  // need to check IO (output)
-#define DRDY_PIN    3   // need to check IO (input)
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-void clock_toggle(unsigned char cycle) {
-	int j;
-	int clk_pin = CLK_PIN;
 
-	for (j = 0; j < cycle; j++) {
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
+typedef struct node_t
+{
+    int handle;
+    spi_pin_config_t config;
+    struct node_t* child;
+} node_t;
+
+static int handle_count = 0;
+static node_t* root = 0;
+static node_t* last = 0;
+
+void spi_digitalWrite(int pin, int high_low) {
+    if (high_low) {
+        GPIO_REG__OUTPUT |= (1 << pin);
+	}
+    else {
+        GPIO_REG__OUTPUT &= ~(1 << pin);
 	}
 }
 
-void spi_write(unsigned char writeByte) {
-	int j;
-	int t=0;
-	int clk_pin = CLK_PIN;
-	int data_pin = DATA_PIN;
+uint8_t spi_digitalRead(int pin) {
+	uint8_t i = 0;
+	i = (GPIO_REG__INPUT&(1 << pin)) >> pin;
+	return i;
+}
+
+node_t* get_node(int handle)
+{
+    node_t *node = root;
+
+    // Find the device specified by the handle
+    while(node != 0)
+    {
+        if (node->handle == handle)
+            break;
+        else
+            node = node->child;
+    }
+    return node;
+}
+
+int open(spi_pin_config_t *pin_config, spi_mode_t* mode)
+{
+    node_t* node;
+
+
+    GPI_enable_set(pin_config->MISO);
+    GPO_enable_set(pin_config->CS);
+    GPO_enable_set(pin_config->MOSI);
+    GPO_enable_set(pin_config->SCLK);
+    
+    node = malloc(sizeof(node_t));
+
+    spi_digitalWrite(pin_config->MOSI, 0);    // reset low
+    spi_digitalWrite(pin_config->SCLK, 0);    // reset low
+    spi_digitalWrite(pin_config->CS, 0);    // reset low
+
+    node->handle = handle_count++;
+    memcpy(&node->config, pin_config, sizeof(spi_pin_config_t));
+    node->child = 0;
+
+    if (root == 0)
+    {
+        root = node; 
+        last = node;
+    }
+    else 
+    {
+        last->child = node;
+        last = node;
+    }
+    return node->handle;
+}
+
+int ioctl(int handle, int request, int32_t arg)
+{
+    node_t* node;
+    
+    node = get_node(handle);
+    if (node == 0)
+        return INVALID_HANDLE;
+
+    switch (request)
+    {
+        case SPI_CS:
+            spi_digitalWrite(node->config.CS, arg);
+            break;      
+        default:
+            return INVALID_IOCTL_REQ;
+    }
+
+    return 0;
+}
+
+int write(int handle, const unsigned char write_byte)
+{
+    int bit;
+    node_t* node;
+
+    node = get_node(handle);
+    if (node == 0)
+        return INVALID_HANDLE;
 
 	// clock low at the beginning
-	GPIO_REG__OUTPUT &= ~(1 << clk_pin);
-//	printf("0x");
-	// sample at falling edge
-	for (j=7;j>=0;j--) {
-		if ((writeByte&(0x01<<j)) != 0) {
-				// printf("1");
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-			GPIO_REG__OUTPUT |= 1 << data_pin; // write a 1
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		}
-		else {
-			// printf("0");
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-			GPIO_REG__OUTPUT &= ~(1 << data_pin); // write a 0
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		}
-	}
-/*	
-	// sample at rising edge
-	for (j=7;j>=0;j--) {
-		if ((writeByte&(0x01<<j)) != 0) {
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-			GPIO_REG__OUTPUT |= 1 << data_pin; // write a 1
-			GPIO_REG__OUTPUT |= 1 << clk_pin; // clock high
-		}
-		else {
-			GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-			GPIO_REG__OUTPUT &= ~(1 << data_pin); // write a 0
-			GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		}
-	}
-*/	
-	GPIO_REG__OUTPUT &= ~(1 << data_pin); // set data out to 0
-//	printf("\n");
-}
-
-unsigned char spi_read() {
-	unsigned char readByte;
-	int j;
-	int t = 0;
-	int clk_pin = CLK_PIN;
-	int din_pin = DIN_PIN;
-	readByte=0;
+	spi_digitalWrite(node->config.SCLK, 0);
 
 	// sample at falling edge
-//	GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-	
-	for (j=7;j>=0;j--) {
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-		readByte |= ((GPIO_REG__INPUT&(1 << din_pin))>>din_pin)<<j;		
-//		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high		
+	for (bit = 7; bit >= 0; bit--)
+    {
+        spi_digitalWrite(node->config.SCLK, 1);
+        spi_digitalWrite(node->config.MOSI, (write_byte & (1<<bit)) != 0);
+        spi_digitalWrite(node->config.SCLK, 0);
 	}
 
-	// clock low in the end
-//	GPIO_REG__OUTPUT &= ~(1 << clk_pin);
-/*	
-	// sample at rising edge
-	GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low
-	
-	for (j=7;j>=0;j--) {
-		GPIO_REG__OUTPUT |= (1 << clk_pin); // clock high
-		readByte |= ((GPIO_REG__INPUT&(1 << din_pin))>>din_pin)<<j;		
-		GPIO_REG__OUTPUT &= ~(1 << clk_pin); // clock low		
+    // set data out to 0
+	spi_digitalWrite(node->config.MOSI, 0);
+
+    return 1; // always writes 1 byte.
+}
+
+int read(int handle, unsigned char* byte)
+{
+	int bit;
+    node_t* node;
+
+    *byte = 0;
+    node = get_node(handle);
+    if (node == 0)
+        return INVALID_HANDLE;
+
+	// sample at falling edge
+	for (bit = 7; bit >= 0; bit--)
+    {
+        spi_digitalWrite(node->config.SCLK, 1);
+        spi_digitalWrite(node->config.SCLK, 0);
+        *byte |= spi_digitalRead(node->config.MISO) << bit;		
 	}
-*/	
-	return readByte;
+
+    return 1; // always reads 1 byte.
 }
 
-void spi_chip_select() {
-    int t = 0;
-    int dout_pin = DATA_PIN;
-    int cs_pin = CS_PIN;
-    // drop chip select low to select the chip
-    GPIO_REG__OUTPUT &= ~(1 << cs_pin);
-    GPIO_REG__OUTPUT &= ~(1 << dout_pin);
-    for (t = 0; t < 50; t++)
-        ;
-}
+int close(int handle)
+{
+    node_t *node = root;
+    node_t *prev_node = 0;
 
-void spi_chip_deselect() {
-    int cs_pin = CS_PIN;
-    // hold chip select high to deselect the chip
-    GPIO_REG__OUTPUT |= (1 << cs_pin);
-}
-
-void initialize_imu(void) {
-	int i;
-	
-	write_imu_register(0x06,0x41);
-	for(i=0; i<50000; i++);
-	write_imu_register(0x06,0x01);
-	for(i=0; i<50000; i++);
-}
-
-unsigned int read_acc_x() {
-    unsigned int acc_x;
-    unsigned char read_byte;
-    unsigned char write_byte = 0x2D;
-
-    acc_x = (read_imu_register(write_byte)) << 8;
-    write_byte = 0x2E;
-    acc_x |= read_imu_register(write_byte);
-
-    return acc_x;
-}
-
-unsigned int read_acc_y() {
-    unsigned int acc_y;
-    unsigned char read_byte;
-    unsigned char write_byte = 0x2F;
-
-    acc_y = (read_imu_register(write_byte)) << 8;
-    write_byte = 0x30;
-    acc_y |= read_imu_register(write_byte);
-
-    return acc_y;
-}
-
-unsigned int read_acc_z() {
-    unsigned int acc_z;
-    unsigned char read_byte;
-    unsigned char write_byte = 0x31;
-
-    acc_z = (read_imu_register(write_byte)) << 8;
-    write_byte = 0x32;
-    acc_z |= read_imu_register(write_byte);
-
-    return acc_z;
-}
-
-unsigned int read_gyro_x() {
-    unsigned int gyro_x;
-    unsigned char read_byte;
-    unsigned char write_byte = 0x33;
-
-    gyro_x = (read_imu_register(write_byte)) << 8;
-    write_byte = 0x34;
-    gyro_x |= read_imu_register(write_byte);
-
-    return gyro_x;
-}
-
-unsigned int read_gyro_y() {
-    unsigned int gyro_y;
-    unsigned char read_byte;
-    unsigned char write_byte = 0x35;
-
-    gyro_y = (read_imu_register(write_byte)) << 8;
-    write_byte = 0x36;
-    gyro_y |= read_imu_register(write_byte);
-
-    return gyro_y;
-}
-
-unsigned int read_gyro_z() {
-    unsigned int gyro_z;
-    unsigned char read_byte;
-    unsigned char write_byte = 0x37;
-
-    gyro_z = (read_imu_register(write_byte)) << 8;
-    write_byte = 0x38;
-    gyro_z |= read_imu_register(write_byte);
-
-    return gyro_z;
-}
-
-void test_imu_life() {
-    int i = 0;
-    unsigned char read_byte;
-    unsigned char write_byte = 0x00;
-
-    read_byte = read_imu_register(write_byte);
-
-    if (read_byte == 0xEA) {
-        printf("My IMU is alive!!!\n");
-    } else {
-        printf("My IMU is not working :( \n");
+    // Find the device specified by the handle
+    while(node != 0)
+    {
+        if (node->handle == handle)
+            break;
+        else
+        {
+            prev_node = node;
+            node = node->child;
+        }
     }
-}
 
-unsigned char read_imu_register(unsigned char reg) {
-    unsigned char read_byte;
-    reg &= 0x7F;
-    reg |= 0x80;  // guarantee that the function input is a valid input (not
-                  // necessarily a valid, and readable, register)
+    if (node == 0)
+    {
+        return INVALID_HANDLE;
+    }
 
-    spi_chip_select();       // drop chip select
-    spi_write(reg);          // write the selected register to the port
-    read_byte = spi_read();  // clock out the bits and read them
-    spi_chip_deselect();     // raise chip select
+    if (node == root && node == last)
+    { // only one node, which is both root and last node.
+        root = 0;
+        last = 0;
+    }
+    else if (node == root)
+    { // node is root
+        node = node->child;
+    }
+    else if (node == last)
+    { // node is the last node
+        last = prev_node;
+    }
+    else
+    { // regular case
+        prev_node->child = node->child;
+    }
 
-    return read_byte;
-}
-
-void write_imu_register(unsigned char reg, unsigned char data) {
-    reg &= 0x7F;  // guarantee that the function input is valid (not necessarily
-                  // a valid, and readable, register)
-
-    spi_chip_select();    // drop chip select
-    spi_write(reg);       // write the selected register to the port
-    spi_write(data);      // write the desired register contents
-    spi_chip_deselect();  // raise chip select
-}
-
-void read_all_imu_data(imu_data_t* imu_measurement) {
-    imu_measurement->acc_x.value = read_acc_x();
-    imu_measurement->acc_y.value = read_acc_y();
-    imu_measurement->acc_z.value = read_acc_z();
-    imu_measurement->gyro_x.value = read_gyro_x();
-    imu_measurement->gyro_y.value = read_gyro_y();
-    imu_measurement->gyro_z.value = read_gyro_z();
-}
-
-void log_imu_data(imu_data_t* imu_measurement) {
-	printf("AX: %3d %3d, AY: %3d %3d, AZ: %3d %3d, GX: %3d %3d, GY: %3d %3d, GZ: %3d %3d\n",
-		imu_measurement->acc_x.bytes[0],
-		imu_measurement->acc_x.bytes[1],
-		imu_measurement->acc_y.bytes[0],
-		imu_measurement->acc_y.bytes[1],
-		imu_measurement->acc_z.bytes[0],
-		imu_measurement->acc_z.bytes[1],
-		imu_measurement->gyro_x.bytes[0],
-		imu_measurement->gyro_x.bytes[1],
-		imu_measurement->gyro_y.bytes[0],
-		imu_measurement->gyro_y.bytes[1],
-		imu_measurement->gyro_z.bytes[0],
-		imu_measurement->gyro_z.bytes[1]);
+    free(node);
+    return 0;
 }

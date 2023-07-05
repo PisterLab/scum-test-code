@@ -3,7 +3,7 @@
 #include "memory_map.h"
 #include "optical.h"
 #include "scm3c_hw_interface.h"
-#include "spi.h"
+#include "imu.h"
 
 //=========================== defines =========================================
 
@@ -30,19 +30,6 @@ int main(void) {
     initialize_mote();
     crc_check();
     perform_calibration();
-
-    // Configure GPIO
-    // Set GPI enables
-    // Hex entry 1: 0x2 = 2 = 0b0010 = GPI 13 on for IMU
-    GPI_enables(0x2000);
-
-    // Set GPO enables
-    // Hex entry 1: 0xD = 14 = 0b1101 = GPO 12,14,15 on for IMU
-    GPO_enables(0xD000);
-
-    // Program analog scan chain (update GPIO configs)
-    analog_scan_chain_write();
-    analog_scan_chain_load();
 
     initialize_imu();
     test_imu_life();

@@ -34,30 +34,6 @@ int main(void) {
     crc_check();
     perform_calibration();
     
-    // Configure GPIO
-    // Set GPI enables
-	// Hex nibble 1: 0x2 = 0b0010
-	//	Pin 13 (DIN/SPI_MISO)
-	// Hex nibble 4: 0x8 = 0b1000 
-    //  Pin 3	(DRDY)
-    GPI_enables(0x2008);
-
-    // Set GPO enables
-    // Hex nibble 1: 0xD = 14 = 0b1101 
-    //  Pin 15 (ADS_RESET), Pin 14 (SPI_SCLK), Pin 12 (SPI_MOSI)
-	// Hex nibble 2: 0x8 = 0b1000 = 
-    //  Pin 11 (SPI_CS)
-    // Hex nibble 3: 0x8 = 0b1000 =
-    //  Pin 7 (ADS_DVDD 1.8V)
-    GPO_enables(0xD880);
-    
-    // Program analog scan chain (update GPIO configs)
-    analog_scan_chain_write();
-    analog_scan_chain_load();
-    
-//    initialize_imu();
-//    test_imu_life();
-    // 
 	ADS_initialize();
 	ADS_RESET();
     ADS_SDATAC();
@@ -84,12 +60,14 @@ int main(void) {
 		
 	for (i = 0; i < 10; i++);
 		
+	printf("read ads data\n");
     for (i = 0; i < Nsample; i++) {
       read_ads_register(&app_vars.ads_measurement[i]);
     }
-
+printf("print ads data\n");
     for (i = 0; i < Nsample; i++) {
       // printf("%x\n",app_vars.ads_measurement[i].config);
+			printf("printf sample %d", i);
 	    for (j = 7; j < 8; j++) {
 		    printf("0x%x\r\n", app_vars.ads_measurement[i].channel[j]);
 	    }
@@ -108,7 +86,7 @@ int main(void) {
 
   // while(1){
 		// print_reg = ADS_RREG(0x00);
-		// printf("ID: %x\n",  print_reg);
+		// printrf("ID: %x\n",  print_reg);
 			// spi_write(0x11);
 //			printf("0x11\n");
 		 //      ADS_initialize();  
@@ -117,8 +95,8 @@ int main(void) {
 
 //        for (i = 0; i < 1000000; i++);
   //  }
+	printf("exit\n");
 }
-
 //=========================== public ==========================================
 
 //=========================== private =========================================

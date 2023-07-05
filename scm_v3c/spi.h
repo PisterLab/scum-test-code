@@ -1,61 +1,71 @@
 #include <stdint.h>
+#include "scm3c_hw_interface.h"
 
-// ADS SPI Command Definition Byte Assignments (Datasheet, p35)
-#define _WAKEUP 0x02 // Wake-up from standby mode
-#define _STANDBY 0x04 // Enter Standby mode
-#define _RESET 0x06 // Reset the device registers to default
-#define _START 0x08 // Start and restart (synchronize) conversions
-#define _STOP 0x0A // Stop conversion
-#define _RDATAC 0x10 // Enable Read Data Continuous mode (default mode at power-up)
-#define _SDATAC 0x11 // Stop Read Data Continuous mode
-#define _RDATA 0x12 // Read data by command; supports multiple read back
+#ifndef __SPI_LIB
+#define __SPI_LIB
 
+// error return values
+#define INVALID_HANDLE -1 // handle is not valid
+#define INVALID_IOCTL_REQ -2 // ioctl request is not valid
 
-typedef union int16_buff_t{
-	int16_t value;
-	uint8_t bytes[2];
-} int16_buff_t;
+// ioctl requests
+#define SPI_CS 0 // chip select
 
-typedef struct int24_buff_t{
-	uint8_t bytes[3];
-} int24_buff_t;
+typedef struct spi_pin_config_t{
+    uint8_t MISO; 
+    uint8_t MOSI;
+    uint8_t SCLK;
+    uint8_t CS;
+} spi_pin_config_t;
 
-typedef struct imu_data_t{
-	int16_buff_t acc_x;
-	int16_buff_t acc_y;
-	int16_buff_t acc_z;
-	int16_buff_t gyro_x;
-	int16_buff_t gyro_y;
-	int16_buff_t gyro_z;
-} imu_data_t;
+typedef struct spi_mode_t{
+    uint32_t data_rate; // TODO: not used yet.
+    uint32_t buffer_size; // TODO: not used yet.
+} spi_mode_t;
 
+/**
+ * Reads a byte to the SPI peripheral specified by handle.
+ * @param handle The SPI peripheral handle returned from open().
+ * @param byte The pointer to a buffer of a byte.
+ * @return The number of bytes read, which is always 1 when successful.
+ *      If operation fails, a negative value is returned indicating the error type.
+*/
+int read(int handle, unsigned char* byte);
 
-unsigned int read_gyro_x();
-unsigned int read_gyro_y();
-unsigned int read_gyro_z();
+/**
+ * Writes a byte to the SPI peripheral specified by handle.
+ * @param handle The SPI peripheral handle returned from open().
+ * @param write_byte The value of the byte to be written into the SPI peripheral.
+ * @return The number of bytes written, which is always 1 when successful.
+ *      If operation fails, a negative value is returned indicating the error type.
+*/
+int write(int handle, const unsigned char write_byte);
 
-void clock_toggle(unsigned char cycle);
+/**
+ * Closes a SPI peripheral.
+ * @param handle The SPI peripheral handle returned from open().
+ * @return Non-negative value when successful.
+ *      If operation fails, a negative value is returned indicating the error type.
+*/
+int close(int handle);
 
-void spi_write(unsigned char writeByte);
+/**
+ * Opens a SPI peripheral.
+ * @param pin_config A pointer to spi_pin_config_t specifying the four pins of SPI.
+ * @param mode A pointer to spi_mote_t specifying how the peripheral is used.
+ * @return Non-negative handle representing the SPI peripheral.
+ *      If operation fails, a negative value is returned indicating the error type.
+*/
+int open(spi_pin_config_t *pin_config, spi_mode_t* mode);
 
-unsigned char spi_read();
+/**
+ * IO control for SPI.
+ * @param handle The SPI peripheral handle returned from open().
+ * @param request A device-dependent request code.
+ * @param arg Optional argument for requests. 
+ * @return Non-negative value when successful.
+ *      If operation fails, a negative value is returned indicating the error type.
+*/
+int ioctl(int handle, int request, int32_t arg);
 
-void spi_chip_select();
-
-void spi_chip_deselect();
-
-void initialize_imu(void);
-
-unsigned int read_acc_y();
-
-unsigned int read_acc_z();
-
-void test_imu_life();
-
-unsigned char read_imu_register(unsigned char reg);
-
-void write_imu_register(unsigned char reg, unsigned char data);
-
-void read_all_imu_data(imu_data_t* imu_measurement);
-
-void log_imu_data(imu_data_t* imu_measurement);
+#endif

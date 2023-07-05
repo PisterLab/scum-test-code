@@ -482,24 +482,14 @@
               <FilePath>..\..\scm3c_hw_interface.c</FilePath>
             </File>
             <File>
-              <FileName>spi.c</FileName>
+              <FileName>spi2.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\spi.c</FilePath>
+              <FilePath>..\..\spi2.c</FilePath>
             </File>
             <File>
-              <FileName>spi.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\spi.h</FilePath>
-            </File>
-            <File>
-              <FileName>ads1299.c</FileName>
+              <FileName>ads1299-2.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\ads1299.c</FilePath>
-            </File>
-            <File>
-              <FileName>ads1299.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\ads1299.h</FilePath>
+              <FilePath>..\..\ads1299-2.c</FilePath>
             </File>
           </Files>
         </Group>
