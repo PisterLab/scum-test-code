@@ -13,6 +13,10 @@ struct __FILE {
 FILE __stdout = {(unsigned char*)APB_UART_BASE};
 FILE __stdin = {(unsigned char*)APB_UART_BASE};
 
+int fputc(int ch, FILE* f) { return (uart_out(ch)); }
+
+int fgetc(FILE* f) { return (uart_in()); }
+
 int ferror(FILE* f) { return 0; }
 
 int uart_out(int ch) {
@@ -30,10 +34,6 @@ int uart_in() {
     uart_out(ch);
     return ((int)ch);
 }
-
-int fputc(int ch, FILE* f) { return (uart_out(ch)); }
-
-int fgetc(FILE* f) { return (uart_in()); }
 
 void _ttywrch(int ch) { fputc(ch, &__stdout); }
 
