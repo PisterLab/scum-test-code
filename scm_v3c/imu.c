@@ -15,7 +15,7 @@ void initialize_imu(void) {
     config.MOSI = 12;
     config.MISO = 13;
     
-    spi_handle = open(&config, &mode);
+    spi_handle = spi_open(&config, &mode);
 	
 	write_imu_register(0x06,0x41);
 	for(i=0; i<50000; i++);
@@ -115,10 +115,10 @@ unsigned char read_imu_register(unsigned char reg) {
     reg |= 0x80;  // guarantee that the function input is a valid input (not
                   // necessarily a valid, and readable, register)
 
-    ioctl(spi_handle, SPI_CS, 0);  // drop chip select
-    write(spi_handle, reg);        // write the selected register to the port
-    read(spi_handle, &read_byte);  // clock out the bits and read them
-    ioctl(spi_handle, SPI_CS, 1);  // raise chip select
+    spi_ioctl(spi_handle, SPI_CS, 0);  // drop chip select
+    spi_write(spi_handle, reg);        // write the selected register to the port
+    spi_read(spi_handle, &read_byte);  // clock out the bits and read them
+    spi_ioctl(spi_handle, SPI_CS, 1);  // raise chip select
 
     return read_byte;
 }
@@ -127,10 +127,10 @@ void write_imu_register(unsigned char reg, unsigned char data) {
     reg &= 0x7F;  // guarantee that the function input is valid (not necessarily
                   // a valid, and readable, register)
 
-    ioctl(spi_handle, SPI_CS, 0);  // drop chip select
-    write(spi_handle, reg);        // write the selected register to the port
-    write(spi_handle, data);       // clock out the bits and read them
-    ioctl(spi_handle, SPI_CS, 1);  // raise chip select
+    spi_ioctl(spi_handle, SPI_CS, 0);  // drop chip select
+    spi_write(spi_handle, reg);        // write the selected register to the port
+    spi_write(spi_handle, data);       // clock out the bits and read them
+    spi_ioctl(spi_handle, SPI_CS, 1);  // raise chip select
 }
 
 void read_all_imu_data(imu_data_t* imu_measurement) {

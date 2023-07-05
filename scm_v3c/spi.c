@@ -49,7 +49,7 @@ node_t* get_node(int handle)
     return node;
 }
 
-int open(spi_pin_config_t *pin_config, spi_mode_t* mode)
+int spi_open(spi_pin_config_t *pin_config, spi_mode_t* mode)
 {
     node_t* node;
 
@@ -82,7 +82,7 @@ int open(spi_pin_config_t *pin_config, spi_mode_t* mode)
     return node->handle;
 }
 
-int ioctl(int handle, int request, int32_t arg)
+int spi_ioctl(int handle, int request, int32_t arg)
 {
     node_t* node;
     
@@ -102,7 +102,7 @@ int ioctl(int handle, int request, int32_t arg)
     return 0;
 }
 
-int write(int handle, const unsigned char write_byte)
+int spi_write(int handle, const unsigned char write_byte)
 {
     int bit;
     node_t* node;
@@ -128,7 +128,7 @@ int write(int handle, const unsigned char write_byte)
     return 1; // always writes 1 byte.
 }
 
-int read(int handle, unsigned char* byte)
+int spi_read(int handle, unsigned char* byte)
 {
 	int bit;
     node_t* node;
@@ -149,7 +149,7 @@ int read(int handle, unsigned char* byte)
     return 1; // always reads 1 byte.
 }
 
-int close(int handle)
+int spi_close(int handle)
 {
     node_t *node = root;
     node_t *prev_node = 0;

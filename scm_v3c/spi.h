@@ -6,9 +6,9 @@
 
 // error return values
 #define INVALID_HANDLE -1 // handle is not valid
-#define INVALID_IOCTL_REQ -2 // ioctl request is not valid
+#define INVALID_IOCTL_REQ -2 // spi_ioctl request is not valid
 
-// ioctl requests
+// spi_ioctl requests
 #define SPI_CS 0 // chip select
 
 typedef struct spi_pin_config_t{
@@ -25,29 +25,29 @@ typedef struct spi_mode_t{
 
 /**
  * Reads a byte to the SPI peripheral specified by handle.
- * @param handle The SPI peripheral handle returned from open().
+ * @param handle The SPI peripheral handle returned from spi_open().
  * @param byte The pointer to a buffer of a byte.
  * @return The number of bytes read, which is always 1 when successful.
  *      If operation fails, a negative value is returned indicating the error type.
 */
-int read(int handle, unsigned char* byte);
+int spi_read(int handle, unsigned char* byte);
 
 /**
  * Writes a byte to the SPI peripheral specified by handle.
- * @param handle The SPI peripheral handle returned from open().
+ * @param handle The SPI peripheral handle returned from spi_open().
  * @param write_byte The value of the byte to be written into the SPI peripheral.
  * @return The number of bytes written, which is always 1 when successful.
  *      If operation fails, a negative value is returned indicating the error type.
 */
-int write(int handle, const unsigned char write_byte);
+int spi_write(int handle, const unsigned char write_byte);
 
 /**
  * Closes a SPI peripheral.
- * @param handle The SPI peripheral handle returned from open().
+ * @param handle The SPI peripheral handle returned from spi_open().
  * @return Non-negative value when successful.
  *      If operation fails, a negative value is returned indicating the error type.
 */
-int close(int handle);
+int spi_close(int handle);
 
 /**
  * Opens a SPI peripheral.
@@ -56,16 +56,16 @@ int close(int handle);
  * @return Non-negative handle representing the SPI peripheral.
  *      If operation fails, a negative value is returned indicating the error type.
 */
-int open(spi_pin_config_t *pin_config, spi_mode_t* mode);
+int spi_open(spi_pin_config_t *pin_config, spi_mode_t* mode);
 
 /**
  * IO control for SPI.
- * @param handle The SPI peripheral handle returned from open().
+ * @param handle The SPI peripheral handle returned from spi_open().
  * @param request A device-dependent request code.
  * @param arg Optional argument for requests. 
  * @return Non-negative value when successful.
  *      If operation fails, a negative value is returned indicating the error type.
 */
-int ioctl(int handle, int request, int32_t arg);
+int spi_ioctl(int handle, int request, int32_t arg);
 
 #endif
