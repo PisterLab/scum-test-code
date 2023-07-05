@@ -1442,7 +1442,7 @@ void set_asc_bit(unsigned int position) {
     scm3c_hw_interface_vars.ASC[index] |=
         0x80000000 >> (position - (index << 5));
 
-    // Needed for no 1.1V -> VDDD fix
+    // 1.1V FIX (Adds delay before trying to restore registers from stack)
     __asm("NOP");
 
     // Possibly more efficient
@@ -1457,7 +1457,7 @@ void clear_asc_bit(unsigned int position) {
     scm3c_hw_interface_vars.ASC[index] &=
         ~(0x80000000 >> (position - (index << 5)));
 
-    // Needed for no 1.1V -> VDDD fix
+    // 1.1V FIX (Adds delay before trying to restore registers from stack)
     __asm("NOP");
 
     // Possibly more efficient
