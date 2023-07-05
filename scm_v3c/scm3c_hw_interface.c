@@ -1441,7 +1441,7 @@ void set_asc_bit(unsigned int position) {
 
     scm3c_hw_interface_vars.ASC[index] |=
         0x80000000 >> (position - (index << 5));
-  
+
     // 1.1V FIX (Adds delay before trying to restore registers from stack)
     // Without NOP, position variable is zero (when it shouldn't be)
     __asm("NOP");
@@ -1457,10 +1457,11 @@ void clear_asc_bit(unsigned int position) {
 
     scm3c_hw_interface_vars.ASC[index] &=
         ~(0x80000000 >> (position - (index << 5)));
-  
+
     // 1.1V FIX (Adds delay before trying to restore registers from stack)
     // Without NOP, position variable is zero (when it shouldn't be)
-  
+    __asm("NOP");
+
     // Possibly more efficient
     // scm3c_hw_interface_vars.ASC[position/32] &= ~(1 << (position%32));
 }
@@ -1479,7 +1480,7 @@ void LC_FREQCHANGE(int coarse, int mid, int fine) {
     // mask to ensure that the coarse, mid, and fine are actually 5-bit
     char coarse_m = (char)(coarse & 0x1F);
     char mid_m = (char)(mid & 0x1F);
-		char fine_m = (char)(fine & 0x1F);
+    char fine_m = (char)(fine & 0x1F);
 
     // flip the bit order to make it fit more easily into the ACFG registers
     unsigned int coarse_f = (unsigned int)(flipChar(coarse_m));
