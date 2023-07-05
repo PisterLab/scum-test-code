@@ -199,7 +199,7 @@ void ADS_RREGS(unsigned char addr, unsigned char NregminusOne) {
     spi_ioctl(spi_handle, SPI_CS, 1);
 }
 
-void read_ads_register(ads_data_t* ads_measurement) {
+void ADS_POLL_MEASUREMENTS(ads_data_t* ads_measurement) {
 	unsigned char read_reg;
 	int nchan = 8;
 	int i, j;
