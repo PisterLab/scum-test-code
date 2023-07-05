@@ -482,14 +482,14 @@
               <FilePath>..\..\scm3c_hw_interface.c</FilePath>
             </File>
             <File>
-              <FileName>spi2.c</FileName>
+              <FileName>ads1299.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\spi2.c</FilePath>
+              <FilePath>..\..\ads1299.c</FilePath>
             </File>
             <File>
-              <FileName>ads1299-2.c</FileName>
+              <FileName>spi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\ads1299-2.c</FilePath>
+              <FilePath>..\..\spi.c</FilePath>
             </File>
           </Files>
         </Group>

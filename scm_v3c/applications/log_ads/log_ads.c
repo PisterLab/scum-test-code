@@ -38,14 +38,14 @@ int main(void) {
     ADS_RESET();
     ADS_SDATAC();
     print_reg = ADS_RREG(0x00);
-    printf("ID: %x\r\n", print_reg);  // should return 3E
+    printf("ID: %x\r\n", print_reg);        // should return 3E
     print_reg = ADS_RREG(0x0c);
     printf("channel8: %x\r\n", print_reg);  // print the config off the ADS
     ADS_WREG(0x0c, 0x60);                   // enable channel 8
     print_reg = ADS_RREG(0x0c);             // confirm channel 8 is enabled
     printf("channel8: %x\r\n", print_reg);
-    ADS_WREG(0x03, 0xE0);        // change the config on ADS
-    print_reg = ADS_RREG(0x03);  // confirm the config on ADS
+    ADS_WREG(0x03, 0xE0);                   // change the config on ADS
+    print_reg = ADS_RREG(0x03);             // confirm the config on ADS
     printf("CONFIG3: %x\n", print_reg);
 
     for (rreg = 0x00; rreg < 0x18; rreg = rreg + 0x01) {
