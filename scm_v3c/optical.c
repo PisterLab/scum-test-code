@@ -95,9 +95,9 @@ void optical_32_isr(void) {
 // to returning from this ISR, or else it will immediately execute again
 void optical_sfd_isr(void) {
     // 1.1V (helps reorder assembly code)
-	  uint32_t dummy = 0;
-	
-	  int32_t t;
+    uint32_t dummy = 0;
+
+    int32_t t;
     uint32_t rdata_lsb, rdata_msb;
     uint32_t count_LC, count_32k, count_2M, count_HFclock, count_IF;
 
@@ -244,11 +244,11 @@ void optical_sfd_isr(void) {
     }
 
     // Debugging output
-    //broken down for 1.1V fix
-    printf("HF=%d-%d   2M=%d-%d", count_HFclock,HF_CLOCK_fine, count_2M,
-            RC2M_coarse);
+    // broken down for 1.1V fix
+    printf("HF=%d-%d   2M=%d-%d", count_HFclock, HF_CLOCK_fine, count_2M,
+           RC2M_coarse);
     printf(",%d,%d   LC=%d-%d   ", RC2M_fine, RC2M_superfine, count_LC,
-            optical_vars.LC_code);
+           optical_vars.LC_code);
     printf("IF=%d-%d\r\n", count_IF, IF_fine);
 
     if (optical_vars.optical_cal_iteration == 25) {
