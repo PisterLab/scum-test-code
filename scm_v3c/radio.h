@@ -58,7 +58,7 @@ typedef struct {
 //=========================== prototypes ======================================
 
 //==== admin
-void send_packet(uint8_t* packet, uint8_t pkt_len);
+void send_packet(void* packet, uint8_t pkt_len);
 void receive_packet(bool timeout);
 void receive_packet_length(uint8_t pkt_len, bool timeout);
 void cb_startFrame_tx_radio(uint32_t timestamp);
@@ -96,7 +96,7 @@ void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx);
 void radio_build_channel_table(uint32_t channel_11_LC_code);
 
 //==== tx
-void radio_loadPacket(uint8_t* packet, uint16_t len);
+void radio_loadPacket(void* packet, uint16_t len);
 void radio_txEnable(void);
 void radio_txNow(void);
 

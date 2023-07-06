@@ -71,6 +71,7 @@ void rftimer_setCompareIn(uint32_t val) { rftimer_setCompareIn_by_id(val, 0); }
 
 void rftimer_setCompareIn_by_id(uint32_t val, uint8_t id) {
     rftimer_enable_interrupts_by_id(id);
+    rftimer_enable_interrupts();
 
     // A timer scheudled in the past
 
@@ -147,13 +148,17 @@ void rftimer_set_repeat(bool should_repeat, uint8_t id) {
  * @param delay_milli - the delay in milliseconds
  */
 void delay_milliseconds_asynchronous(unsigned int delay_milli, uint8_t id) {
-	// RF TIMER is derived from HF timer (20MHz) through a divide ratio of 40, thus it is 500kHz.
-	// the count defined by RFTIMER_REG__MAX_COUNT and RFTIMER_REG__COMPARE1 indicate how many
-	// counts the timer should go through before triggering an interrupt. This is the basis for
-	// the following calculation. For example a count of 0x0000C350 corresponds to 100ms.
-	unsigned int rf_timer_count = delay_milli * 50; // same as (delay_milli * 500000) / 1000; // change from 500 to 50
-	rftimer_enable_interrupts_by_id(id);
-	timer_durations[id] = delay_milli;
+    // RF TIMER is derived from HF timer (20MHz) through a divide ratio of 40,
+    // thus it is 500kHz. the count defined by RFTIMER_REG__MAX_COUNT and
+    // RFTIMER_REG__COMPARE1 indicate how many counts the timer should go
+    // through before triggering an interrupt. This is the basis for the
+    // following calculation. For example a count of 0x0000C350 corresponds to
+    // 100ms.
+    unsigned int rf_timer_count =
+        delay_milli * 500;  // same as (delay_milli * 500000) / 1000;
+    rftimer_enable_interrupts_by_id(id);
+    rftimer_enable_interrupts();
+    timer_durations[id] = delay_milli;
 
     rftimer_setCompareIn_by_id(rftimer_readCounter() + rf_timer_count, id);
 }

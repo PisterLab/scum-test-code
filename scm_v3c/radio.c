@@ -104,7 +104,7 @@ typedef struct {
     volatile bool sendDone;
 
     // RX parameters
-    uint8_t* rxPacket;
+    uint8_t rxPacket[RX_PKT_ANY_LEN];
     uint8_t rxPacket_len;
     radio_rx_cbt radio_rx_cb;
     int8_t rxpk_rssi;
@@ -131,7 +131,7 @@ void build_TX_channel_table(uint32_t channel_11_LC_code,
 //=========================== public ==========================================
 
 // pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
-void send_packet(uint8_t* packet, uint8_t pkt_len) {
+void send_packet(void* packet, uint8_t pkt_len) {
     radio_vars.radio_mode = TX_MODE;
 
     rftimer_set_callback(cb_timer_radio);
@@ -142,8 +142,8 @@ void send_packet(uint8_t* packet, uint8_t pkt_len) {
     rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_TX);
     radio_vars.sendDone = false;
 
-    while (radio_vars.sendDone == false)
-        ;
+    while (!radio_vars.sendDone) {
+    }
 }
 
 // Receive a packet of any length.
@@ -158,7 +158,8 @@ void receive_packet(bool timeout) {
 // If timeout is set false, then the function may block indefinitely
 void receive_packet_length(uint8_t pkt_len, bool timeout) {
     radio_vars.radio_mode = RX_MODE;
-    radio_vars.rxPacket_len = pkt_len;
+    radio_vars.rxPacket_len =
+        pkt_len <= RX_PKT_ANY_LEN ? pkt_len : RX_PKT_ANY_LEN;
 
     if (timeout) rftimer_set_callback(cb_timer_radio);
 
@@ -167,8 +168,8 @@ void receive_packet_length(uint8_t pkt_len, bool timeout) {
     radio_rxNow();
     if (timeout) rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_RX);
     radio_vars.receiveDone = false;
-    while (radio_vars.receiveDone == false)
-        ;
+    while (!radio_vars.receiveDone) {
+    }
 }
 
 void cb_startFrame_tx_radio(uint32_t timestamp) {}
@@ -183,12 +184,10 @@ void cb_startFrame_rx_radio(uint32_t timestamp) {
 }
 
 void cb_endFrame_rx_radio(uint32_t timestamp) {
-    uint8_t packet_len;
+    uint8_t packet_len = 0;
 
-    radio_vars.rxPacket =
-        (uint8_t*)malloc(radio_vars.rxPacket_len * sizeof(uint8_t));
-
-    radio_getReceivedFrame(&(radio_vars.rxPacket[0]), &packet_len,
+    memset(radio_vars.rxPacket, 0, RX_PKT_ANY_LEN * sizeof(uint8_t));
+    radio_getReceivedFrame(radio_vars.rxPacket, &packet_len,
                            radio_vars.rxPacket_len, &radio_vars.rxpk_rssi,
                            &radio_vars.rxpk_lqi);
 
@@ -206,8 +205,6 @@ void cb_endFrame_rx_radio(uint32_t timestamp) {
         radio_rxEnable();
         radio_rxNow();
     }
-
-    free(radio_vars.rxPacket);
 
     radio_vars.rxFrameStarted = false;
     radio_vars.receiveDone = true;
@@ -229,6 +226,10 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
     uint8_t cfg_coarse_stop;
     uint8_t cfg_mid_stop;
     uint8_t cfg_fine_stop;
+
+    // 1.1V (helps reorder assembly code)
+    uint8_t* txPacket_fix = repeat_rx_tx_params.txPacket;
+    uint8_t pkt_len_fix = repeat_rx_tx_params.pkt_len;
 
     int pkt_count = 0;
     char* radio_mode_string;
@@ -261,10 +262,13 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
         cfg_mid_stop = repeat_rx_tx_params.sweep_lc_mid_end;
         cfg_fine_start = repeat_rx_tx_params.sweep_lc_fine_start;
         cfg_fine_stop = repeat_rx_tx_params.sweep_lc_fine_end;
-        printf("Sweeping %s from Coarse: %d-%d  Mid: %d-%d  Fine: %d-%d\n",
-               radio_mode_string, cfg_coarse_start, cfg_coarse_stop,
-               cfg_mid_start, cfg_mid_stop, cfg_fine_start, cfg_fine_stop);
+        // 1.1V probably can be added back in if broken down
+        // printf("Sweeping %s from Coarse: %d-%d  Mid: %d-%d  Fine: %d-%d\n",
+        //       radio_mode_string, cfg_coarse_start, cfg_coarse_stop,
+        //       cfg_mid_start, cfg_mid_stop, cfg_fine_start, cfg_fine_stop);
     }
+    // 1.1V
+    __asm("NOP");
 
     while (1) {
         // loop through all LC configuration
@@ -293,12 +297,14 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                             repeat_rx_tx_params.txPacket[i] = ' ';
                         }
 
-                        repeat_rx_tx_params.fill_tx_packet(
-                            repeat_rx_tx_params.txPacket,
-                            repeat_rx_tx_params.pkt_len, state);
-
-                        send_packet(repeat_rx_tx_params.txPacket,
-                                    repeat_rx_tx_params.pkt_len);
+                        // 1.1V
+                        txPacket_fix = repeat_rx_tx_params.txPacket;
+                        __asm("NOP");
+                        // 1.1V
+                        repeat_rx_tx_params.fill_tx_packet(txPacket_fix,
+                                                           pkt_len_fix, state);
+                        // 1.1V
+                        send_packet(txPacket_fix, pkt_len_fix);
                     }
 
                     pkt_count += 1;
@@ -416,11 +422,11 @@ void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {
     }
 }
 
-void radio_loadPacket(uint8_t* packet, uint16_t len) {
-    memcpy(&radio_vars.radio_tx_buffer[0], packet, len);
+void radio_loadPacket(void* packet, uint16_t len) {
+    memcpy(radio_vars.radio_tx_buffer, packet, len);
 
     // load packet in TXFIFO
-    RFCONTROLLER_REG__TX_DATA_ADDR = &(radio_vars.radio_tx_buffer[0]);
+    RFCONTROLLER_REG__TX_DATA_ADDR = radio_vars.radio_tx_buffer;
     RFCONTROLLER_REG__TX_PACK_LEN = len;
 
     RFCONTROLLER_REG__CONTROL = TX_LOAD;
@@ -471,7 +477,7 @@ void radio_rxEnable() {
     ANALOG_CFG_REG__16 = 0x1;
 
     // Where packet will be stored in memory
-    DMA_REG__RF_RX_ADDR = &(radio_vars.radio_rx_buffer[0]);
+    DMA_REG__RF_RX_ADDR = radio_vars.radio_rx_buffer;
 
     // Reset radio FSM
     RFCONTROLLER_REG__CONTROL = RF_RESET;
@@ -508,7 +514,7 @@ void radio_rfOn(void) {
     RFCONTROLLER_REG__CONTROL &= ~RF_RESET;
 }
 
-void radio_rfOff() {
+void radio_rfOff(void) {
     // reset state machine first
     radio_reset();
 
@@ -651,7 +657,7 @@ void radio_frequency_housekeeping(uint32_t IF_estimate,
     }
 }
 
-void radio_enable_interrupts() {
+void radio_enable_interrupts(void) {
     // Enable radio interrupts in NVIC
     ISER = 0x40;
 }
@@ -690,15 +696,15 @@ uint32_t build_RX_channel_table(uint32_t channel_11_LC_code) {
     uint32_t count_LC[16];
     uint32_t count_targets[17];
 
-    memset(&count_LC[0], 0, sizeof(count_LC));
-    memset(&count_targets[0], 0, sizeof(count_targets));
+    memset(count_LC, 0, sizeof(count_LC));
+    memset(count_targets, 0, sizeof(count_targets));
 
     radio_vars.rx_channel_codes[0] = channel_11_LC_code;
 
     i = 0;
     while (i < 16) {
         LC_monotonic(radio_vars.rx_channel_codes[i]);
-        // analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+        // analog_scan_chain_write_3B_fromFPGA(ASC);
         // analog_scan_chain_load_3B_fromFPGA();
 
         // Reset all counters
@@ -708,8 +714,8 @@ uint32_t build_RX_channel_table(uint32_t channel_11_LC_code) {
         ANALOG_CFG_REG__0 = 0x3FFF;
 
         // Count for some arbitrary amount of time
-        for (t = 1; t < 16000; t++)
-            ;
+        for (t = 1; t < 16000; t++) {
+        }
 
         // Disable all counters
         ANALOG_CFG_REG__0 = 0x007F;
@@ -768,7 +774,7 @@ void build_TX_channel_table(unsigned int channel_11_LC_code,
     // for(i=0; i<16; i++){
     while (i < 16) {
         LC_monotonic(radio_vars.tx_channel_codes[i]);
-        // analog_scan_chain_write_3B_fromFPGA(&ASC[0]);
+        // analog_scan_chain_write_3B_fromFPGA(ASC);
         // analog_scan_chain_load_3B_fromFPGA();
 
         // Reset all counters
@@ -778,8 +784,8 @@ void build_TX_channel_table(unsigned int channel_11_LC_code,
         ANALOG_CFG_REG__0 = 0x3FFF;
 
         // Count for some arbitrary amount of time
-        for (t = 1; t < 16000; t++)
-            ;
+        for (t = 1; t < 16000; t++) {
+        }
 
         // Disable all counters
         ANALOG_CFG_REG__0 = 0x007F;
@@ -978,8 +984,8 @@ void rawchips_32_isr() {
         chip_index = 0;
 
         // Wait for print to complete
-        for (jj = 0; jj < 10000; jj++)
-            ;
+        for (jj = 0; jj < 10000; jj++) {
+        }
 
         // Execute soft reset
         *(unsigned int*)(0xE000ED0C) = 0x05FA0004;
