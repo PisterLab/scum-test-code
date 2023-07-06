@@ -82,17 +82,20 @@ int main(void) {
     crc_check();
     perform_calibration();
 
+    printf("Power up ADS1299 NOW!\r\n");
+    //delay_milliseconds_synchronous(1, 1000);
+
     /***    Initialize ADS1299     ****/
     ADS_initialize();
     ADS_RESET();
     ADS_SDATAC();
     print_reg = ADS_RREG(0x00);
     printf("ID: %x\r\n", print_reg);        // should return 3E
-    print_reg = ADS_RREG(0x0c);
-    printf("channel8: %x\r\n", print_reg);  // print the config off the ADS
-    ADS_WREG(0x0c, 0x60);                   // enable channel 8
-    print_reg = ADS_RREG(0x0c);             // confirm channel 8 is enabled
-    printf("channel8: %x\r\n", print_reg);
+    print_reg = ADS_RREG(0x05);
+    printf("channel1: %x\r\n", print_reg);  // print the config off the ADS
+    ADS_WREG(0x05, 0x60);                   // enable channel 1
+    print_reg = ADS_RREG(0x05);             // confirm channel 1 is enabled
+    printf("channel1: %x\r\n", print_reg);
     ADS_WREG(0x03, 0xE0);                   // change the config on ADS
     print_reg = ADS_RREG(0x03);             // confirm the config on ADS
     printf("CONFIG3: %x\n", print_reg);
@@ -116,7 +119,7 @@ int main(void) {
         ;
 
     while(1) {
-      /*
+      
       printf("read ads data\n");
       for (i = 0; i < Nsample; i++) {
           ADS_POLL_MEASUREMENTS(&app_vars.ads_measurement[i]);
@@ -125,11 +128,10 @@ int main(void) {
       for (i = 0; i < Nsample; i++) {
           // printf("%x\n",app_vars.ads_measurement[i].config);
           printf("printf sample %d", i);
-          for (j = 7; j < 8; j++) {
+          for (j = 0; j < 1; j++) {
               printf("0x%x\r\n", app_vars.ads_measurement[i].channel[j]);
           }
       }
-      */
       delay_milliseconds_synchronous(1, 1);
     }
     printf("exit\n");

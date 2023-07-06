@@ -7,17 +7,23 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define SPI_MAX_DEVICES 10
+
 
 typedef struct node_t
 {
     int handle;
     spi_pin_config_t config;
-    struct node_t* child;
 } node_t;
 
-static int handle_count = 0;
-static node_t* root = 0;
-static node_t* last = 0;
+static node_t spi_nodes[SPI_MAX_DEVICES];
+static uint32_t spi_node_bmap = 0;
+
+
+static node_t* get_node(int handle)
+{
+    return &spi_nodes[handle];
+}
 
 void spi_digitalWrite(int pin, int high_low) {
     if (high_low) {
@@ -34,51 +40,43 @@ uint8_t spi_digitalRead(int pin) {
 	return i;
 }
 
-node_t* get_node(int handle)
-{
-    node_t *node = root;
-
-    // Find the device specified by the handle
-    while(node != 0)
-    {
-        if (node->handle == handle)
-            break;
-        else
-            node = node->child;
-    }
-    return node;
-}
-
 int spi_open(spi_pin_config_t *pin_config, spi_mode_t* mode)
 {
     node_t* node;
-
+    uint8_t new_handle;
 
     GPI_enable_set(pin_config->MISO);
     GPO_enable_set(pin_config->CS);
     GPO_enable_set(pin_config->MOSI);
     GPO_enable_set(pin_config->SCLK);
     
-    node = malloc(sizeof(node_t));
+
+    printf("Hello?\r\n");
+
 
     spi_digitalWrite(pin_config->MOSI, 0);    // reset low
     spi_digitalWrite(pin_config->SCLK, 0);    // reset low
     spi_digitalWrite(pin_config->CS, 0);    // reset low
 
-    node->handle = handle_count++;
-    memcpy(&node->config, pin_config, sizeof(spi_pin_config_t));
-    node->child = 0;
+    // Find first available handle in the bitmap
+    
+    for(new_handle = 0; new_handle < SPI_MAX_DEVICES; new_handle++){
+        if((spi_node_bmap & (1 << new_handle)) == 0){
+            node = &spi_nodes[new_handle];
+            spi_node_bmap |= (1 << new_handle);
+            node->handle = new_handle;
+            break;
+        }
+    }
 
-    if (root == 0)
-    {
-        root = node; 
-        last = node;
+    if(new_handle == SPI_MAX_DEVICES){
+        printf("ERROR: No more SPI devices available\r\n");
+        return -1;
     }
-    else 
-    {
-        last->child = node;
-        last = node;
-    }
+
+
+    node->config = *pin_config;
+    
     return node->handle;
 }
 
@@ -151,44 +149,13 @@ int spi_read(int handle, unsigned char* byte)
 
 int spi_close(int handle)
 {
-    node_t *node = root;
-    node_t *prev_node = 0;
+    node_t* node;
 
-    // Find the device specified by the handle
-    while(node != 0)
-    {
-        if (node->handle == handle)
-            break;
-        else
-        {
-            prev_node = node;
-            node = node->child;
-        }
-    }
-
+    node = get_node(handle);
     if (node == 0)
-    {
         return INVALID_HANDLE;
-    }
 
-    if (node == root && node == last)
-    { // only one node, which is both root and last node.
-        root = 0;
-        last = 0;
-    }
-    else if (node == root)
-    { // node is root
-        node = node->child;
-    }
-    else if (node == last)
-    { // node is the last node
-        last = prev_node;
-    }
-    else
-    { // regular case
-        prev_node->child = node->child;
-    }
+    spi_node_bmap &= ~(1 << handle);
 
-    free(node);
     return 0;
 }

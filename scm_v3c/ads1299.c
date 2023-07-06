@@ -61,14 +61,16 @@ void ADS_initialize() {
     //  Pin 15 (ADS_RESET)
     // Hex nibble 3: 0x8 = 0b1000 =
     //  Pin 7 (ADS_DVDD 1.8V)
-    GPO_enable_set(15);
-    GPO_enable_set(7);
+    GPO_enable_set(RST_PIN);
+    //GPO_enable_set(7);
     
 
     spi_config.CS = CS_PIN;
     spi_config.MISO = DIN_PIN;
     spi_config.MOSI = DATA_PIN;
     spi_config.SCLK = CLK_PIN;
+
+    
 
     spi_handle = spi_open(&spi_config, &spi_mode);
     
@@ -206,8 +208,6 @@ void ADS_POLL_MEASUREMENTS(ads_data_t* ads_measurement) {
 	int32_t read_24bit;
     unsigned char data_ready;
 
-//	ADS_START();
-
     do spi_read(spi_handle, &data_ready);
     while (data_ready);
 
@@ -216,19 +216,17 @@ void ADS_POLL_MEASUREMENTS(ads_data_t* ads_measurement) {
 	for (i = 0; i < 3; i++) {
         spi_read(spi_handle, &read_reg);
 		read_24bit = (read_24bit << 8) | read_reg;
-		// printf("%x", read_reg);
 	}
-	// printf("\n");
 	ads_measurement->config = read_24bit;
-	// printf("config = %x\n", read_24bit);
+	
 	for (j = 0; j < nchan; j++) {
 		read_24bit = 0;
 		for (i = 0; i < 3; i++) {
             spi_read(spi_handle, &read_reg);
 			read_24bit = (read_24bit << 8) | read_reg;
-			// printf("%x", read_reg);
+	
 		}
-		// printf("\n");
+	
 		if (read_24bit >> 23) {
 			read_24bit |= 0xFF000000;
 		}
@@ -236,12 +234,7 @@ void ADS_POLL_MEASUREMENTS(ads_data_t* ads_measurement) {
 			read_24bit &= 0x00FFFFFF;
 		}
 		ads_measurement->channel[j] = read_24bit;
-		// printf("channel[%d] = %x\n", j, read_24bit);
+	
 	}
     spi_ioctl(spi_handle, SPI_CS, 1);
-
-	// printf("%x\n", ads_measurement->config);
-	// for (j = 0; j < nchan; j++) {
-	// 	printf("%x\n", ads_measurement->channel[j]);
-	// }
 }
