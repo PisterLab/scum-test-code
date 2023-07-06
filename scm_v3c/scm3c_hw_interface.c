@@ -1442,7 +1442,8 @@ void set_asc_bit(unsigned int position) {
     scm3c_hw_interface_vars.ASC[index] |=
         0x80000000 >> (position - (index << 5));
 
-    // 1.1V FIX (Adds delay before trying to restore registers from stack)
+    // 1.1V FIX/VDDD tap fix
+    // Adds delay before trying to restore registers from stack
     // Without NOP, variable being passed is zero (when it shouldn't be)
     __asm("NOP");
 
@@ -1458,7 +1459,8 @@ void clear_asc_bit(unsigned int position) {
     scm3c_hw_interface_vars.ASC[index] &=
         ~(0x80000000 >> (position - (index << 5)));
 
-    // 1.1V FIX (Adds delay before trying to restore registers from stack)
+    // 1.1V FIX/VDDD tap fix
+    // Adds delay before trying to restore registers from stack
     // Without NOP, variable being passed is zero (when it shouldn't be)
     __asm("NOP");
 
@@ -1479,6 +1481,8 @@ void LC_FREQCHANGE(int coarse, int mid, int fine) {
 
     // mask to ensure that the coarse, mid, and fine are actually 5-bit
     // 1.1V (NOP)
+    // The NOPs below are for the VDDD tap fix
+    // They provide some extra delay so the registers can be loaded properly
     char coarse_m = (char)(coarse & 0x1F);
     __asm("NOP");
     char mid_m = (char)(mid & 0x1F);
