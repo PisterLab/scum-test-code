@@ -250,12 +250,20 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
         cfg_mid_start = repeat_rx_tx_params.fixed_lc_mid;
         cfg_fine_start = repeat_rx_tx_params.fixed_lc_fine;
 
+        // 1.1V (NOP) VDDD tap fix
+        // the NOPs add some extra delay
+        // print statement also needed to be removed
+        // probably could be added back in if broken down into more
+        // than one print statement
         cfg_coarse_stop = cfg_coarse_start + 1;
+        __asm("NOP");
         cfg_mid_stop = cfg_mid_start + 1;
+        __asm("NOP");
         cfg_fine_stop = cfg_fine_start + 1;
+        __asm("NOP");
 
-        printf("Fixed %s at c:%u m:%u f:%u\n", radio_mode_string,
-               cfg_coarse_start, cfg_mid_start, cfg_fine_start);
+        // printf("Fixed %s at c:%u m:%u f:%u\n", radio_mode_string,
+        // cfg_coarse_start, cfg_mid_start, cfg_fine_start);
     } else {  // sweep mode
         cfg_coarse_start = repeat_rx_tx_params.sweep_lc_coarse_start;
         cfg_coarse_stop = repeat_rx_tx_params.sweep_lc_coarse_end;
@@ -291,7 +299,10 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                         printf("coarse=%d, middle=%d, fine=%d\r\n", cfg_coarse,
                                cfg_mid, cfg_fine);
                     }
-
+                    // 1.1V/VDDD tap fix
+                    // adds extra delay
+                    // but, not compltely sure why this one is needed
+                    __asm("NOP");
                     LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
 
                     if (repeat_rx_tx_params.radio_mode == RX_MODE) {

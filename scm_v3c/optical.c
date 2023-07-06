@@ -246,9 +246,15 @@ void optical_sfd_isr(void) {
     }
 
     // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n", count_HFclock,
-           HF_CLOCK_fine, count_2M, RC2M_coarse, RC2M_fine, RC2M_superfine,
-           count_LC, optical_vars.LC_code, count_IF, IF_fine);
+    // 1.1V/VDDD tap fix
+    // The print is now broken down into 3 statements instead of one big
+    // print statement
+    // doing this prevent a long string of loads back to back
+    printf("HF=%d-%d   2M=%d-%d", count_HFclock, HF_CLOCK_fine, count_2M,
+           RC2M_coarse);
+    printf(",%d,%d   LC=%d-%d   ", RC2M_fine, RC2M_superfine, count_LC,
+           optical_vars.LC_code);
+    printf("IF=%d-%d\r\n", count_IF, IF_fine);
 
     if (optical_vars.optical_cal_iteration == 25) {
         // Disable this ISR

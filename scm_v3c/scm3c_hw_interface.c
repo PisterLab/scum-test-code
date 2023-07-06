@@ -1491,9 +1491,15 @@ void LC_FREQCHANGE(int coarse, int mid, int fine) {
     __asm("NOP");
 
     // flip the bit order to make it fit more easily into the ACFG registers
+    // 1.1V (NOP)
+    // The NOPs below are for the VDDD tap fix
+    // They provide some extra delay so the registers can be loaded properly
     unsigned int coarse_f = (unsigned int)(flipChar(coarse_m));
+    __asm("NOP");
     unsigned int mid_f = (unsigned int)(flipChar(mid_m));
+    __asm("NOP");
     unsigned int fine_f = (unsigned int)(flipChar(fine_m));
+    __asm("NOP");
 
     // initialize registers
     unsigned int fcode =
