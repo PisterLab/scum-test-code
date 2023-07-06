@@ -94,7 +94,9 @@ void optical_32_isr(void) {
 // optical data transfer Need to make sure a new bit has been clocked in prior
 // to returning from this ISR, or else it will immediately execute again
 void optical_sfd_isr(void) {
-    // 1.1V (helps reorder assembly code)
+    // 1.1V/VDDD tap fix
+    // helps reorder assembly code
+    // Not completely sure why this works
     uint32_t dummy = 0;
 
     int32_t t;
