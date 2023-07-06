@@ -301,7 +301,7 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                     }
                     // 1.1V/VDDD tap fix
                     // adds extra delay
-                    // but, not compltely sure why this one is needed
+                    // but, not completely sure why this one is needed
                     __asm("NOP");
                     LC_FREQCHANGE(cfg_coarse, cfg_mid, cfg_fine);
 
