@@ -309,7 +309,6 @@ void repeat_rx_tx(repeat_rx_tx_params_t repeat_rx_tx_params) {
                         // created for the VDDD tap fix
                         txPacket_fix = repeat_rx_tx_params.txPacket;
                         __asm("NOP");
-
                         repeat_rx_tx_params.fill_tx_packet(txPacket_fix,
                                                            pkt_len_fix, state);
 
