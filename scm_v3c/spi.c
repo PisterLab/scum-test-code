@@ -49,9 +49,6 @@ int spi_open(spi_pin_config_t *pin_config, spi_mode_t* mode)
     GPO_enable_set(pin_config->CS);
     GPO_enable_set(pin_config->MOSI);
     GPO_enable_set(pin_config->SCLK);
-    
-
-    printf("Hello?\r\n");
 
 
     spi_digitalWrite(pin_config->MOSI, 0);    // reset low

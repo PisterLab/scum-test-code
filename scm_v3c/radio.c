@@ -143,6 +143,8 @@ void send_packet(void* packet, uint8_t pkt_len) {
     radio_vars.sendDone = false;
 
     while (!radio_vars.sendDone) {
+        gpio_4_toggle();
+        gpio_4_toggle();
     }
 }
 
@@ -337,6 +339,7 @@ void default_radio_rx_cb(uint8_t* packet, uint8_t packet_len) {
 void cb_timer_radio(void) {
     if (radio_vars.radio_mode == TX_MODE) {
         // Tranmit the packet
+        gpio_4_clr();
         radio_txNow();
     } else if (radio_vars.radio_mode == RX_MODE) {
         // Stop attempting to receive

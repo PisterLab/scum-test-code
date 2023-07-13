@@ -121,8 +121,6 @@ void ADS_RESET() {
     for (t = 0; t < 20; t++);
     
     spi_ioctl(spi_handle, SPI_CS, 1);
-
-    printf("ADS reset complete\n");
 }
 
 // start data conversion

@@ -31,6 +31,7 @@ void rftimer_clear_interrupts_by_id(uint8_t id);
 void rftimer_set_repeat(bool should_repeat, uint8_t id);
 void delay_milliseconds_asynchronous(unsigned int delay_milli, uint8_t id);
 void delay_milliseconds_synchronous(unsigned int delay_milli, uint8_t id);
+void delay_ticks_asynchronous(unsigned int delay_ticks, uint8_t id);
 
 void rftimer_isr(void);
 

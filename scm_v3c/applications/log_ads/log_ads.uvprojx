@@ -323,7 +323,7 @@
             <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
+            <uC99>1</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
             <v6Lang>1</v6Lang>
@@ -385,6 +385,11 @@
               <FileName>log_ads.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\log_ads.c</FilePath>
+            </File>
+            <File>
+              <FileName>channel_cal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\channel_cal.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -490,6 +495,26 @@
               <FileName>spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>ieee_802_15_4.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\ieee_802_15_4.c</FilePath>
+            </File>
+            <File>
+              <FileName>ieee_802_15_4.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\ieee_802_15_4.h</FilePath>
+            </File>
+            <File>
+              <FileName>tuning.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\tuning.c</FilePath>
+            </File>
+            <File>
+              <FileName>tuning.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\tuning.h</FilePath>
             </File>
           </Files>
         </Group>

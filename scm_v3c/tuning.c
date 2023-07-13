@@ -34,24 +34,15 @@ bool tuning_validate_sweep_config(const tuning_sweep_config_t* sweep_config) {
 }
 
 void tuning_increment_code(tuning_code_t* tuning_code) {
-    tuning_sweep_config_t sweep_config = {
-        .coarse =
-            {
-                .start = TUNING_MIN_CODE,
-                .end = TUNING_MAX_CODE,
-            },
-        .mid =
-            {
-                .start = TUNING_MIN_CODE,
-                .end = TUNING_MAX_CODE,
-            },
-        .fine =
-            {
-                .start = TUNING_MIN_CODE,
-                .end = TUNING_MAX_CODE,
-            },
-    };
-    tuning_increment_code_for_sweep(tuning_code, &sweep_config);
+    tuning_sweep_config_t sweep_config;
+		sweep_config.coarse.start = TUNING_MIN_CODE;
+		sweep_config.coarse.end = TUNING_MAX_CODE;
+		sweep_config.mid.start = TUNING_MIN_CODE;
+		sweep_config.mid.end = TUNING_MAX_CODE;
+		sweep_config.fine.start = TUNING_MIN_CODE;
+		sweep_config.fine.end = TUNING_MAX_CODE;
+
+		tuning_increment_code_for_sweep(tuning_code, &sweep_config);
 }
 
 void tuning_increment_code_for_sweep(
