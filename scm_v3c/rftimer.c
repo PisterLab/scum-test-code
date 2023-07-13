@@ -155,7 +155,7 @@ void delay_milliseconds_asynchronous(unsigned int delay_milli, uint8_t id) {
     // following calculation. For example a count of 0x0000C350 corresponds to
     // 100ms.
     unsigned int rf_timer_count =
-        delay_milli * 50;  // same as (delay_milli * 500000) / 1000;
+        delay_milli * 500;  // same as (delay_milli * 500000) / 1000;
     rftimer_enable_interrupts_by_id(id);
     rftimer_enable_interrupts();
     timer_durations[id] = delay_milli;
