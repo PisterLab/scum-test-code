@@ -6,6 +6,7 @@
 #include "adc.h"
 #include "memory_map.h"
 #include "optical.h"
+#include "rftimer.h"
 #include "scm3c_hw_interface.h"
 
 // ADC configuration.
@@ -23,8 +24,19 @@ static const adc_config_t g_adc_config = {
     .pga_bypass = true,
 };
 
+static void rftimer_callback(void) {
+    // Trigger an ADC read.
+    adc_trigger();
+    delay_milliseconds_asynchronous(/*delay_milli=*/10, 7);
+}
+
 int main(void) {
     initialize_mote();
+
+    // Configure the RF timer.
+    rftimer_set_callback_by_id(rftimer_callback, 7);
+    rftimer_enable_interrupts();
+    rftimer_enable_interrupts_by_id(7);
 
     // Configure the ADC.
     printf("Configuring the ADC.\n");
@@ -37,19 +49,13 @@ int main(void) {
     crc_check();
     perform_calibration();
 
-    while (true) {
-        // Trigger an ADC read.
-        printf("Triggering ADC.\n");
-        adc_trigger();
-        while (!g_adc_output.valid) {
-        }
-        if (!g_adc_output.valid) {
-            printf("ADC output should be valid.\n");
-        }
-        printf("ADC output: %u\n", g_adc_output.data);
+    // TODO(titan): Set up GPIOs to drive the switch.
 
-        // Wait for around 1 second.
-        for (uint32_t i = 0; i < 700000; ++i) {
+    delay_milliseconds_asynchronous(/*delay_milli=*/10, 7);
+    while (true) {
+        if (g_adc_output.valid) {
+            printf("ADC output: %u\n", g_adc_output.data);
+            g_adc_output.valid = false;
         }
     }
 }
