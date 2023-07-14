@@ -154,7 +154,6 @@ void send_packet(void* packet, uint8_t pkt_len) {
         }
         */
         radio_vars.sendDone = rftimer_readCounter() > trigger_time + TIMER_PERIOD_TX;
-        //printf("%u\t%u\n", trigger_time, rftimer_readCounter());
         gpio_4_clr();
     }
     radio_rfOff();
