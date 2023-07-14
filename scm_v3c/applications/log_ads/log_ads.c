@@ -22,6 +22,7 @@
 // 802.15.4 channel on which to transmit the ADC data.
 #define IEEE_802_15_4_TX_CHANNEL 17
 
+
 //=========================== variables =======================================
 
 typedef struct {
@@ -31,7 +32,11 @@ typedef struct {
     uint8_t sine_idx;
 } app_vars_t;
 
-static tuning_code_t g_tuning_code;
+static tuning_code_t g_tuning_code = {
+  .coarse = 24, 
+  .mid = 0,
+  .fine = 0
+};
 
 #define SINE_LUT_SIZE 4 
 uint8_t sine_lut[] = {4, 9, 4, 0};
@@ -88,7 +93,7 @@ int main(void) {
     unsigned char print_reg;
     uint32_t Nsample = 2;
     uint8_t rreg;
-    uint32_t adc_data[2];
+    uint32_t adc_data[16];
 
     /***    Initialize SCuM     ****/
     initialize_mote();
@@ -107,6 +112,7 @@ int main(void) {
     /***    Initialize Radio     ****/
     printf("RUN CH CAL\n");
     // Run the channel calibration.
+    /*
     if (!channel_cal_run()) {
         printf("CH CAL FAIL\n");
         return 0;
@@ -118,6 +124,8 @@ int main(void) {
           
       }
     }
+    */
+   tuning_tune_radio(&g_tuning_code);
     printf("Transmitting on channel %u: (%u, %u, %u).\n",
            IEEE_802_15_4_TX_CHANNEL, g_tuning_code.coarse,
            g_tuning_code.mid, g_tuning_code.fine);
@@ -139,7 +147,7 @@ int main(void) {
 
     /***    Initialize ADS1299     ****/
     ADS_initialize();
-    for(i=0; i<1000; i++) {
+    for(i=0; i<100; i++) {
       ADS_RESET();
       ADS_SDATAC();
     }
@@ -164,7 +172,7 @@ int main(void) {
 
 
     /***    Kickoff the PWM DAC interrupt routine     ****/
-    init_pwm_dac(100, 50);
+    //init_pwm_dac(100, 50);
 
     /***    Read ADS data     ****/
     ADS_START();
@@ -181,11 +189,13 @@ int main(void) {
       
       for (i = 0; i < Nsample; i++) {
           for (j = 0; j < 1; j++) {
-              adc_data[j] = app_vars.ads_measurement[i].channel[j];
-              //printf("0x%x\r\n", app_vars.ads_measurement[i].channel[j]);
+              adc_data[i] = app_vars.ads_measurement[i].channel[j];
+              printf("%d\r\n", app_vars.ads_measurement[i].channel[j]);
+              
           }
       }
-      send_packet(&adc_data, sizeof(adc_data));
+      delay_milliseconds_synchronous(10, 1);
+      //send_packet(&adc_data, sizeof(adc_data));
       delay_milliseconds_synchronous(10, 1);
     }
     printf("exit\n");

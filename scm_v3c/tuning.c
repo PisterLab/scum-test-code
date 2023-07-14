@@ -45,7 +45,7 @@ void tuning_increment_code(tuning_code_t* tuning_code) {
 		tuning_increment_code_for_sweep(tuning_code, &sweep_config);
 }
 
-void tuning_increment_code_for_sweep(
+void    tuning_increment_code_for_sweep(
     tuning_code_t* tuning_code, const tuning_sweep_config_t* sweep_config) {
     ++tuning_code->fine;
     if (tuning_code->fine > sweep_config->fine.end) {

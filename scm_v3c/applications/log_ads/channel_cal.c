@@ -10,7 +10,6 @@
 #include "rftimer.h"
 #include "scm3c_hw_interface.h"
 #include "tuning.h"
-#include "gpio.h"
 
 // Maximum number of TX tuning codes per channel.
 #define MAX_NUM_TX_TUNING_CODES_PER_CHANNEL 4
@@ -128,8 +127,7 @@ static channel_cal_state_e g_channel_cal_state = CHANNEL_CAL_STATE_INVALID;
 // Add some delay for the radio.
 // TODO(fil): Change this function to use an RF timer compare register.
 static inline void channel_cal_radio_delay(void) {
-    for (uint8_t i = 0; i < 5; ++i) {
-    }
+    delay_milliseconds_synchronous(10, 2);
 }
 
 // Radio RX callback function.
@@ -240,6 +238,8 @@ bool channel_cal_init(const uint8_t start_coarse_code,
             },
     };
 
+
+
     // Set the RX sweep configuration.
     g_channel_cal_rx_sweep_config = (tuning_sweep_config_t){
         .coarse =
@@ -286,32 +286,30 @@ bool channel_cal_run(void) {
         channel_cal_radio_delay();
         switch (g_channel_cal_state) {
             case CHANNEL_CAL_STATE_TX: {
-                gpio_4_set();
                 memset(&g_channel_cal_tx_packet, 0,
                        sizeof(channel_cal_tx_packet_t));
                 g_channel_cal_tx_packet.sequence_number = 1;
                 g_channel_cal_tx_packet.tuning_code =
                     g_channel_cal_tx_tuning_code;
+
                 tuning_tune_radio(&g_channel_cal_tx_tuning_code);
                 send_packet(&g_channel_cal_tx_packet,
                             sizeof(channel_cal_tx_packet_t));
-                gpio_4_clr();
+                           // print sweep config
+                
                 tuning_increment_code_for_sweep(&g_channel_cal_tx_tuning_code,
                                                 &g_channel_cal_tx_sweep_config);
+                
                 if (tuning_end_of_sweep(&g_channel_cal_tx_tuning_code,
                                         &g_channel_cal_tx_sweep_config)) {
-                    printf("CHANNEL CAL STATE TX DONE\n");
-
                     rftimer_enable_interrupts_by_id(7);
                     rftimer_setCompareIn_by_id(rftimer_readCounter() + 20 * 500,
                                                7);
                     g_channel_cal_state = CHANNEL_CAL_STATE_RX;
                 }
-                gpio_4_clr();
                 break;
             }
             case CHANNEL_CAL_STATE_RX: {
-
                 tuning_tune_radio(&g_channel_cal_rx_tuning_code);
                 channel_cal_radio_delay();
                 receive_packet(/*timeout=*/true);
@@ -325,7 +323,6 @@ bool channel_cal_run(void) {
                 break;
             }
             case CHANNEL_CAL_STATE_RX_ACK: {
-
                 if (g_channel_cal_tx_packet.command ==
                     CHANNEL_CAL_COMMAND_CHANGE_CHANNEL) {
                     for (uint8_t i = 0; i < 3; ++i) {
@@ -350,7 +347,6 @@ bool channel_cal_run(void) {
                 break;
             }
             case CHANNEL_CAL_STATE_DONE: {
-
                 // Print the channel calibration results.
                 printf("TX packet results:\n");
                 for (uint8_t i = 0; i < IEEE_802_15_4_NUM_CHANNELS; ++i) {

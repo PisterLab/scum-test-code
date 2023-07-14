@@ -139,13 +139,25 @@ void send_packet(void* packet, uint8_t pkt_len) {
     radio_loadPacket(packet, pkt_len);
     radio_txEnable();
 
-    rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_TX);
+    uint32_t trigger_time = rftimer_readCounter() + TIMER_PERIOD_TX;
+    rftimer_setCompareIn(trigger_time);
     radio_vars.sendDone = false;
 
     while (!radio_vars.sendDone) {
-        gpio_4_toggle();
-        gpio_4_toggle();
+        gpio_4_set();  // debug
+        /*
+        if(rftimer_readCounter() > trigger_time + TIMER_PERIOD_TX) {
+            printf("TX timeout\n");
+            radio_rfOff();
+            radio_vars.sendDone = true;
+            break;
+        }
+        */
+        radio_vars.sendDone = rftimer_readCounter() > trigger_time + TIMER_PERIOD_TX;
+        //printf("%u\t%u\n", trigger_time, rftimer_readCounter());
+        gpio_4_clr();
     }
+    radio_rfOff();
 }
 
 // Receive a packet of any length.
