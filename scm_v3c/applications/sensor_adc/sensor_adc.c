@@ -48,8 +48,8 @@ int main(void) {
         }
         printf("ADC output: %u\n", g_adc_output.data);
 
-        // Wait a bit.
-        for (uint32_t i = 0; i < 1000000; ++i) {
+        // Wait for around 1 second.
+        for (uint32_t i = 0; i < 700000; ++i) {
         }
     }
 }
