@@ -34,19 +34,19 @@ uint8_t digitalRead(int pin) {
 	return i;
 }
 
-void spi_write_byte(const unsigned char write_byte )
+void spi_write_byte(const uint8_t write_byte )
 {
     spi_write(spi_handle, write_byte);
 }
 
-unsigned char spi_read_byte(){
-    unsigned char read_byte;
+uint8_t spi_read_byte(){
+    uint8_t read_byte;
     spi_read(spi_handle, &read_byte);
     return read_byte;
 }
 
 
-void ADS_initialize() {
+void ads_init() {
     int t;
     spi_mode_t spi_mode;
     spi_pin_config_t spi_config;
@@ -55,14 +55,19 @@ void ADS_initialize() {
 
     // Hex nibble 4: 0x8 = 0b1000 
     //  Pin 3 (DRDY)
-    GPI_enable_set(3);
+    GPI_enable_set(DRDY_PIN);
+    GPO_enable_clr(DRDY_PIN);
 
     // Hex nibble 1: 0x8  = 0b1000 =
-    //  Pin 15 (ADS_RESET)
+    //  Pin 15 (ads_reset)
     // Hex nibble 3: 0x8 = 0b1000 =
     //  Pin 7 (ADS_DVDD 1.8V)
     GPO_enable_set(RST_PIN);
     //GPO_enable_set(7);
+
+    
+    analog_scan_chain_write();
+    analog_scan_chain_load();
     
 
     spi_config.CS = CS_PIN;
@@ -77,7 +82,7 @@ void ADS_initialize() {
     if (spi_handle < 0)
     {
         printf("Open SPI failed.\n");
-        exit();
+        return;
     }
 
     // Enable power to the ADS1299
@@ -93,11 +98,11 @@ void ADS_initialize() {
 }
 
 // System Commands
-void ADS_WAKEUP() {
+void ads_wakeup() {
     int t;
     
     spi_ioctl(spi_handle, SPI_CS, 0);
-    spi_write(spi_handle, _WAKEUP);
+    spi_write(spi_handle, ADS_CMD_WAKEUP);
     spi_ioctl(spi_handle, SPI_CS, 1);
     for (t = 0; t < 10; t++);
     // must wait 4 tCLK before sending another commands
@@ -106,16 +111,16 @@ void ADS_WAKEUP() {
 // only allow to send WAKEUP after sending STANDBY
 void ADS_STANBY() {
     spi_ioctl(spi_handle, SPI_CS, 0);
-    spi_write(spi_handle, _STANDBY);
+    spi_write(spi_handle, ADS_CMD_STANDBY);
     spi_ioctl(spi_handle, SPI_CS, 1);
 }
 
 // reset all the registers to defaut settings
-void ADS_RESET() {
+void ads_reset() {
     int t;
     
     spi_ioctl(spi_handle, SPI_CS, 0);
-    spi_write(spi_handle, _RESET);
+    spi_write(spi_handle, ADS_CMD_RESET);
 
     // must wait 18 tCLK to execute this command
     for (t = 0; t < 20; t++);
@@ -124,45 +129,44 @@ void ADS_RESET() {
 }
 
 // start data conversion
-void ADS_START() {
+void ads_start() {
     spi_ioctl(spi_handle, SPI_CS, 0);
-    spi_write(spi_handle, _START);
+    spi_write(spi_handle, ADS_CMD_START);
     spi_ioctl(spi_handle, SPI_CS, 1);
 }
 
 // stop data conversion
-void ADS_STOP() {
+void ads_stop() {
     spi_ioctl(spi_handle, SPI_CS, 0);
-    spi_write(spi_handle, _STOP);
+    spi_write(spi_handle, ADS_CMD_STOP);
     spi_ioctl(spi_handle, SPI_CS, 1);
 }
 
-void ADS_RDATAC() {
+void ads_rdatac() {
     int t;
     
     spi_ioctl(spi_handle, SPI_CS, 0);
-    spi_write(spi_handle, _RDATAC);
+    spi_write(spi_handle, ADS_CMD_RDATAC);
     spi_ioctl(spi_handle, SPI_CS, 1);
     
     // must wait 4 tCLK after executing thsi command
     for (t = 0; t < 10; t++);
 }
 
-void ADS_SDATAC() {
+void ads_sdatac() {
     int t;
-    printf("SDATAC begin\n");
     
     spi_ioctl(spi_handle, SPI_CS, 0);
-    spi_write(spi_handle, _SDATAC);
+    spi_write(spi_handle, ADS_CMD_SDATAC);
     spi_ioctl(spi_handle, SPI_CS, 1);
     
     // must wait 4 tCLK after executing thsi command
     for (t = 0; t < 10; t++);
 }
 
-unsigned char ADS_RREG(unsigned char addr) {
-    unsigned char opcode1 = addr + 0x20;
-    unsigned char read_reg;
+uint8_t ads_rreg(uint8_t addr) {
+    uint8_t opcode1 = addr + 0x20;
+    uint8_t read_reg = 0;
     
     spi_ioctl(spi_handle, SPI_CS, 0);
     spi_write(spi_handle, opcode1);
@@ -173,8 +177,8 @@ unsigned char ADS_RREG(unsigned char addr) {
     return read_reg;
 }
 
-void ADS_WREG(unsigned char addr, unsigned char val) {
-	unsigned char opcode1 = addr + 0x40;
+void ads_wreg(uint8_t addr, uint8_t val) {
+	uint8_t opcode1 = addr + 0x40;
 
     spi_ioctl(spi_handle, SPI_CS, 0);
     spi_write(spi_handle, opcode1);
@@ -183,10 +187,10 @@ void ADS_WREG(unsigned char addr, unsigned char val) {
     spi_ioctl(spi_handle, SPI_CS, 1);
 }
 
-void ADS_RREGS(unsigned char addr, unsigned char NregminusOne) {
-    unsigned char opcode1 = addr + 0x20;
-    unsigned char read_reg;
-	unsigned char i;
+void ads_rregs(uint8_t addr, uint8_t NregminusOne) {
+    uint8_t opcode1 = addr + 0x20;
+    uint8_t read_reg;
+	uint8_t i;
 
     spi_ioctl(spi_handle, SPI_CS, 0);
     spi_write(spi_handle, opcode1);
@@ -199,15 +203,23 @@ void ADS_RREGS(unsigned char addr, unsigned char NregminusOne) {
     spi_ioctl(spi_handle, SPI_CS, 1);
 }
 
-void ADS_POLL_MEASUREMENTS(ads_data_t* ads_measurement) {
-	unsigned char read_reg;
-	int nchan = 8;
+static uint8_t read_gpio(uint8_t pin) {
+	uint8_t i = 0;
+	i = (GPIO_REG__INPUT&(1 << pin)) >> pin;
+	return i;
+}
+
+
+void ads_poll_measurements(ads_data_t* ads_measurement) {
+	uint8_t read_reg;
+	int nchan = 4;
 	int i, j;
 	int32_t read_24bit;
-    unsigned char data_ready;
+    uint8_t data_ready;
 
-    do spi_read(spi_handle, &data_ready);
-    while (data_ready);
+    while(read_gpio(DRDY_PIN)) {
+        __asm("nop");
+    }
 
     spi_ioctl(spi_handle, SPI_CS, 0);
 	read_24bit = 0;

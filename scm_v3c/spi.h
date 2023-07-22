@@ -30,7 +30,7 @@ typedef struct spi_mode_t{
  * @return The number of bytes read, which is always 1 when successful.
  *      If operation fails, a negative value is returned indicating the error type.
 */
-int spi_read(int handle, unsigned char* byte);
+int spi_read(int handle, uint8_t* byte);
 
 /**
  * Writes a byte to the SPI peripheral specified by handle.

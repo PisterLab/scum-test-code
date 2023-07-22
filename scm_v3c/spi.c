@@ -46,9 +46,16 @@ int spi_open(spi_pin_config_t *pin_config, spi_mode_t* mode)
     uint8_t new_handle;
 
     GPI_enable_set(pin_config->MISO);
+    GPO_enable_clr(pin_config->MISO);
     GPO_enable_set(pin_config->CS);
+    GPI_enable_clr(pin_config->CS);
     GPO_enable_set(pin_config->MOSI);
+    GPI_enable_clr(pin_config->MOSI);
     GPO_enable_set(pin_config->SCLK);
+    GPI_enable_clr(pin_config->SCLK);
+    
+    analog_scan_chain_write();
+    analog_scan_chain_load();
 
 
     spi_digitalWrite(pin_config->MOSI, 0);    // reset low
@@ -110,6 +117,7 @@ int spi_write(int handle, const unsigned char write_byte)
 	spi_digitalWrite(node->config.SCLK, 0);
 
 	// sample at falling edge
+    
 	for (bit = 7; bit >= 0; bit--)
     {
         spi_digitalWrite(node->config.SCLK, 1);
@@ -123,9 +131,9 @@ int spi_write(int handle, const unsigned char write_byte)
     return 1; // always writes 1 byte.
 }
 
-int spi_read(int handle, unsigned char* byte)
+int spi_read(int handle, uint8_t* byte)
 {
-	int bit;
+	int8_t bit;
     node_t* node;
 
     *byte = 0;
@@ -133,14 +141,30 @@ int spi_read(int handle, unsigned char* byte)
     if (node == 0)
         return INVALID_HANDLE;
 
-	// sample at falling edge
+	
+    __disable_irq();
 	for (bit = 7; bit >= 0; bit--)
     {
         spi_digitalWrite(node->config.SCLK, 1);
-        spi_digitalWrite(node->config.SCLK, 0);
-        *byte |= spi_digitalRead(node->config.MISO) << bit;		
-	}
+        //*byte = 0x1E;
+        //spi_digitalRead(node->config.MISO);
+        *byte |= spi_digitalRead(node->config.MISO) << bit;
+        __asm("nop");
+        __asm("nop");
+        __asm("nop");
+        __asm("nop");
 
+        spi_digitalWrite(node->config.SCLK, 0);
+    
+	}
+    __enable_irq();
+
+
+    // delay few clock cycles
+    for(bit = 0; bit < 10; bit++) 
+    {
+        __asm("nop");
+    }
     return 1; // always reads 1 byte.
 }
 
