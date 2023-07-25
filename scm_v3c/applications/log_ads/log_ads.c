@@ -34,8 +34,8 @@ typedef struct {
 
 static tuning_code_t g_tuning_code = {
   .coarse = 23, 
-  .mid = 16,
-  .fine = 18
+  .mid = 18,
+  .fine = 2
 };
 
 #define SINE_LUT_SIZE 4 
@@ -91,9 +91,9 @@ void init_pwm_dac(uint16_t freq, uint8_t duty_cycle)
 int main(void) {
     uint32_t i, j;
     unsigned char print_reg;
-    uint32_t Nsample = 16;
+    uint32_t Nsample = 9;
     uint8_t rreg;
-    int32_t adc_data[16];
+    int32_t adc_data[32];
     uint8_t wreg_val = 0x0;
 
     /***    Initialize SCuM     ****/
@@ -286,13 +286,13 @@ int main(void) {
           ads_poll_measurements(&app_vars.ads_measurement[i]);
       }
       
-      for (i = 0; i < Nsample; i++) {
+      for (i = 1; i < Nsample; i++) {
           adc_data[i] = app_vars.ads_measurement[i].channel[1];
           __asm("nop");
           __asm("nop");
           __asm("nop");
 
-          printf("%d\r\n", adc_data[i]);
+          //printf("%d\r\n", adc_data[i]);
           __asm("nop");
           __asm("nop");
           __asm("nop");
@@ -301,10 +301,12 @@ int main(void) {
       __asm("nop");
       __asm("nop");
       __asm("nop");
-      send_packet(&adc_data, 4);
+      send_packet(&adc_data[1], 34);
       __asm("nop");
       __asm("nop");
       __asm("nop");
+
+      for(i = 0; i < 500; i++) __asm("nop");
       //delay_milliseconds_synchronous(10, 1);
     }
     printf("exit\n");
