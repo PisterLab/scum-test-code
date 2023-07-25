@@ -10,10 +10,10 @@
 #include "scm3c_hw_interface.h"
 
 // Start coarse code for the sweep to find 802.15.4 channels.
-#define START_COARSE_CODE 24
+#define START_COARSE_CODE 23
 
 // End coarse code for the sweep to find 802.15.4 channels.
-#define END_COARSE_CODE 26
+#define END_COARSE_CODE 27
 
 int main(void) {
     initialize_mote();

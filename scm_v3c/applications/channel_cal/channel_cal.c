@@ -127,8 +127,8 @@ static channel_cal_state_e g_channel_cal_state = CHANNEL_CAL_STATE_INVALID;
 // Add some delay for the radio.
 // TODO(fil): Change this function to use an RF timer compare register.
 static inline void channel_cal_radio_delay(void) {
-    for (uint8_t i = 0; i < 5; ++i) {
-    }
+    for (uint32_t i = 0; i < 10000; ++i) 
+        __asm("nop");
 }
 
 // Radio RX callback function.
@@ -238,6 +238,12 @@ bool channel_cal_init(const uint8_t start_coarse_code,
                 .end = TUNING_MAX_CODE,
             },
     };
+    g_channel_cal_tx_sweep_config.coarse.start = start_coarse_code;
+    g_channel_cal_tx_sweep_config.coarse.end = end_coarse_code;
+    g_channel_cal_tx_sweep_config.mid.start = TUNING_MIN_CODE;
+    g_channel_cal_tx_sweep_config.mid.end = TUNING_MAX_CODE;
+    g_channel_cal_tx_sweep_config.fine.start = TUNING_MIN_CODE;
+    g_channel_cal_tx_sweep_config.fine.end = TUNING_MAX_CODE;
 
     // Set the RX sweep configuration.
     g_channel_cal_rx_sweep_config = (tuning_sweep_config_t){
@@ -292,11 +298,16 @@ bool channel_cal_run(void) {
                     g_channel_cal_tx_tuning_code;
 
                 tuning_tune_radio(&g_channel_cal_tx_tuning_code);
+                __asm("nop"); __asm("nop"); __asm("nop"); 
+
+                __asm("nop"); __asm("nop"); __asm("nop");
+                
                 send_packet(&g_channel_cal_tx_packet,
                             sizeof(channel_cal_tx_packet_t));
+                __asm("nop"); __asm("nop"); __asm("nop"); __asm("nop"); __asm("nop");
                 tuning_increment_code_for_sweep(&g_channel_cal_tx_tuning_code,
                                                 &g_channel_cal_tx_sweep_config);
-
+                __asm("nop"); __asm("nop"); __asm("nop"); __asm("nop"); __asm("nop");
                 if (tuning_end_of_sweep(&g_channel_cal_tx_tuning_code,
                                         &g_channel_cal_tx_sweep_config)) {
                     rftimer_enable_interrupts_by_id(7);
