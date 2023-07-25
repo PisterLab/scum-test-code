@@ -7,6 +7,7 @@
 
 void tuning_init_for_sweep(tuning_code_t* tuning_code,
                            const tuning_sweep_config_t* sweep_config) {
+    __asm("nop"); __asm("nop"); __asm("nop");
     tuning_code->coarse = sweep_config->coarse.start;
     tuning_code->mid = sweep_config->mid.start;
     tuning_code->fine = sweep_config->fine.start;
@@ -47,7 +48,12 @@ void tuning_increment_code(tuning_code_t* tuning_code) {
 
 void    tuning_increment_code_for_sweep(
     tuning_code_t* tuning_code, const tuning_sweep_config_t* sweep_config) {
-    ++tuning_code->fine;
+    uint8_t cache_fine = tuning_code->fine;
+    tuning_code->fine = tuning_code->fine + 1;
+    __asm("nop"); __asm("nop"); __asm("nop");
+    if(cache_fine >= tuning_code->fine) {
+        printf("WTF\r\n");
+    }
     if (tuning_code->fine > sweep_config->fine.end) {
         tuning_increment_mid_code_for_sweep(tuning_code, sweep_config);
     }
@@ -56,7 +62,15 @@ void    tuning_increment_code_for_sweep(
 void tuning_increment_mid_code_for_sweep(
     tuning_code_t* tuning_code, const tuning_sweep_config_t* sweep_config) {
     tuning_code->fine = sweep_config->fine.start;
-    ++tuning_code->mid;
+    __asm("nop"); __asm("nop"); __asm("nop");
+    uint8_t cache_mid = tuning_code->mid;
+
+    tuning_code->mid = tuning_code->mid + 1;
+    __asm("nop"); __asm("nop"); __asm("nop");
+    if(cache_mid >= tuning_code->mid) {
+        printf("WTF\r\n");
+    }
+
     if (tuning_code->mid > sweep_config->mid.end) {
         tuning_code->mid = sweep_config->mid.start;
         ++tuning_code->coarse;

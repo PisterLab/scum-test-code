@@ -153,7 +153,7 @@ void send_packet(void* packet, uint8_t pkt_len) {
             break;
         }
         */
-        radio_vars.sendDone = rftimer_readCounter() > trigger_time + TIMER_PERIOD_TX;
+        radio_vars.sendDone = (rftimer_readCounter() > (trigger_time + TIMER_PERIOD_TX)) ? true : false;
         gpio_4_clr();
     }
     radio_rfOff();
@@ -438,12 +438,16 @@ void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {
 
 void radio_loadPacket(void* packet, uint16_t len) {
     memcpy(radio_vars.radio_tx_buffer, packet, len);
+    __asm("NOP"); __asm("NOP"); __asm("NOP");
 
     // load packet in TXFIFO
     RFCONTROLLER_REG__TX_DATA_ADDR = radio_vars.radio_tx_buffer;
+    __asm("NOP"); __asm("NOP"); __asm("NOP");
     RFCONTROLLER_REG__TX_PACK_LEN = len;
+    __asm("NOP"); __asm("NOP"); __asm("NOP");
 
     RFCONTROLLER_REG__CONTROL = TX_LOAD;
+    __asm("NOP"); __asm("NOP"); __asm("NOP"); __asm("NOP"); __asm("NOP");
 }
 
 // Turn on the radio for transmit

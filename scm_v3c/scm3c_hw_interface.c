@@ -1596,16 +1596,19 @@ void LC_FREQCHANGE(int coarse, int mid, int fine) {
     // mask to ensure that the coarse, mid, and fine are actually 5-bit
     // 1.1V (NOP)
     char coarse_m = (char)(coarse & 0x1F);
-    __asm("NOP");
+    __asm("NOP"); __asm("NOP"); __asm("NOP");
     char mid_m = (char)(mid & 0x1F);
-    __asm("NOP");
+    __asm("NOP"); __asm("NOP"); __asm("NOP");
     char fine_m = (char)(fine & 0x1F);
-    __asm("NOP");
+    __asm("NOP"); __asm("NOP"); __asm("NOP");
 
     // flip the bit order to make it fit more easily into the ACFG registers
     unsigned int coarse_f = (unsigned int)(flipChar(coarse_m));
+    __asm("NOP");
     unsigned int mid_f = (unsigned int)(flipChar(mid_m));
+    __asm("NOP");
     unsigned int fine_f = (unsigned int)(flipChar(fine_m));
+    __asm("NOP");
 
     // initialize registers
     unsigned int fcode =
@@ -1615,15 +1618,20 @@ void LC_FREQCHANGE(int coarse, int mid, int fine) {
     fine_f &= 0x000000FF;
     mid_f &= 0x000000FF;
     coarse_f &= 0x000000FF;
+    __asm("NOP");
+    __asm("NOP");
+    __asm("NOP");
 
     // printf("%d\r\n",fine_m);
     // printf("%d\r\n",mid_m);
     // printf("%d\r\n",coarse_m);
 
     fcode |= (unsigned int)((fine_f & 0x78) << 9);
+    __asm("NOP");
     fcode |= (unsigned int)(mid_f << 3);
+    __asm("NOP");
     fcode |= (unsigned int)(coarse_f >> 3);
-
+    __asm("NOP");
     fcode2 |= (unsigned int)((fine_f & 0x80) >> 7);
 
     // printf("%X\r\n",fcode);
