@@ -153,7 +153,7 @@ void send_packet(void* packet, uint8_t pkt_len) {
             break;
         }
         */
-        radio_vars.sendDone = (rftimer_readCounter() > (trigger_time + TIMER_PERIOD_TX)) ? true : false;
+        radio_vars.sendDone = (rftimer_readCounter() > (trigger_time + 2*TIMER_PERIOD_TX)) ? true : false;
         gpio_4_clr();
     }
     radio_rfOff();
