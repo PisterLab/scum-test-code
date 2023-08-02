@@ -41,10 +41,13 @@ typedef enum {
     CHANNEL_CAL_COMMAND_CHANGE_CHANNEL = 0xFF,
 } channel_cal_command_e;
 
-// Channel calibration TX packet for acknowledgements.
+// Channel calibration TX packet.
 typedef struct __attribute__((packed)) {
     // Sequence number.
     uint8_t sequence_number;
+
+    // Channel.
+    uint8_t channel;
 
     // Reserved.
     uint8_t reserved1;
@@ -52,26 +55,20 @@ typedef struct __attribute__((packed)) {
     // Reserved.
     uint8_t reserved2;
 
-    // Reserved.
-    uint8_t reserved3;
-
     // Command for the OpenMote.
     channel_cal_command_e command : 8;
 
     // Reserved.
-    uint8_t reserved4;
+    uint8_t reserved3;
 
     // Tuning code.
     tuning_code_t tuning_code;
 
     // Reserved.
-    uint8_t reserved5;
+    uint8_t reserved4;
 
-    // Reserved.
-    uint8_t reserved6;
-
-    // Reserved.
-    uint8_t reserved7;
+    // CRC.
+    uint16_t crc;
 } channel_cal_tx_packet_t;
 
 // Channel calibration RX packet.
@@ -82,8 +79,17 @@ typedef struct __attribute__((packed)) {
     // Channel.
     uint8_t channel;
 
-    // Transmit tuning codes.
+    // TX tuning codes.
     tuning_code_t tx_tuning_codes[MAX_NUM_TX_TUNING_CODES_PER_CHANNEL];
+
+    // Reserved.
+    uint8_t reserved1;
+
+    // Reserved.
+    uint8_t reserved2;
+
+    // CRC.
+    uint16_t crc;
 } channel_cal_rx_packet_t;
 
 // Channel calibration RX tuning code.
@@ -132,7 +138,8 @@ static inline void channel_cal_radio_delay(void) {
 }
 
 // Radio RX callback function.
-static void radio_rx_callback(const uint8_t* packet, const uint8_t packet_len) {
+static void radio_rx_callback(const uint8_t* packet,
+                              const uint8_t packet_length) {
     const channel_cal_rx_packet_t* rx_packet =
         (const channel_cal_rx_packet_t*)packet;
     const uint8_t channel = rx_packet->channel;
@@ -177,6 +184,7 @@ static void radio_rx_callback(const uint8_t* packet, const uint8_t packet_len) {
         ++g_channel_cal_num_rx_packets;
 
         if (g_channel_cal_rx_tuning_code.fine <= MIN_RX_TUNING_FINE_CODE) {
+            g_channel_cal_tx_packet.channel = channel;
             g_channel_cal_tx_packet.command =
                 CHANNEL_CAL_COMMAND_CHANGE_CHANNEL;
         }
@@ -280,6 +288,7 @@ bool channel_cal_init(const uint8_t start_coarse_code,
 bool channel_cal_run(void) {
     rftimer_enable_interrupts();
     g_channel_cal_state = CHANNEL_CAL_STATE_TX;
+    printf("Starting TX channel calibration.\n");
 
     while (true) {
         channel_cal_radio_delay();
@@ -287,7 +296,6 @@ bool channel_cal_run(void) {
             case CHANNEL_CAL_STATE_TX: {
                 memset(&g_channel_cal_tx_packet, 0,
                        sizeof(channel_cal_tx_packet_t));
-                g_channel_cal_tx_packet.sequence_number = 1;
                 g_channel_cal_tx_packet.tuning_code =
                     g_channel_cal_tx_tuning_code;
 
@@ -300,9 +308,12 @@ bool channel_cal_run(void) {
                 if (tuning_end_of_sweep(&g_channel_cal_tx_tuning_code,
                                         &g_channel_cal_tx_sweep_config)) {
                     rftimer_enable_interrupts_by_id(7);
-                    rftimer_setCompareIn_by_id(rftimer_readCounter() + 20 * 500,
-                                               7);
+                    rftimer_setCompareIn_by_id(
+                        rftimer_readCounter() +
+                            IEEE_802_15_4_NUM_CHANNELS * 1000 * 500,
+                        7);
                     g_channel_cal_state = CHANNEL_CAL_STATE_RX;
+                    printf("Starting RX channel calibration.\n");
                 }
                 break;
             }
