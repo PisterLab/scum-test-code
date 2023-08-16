@@ -8,6 +8,7 @@
 #include "optical.h"
 #include "rftimer.h"
 #include "scm3c_hw_interface.h"
+#include "time_constant.h"
 
 // ADC configuration.
 static const adc_config_t g_adc_config = {
@@ -51,11 +52,19 @@ int main(void) {
 
     // TODO(titan): Set up GPIOs to drive the switch.
 
-    delay_milliseconds_asynchronous(/*delay_milli=*/10, 7);
+    time_constant_init();
+    delay_milliseconds_asynchronous(TIME_CONSTANT_SAMPLING_PERIOD_MS, 7);
     while (true) {
         if (g_adc_output.valid) {
-            printf("ADC output: %u\n", g_adc_output.data);
+            time_constant_add_sample(g_adc_output.data);
             g_adc_output.valid = false;
+            if (time_constant_has_sufficient_samples()) {
+                delay_milliseconds_asynchronous(TIME_CONSTANT_MEASUREMENT_PERIOD_MS, 7);
+                const float estimated_time_constant = time_constant_estimate();
+                printf("Estimated time constant: %f\n",
+                       estimated_time_constant);
+                time_constant_init();
+            }
         }
     }
 }
