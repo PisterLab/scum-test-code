@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "fixed_point.h"
+
 // Sampling period in milliseconds.
 #define TIME_CONSTANT_SAMPLING_PERIOD_MS 10
 
@@ -22,6 +24,6 @@ bool time_constant_add_sample(uint16_t adc_sample);
 bool time_constant_has_sufficient_samples(void);
 
 // Estimate the time constant in seconds.
-float time_constant_estimate(void);
+fixed_point_t time_constant_estimate(void);
 
 #endif  // __TIME_CONSTANT_H

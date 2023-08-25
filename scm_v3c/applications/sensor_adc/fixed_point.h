@@ -25,12 +25,6 @@ static inline int32_t fixed_point_integer(const fixed_point_t f) {
     return f >> FIXED_POINT_Q;
 }
 
-// Convert from a fixed point number to a float.
-static inline float fixed_point_float(const fixed_point_t f) {
-    return fixed_point_integer(f) +
-           (f & (FIXED_POINT_F - 1)) * (1.0 / FIXED_POINT_F);
-}
-
 // Add two fixed point numbers.
 static inline fixed_point_t fixed_point_add(const fixed_point_t f,
                                             const fixed_point_t g) {

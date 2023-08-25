@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "adc.h"
+#include "fixed_point.h"
 #include "memory_map.h"
 #include "optical.h"
 #include "rftimer.h"
@@ -60,9 +61,9 @@ int main(void) {
             g_adc_output.valid = false;
             if (time_constant_has_sufficient_samples()) {
                 delay_milliseconds_asynchronous(TIME_CONSTANT_MEASUREMENT_PERIOD_MS, 7);
-                const float estimated_time_constant = time_constant_estimate();
-                printf("Estimated time constant: %f\n",
-                       estimated_time_constant);
+                const fixed_point_t estimated_time_constant = time_constant_estimate();
+                printf("Estimated time constant: %d / %d\n",
+                       estimated_time_constant, (1 << FIXED_POINT_Q));
                 time_constant_init();
             }
         }

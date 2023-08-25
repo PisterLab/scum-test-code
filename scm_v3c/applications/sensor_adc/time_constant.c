@@ -202,51 +202,6 @@ static inline fixed_point_t time_constant_ln(const uint16_t value) {
     return g_time_constant_ln_lookup_table[value];
 }
 
-// Estimate the slope.
-static inline float time_constant_estimate_slope(void) {
-    const uint16_t min_adc_sample = time_constant_estimate_min_sample();
-    const size_t three_tau_index = time_constant_estimate_three_tau_index();
-
-    fixed_point_t numerator = fixed_point_init(0);
-    fixed_point_t denominator = fixed_point_init(0);
-
-    // Approximate mean x-value as tau/2.
-    const fixed_point_t x_mean = fixed_point_divide(
-        fixed_point_init(three_tau_index), fixed_point_init(6));
-    const fixed_point_t factor_exponent = fixed_point_divide(
-        fixed_point_init(-6), fixed_point_init(three_tau_index));
-    // Approximate exp(x) as 1 + x + x^2.
-    const fixed_point_t factor = fixed_point_add(
-        fixed_point_init(1),
-        fixed_point_add(
-            factor_exponent,
-            fixed_point_divide(
-                fixed_point_multiply(factor_exponent, factor_exponent),
-                fixed_point_init(2))));
-    // Ignore any multiplicative factors.
-    fixed_point_t weight = fixed_point_init(1);
-    for (size_t k = 0; k < three_tau_index; ++k) {
-        const fixed_point_t k_minus_x_mean =
-            fixed_point_subtract(fixed_point_init(k), x_mean);
-        const fixed_point_t weighted_k_minus_x_mean =
-            fixed_point_multiply(weight, k_minus_x_mean);
-        numerator = fixed_point_subtract(
-            numerator, fixed_point_multiply(
-                           time_constant_ln(g_time_constant_adc_samples[k] -
-                                            min_adc_sample),
-                           weighted_k_minus_x_mean));
-        denominator = fixed_point_add(
-            denominator,
-            fixed_point_multiply(k_minus_x_mean, weighted_k_minus_x_mean));
-        weight = fixed_point_multiply(weight, factor);
-    }
-    // The slope is numerator/denominator, and the time constant is the
-    // reciprocal of the slope.
-    const fixed_point_t time_constant =
-        fixed_point_divide(denominator, numerator);
-    return fixed_point_float(time_constant);
-}
-
 void time_constant_init(void) {
     g_time_constant_num_adc_samples = 0;
     g_time_constant_min_adc_sample = ADC_MAX_THEORETICAL_ADC_SAMPLE;
@@ -311,7 +266,49 @@ bool time_constant_has_sufficient_samples(void) {
     return g_time_constant_state == TIME_CONSTANT_STATE_HAS_SUFFICIENT_SAMPLES;
 }
 
-float time_constant_estimate(void) {
-    const float estimated_slope = time_constant_estimate_slope();
-    return TIME_CONSTANT_SAMPLING_PERIOD_MS / estimated_slope * 0.001;
+fixed_point_t time_constant_estimate(void) {
+    const uint16_t min_adc_sample = time_constant_estimate_min_sample();
+    const size_t three_tau_index = time_constant_estimate_three_tau_index();
+
+    fixed_point_t numerator = fixed_point_init(0);
+    fixed_point_t denominator = fixed_point_init(0);
+
+    // Approximate mean x-value as tau/2.
+    const fixed_point_t x_mean = fixed_point_divide(
+        fixed_point_init(three_tau_index), fixed_point_init(6));
+    const fixed_point_t factor_exponent = fixed_point_divide(
+        fixed_point_init(-6), fixed_point_init(three_tau_index));
+    // Approximate exp(x) as 1 + x + x^2.
+    const fixed_point_t factor = fixed_point_add(
+        fixed_point_init(1),
+        fixed_point_add(
+            factor_exponent,
+            fixed_point_divide(
+                fixed_point_multiply(factor_exponent, factor_exponent),
+                fixed_point_init(2))));
+    // Ignore any multiplicative factors.
+    fixed_point_t weight = fixed_point_init(1);
+    for (size_t k = 0; k < three_tau_index; ++k) {
+        const fixed_point_t k_minus_x_mean =
+            fixed_point_subtract(fixed_point_init(k), x_mean);
+        const fixed_point_t weighted_k_minus_x_mean =
+            fixed_point_multiply(weight, k_minus_x_mean);
+        denominator = fixed_point_subtract(
+            denominator, fixed_point_multiply(
+                             time_constant_ln(g_time_constant_adc_samples[k] -
+                                              min_adc_sample),
+                             weighted_k_minus_x_mean));
+        numerator = fixed_point_add(
+            numerator,
+            fixed_point_multiply(k_minus_x_mean, weighted_k_minus_x_mean));
+        weight = fixed_point_multiply(weight, factor);
+    }
+    // The time constant in number of samples.
+    const fixed_point_t time_constant_samples =
+        fixed_point_divide(numerator, denominator);
+    const fixed_point_t time_constant = fixed_point_multiply(
+        fixed_point_divide(fixed_point_init(TIME_CONSTANT_SAMPLING_PERIOD_MS),
+                           fixed_point_init(1000)),
+        time_constant_samples);
+    return time_constant;
 }
