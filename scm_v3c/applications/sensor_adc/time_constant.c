@@ -47,7 +47,7 @@ static uint16_t g_time_constant_min_adc_sample = ADC_MAX_THEORETICAL_ADC_SAMPLE;
 static size_t g_time_constant_num_samples_since_minimum = 0;
 
 // Natural logarithm lookup table.
-static const fixed_point_t g_time_constant_ln_lookup_table[] = {
+static const fixed_point_short_t g_time_constant_ln_lookup_table[] = {
     0,      0,      11357,  18000,  22713,  26369,  29356,  31882,  34070,
     35999,  37726,  39287,  40713,  42024,  43238,  44369,  45426,  46419,
     47356,  48242,  49082,  49881,  50644,  51372,  52069,  52738,  53381,

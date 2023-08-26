@@ -5,7 +5,10 @@
 #include <stdlib.h>
 
 // Number of integer bits.
-#define FIXED_POINT_P 18
+#define FIXED_POINT_P 50
+
+// Number of short integer bits.
+#define FIXED_POINT_SHORT_P 18
 
 // Number of fractional bits.
 #define FIXED_POINT_Q 14
@@ -14,7 +17,10 @@
 #define FIXED_POINT_F (1 << FIXED_POINT_Q)
 
 // Fixed point number type.
-typedef int32_t fixed_point_t;
+typedef int64_t fixed_point_t;
+
+// Fixed point short number type.
+typedef int32_t fixed_point_short_t;
 
 // Initialize a fixed point number from an integer.
 static inline fixed_point_t fixed_point_init(const int32_t f) {

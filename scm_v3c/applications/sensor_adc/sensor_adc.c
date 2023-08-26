@@ -63,8 +63,8 @@ int main(void) {
                 delay_milliseconds_asynchronous(TIME_CONSTANT_MEASUREMENT_PERIOD_MS, 7);
                 printf("Received sufficient samples.\n");
                 const fixed_point_t estimated_time_constant = time_constant_estimate();
-                printf("Estimated time constant: %d / %d\n",
-                       estimated_time_constant, 1 << FIXED_POINT_Q);
+                printf("Estimated time constant: %lld / %lld\n",
+                       estimated_time_constant, fixed_point_init(1));
                 time_constant_init();
             }
         }
