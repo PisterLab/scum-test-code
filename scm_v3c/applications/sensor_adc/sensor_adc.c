@@ -61,9 +61,10 @@ int main(void) {
             g_adc_output.valid = false;
             if (time_constant_has_sufficient_samples()) {
                 delay_milliseconds_asynchronous(TIME_CONSTANT_MEASUREMENT_PERIOD_MS, 7);
+                printf("Received sufficient samples.\n");
                 const fixed_point_t estimated_time_constant = time_constant_estimate();
                 printf("Estimated time constant: %d / %d\n",
-                       estimated_time_constant, (1 << FIXED_POINT_Q));
+                       estimated_time_constant, 1 << FIXED_POINT_Q);
                 time_constant_init();
             }
         }

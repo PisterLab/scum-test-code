@@ -2,12 +2,13 @@
 #define __FIXED_POINT_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 // Number of integer bits.
-#define FIXED_POINT_P 16
+#define FIXED_POINT_P 18
 
 // Number of fractional bits.
-#define FIXED_POINT_Q 16
+#define FIXED_POINT_Q 14
 
 // Conversion factor to and from fixed point integers.
 #define FIXED_POINT_F (1 << FIXED_POINT_Q)
@@ -40,19 +41,17 @@ static inline fixed_point_t fixed_point_subtract(const fixed_point_t f,
 // Multiply two fixed point numbers.
 static inline fixed_point_t fixed_point_multiply(const fixed_point_t f,
                                                  const fixed_point_t g) {
-    if (g > 0) {
-        const fixed_point_t g_upper_bits = g & 0xFFFF8000;
-        const fixed_point_t g_lower_bits = g & 0x7FFF;
-        return (fixed_point_t)(((int64_t)f * (int64_t)g_upper_bits) >>
-                               FIXED_POINT_Q) +
-               (fixed_point_t)(((int64_t)f * (int64_t)g_lower_bits) >>
-                               FIXED_POINT_Q);
+    const fixed_point_t f_abs = f > 0 ? f : -f;
+    const fixed_point_t g_abs = g > 0 ? g : -g;
+    int64_t product_abs_without_shift = 0;
+    for (size_t i = 0; i < sizeof(fixed_point_t) * 8; ++i) {
+        if ((g_abs >> i) & 0x1 == 1) {
+            product_abs_without_shift += (int64_t)f_abs << i;
+        }
     }
-    const fixed_point_t g_upper_bits = (-g) & 0xFFFF8000;
-    const fixed_point_t g_lower_bits = (-g) & 0x7FFF;
-    return -(
-        (fixed_point_t)(((int64_t)f * (int64_t)g_upper_bits) >> FIXED_POINT_Q) +
-        (fixed_point_t)(((int64_t)f * (int64_t)g_lower_bits) >> FIXED_POINT_Q));
+    const fixed_point_t product_abs =
+        product_abs_without_shift >> FIXED_POINT_Q;
+    return (f < 0 ^ g < 0) ? -product_abs : product_abs;
 }
 
 // Divide two fixed point numbers.

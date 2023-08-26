@@ -10,7 +10,7 @@
 #define TIME_CONSTANT_SAMPLING_PERIOD_MS 10
 
 // Measurement period in milliseconds
-#define TIME_CONSTANT_MEASUREMENT_PERIOD_MS 5000
+#define TIME_CONSTANT_MEASUREMENT_PERIOD_MS 1000
 
 // Initialize the time constant analysis. Initialization should be performed
 // prior to each run.
