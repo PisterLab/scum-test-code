@@ -13,10 +13,10 @@
 
 // Maximum number of samples since the minimum ADC sample to determine whether
 // sufficient ADC samples have been received.
-#define TIME_CONSTANT_MAX_NUM_SAMPLES_SINCE_MINIMUM 100
+#define TIME_CONSTANT_MAX_NUM_SAMPLES_SINCE_MINIMUM 150
 
 // Number of samples to average at the end to find the minimum ADC sample.
-#define TIME_CONSTANT_NUM_AVERAGES_FOR_MIN_ADC_SAMPLE 10
+#define TIME_CONSTANT_NUM_AVERAGES_FOR_MIN_ADC_SAMPLE 100
 
 // Empirical ADC standard deviation in LSBs.
 #define TIME_CONSTANT_ADC_STDDEV 5
