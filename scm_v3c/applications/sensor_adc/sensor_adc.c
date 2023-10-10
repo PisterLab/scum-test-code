@@ -11,6 +11,9 @@
 #include "scm3c_hw_interface.h"
 #include "time_constant.h"
 
+// Number of capacitors.
+#define GPIO_NUM_CAPACITORS 2
+
 // ADC configuration.
 static const adc_config_t g_adc_config = {
     .reset_source = ADC_RESET_SOURCE_FSM,
@@ -32,6 +35,9 @@ static uint16_t g_gpio_output_enable = 0x0000;
 
 // GPIO 0 is the excitation pin.
 static const uint8_t g_gpio_excitation = 0;
+
+// GPIO 1 and GPIO 3 are the control pins for two different capacitors.
+static const uint8_t g_gpio_capacitors[GPIO_NUM_CAPACITORS] = {1, 3};
 
 // Empty callback for the RF timer.
 static void rftimer_empty_callback(void) {}
@@ -86,6 +92,19 @@ static inline void gpio_excite(const uint8_t gpio) {
     gpio_set_high_z(gpio);
 }
 
+// Set the GPIOs for the capacitors. Active capacitors are pulled low while
+// inactive capacitors are set to high-Z.
+static inline void gpio_set_capacitors(const uint8_t capacitor_mask) {
+    printf("Capacitor mask: 0x%x\n");
+    for (size_t i = 0; i < GPIO_NUM_CAPACITORS; ++i) {
+        if ((capacitor_mask >> i) & 0x1 == 1) {
+            gpio_set_low(g_gpio_capacitors[i]);
+        } else {
+            gpio_set_high_z(g_gpio_capacitors[i]);
+        }
+    }
+}
+
 int main(void) {
     initialize_mote();
 
@@ -114,6 +133,7 @@ int main(void) {
     analog_scan_chain_load();
 
     time_constant_init();
+    gpio_set_capacitors(0x1);
     gpio_excite(g_gpio_excitation);
     delay_milliseconds_asynchronous(TIME_CONSTANT_SAMPLING_PERIOD_MS, 7);
     while (true) {
