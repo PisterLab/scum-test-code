@@ -14,6 +14,9 @@
 // Number of capacitors.
 #define GPIO_NUM_CAPACITORS 2
 
+// Number of capacitor configurations.
+#define CAPACITOR_NUM_CONFIGURATIONS 2
+
 // ADC configuration.
 static const adc_config_t g_adc_config = {
     .reset_source = ADC_RESET_SOURCE_FSM,
@@ -38,6 +41,13 @@ static const uint8_t g_gpio_excitation = 0;
 
 // GPIO 1 and GPIO 3 are the control pins for two different capacitors.
 static const uint8_t g_gpio_capacitors[GPIO_NUM_CAPACITORS] = {1, 3};
+
+// Current capacitor configuration.
+static uint8_t g_capacitor_configuration = 0;
+
+// Capacitor configurations.
+static const uint8_t g_capacitor_configurations[CAPACITOR_NUM_CONFIGURATIONS] =
+    {0x1, 0x2};
 
 // Empty callback for the RF timer.
 static void rftimer_empty_callback(void) {}
@@ -95,7 +105,6 @@ static inline void gpio_excite(const uint8_t gpio) {
 // Set the GPIOs for the capacitors. Active capacitors are pulled low while
 // inactive capacitors are set to high-Z.
 static inline void gpio_set_capacitors(const uint8_t capacitor_mask) {
-    printf("Capacitor mask: 0x%x\n");
     for (size_t i = 0; i < GPIO_NUM_CAPACITORS; ++i) {
         if ((capacitor_mask >> i) & 0x1 == 1) {
             gpio_set_low(g_gpio_capacitors[i]);
@@ -103,6 +112,16 @@ static inline void gpio_set_capacitors(const uint8_t capacitor_mask) {
             gpio_set_high_z(g_gpio_capacitors[i]);
         }
     }
+}
+
+// Set the next capacitor configuration.
+static inline void capacitor_set_next_configuration(void) {
+    const uint8_t capacitor_configuration =
+        g_capacitor_configurations[g_capacitor_configuration];
+    printf("Capacitor configuration: 0x%x\n", capacitor_configuration);
+    gpio_set_capacitors(capacitor_configuration);
+    g_capacitor_configuration =
+        (g_capacitor_configuration + 1) % CAPACITOR_NUM_CONFIGURATIONS;
 }
 
 int main(void) {
@@ -133,7 +152,7 @@ int main(void) {
     analog_scan_chain_load();
 
     time_constant_init();
-    gpio_set_capacitors(0x1);
+    capacitor_set_next_configuration();
     gpio_excite(g_gpio_excitation);
     delay_milliseconds_asynchronous(TIME_CONSTANT_SAMPLING_PERIOD_MS, 7);
     while (true) {
@@ -149,6 +168,7 @@ int main(void) {
                 printf("Estimated time constant: %lld / %lld\n",
                        estimated_time_constant, fixed_point_init(1));
                 time_constant_init();
+                capacitor_set_next_configuration();
                 gpio_excite(g_gpio_excitation);
             }
         }
