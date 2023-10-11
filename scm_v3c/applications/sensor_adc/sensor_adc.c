@@ -15,7 +15,7 @@
 #define GPIO_NUM_CAPACITORS 2
 
 // Number of capacitor configurations.
-#define CAPACITOR_NUM_CONFIGURATIONS 2
+#define CAPACITOR_NUM_CONFIGURATIONS 3
 
 // GPIO excitation duration in milliseconds.
 #define GPIO_EXCITATION_DURATION_MS 1000  // ms
@@ -91,7 +91,8 @@ static size_t g_capacitor_configuration_index = 0;
 // Capacitor configurations.
 static const capacitor_mask_e
     g_capacitor_configurations[CAPACITOR_NUM_CONFIGURATIONS] = {
-        CAPACITOR_MASK_1, CAPACITOR_MASK_2};
+        CAPACITOR_MASK_1, CAPACITOR_MASK_2,
+        CAPACITOR_MASK_1 | CAPACITOR_MASK_2};
 
 // Callback for the RF timer.
 static void rftimer_callback(void) {
