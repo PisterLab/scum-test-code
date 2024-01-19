@@ -1,13 +1,35 @@
 #ifndef __GPIO_H
 #define __GPIO_H
 
-//=========================== define ==========================================
+// GPIO enumeration.
+typedef enum {
+    GPIO_INVALID = -1,
+    GPIO_0 = 0,
+    GPIO_1 = 1,
+    GPIO_2 = 2,
+    GPIO_3 = 3,
+    GPIO_4 = 4,
+    GPIO_5 = 5,
+    GPIO_6 = 6,
+    GPIO_7 = 7,
+    GPIO_8 = 8,
+    GPIO_9 = 9,
+    GPIO_10 = 10,
+    GPIO_11 = 11,
+    GPIO_12 = 12,
+    GPIO_13 = 13,
+    GPIO_14 = 14,
+    GPIO_15 = 15,
+} gpio_e;
 
-//=========================== typedef =========================================
+// Set the GPIO to high.
+void gpio_set_high(gpio_e gpio);
 
-//=========================== variables =======================================
+// Set the GPIO to low.
+void gpio_set_low(gpio_e gpio);
 
-//=========================== prototypes ======================================
+// Toggle the GPIO.
+void gpio_toggle(gpio_e gpio);
 
 void gpio_init(void);
 
@@ -15,32 +37,32 @@ void gpio_0_set(void);
 void gpio_0_clr(void);
 void gpio_0_toggle(void);
 
-// frame
+// Frame.
 void gpio_1_set(void);
 void gpio_1_clr(void);
 void gpio_1_toggle(void);
 
-// isr
+// ISR.
 void gpio_2_set(void);
 void gpio_2_clr(void);
 void gpio_2_toggle(void);
 
-// slot
+// Slot.
 void gpio_3_set(void);
 void gpio_3_clr(void);
 void gpio_3_toggle(void);
 
-// fsm
+// FSM.
 void gpio_4_set(void);
 void gpio_4_clr(void);
 void gpio_4_toggle(void);
 
-// task
+// Task.
 void gpio_5_set(void);
 void gpio_5_clr(void);
 void gpio_5_toggle(void);
 
-// radio
+// Radio.
 void gpio_6_set(void);
 void gpio_6_clr(void);
 void gpio_6_toggle(void);
@@ -81,4 +103,4 @@ void gpio_15_set(void);
 void gpio_15_clr(void);
 void gpio_15_toggle(void);
 
-#endif
+#endif  // __GPIO_H
