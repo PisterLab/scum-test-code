@@ -30,6 +30,9 @@ typedef enum {
     TIME_CONSTANT_STATE_DONE = 3,
 } time_constant_state_t;
 
+// Time constant measurement period in milliseconds.
+static uint32_t g_time_constant_sampling_period_ms = 0;  // ms
+
 // Time constant state.
 static time_constant_state_t g_time_constant_state =
     TIME_CONSTANT_STATE_INVALID;
@@ -203,7 +206,8 @@ static inline fixed_point_t time_constant_ln(const uint16_t value) {
     return g_time_constant_ln_lookup_table[value];
 }
 
-void time_constant_init(void) {
+void time_constant_init(const uint32_t time_constant_sampling_period_ms) {
+    g_time_constant_sampling_period_ms = time_constant_sampling_period_ms;
     g_time_constant_num_adc_samples = 0;
     g_time_constant_min_adc_sample = ADC_MAX_THEORETICAL_ADC_SAMPLE;
     g_time_constant_num_samples_since_minimum = 0;
@@ -323,7 +327,7 @@ fixed_point_t time_constant_estimate(void) {
     const fixed_point_t time_constant_samples = fixed_point_divide(
         time_constant_samples_numerator, time_constant_samples_denominator);
     const fixed_point_t time_constant = fixed_point_multiply(
-        fixed_point_divide(fixed_point_init(TIME_CONSTANT_SAMPLING_PERIOD_MS),
+        fixed_point_divide(fixed_point_init(g_time_constant_sampling_period_ms),
                            fixed_point_init(1000)),
         time_constant_samples);
     return time_constant;

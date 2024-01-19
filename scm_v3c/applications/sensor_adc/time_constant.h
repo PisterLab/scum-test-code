@@ -6,15 +6,9 @@
 
 #include "fixed_point.h"
 
-// Sampling period in milliseconds.
-#define TIME_CONSTANT_SAMPLING_PERIOD_MS 10
-
-// Measurement period in milliseconds.
-#define TIME_CONSTANT_MEASUREMENT_PERIOD_MS 1000
-
 // Initialize the time constant analysis. Initialization should be performed
 // prior to each run.
-void time_constant_init(void);
+void time_constant_init(uint32_t time_constant_sampling_period_ms);
 
 // Add an ADC sample to the time constant analysis. Return whether the sample
 // was added successfully.
