@@ -2,9 +2,19 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "memory_map.h"
 #include "scm3c_hw_interface.h"
+
+// Number of ADC outputs to trigger for a single read.
+#define NUM_ADC_OUTPUTS_TO_TRIGGER 2
+
+// Number of for loop cycles after triggering an ADC read.
+#define NUM_CYCLES_AFTER_ADC_TRIGGER 10
+
+// Number of ADC outputs to average.
+#define NUM_ADC_OUTPUTS_TO_AVERAGE 16
 
 // ADC analog scan chain bit enum.
 typedef enum {
@@ -50,11 +60,15 @@ typedef enum {
     ADC_PGA_BYPASS_ASC_BIT = 1088,
 } adc_asc_bit_t;
 
-// ADC output.
-adc_output_t g_adc_output;
+// 16-bit ADC output.
+static uint16_t g_adc_output;
+
+// If true, ADC conversion has finished and the output is valid.
+static bool g_adc_output_valid;
 
 // Set the ASC bit to the specified value.
-static void adc_set_asc_bit(const adc_asc_bit_t asc_bit, const uint8_t value) {
+static inline void adc_set_asc_bit(const adc_asc_bit_t asc_bit,
+                                   const uint8_t value) {
     if ((value & 0x1) == 1) {
         set_asc_bit((unsigned int)asc_bit);
     } else {
@@ -63,7 +77,7 @@ static void adc_set_asc_bit(const adc_asc_bit_t asc_bit, const uint8_t value) {
 }
 
 // Set the ASC bits for the PGA gain.
-static void adc_set_pga_gain_asc_bits(const uint8_t pga_gain) {
+static inline void adc_set_pga_gain_asc_bits(const uint8_t pga_gain) {
     adc_set_asc_bit(ADC_PGA_GAIN_0_ASC_BIT, (pga_gain >> 7) & 0x1);
     adc_set_asc_bit(ADC_PGA_GAIN_1_ASC_BIT, (pga_gain >> 6) & 0x1);
     adc_set_asc_bit(ADC_PGA_GAIN_2_ASC_BIT, (pga_gain >> 5) & 0x1);
@@ -75,7 +89,7 @@ static void adc_set_pga_gain_asc_bits(const uint8_t pga_gain) {
 }
 
 // Set the ASC bits for the ADC settling time.
-static void adc_set_settling_time_asc_bits(const uint8_t settling_time) {
+static inline void adc_set_settling_time_asc_bits(const uint8_t settling_time) {
     adc_set_asc_bit(ADC_SETTLING_TIME_0_ASC_BIT, (settling_time >> 7) & 0x1);
     adc_set_asc_bit(ADC_SETTLING_TIME_1_ASC_BIT, (settling_time >> 6) & 0x1);
     adc_set_asc_bit(ADC_SETTLING_TIME_2_ASC_BIT, (settling_time >> 5) & 0x1);
@@ -87,7 +101,7 @@ static void adc_set_settling_time_asc_bits(const uint8_t settling_time) {
 }
 
 // Set the ASC bits for the bandgap reference.
-static void adc_set_bandgap_refernce_tuning_code_asc_bits(
+static inline void adc_set_bandgap_refernce_tuning_code_asc_bits(
     const uint8_t bandgap_reference_tuning_code) {
     adc_set_asc_bit(ADC_BANDGAP_REFERENCE_TUNING_CODE_0_ASC_BIT,
                     (bandgap_reference_tuning_code >> 6) & 0x1);
@@ -106,7 +120,7 @@ static void adc_set_bandgap_refernce_tuning_code_asc_bits(
 }
 
 // Set the ASC bits to tune the gm.
-static void adc_set_const_gm_tuning_code_asc_bits(
+static inline void adc_set_const_gm_tuning_code_asc_bits(
     const uint8_t const_gm_tuning_code) {
     adc_set_asc_bit(ADC_CONST_GM_DEVICE_TUNING_CODE_0_ASC_BIT,
                     (const_gm_tuning_code >> 7) & 0x1);
@@ -169,11 +183,6 @@ void adc_config(const adc_config_t* adc_config) {
     adc_set_asc_bit(ADC_PGA_BYPASS_ASC_BIT, adc_config->pga_bypass);
 }
 
-void adc_trigger(void) {
-    g_adc_output.valid = false;
-    ADC_REG__START = 0x1;
-}
-
 void adc_enable_interrupt(void) {
     ISER |= (0x1 << 3);
     printf("ADC interrupt enabled: 0x%x.\n", ISER);
@@ -184,8 +193,42 @@ void adc_disable_interrupt(void) {
     printf("ADC interrupt disabled: 0x%x.\n", ISER);
 }
 
+void adc_trigger(void) {
+    g_adc_output_valid = false;
+    ADC_REG__START = 0x1;
+}
+
+bool adc_output_valid(void) { return g_adc_output_valid; }
+
+void adc_output_reset_valid(void) { g_adc_output_valid = false; }
+
+uint16_t adc_peek_output(void) { return g_adc_output; }
+
+uint16_t adc_read_output(void) {
+    // Trigger an ADC read times and keep the last read.
+    // Multiple triggers are needed to sample the current voltage.
+    for (size_t i = 0; i < NUM_ADC_OUTPUTS_TO_TRIGGER; ++i) {
+        adc_trigger();
+        while (!g_adc_output_valid) {
+        }
+        // Wait for the next ADC trigger.
+        for (size_t j = 0; j < NUM_CYCLES_AFTER_ADC_TRIGGER; ++j) {
+        }
+    }
+    return g_adc_output;
+}
+
+uint16_t adc_average_output(void) {
+    // Average over multiple ADC outputs.
+    uint32_t adc_output_sum = 0;
+    for (size_t i = 0; i < NUM_ADC_OUTPUTS_TO_AVERAGE; ++i) {
+        adc_output_sum += adc_read_output();
+    }
+    return adc_output_sum / NUM_ADC_OUTPUTS_TO_AVERAGE;
+}
+
 void adc_isr(void) {
     // printf("ADC conversion complete.\n");
-    g_adc_output.data = ADC_REG__DATA;
-    g_adc_output.valid = true;
+    g_adc_output = ADC_REG__DATA;
+    g_adc_output_valid = true;
 }

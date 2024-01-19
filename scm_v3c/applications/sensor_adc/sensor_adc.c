@@ -1,15 +1,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
 
 #include "adc.h"
 #include "fixed_point.h"
+#include "gpio.h"
 #include "memory_map.h"
 #include "optical.h"
 #include "rftimer.h"
 #include "scm3c_hw_interface.h"
 #include "time_constant.h"
+
+// RF timer ID.
+#define RFTIMER_ID 7
 
 // Number of capacitors.
 #define GPIO_NUM_CAPACITORS 2
@@ -28,27 +32,6 @@ typedef enum {
     ADC_STATE_MEASURING = 2,
     ADC_STATE_PROCESSING = 3,
 } adc_state_e;
-
-// GPIO enumeration.
-typedef enum {
-    GPIO_INVALID = -1,
-    GPIO_0 = 0,
-    GPIO_1 = 1,
-    GPIO_2 = 2,
-    GPIO_3 = 3,
-    GPIO_4 = 4,
-    GPIO_5 = 5,
-    GPIO_6 = 6,
-    GPIO_7 = 7,
-    GPIO_8 = 8,
-    GPIO_9 = 9,
-    GPIO_10 = 10,
-    GPIO_11 = 11,
-    GPIO_12 = 12,
-    GPIO_13 = 13,
-    GPIO_14 = 14,
-    GPIO_15 = 15,
-} gpio_e;
 
 // Capacitor mask enumeration.
 typedef enum {
@@ -102,10 +85,10 @@ static void rftimer_callback(void) {
             break;
         }
         case ADC_STATE_MEASURING: {
-            // Trigger an ADC read.
+            // Trigger an asynchronous ADC read.
             adc_trigger();
             delay_milliseconds_asynchronous(
-                /*delay_milli=*/TIME_CONSTANT_SAMPLING_PERIOD_MS, 7);
+                /*delay_milli=*/TIME_CONSTANT_SAMPLING_PERIOD_MS, RFTIMER_ID);
             break;
         }
         case ADC_STATE_TRIGGERED:
@@ -118,7 +101,7 @@ static void rftimer_callback(void) {
 }
 
 // Set the GPIO input and output enables in the analog scan chain.
-static inline void gpio_set_enable(void) {
+static inline void sensor_gpio_set_enable(void) {
     GPI_enables(g_gpio_input_enable);
     GPO_enables(g_gpio_output_enable);
     analog_scan_chain_write();
@@ -126,39 +109,39 @@ static inline void gpio_set_enable(void) {
 }
 
 // Set the GPIO to high.
-static inline void gpio_set_high(const gpio_e gpio) {
-    GPIO_REG__OUTPUT &= ~(1 << gpio);
+static inline void sensor_gpio_set_high(const gpio_e gpio) {
+    gpio_set_low(gpio);
     g_gpio_input_enable &= ~(1 << gpio);
     g_gpio_output_enable |= (1 << gpio);
-    gpio_set_enable();
-    GPIO_REG__OUTPUT |= (1 << gpio);
+    sensor_gpio_set_enable();
+    gpio_set_high(gpio);
 }
 
 // Set the GPIO to low.
-static inline void gpio_set_low(const gpio_e gpio) {
-    GPIO_REG__OUTPUT &= ~(1 << gpio);
+static inline void sensor_gpio_set_low(const gpio_e gpio) {
+    gpio_set_low(gpio);
     g_gpio_input_enable &= ~(1 << gpio);
     g_gpio_output_enable |= (1 << gpio);
-    gpio_set_enable();
-    GPIO_REG__OUTPUT &= ~(1 << gpio);
+    sensor_gpio_set_enable();
+    gpio_set_low(gpio);
 }
 
 // Set the GPIO to high-Z.
-static inline void gpio_set_high_z(const gpio_e gpio) {
+static inline void sensor_gpio_set_high_z(const gpio_e gpio) {
     // High-Z mode is achieved by enabling the GPIO as an input pin and
     // outputting a 1 to the GPIO.
     g_gpio_input_enable |= (1 << gpio);
     g_gpio_output_enable &= ~(1 << gpio);
-    gpio_set_enable();
-    GPIO_REG__OUTPUT |= (1 << gpio);
+    sensor_gpio_set_enable();
+    gpio_set_high(gpio);
 }
 
 // Set the GPIO high for some time before setting it to high-Z.
 static inline void gpio_excite(const gpio_e gpio) {
-    gpio_set_high(gpio);
+    sensor_gpio_set_high(gpio);
     delay_milliseconds_synchronous(/*delay_milli=*/GPIO_EXCITATION_DURATION_MS,
                                    7);
-    gpio_set_high_z(gpio);
+    sensor_gpio_set_high_z(gpio);
 }
 
 // Set the GPIOs for the capacitors. Active capacitors are pulled low while
@@ -166,9 +149,9 @@ static inline void gpio_excite(const gpio_e gpio) {
 static inline void capacitor_set_gpios(const capacitor_mask_e capacitor_mask) {
     for (size_t i = 0; i < GPIO_NUM_CAPACITORS; ++i) {
         if ((capacitor_mask >> i) & 0x1 == 1) {
-            gpio_set_low(g_gpio_capacitors[i]);
+            sensor_gpio_set_low(g_gpio_capacitors[i]);
         } else {
-            gpio_set_high_z(g_gpio_capacitors[i]);
+            sensor_gpio_set_high_z(g_gpio_capacitors[i]);
         }
     }
 }
@@ -187,7 +170,7 @@ int main(void) {
     initialize_mote();
 
     // Configure the RF timer.
-    rftimer_set_callback_by_id(rftimer_callback, 7);
+    rftimer_set_callback_by_id(rftimer_callback, RFTIMER_ID);
     rftimer_enable_interrupts();
     rftimer_enable_interrupts_by_id(7);
 
@@ -217,14 +200,15 @@ int main(void) {
                 capacitor_set_next_configuration();
                 gpio_excite(g_gpio_excitation);
                 delay_milliseconds_asynchronous(
-                    TIME_CONSTANT_SAMPLING_PERIOD_MS, 7);
+                    TIME_CONSTANT_SAMPLING_PERIOD_MS, RFTIMER_ID);
                 g_adc_state = ADC_STATE_MEASURING;
                 break;
             }
             case ADC_STATE_MEASURING: {
-                if (g_adc_output.valid) {
-                    time_constant_add_sample(g_adc_output.data);
-                    g_adc_output.valid = false;
+                if (adc_output_valid()) {
+                    uint16_t adc_output = adc_peek_output();
+                    adc_output_reset_valid();
+                    time_constant_add_sample(adc_output);
                     if (time_constant_has_sufficient_samples()) {
                         g_adc_state = ADC_STATE_PROCESSING;
                         printf("Received sufficient samples.\n");
@@ -234,7 +218,7 @@ int main(void) {
                                estimated_time_constant, fixed_point_init(1));
 
                         delay_milliseconds_asynchronous(
-                            TIME_CONSTANT_MEASUREMENT_PERIOD_MS, 7);
+                            TIME_CONSTANT_MEASUREMENT_PERIOD_MS, RFTIMER_ID);
                         g_adc_state = ADC_STATE_IDLE;
                     }
                 }
