@@ -1,0 +1,120 @@
+#include "sensor_resistive.h"
+
+#include <stdint.h>
+#include <string.h>
+
+#include "adc.h"
+#include "fixed_point.h"
+#include "rftimer.h"
+#include "sensor_capacitor.h"
+#include "sensor_gpio.h"
+#include "time_constant.h"
+
+// Resistive sensor sampling period in milliseconds.
+#define SENSOR_RESISTIVE_SAMPLING_PERIOD_MS 10
+
+// Resistive sensor measurement state.
+typedef enum {
+    SENSOR_RESISTIVE_MEASUREMENT_STATE_INVALID = -1,
+    SENSOR_RESISTIVE_MEASUREMENT_STATE_IDLE = 0,
+    SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED = 1,
+    SENSOR_RESISTIVE_MEASUREMENT_STATE_MEASURING = 2,
+    SENSOR_RESISTIVE_MEASUREMENT_STATE_DONE = 3,
+} sensor_resistive_measurement_state_e;
+
+// Resistive sensor configuration.
+static sensor_resistive_config_t g_sensor_resistive_config;
+
+// Resistive sensor measurement state.
+static sensor_resistive_measurement_state_e
+    g_sensor_resistive_measurement_state =
+        SENSOR_RESISTIVE_MEASUREMENT_STATE_IDLE;
+
+// Run the resistive sensor measurement.
+static inline void sensor_resistive_measure_run(void) {
+    while (true) {
+        switch (g_sensor_resistive_measurement_state) {
+            case SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED: {
+                time_constant_init(SENSOR_RESISTIVE_SAMPLING_PERIOD_MS);
+                sensor_capacitor_set_next_mask();
+                sensor_gpio_excite(g_sensor_resistive_config.gpio_excitation);
+                delay_milliseconds_asynchronous(
+                    SENSOR_RESISTIVE_SAMPLING_PERIOD_MS,
+                    g_sensor_resistive_config.rftimer_id);
+                g_sensor_resistive_measurement_state =
+                    SENSOR_RESISTIVE_MEASUREMENT_STATE_MEASURING;
+                break;
+            }
+            case SENSOR_RESISTIVE_MEASUREMENT_STATE_MEASURING: {
+                if (adc_output_valid()) {
+                    const uint16_t adc_output = adc_peek_output();
+                    adc_output_reset_valid();
+                    time_constant_add_sample(adc_output);
+                    if (time_constant_has_sufficient_samples()) {
+                        g_sensor_resistive_measurement_state =
+                            SENSOR_RESISTIVE_MEASUREMENT_STATE_DONE;
+                        return;
+                    }
+                }
+                break;
+            }
+            case SENSOR_RESISTIVE_MEASUREMENT_STATE_IDLE:
+            case SENSOR_RESISTIVE_MEASUREMENT_STATE_DONE:
+            case SENSOR_RESISTIVE_MEASUREMENT_STATE_INVALID:
+            default: {
+                break;
+            }
+        }
+    }
+}
+
+void sensor_resistive_init(
+    const sensor_resistive_config_t* sensor_resistive_config) {
+    memcpy(&g_sensor_resistive_config, sensor_resistive_config,
+           sizeof(sensor_resistive_config_t));
+    const sensor_gpio_config_t sensor_gpio_config = {
+        .rftimer_id = g_sensor_resistive_config.rftimer_id,
+    };
+    sensor_gpio_init(&sensor_gpio_config);
+    sensor_capacitor_init(&g_sensor_resistive_config.sensor_capacitor_config);
+}
+
+void sensor_resistive_measure(sensor_resistive_time_constant_t* time_constant) {
+    g_sensor_resistive_measurement_state =
+        SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED;
+    sensor_resistive_measure_run();
+
+    // Estimate the time constant.
+    // printf("Received sufficient samples. Estimating time constant now.\n");
+    const fixed_point_t estimated_time_constant = time_constant_estimate();
+    const fixed_point_t scaling_factor = fixed_point_init(1);
+
+    // Output the estimated time constant.
+    memset(time_constant, 0, sizeof(sensor_resistive_time_constant_t));
+    time_constant->time_constant = estimated_time_constant;
+    time_constant->scaling_factor = scaling_factor;
+}
+
+void sensor_resistive_rftimer_callback(void) {
+    switch (g_sensor_resistive_measurement_state) {
+        case SENSOR_RESISTIVE_MEASUREMENT_STATE_IDLE: {
+            g_sensor_resistive_measurement_state =
+                SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED;
+            break;
+        }
+        case SENSOR_RESISTIVE_MEASUREMENT_STATE_MEASURING: {
+            // Trigger an asynchronous ADC read.
+            adc_trigger();
+            delay_milliseconds_asynchronous(
+                /*delay_milli=*/SENSOR_RESISTIVE_SAMPLING_PERIOD_MS,
+                g_sensor_resistive_config.rftimer_id);
+            break;
+        }
+        case SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED:
+        case SENSOR_RESISTIVE_MEASUREMENT_STATE_DONE:
+        case SENSOR_RESISTIVE_MEASUREMENT_STATE_INVALID:
+        default: {
+            break;
+        }
+    }
+}
