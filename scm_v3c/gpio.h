@@ -37,32 +37,32 @@ void gpio_0_set(void);
 void gpio_0_clr(void);
 void gpio_0_toggle(void);
 
-// frame
+// Frame.
 void gpio_1_set(void);
 void gpio_1_clr(void);
 void gpio_1_toggle(void);
 
-// isr
+// ISR.
 void gpio_2_set(void);
 void gpio_2_clr(void);
 void gpio_2_toggle(void);
 
-// slot
+// Slot.
 void gpio_3_set(void);
 void gpio_3_clr(void);
 void gpio_3_toggle(void);
 
-// fsm
+// FSM.
 void gpio_4_set(void);
 void gpio_4_clr(void);
 void gpio_4_toggle(void);
 
-// task
+// Task.
 void gpio_5_set(void);
 void gpio_5_clr(void);
 void gpio_5_toggle(void);
 
-// radio
+// Radio.
 void gpio_6_set(void);
 void gpio_6_clr(void);
 void gpio_6_toggle(void);

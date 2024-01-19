@@ -79,28 +79,19 @@ typedef struct __attribute__((packed)) {
     bool pga_bypass;
 } adc_config_t;
 
-// ADC output.
-typedef struct __attribute__((packed)) {
-    // 10-bit ADC output.
-    uint16_t data;
-
-    // If true, ADC conversion has finished and the output is valid.
-    bool valid;
-} adc_output_t;
-
-// ADC output.
-extern adc_output_t g_adc_output;
-
 // Configure the ADC according to the given ADC configuration.
 void adc_config(const adc_config_t* adc_config);
-
-// Trigger an ADC read.
-void adc_trigger(void);
 
 // Enable the ADC interrupt.
 void adc_enable_interrupt(void);
 
 // Disable the ADC interrupt.
 void adc_disable_interrupt(void);
+
+// Read the ADC output. If the ADC read fails, return 0.
+uint16_t adc_read_output(void);
+
+// Read the averaged ADC output.
+uint16_t adc_average_output(void);
 
 #endif  // __ADC_H
