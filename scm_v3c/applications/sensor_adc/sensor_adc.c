@@ -21,9 +21,9 @@ static const adc_config_t g_adc_config = {
     .settling_time = 0,
     .bandgap_reference_tuning_code = 1,
     .const_gm_tuning_code = 0xFF,
-    .vbat_div_4_enabled = true,
+    .vbat_div_4_enabled = false,
     .ldo_enabled = true,
-    .input_mux_select = ADC_INPUT_MUX_SELECT_V_BAT_DIV_4,
+    .input_mux_select = ADC_INPUT_MUX_SELECT_EXTERNAL_SIGNAL,
     .pga_bypass = true,
 };
 

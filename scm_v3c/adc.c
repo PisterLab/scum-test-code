@@ -228,7 +228,7 @@ uint16_t adc_average_output(void) {
 }
 
 void adc_isr(void) {
-    printf("ADC conversion complete.\n");
+    // printf("ADC conversion complete.\n");
     g_adc_output = ADC_REG__DATA;
     g_adc_output_valid = true;
 }
