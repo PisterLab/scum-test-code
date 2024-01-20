@@ -36,7 +36,6 @@ static inline void sensor_resistive_measure_run(void) {
         switch (g_sensor_resistive_measurement_state) {
             case SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED: {
                 time_constant_init(SENSOR_RESISTIVE_SAMPLING_PERIOD_MS);
-                sensor_capacitor_set_next_mask();
                 sensor_gpio_excite(g_sensor_resistive_config.gpio_excitation);
                 delay_milliseconds_asynchronous(
                     SENSOR_RESISTIVE_SAMPLING_PERIOD_MS,
@@ -77,6 +76,8 @@ void sensor_resistive_init(
     };
     sensor_gpio_init(&sensor_gpio_config);
     sensor_capacitor_init(&g_sensor_resistive_config.sensor_capacitor_config);
+    // TODO(titan): Only the first capacitor mask is used.
+    sensor_capacitor_set_next_mask();
 }
 
 void sensor_resistive_measure(sensor_resistive_time_constant_t* time_constant) {
