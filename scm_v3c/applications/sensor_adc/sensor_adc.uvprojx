@@ -386,31 +386,6 @@
               <FileType>1</FileType>
               <FilePath>.\sensor_adc.c</FilePath>
             </File>
-            <File>
-              <FileName>adc_msb.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\adc_msb.c</FilePath>
-            </File>
-            <File>
-              <FileName>adc_msb.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\adc_msb.h</FilePath>
-            </File>
-            <File>
-              <FileName>time_constant.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\time_constant.c</FilePath>
-            </File>
-            <File>
-              <FileName>time_constant.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\time_constant.h</FilePath>
-            </File>
-            <File>
-              <FileName>fixed_point.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\fixed_point.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
