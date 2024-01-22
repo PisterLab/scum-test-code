@@ -88,7 +88,23 @@ void adc_enable_interrupt(void);
 // Disable the ADC interrupt.
 void adc_disable_interrupt(void);
 
-// Read the ADC output. If the ADC read fails, return 0.
+// Trigger an asynchronous ADC read.
+// This function should be called before |adc_peek_output|.
+void adc_trigger(void);
+
+// Return whether the ADC output is valid.
+// This function should be called before |adc_peek_output|.
+bool adc_output_valid(void);
+
+// Set the ADC output to be invalid.
+void adc_output_reset_valid(void);
+
+// Peek at the ADC output. The ADC output may not be valid.
+// This function should be called after |adc_trigger| and in conjunction with
+// |adc_output_valid|.
+uint16_t adc_peek_output(void);
+
+// Read the ADC output synchronously. The ADC output is guaranteed to be valid.
 uint16_t adc_read_output(void);
 
 // Read the averaged ADC output.

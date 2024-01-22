@@ -8,10 +8,10 @@
 #include "scm3c_hw_interface.h"
 
 // Number of ADC outputs to trigger for a single read.
-#define NUM_ADC_OUTPUTS_TO_TRIGGER 10
+#define NUM_ADC_OUTPUTS_TO_TRIGGER 2
 
 // Number of for loop cycles after triggering an ADC read.
-#define NUM_CYCLES_AFTER_ADC_TRIGGER 100
+#define NUM_CYCLES_AFTER_ADC_TRIGGER 10
 
 // Number of ADC outputs to average.
 #define NUM_ADC_OUTPUTS_TO_AVERAGE 16
@@ -140,12 +140,6 @@ static inline void adc_set_const_gm_tuning_code_asc_bits(
                     const_gm_tuning_code & 0x1);
 }
 
-// Trigger an ADC read.
-static inline void adc_trigger(void) {
-    g_adc_output_valid = false;
-    ADC_REG__START = 0x1;
-}
-
 void adc_config(const adc_config_t* adc_config) {
     // Set the ASC bit for the ADC reset signal source.
     adc_set_asc_bit(ADC_RESET_SOURCE_ASC_BIT,
@@ -199,6 +193,17 @@ void adc_disable_interrupt(void) {
     printf("ADC interrupt disabled: 0x%x.\n", ISER);
 }
 
+void adc_trigger(void) {
+    g_adc_output_valid = false;
+    ADC_REG__START = 0x1;
+}
+
+bool adc_output_valid(void) { return g_adc_output_valid; }
+
+void adc_output_reset_valid(void) { g_adc_output_valid = false; }
+
+uint16_t adc_peek_output(void) { return g_adc_output; }
+
 uint16_t adc_read_output(void) {
     // Trigger an ADC read times and keep the last read.
     // Multiple triggers are needed to sample the current voltage.
@@ -209,11 +214,6 @@ uint16_t adc_read_output(void) {
         // Wait for the next ADC trigger.
         for (size_t j = 0; j < NUM_CYCLES_AFTER_ADC_TRIGGER; ++j) {
         }
-    }
-
-    if (!g_adc_output_valid) {
-        printf("ADC output should be valid.\n");
-        return 0;
     }
     return g_adc_output;
 }
