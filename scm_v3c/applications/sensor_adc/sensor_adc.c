@@ -9,8 +9,8 @@
 #include "scm3c_hw_interface.h"
 
 // Number of for loop cycles after between ADC reads.
-// 70000 for loop cycles roughly correspond to 1 second.
-#define NUM_CYCLES_BETWEEN_ADC_READS 70000
+// 700000 for loop cycles roughly correspond to 1 second.
+#define NUM_CYCLES_BETWEEN_ADC_READS 700000
 
 // ADC configuration.
 static const adc_config_t g_adc_config = {
