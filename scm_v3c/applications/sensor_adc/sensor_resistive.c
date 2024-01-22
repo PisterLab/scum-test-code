@@ -91,7 +91,7 @@ void sensor_resistive_measure(sensor_resistive_time_constant_t* time_constant) {
     sensor_resistive_measure_run();
 
     // Estimate the time constant.
-    // printf("Received sufficient samples. Estimating time constant now.\n");
+    // printf("Received sufficient samples. Estimating the time constant now.\n");
     const fixed_point_t estimated_time_constant = time_constant_estimate();
     const fixed_point_t scaling_factor = fixed_point_init(1);
 
