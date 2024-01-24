@@ -12,6 +12,9 @@ typedef struct {
     // RF timer ID.
     uint8_t rftimer_id;
 
+    // Sampling period in milliseconds.
+    uint16_t sampling_period_ms;
+
     // GPIO excitation pin.
     gpio_e gpio_excitation;
 
