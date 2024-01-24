@@ -11,9 +11,6 @@
 #include "sensor_gpio.h"
 #include "time_constant.h"
 
-// Resistive sensor sampling period in milliseconds.
-#define SENSOR_RESISTIVE_SAMPLING_PERIOD_MS 10
-
 // Resistive sensor measurement state.
 typedef enum {
     SENSOR_RESISTIVE_MEASUREMENT_STATE_INVALID = -1,
@@ -25,6 +22,9 @@ typedef enum {
 
 // Resistive sensor RF timer ID.
 static uint8_t g_sensor_resistive_rftimer_id = 0;
+
+// Resistive sensor sampling period in milliseconds.
+static uint16_t g_sensor_resistive_sampling_period_ms = 0;
 
 // Resistive sensor GPIO excitation pin.
 static gpio_e g_sensor_resistive_gpio_excitation = GPIO_INVALID;
@@ -39,10 +39,11 @@ static inline void sensor_resistive_measure_run(void) {
     while (true) {
         switch (g_sensor_resistive_measurement_state) {
             case SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED: {
-                time_constant_init(SENSOR_RESISTIVE_SAMPLING_PERIOD_MS);
+                time_constant_init(g_sensor_resistive_sampling_period_ms);
                 sensor_gpio_excite(g_sensor_resistive_gpio_excitation);
+                adc_trigger();
                 delay_milliseconds_asynchronous(
-                    SENSOR_RESISTIVE_SAMPLING_PERIOD_MS,
+                    g_sensor_resistive_sampling_period_ms,
                     g_sensor_resistive_rftimer_id);
                 g_sensor_resistive_measurement_state =
                     SENSOR_RESISTIVE_MEASUREMENT_STATE_MEASURING;
@@ -74,6 +75,8 @@ static inline void sensor_resistive_measure_run(void) {
 void sensor_resistive_init(
     const sensor_resistive_config_t* sensor_resistive_config) {
     g_sensor_resistive_rftimer_id = sensor_resistive_config->rftimer_id;
+    g_sensor_resistive_sampling_period_ms =
+        sensor_resistive_config->sampling_period_ms;
     g_sensor_resistive_gpio_excitation =
         sensor_resistive_config->gpio_excitation;
     const sensor_gpio_config_t sensor_gpio_config = {
@@ -91,7 +94,8 @@ void sensor_resistive_measure(sensor_resistive_time_constant_t* time_constant) {
     sensor_resistive_measure_run();
 
     // Estimate the time constant.
-    // printf("Received sufficient samples. Estimating the time constant now.\n");
+    // printf("Received sufficient samples. Estimating the time constant
+    // now.\n");
     const fixed_point_t estimated_time_constant = time_constant_estimate();
     const fixed_point_t scaling_factor = fixed_point_init(1);
 
@@ -112,7 +116,7 @@ void sensor_resistive_rftimer_callback(void) {
             // Trigger an asynchronous ADC read.
             adc_trigger();
             delay_milliseconds_asynchronous(
-                /*delay_milli=*/SENSOR_RESISTIVE_SAMPLING_PERIOD_MS,
+                g_sensor_resistive_sampling_period_ms,
                 g_sensor_resistive_rftimer_id);
             break;
         }
