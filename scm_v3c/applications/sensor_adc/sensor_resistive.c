@@ -5,6 +5,7 @@
 
 #include "adc.h"
 #include "fixed_point.h"
+#include "gpio.h"
 #include "rftimer.h"
 #include "sensor_capacitor.h"
 #include "sensor_gpio.h"
@@ -22,8 +23,11 @@ typedef enum {
     SENSOR_RESISTIVE_MEASUREMENT_STATE_DONE = 3,
 } sensor_resistive_measurement_state_e;
 
-// Resistive sensor configuration.
-static sensor_resistive_config_t g_sensor_resistive_config;
+// Resistive sensor RF timer ID.
+static uint8_t g_sensor_resistive_rftimer_id = 0;
+
+// Resistive sensor GPIO excitation pin.
+static gpio_e g_sensor_resistive_gpio_excitation = GPIO_INVALID;
 
 // Resistive sensor measurement state.
 static sensor_resistive_measurement_state_e
@@ -36,10 +40,10 @@ static inline void sensor_resistive_measure_run(void) {
         switch (g_sensor_resistive_measurement_state) {
             case SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED: {
                 time_constant_init(SENSOR_RESISTIVE_SAMPLING_PERIOD_MS);
-                sensor_gpio_excite(g_sensor_resistive_config.gpio_excitation);
+                sensor_gpio_excite(g_sensor_resistive_gpio_excitation);
                 delay_milliseconds_asynchronous(
                     SENSOR_RESISTIVE_SAMPLING_PERIOD_MS,
-                    g_sensor_resistive_config.rftimer_id);
+                    g_sensor_resistive_rftimer_id);
                 g_sensor_resistive_measurement_state =
                     SENSOR_RESISTIVE_MEASUREMENT_STATE_MEASURING;
                 break;
@@ -69,13 +73,14 @@ static inline void sensor_resistive_measure_run(void) {
 
 void sensor_resistive_init(
     const sensor_resistive_config_t* sensor_resistive_config) {
-    memcpy(&g_sensor_resistive_config, sensor_resistive_config,
-           sizeof(sensor_resistive_config_t));
+    g_sensor_resistive_rftimer_id = sensor_resistive_config->rftimer_id;
+    g_sensor_resistive_gpio_excitation =
+        sensor_resistive_config->gpio_excitation;
     const sensor_gpio_config_t sensor_gpio_config = {
-        .rftimer_id = g_sensor_resistive_config.rftimer_id,
+        .rftimer_id = g_sensor_resistive_rftimer_id,
     };
     sensor_gpio_init(&sensor_gpio_config);
-    sensor_capacitor_init(&g_sensor_resistive_config.sensor_capacitor_config);
+    sensor_capacitor_init(&sensor_resistive_config->sensor_capacitor_config);
     // TODO(titan): Only the first capacitor mask is used.
     sensor_capacitor_set_next_mask();
 }
@@ -86,7 +91,7 @@ void sensor_resistive_measure(sensor_resistive_time_constant_t* time_constant) {
     sensor_resistive_measure_run();
 
     // Estimate the time constant.
-    // printf("Received sufficient samples. Estimating time constant now.\n");
+    // printf("Received sufficient samples. Estimating the time constant now.\n");
     const fixed_point_t estimated_time_constant = time_constant_estimate();
     const fixed_point_t scaling_factor = fixed_point_init(1);
 
@@ -108,7 +113,7 @@ void sensor_resistive_rftimer_callback(void) {
             adc_trigger();
             delay_milliseconds_asynchronous(
                 /*delay_milli=*/SENSOR_RESISTIVE_SAMPLING_PERIOD_MS,
-                g_sensor_resistive_config.rftimer_id);
+                g_sensor_resistive_rftimer_id);
             break;
         }
         case SENSOR_RESISTIVE_MEASUREMENT_STATE_TRIGGERED:
