@@ -14,7 +14,7 @@ static sensor_gpio_config_t g_sensor_gpio_config;
 
 // GPIO enable configurations.
 static uint16_t g_gpio_input_enable = 0x0000;
-static uint16_t g_gpio_output_enable = 0x0000;
+static uint16_t g_gpio_output_enable = 0xFFFF;
 
 // Set the GPIO input and output enables in the analog scan chain.
 static inline void sensor_gpio_set_enable(void) {
