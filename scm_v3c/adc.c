@@ -61,10 +61,10 @@ typedef enum {
 } adc_asc_bit_t;
 
 // 16-bit ADC output.
-static uint16_t g_adc_output;
+static uint16_t g_adc_output = 0;
 
 // If true, ADC conversion has finished and the output is valid.
-static bool g_adc_output_valid;
+static bool g_adc_output_valid = false;
 
 // Set the ASC bit to the specified value.
 static inline void adc_set_asc_bit(const adc_asc_bit_t asc_bit,
