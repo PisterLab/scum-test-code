@@ -131,8 +131,7 @@ int main(void) {
         printf(
             "\r\nProgramming Error - CRC DOES NOT MATCH - Halting "
             "Execution\r\n");
-        while (1)
-            ;
+        while (1);
     }
 
     // Debug output
@@ -156,8 +155,7 @@ int main(void) {
     optical_enable();
 
     // Wait for optical cal to finish
-    while (optical_getCalibrationFinshed() == 0)
-        ;
+    while (optical_getCalibrationFinshed() == 0);
 
     printf("Cal complete\r\n");
 
@@ -184,8 +182,7 @@ int main(void) {
                     //                        app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
                     //                    );
                     for (i = 0; i < NUMPKT_PER_CFG; i++) {
-                        while (app_vars.rxFrameStarted == true)
-                            ;
+                        while (app_vars.rxFrameStarted == true);
                         radio_rfOff();
 
                         gpio_3_set();
@@ -200,8 +197,7 @@ int main(void) {
                         rftimer_setCompareIn(rftimer_readCounter() +
                                              TIMER_PERIOD);
                         app_vars.changeConfig = false;
-                        while (app_vars.changeConfig == false)
-                            ;
+                        while (app_vars.changeConfig == false);
                     }
                 }
             }
@@ -223,8 +219,7 @@ int main(void) {
     app_vars.if_estimate_calibration_started = true;
 
     while (1) {
-        while (app_vars.rxFrameStarted == true)
-            ;
+        while (app_vars.rxFrameStarted == true);
         radio_rfOff();
 
         gpio_1_set();
@@ -243,8 +238,7 @@ int main(void) {
         radio_rxNow();
         rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD);
         app_vars.changeConfig = false;
-        while (app_vars.changeConfig == false)
-            ;
+        while (app_vars.changeConfig == false);
     }
 }
 
@@ -400,6 +394,5 @@ void update_lc_frequency_setting(uint32_t* history, uint8_t len) {
 
 void delay(void) {
     uint16_t i;
-    for (i = 0; i < NUMBER_LOOP; i++)
-        ;
+    for (i = 0; i < NUMBER_LOOP; i++);
 }

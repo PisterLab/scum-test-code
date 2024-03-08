@@ -179,8 +179,7 @@ int main(void) {
         printf(
             "\r\nProgramming Error - CRC DOES NOT MATCH - Halting "
             "Execution\r\n");
-        while (1)
-            ;
+        while (1);
     }
 
     // Debug output
@@ -201,8 +200,7 @@ int main(void) {
     optical_enable();
 
     // Wait for optical cal to finish
-    while (optical_getCalibrationFinshed() == 0)
-        ;
+    while (optical_getCalibrationFinshed() == 0);
 
     printf("Cal complete\r\n");
 
@@ -410,8 +408,7 @@ void cb_endFrame_tx(uint32_t timestamp) {
 
 void delay_turnover(void) {
     uint16_t i;
-    for (i = 0; i < TUNROVER_DELAY; i++)
-        ;
+    for (i = 0; i < TUNROVER_DELAY; i++);
 }
 
 // 0x07ff roughly corresponds to 2.8ms
@@ -419,8 +416,7 @@ void delay_turnover(void) {
 
 void delay_tx(void) {
     uint16_t i;
-    for (i = 0; i < TX_DELAY; i++)
-        ;
+    for (i = 0; i < TX_DELAY; i++);
 }
 
 // 0x02ff roughly corresponds to 1.2ms
@@ -428,8 +424,7 @@ void delay_tx(void) {
 
 void delay_lc_setup(void) {
     uint16_t i;
-    for (i = 0; i < LC_SETUP_DELAY; i++)
-        ;
+    for (i = 0; i < LC_SETUP_DELAY; i++);
 }
 
 //=========================== prototype========================================
@@ -443,8 +438,7 @@ void getFrequencyRx(
 
     // make sure we are at SWEEP_RX state
 
-    while (app_vars.state != SWEEP_RX)
-        ;
+    while (app_vars.state != SWEEP_RX);
 
     // sweep settings to find the ones for RX
 
@@ -465,8 +459,7 @@ void getFrequencyRx(
         radio_rxEnable();
         radio_rxNow();
         rftimer_setCompareIn(rftimer_readCounter() + RX_TIMEOUT);
-        while (app_vars.rx_done == 0)
-            ;
+        while (app_vars.rx_done == 0);
     }
 
     // update state and schedule next state
@@ -495,8 +488,7 @@ void getFrequencyTx(uint16_t setting_start, uint16_t setting_end) {
     int8_t diff;
     uint8_t pkt[TARGET_PKT_SIZE];
 
-    while (app_vars.state != SWEEP_TX)
-        ;
+    while (app_vars.state != SWEEP_TX);
 
     printf("SWEEP_TX started\r\n");
 
@@ -522,8 +514,7 @@ void getFrequencyTx(uint16_t setting_start, uint16_t setting_end) {
         delay_tx();
 
         radio_txNow();
-        while (app_vars.tx_done == 0)
-            ;
+        while (app_vars.tx_done == 0);
 
         // listen for ack
 
@@ -536,8 +527,7 @@ void getFrequencyTx(uint16_t setting_start, uint16_t setting_end) {
             (app_vars.rx_setting_candidate[DEFAULT_SETTING] >> 5) & 0x001F,
             (app_vars.rx_setting_candidate[DEFAULT_SETTING]) & 0x001F);
 
-        while (app_vars.rx_done == 0)
-            ;
+        while (app_vars.rx_done == 0);
     }
 
     // choose the first setting in the tx_settings_list within the threshold
@@ -571,8 +561,7 @@ void contiuously_calibration_start(void) {
     uint16_t tx_setting_target;
     uint16_t rx_setting_target;
 
-    while (app_vars.state != SWEEP_TX_DONE)
-        ;
+    while (app_vars.state != SWEEP_TX_DONE);
 
     app_vars.state = CONTINUOUSLY_CAL;
 
@@ -602,8 +591,7 @@ void contiuously_calibration_start(void) {
         delay_tx();
 
         radio_txNow();
-        while (app_vars.tx_done == 0)
-            ;
+        while (app_vars.tx_done == 0);
 
         // listen for ack
 
@@ -618,8 +606,7 @@ void contiuously_calibration_start(void) {
                 0x001F,
             (app_vars.rx_setting_candidate[app_vars.setting_index]) & 0x001F);
 
-        while (app_vars.rx_done == 0)
-            ;
+        while (app_vars.rx_done == 0);
     }
 }
 

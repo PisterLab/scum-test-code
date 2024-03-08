@@ -1,8 +1,8 @@
 unsigned reverse(unsigned x);
-unsigned int crc32c(unsigned char *message, unsigned int length);
+unsigned int crc32c(unsigned char* message, unsigned int length);
 unsigned char flipChar(unsigned char b);
 void init_ldo_control(void);
-unsigned int sram_test(unsigned int * baseAddress, unsigned int num_dwords);
+unsigned int sram_test(unsigned int* baseAddress, unsigned int num_dwords);
 void radio_init_rx_MF(void);
 void radio_init_rx_ZCC(void);
 void radio_init_tx(void);
@@ -31,7 +31,8 @@ void analog_scan_chain_load_3B_fromFPGA(void);
 void radio_enable_PA(void);
 void radio_enable_LO(void);
 void radio_enable_RX(void);
-void read_counters_3B(unsigned int* count_2M, unsigned int* count_LC, unsigned int* count_adc);
+void read_counters_3B(unsigned int* count_2M, unsigned int* count_LC,
+                      unsigned int* count_adc);
 void do_fake_cal(void);
 void packet_test_loop(unsigned int num_packets);
 void set_IF_stg3gm_ASC(unsigned int Igm, unsigned int Qgm);
@@ -44,6 +45,7 @@ void set_IF_ZCC_early(unsigned int early_value);
 void initialize_mote(void);
 void set_sys_clk_secondary_freq(unsigned int coarse, unsigned int fine);
 unsigned int build_RX_channel_table(unsigned int channel_11_LC_code);
-void build_TX_channel_table(unsigned int channel_11_LC_code,unsigned int count_LC_RX_ch11);
+void build_TX_channel_table(unsigned int channel_11_LC_code,
+                            unsigned int count_LC_RX_ch11);
 void build_channel_table(unsigned int channel_11_LC_code);
 unsigned int estimate_temperature_2M_32k(void);

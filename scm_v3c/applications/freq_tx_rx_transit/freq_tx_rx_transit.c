@@ -95,8 +95,7 @@ int main(void) {
         printf(
             "\r\nProgramming Error - CRC DOES NOT MATCH - Halting "
             "Execution\r\n");
-        while (1)
-            ;
+        while (1);
     }
 
     // Debug output
@@ -120,8 +119,7 @@ int main(void) {
     optical_enable();
 
     // Wait for optical cal to finish
-    while (optical_getCalibrationFinshed() == 0)
-        ;
+    while (optical_getCalibrationFinshed() == 0);
 
     printf("Cal complete\r\n");
 
@@ -143,27 +141,22 @@ int main(void) {
         //                        "coarse=%d, middle=%d, fine=%d\r\n",
         //                        cfg_coarse,cfg_mid,cfg_fine
         //                    );
-        for (j = 0; j < 0xffff; j++)
-            ;
+        for (j = 0; j < 0xffff; j++);
         app_vars.packet[0] = 0;
         app_vars.packet[1] = 0xcf;
         radio_rfOff();
 
         for (i = 0; i < NUMPKT_PER_CFG; i++) {
-            for (k = 0; k < 0x1ff; k++)
-                ;
+            for (k = 0; k < 0x1ff; k++);
             radio_loadPacket(app_vars.packet, LEN_TX_PKT);
             LC_FREQCHANGE(23, 27, 26);
             radio_txEnable();
             app_vars.sendDone = false;
             app_vars.receiveDone = false;
-            for (k = 0; k < 0x1ff; k++)
-                ;
+            for (k = 0; k < 0x1ff; k++);
             radio_txNow();
-            while (app_vars.sendDone == false)
-                ;
-            while (app_vars.receiveDone == false)
-                ;
+            while (app_vars.sendDone == false);
+            while (app_vars.receiveDone == false);
         }
         //                }
         //            }
@@ -210,8 +203,7 @@ void cb_timer(void) {
     if (app_vars.state == RX) {
         LC_FREQCHANGE(24, 8, 21);
         radio_rxEnable();
-        for (k = 0; k < 0x1ff; k++)
-            ;
+        for (k = 0; k < 0x1ff; k++);
         radio_rxNow();
 
         app_vars.state = TIMEOUT;

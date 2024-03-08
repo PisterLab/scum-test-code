@@ -195,8 +195,7 @@ void crc_check(void) {
         printf(
             "\r\nProgramming Error - CRC DOES NOT MATCH - Halting "
             "Execution\r\n");
-        while (1)
-            ;
+        while (1);
     }
 }
 
@@ -1247,8 +1246,7 @@ unsigned int estimate_temperature_2M_32k() {
     ANALOG_CFG_REG__0 = 0x3FFF;
 
     // Count for some arbitrary amount of time
-    for (t = 1; t < 50000; t++)
-        ;
+    for (t = 1; t < 50000; t++);
 
     // Disable all counters
     ANALOG_CFG_REG__0 = 0x007F;

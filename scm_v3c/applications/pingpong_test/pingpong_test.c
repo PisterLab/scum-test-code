@@ -96,8 +96,7 @@ int main(void) {
         printf(
             "\r\nProgramming Error - CRC DOES NOT MATCH - Halting "
             "Execution\r\n");
-        while (1)
-            ;
+        while (1);
     }
 
     // Debug output
@@ -121,8 +120,7 @@ int main(void) {
     optical_enable();
 
     // Wait for optical cal to finish
-    while (optical_getCalibrationFinshed() == 0)
-        ;
+    while (optical_getCalibrationFinshed() == 0);
 
     printf("Cal complete\r\n");
 
@@ -144,8 +142,7 @@ int main(void) {
     // Wait awhile
     for (t2 = 0; t2 < 100; t2++) {
         // Delay
-        for (t = 0; t < 100000; t++)
-            ;
+        for (t = 0; t < 100000; t++);
 
         if (app_vars.doing_initial_packet_search == false) {
             printf("Locked to incoming packet rate...\r\n");
@@ -161,8 +158,7 @@ int main(void) {
     }
 
     while (1) {
-        for (t = 0; t < 1000000; t++)
-            ;
+        for (t = 0; t < 1000000; t++);
     }
 }
 

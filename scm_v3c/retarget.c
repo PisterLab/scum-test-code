@@ -39,6 +39,5 @@ void _ttywrch(int ch) { fputc(ch, &__stdout); }
 
 void _sys_exit(void) {
     printf("\r\nTEST DONE\r\n");
-    while (1)
-        ;
+    while (1);
 }

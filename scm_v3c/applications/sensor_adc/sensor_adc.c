@@ -47,7 +47,6 @@ int main(void) {
         printf("ADC output: %u\n", adc_output);
 
         // Wait for the next ADC read.
-        for (size_t i = 0; i < NUM_CYCLES_BETWEEN_ADC_READS; ++i) {
-        }
+        for (size_t i = 0; i < NUM_CYCLES_BETWEEN_ADC_READS; ++i) {}
     }
 }

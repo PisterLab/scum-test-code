@@ -1152,8 +1152,7 @@ void rx_startframe_timeout_callback(void) {
     radio_rfOff();
     gpio_13_clr();
     gpio_12_clr();
-    for (i = 0; i < 0xFF; i++)
-        ;
+    for (i = 0; i < 0xFF; i++);
     if (scumpong_vars.sync_state == DESYNCHED) {
         radio_rxEnable();
         radio_rxNow();

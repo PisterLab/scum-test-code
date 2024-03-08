@@ -396,8 +396,7 @@ void send_lh_packet(unsigned int sync_time, unsigned int laser_time,
     send_packet[6] = (laser_time >> 8) & 0xFF;
     send_packet[7] = (laser_time >> 16) & 0xFF;
     send_packet[8] = (laser_time >> 24) & 0xFF;
-    for (i = 0; i < 1000; i++) {
-    }
+    for (i = 0; i < 1000; i++) {}
     // call "radio_loadpacket", which puts array into hardware fifo (takes time)
     radio_loadPacket(9);
 
@@ -406,8 +405,7 @@ void send_lh_packet(unsigned int sync_time, unsigned int laser_time,
     // LC_FREQCHANGE(23&0x1F, 2&0x1F, 6&0x1F); //for pa
 
     LC_FREQCHANGE(23 & 0x1F, QX3_MID & 0x1F, QX3_FINE & 0x1F);  // qx3
-    for (i = 0; i < 200; i++) {
-    }
+    for (i = 0; i < 200; i++) {}
     // transmit packet (radio_txnow) (wait 50 us between tx enable and tx_now)
     radio_txNow();
 }
@@ -973,8 +971,7 @@ void send_imu_packet(imu_data_t imu_measurement) {
     LC_FREQCHANGE(23 & 0x1F, QX3_MID & 0x1F, QX3_FINE & 0x1F);
     // wait for 1000 loop cycles
 
-    for (i = 0; i < 1000; i++) {
-    }
+    for (i = 0; i < 1000; i++) {}
 
     // send packet
     radio_txNow();

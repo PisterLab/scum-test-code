@@ -86,8 +86,7 @@ int main(void) {
         printf(
             "\r\nProgramming Error - CRC DOES NOT MATCH - Halting "
             "Execution\r\n");
-        while (1)
-            ;
+        while (1);
     }
 
     // Debug output
@@ -117,16 +116,14 @@ int main(void) {
     optical_enable();
 
     // Wait for optical cal to finish
-    while (optical_getCalibrationFinshed() == 0)
-        ;
+    while (optical_getCalibrationFinshed() == 0);
 
     printf("Cal complete\r\n");
 
     // schedule the first timer
     rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD);
 
-    while (1) {
-    }
+    while (1) {}
 }
 
 //=========================== public ==========================================
