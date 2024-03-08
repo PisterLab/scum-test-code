@@ -133,8 +133,7 @@ static channel_cal_state_e g_channel_cal_state = CHANNEL_CAL_STATE_INVALID;
 // Add some delay for the radio.
 // TODO(fil): Change this function to use an RF timer compare register.
 static inline void channel_cal_radio_delay(void) {
-    for (uint8_t i = 0; i < 5; ++i) {
-    }
+    for (uint8_t i = 0; i < 5; ++i) {}
 }
 
 // Radio RX callback function.

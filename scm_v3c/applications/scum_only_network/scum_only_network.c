@@ -81,8 +81,7 @@ int main(void) {
     rftimer_setCompareIn_by_id(rftimer_readCounter() + RFTIMER_CAL_DURATION, 1);
 
     cal_vars.cal_finished = 1;
-    while (!cal_vars.cal_finished) {
-    }
+    while (!cal_vars.cal_finished) {}
 
     while (1) {
         // printf("Hello World! %d\n", app_vars.count);

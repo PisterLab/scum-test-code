@@ -54,8 +54,7 @@ void spi_chip_select() {
     // drop chip select low to select the chip
     GPIO_REG__OUTPUT &= ~(1 << cs_pin);
     GPIO_REG__OUTPUT &= ~(1 << dout_pin);
-    for (t = 0; t < 50; t++)
-        ;
+    for (t = 0; t < 50; t++);
 }
 
 void spi_chip_deselect() {
@@ -68,11 +67,9 @@ void initialize_imu(void) {
     int i;
 
     write_imu_register(0x06, 0x41);
-    for (i = 0; i < 50000; i++)
-        ;
+    for (i = 0; i < 50000; i++);
     write_imu_register(0x06, 0x01);
-    for (i = 0; i < 50000; i++)
-        ;
+    for (i = 0; i < 50000; i++);
 }
 
 unsigned int read_acc_x() {

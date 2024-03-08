@@ -209,11 +209,9 @@ uint16_t adc_read_output(void) {
     // Multiple triggers are needed to sample the current voltage.
     for (size_t i = 0; i < NUM_ADC_OUTPUTS_TO_TRIGGER; ++i) {
         adc_trigger();
-        while (!g_adc_output_valid) {
-        }
+        while (!g_adc_output_valid) {}
         // Wait for the next ADC trigger.
-        for (size_t j = 0; j < NUM_CYCLES_AFTER_ADC_TRIGGER; ++j) {
-        }
+        for (size_t j = 0; j < NUM_CYCLES_AFTER_ADC_TRIGGER; ++j) {}
     }
     return g_adc_output;
 }

@@ -146,8 +146,7 @@ void test_LC_sweep_tx(void) {
                     // TODO: Wait for at least 50us
                     GPIO_REG__OUTPUT = ~GPIO_REG__OUTPUT;
                     // gpo toggle on all gpos
-                    for (i = 0; i < 5000; i++) {
-                    }
+                    for (i = 0; i < 5000; i++) {}
 
                     // Send bits out the radio thrice for redundancy
                     for (i = 0; i < iterations; i++) {
@@ -212,8 +211,7 @@ int main(void) {
     ISER = 0x0800;
 
     // Wait for optical cal to finish
-    while (optical_cal_finished == 0)
-        ;
+    while (optical_cal_finished == 0);
     optical_cal_finished = 0;
 
     ICER = 0xFFFF;
@@ -256,8 +254,7 @@ int main(void) {
         imu_measurement.gyro_z.value = 1111;
 
         // send measurement
-        for (i = 0; i < 500000; i++) {
-        }
+        for (i = 0; i < 500000; i++) {}
         send_imu_packet(imu_measurement);
 
         // use interrupts intesad of polling

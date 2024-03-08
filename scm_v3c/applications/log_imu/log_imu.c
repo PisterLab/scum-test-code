@@ -51,8 +51,7 @@ int main(void) {
         read_all_imu_data(&app_vars.imu_measurement);
         log_imu_data(&app_vars.imu_measurement);
 
-        for (i = 0; i < 100000; i++)
-            ;
+        for (i = 0; i < 100000; i++);
     }
 }
 

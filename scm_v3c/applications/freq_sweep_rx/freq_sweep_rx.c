@@ -99,8 +99,7 @@ int main(void) {
         printf(
             "\r\nProgramming Error - CRC DOES NOT MATCH - Halting "
             "Execution\r\n");
-        while (1)
-            ;
+        while (1);
     }
 
     // Debug output
@@ -124,8 +123,7 @@ int main(void) {
     optical_enable();
 
     // Wait for optical cal to finish
-    while (optical_getCalibrationFinshed() == 0)
-        ;
+    while (optical_getCalibrationFinshed() == 0);
 
     printf("Cal complete\r\n");
 
@@ -149,8 +147,7 @@ int main(void) {
                     //                        app_vars.cfg_coarse,app_vars.cfg_mid,app_vars.cfg_fine
                     //                    );
                     for (i = 0; i < NUMPKT_PER_CFG; i++) {
-                        while (app_vars.rxFrameStarted == true)
-                            ;
+                        while (app_vars.rxFrameStarted == true);
                         radio_rfOff();
                         LC_FREQCHANGE(app_vars.cfg_coarse, app_vars.cfg_mid,
                                       app_vars.cfg_fine);
@@ -159,8 +156,7 @@ int main(void) {
                         rftimer_setCompareIn(rftimer_readCounter() +
                                              TIMER_PERIOD);
                         app_vars.changeConfig = false;
-                        while (app_vars.changeConfig == false)
-                            ;
+                        while (app_vars.changeConfig == false);
                     }
                 }
             }

@@ -36,8 +36,7 @@ int main(void) {
         printf("Hello World! %d\n", app_vars.count);
         app_vars.count += 1;
 
-        for (i = 0; i < 1000000; i++)
-            ;
+        for (i = 0; i < 1000000; i++);
     }
 }
 

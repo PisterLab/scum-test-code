@@ -171,8 +171,7 @@ void delay_milliseconds_synchronous(unsigned int delay_milli, uint8_t id) {
     delay_milliseconds_asynchronous(delay_milli, id);
 
     // do nothing until delay has finished
-    while (delay_completed[id] == false) {
-    }
+    while (delay_completed[id] == false) {}
 }
 
 // ========================== interrupt =======================================

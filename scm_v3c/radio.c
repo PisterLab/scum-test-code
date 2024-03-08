@@ -142,8 +142,7 @@ void send_packet(void* packet, uint8_t pkt_len) {
     rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_TX);
     radio_vars.sendDone = false;
 
-    while (!radio_vars.sendDone) {
-    }
+    while (!radio_vars.sendDone) {}
 }
 
 // Receive a packet of any length.
@@ -168,8 +167,7 @@ void receive_packet_length(uint8_t pkt_len, bool timeout) {
     radio_rxNow();
     if (timeout) rftimer_setCompareIn(rftimer_readCounter() + TIMER_PERIOD_RX);
     radio_vars.receiveDone = false;
-    while (!radio_vars.receiveDone) {
-    }
+    while (!radio_vars.receiveDone) {}
 }
 
 void cb_startFrame_tx_radio(uint32_t timestamp) {}
@@ -733,8 +731,7 @@ uint32_t build_RX_channel_table(uint32_t channel_11_LC_code) {
         ANALOG_CFG_REG__0 = 0x3FFF;
 
         // Count for some arbitrary amount of time
-        for (t = 1; t < 16000; t++) {
-        }
+        for (t = 1; t < 16000; t++) {}
 
         // Disable all counters
         ANALOG_CFG_REG__0 = 0x007F;
@@ -803,8 +800,7 @@ void build_TX_channel_table(unsigned int channel_11_LC_code,
         ANALOG_CFG_REG__0 = 0x3FFF;
 
         // Count for some arbitrary amount of time
-        for (t = 1; t < 16000; t++) {
-        }
+        for (t = 1; t < 16000; t++) {}
 
         // Disable all counters
         ANALOG_CFG_REG__0 = 0x007F;
@@ -1003,8 +999,7 @@ void rawchips_32_isr() {
         chip_index = 0;
 
         // Wait for print to complete
-        for (jj = 0; jj < 10000; jj++) {
-        }
+        for (jj = 0; jj < 10000; jj++) {}
 
         // Execute soft reset
         *(unsigned int*)(0xE000ED0C) = 0x05FA0004;
