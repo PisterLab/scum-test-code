@@ -1,3 +1,4 @@
 BasedOnStyle:  Google
+AllowShortBlocksOnASingleLine: Empty
 DerivePointerAlignment: false
 IndentWidth: 4
