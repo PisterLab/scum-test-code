@@ -280,7 +280,7 @@ fixed_point_t time_constant_estimate(void) {
     // Calculate the exponential factor for the weights.
     const fixed_point_t factor_exponent = fixed_point_divide(
         fixed_point_init(-6), fixed_point_init(three_tau_index));
-    // Approximate exp(x) as 1 + x + x^2.
+    // Approximate exp(x) as 1 + x + 1/2 * x^2.
     const fixed_point_t factor = fixed_point_add(
         fixed_point_init(1),
         fixed_point_add(
