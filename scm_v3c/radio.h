@@ -59,6 +59,7 @@ typedef struct {
 
 //==== admin
 void send_packet(void* packet, uint8_t pkt_len);
+void send_packet_cpu(void* packet, uint8_t pkt_len);
 void receive_packet(bool timeout);
 void receive_packet_length(uint8_t pkt_len, bool timeout);
 void cb_startFrame_tx_radio(uint32_t timestamp);
@@ -81,6 +82,8 @@ void radio_rfOff(void);
 void radio_enable_interrupts(void);
 void radio_disable_interrupts(void);
 void radio_reset(void);
+void radio_delayCPUCycles(uint32_t cycles);
+void radio_delayCPUMilliseconds(uint32_t milliseconds);
 
 //==== get/set
 bool radio_getCrcOk(void);

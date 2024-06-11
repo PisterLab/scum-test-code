@@ -1250,6 +1250,18 @@ void set_sys_clk_secondary_freq(unsigned int coarse, unsigned int fine) {
 void initialize_mote() {
     int t;
 
+    
+    // Init LDO control
+    //init_ldo_control();
+
+    // Set LDO reference voltages
+    // Can be between 0 and 127
+    //set_VDDD_LDO_voltage(0); // 40 for U1, 64 for U2
+    //set_AUX_LDO_voltage(0);
+    //set_ALWAYSON_LDO_voltage(0);
+    //analog_scan_chain_write();
+    //analog_scan_chain_load();
+    
     scm3c_hw_interface_init();
     optical_init();
     radio_init();
@@ -1258,13 +1270,14 @@ void initialize_mote() {
     //--------------------------------------------------------
     // SCM3C Analog Scan Chain Initialization
     //--------------------------------------------------------
-    // Init LDO control
+
     init_ldo_control();
 
     // Set LDO reference voltages
-    // set_VDDD_LDO_voltage(0);
-    // set_AUX_LDO_voltage(0);
-    // set_ALWAYSON_LDO_voltage(0);
+    // Can be between 0 and 127
+    set_VDDD_LDO_voltage(40); // 40 for U1, 64 for U2
+    // set_AUX_LDO_voltage(20);
+    // set_ALWAYSON_LDO_voltage(20);
 
     // Select banks for GPIO inputs
     GPI_control(0, 0, 1, 0);  // 1 in 3rd arg connects GPI8 to EXT_INTERRUPT<1>
@@ -1274,6 +1287,7 @@ void initialize_mote() {
     GPO_control(6, 6, 0,
                 6);  // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
 
+    /////
     // Set GPI enables
     // Hex entry 2: 0x1 = 1 = 0b0001 = GPI 8 on for 3WB cal clk interrupt
     GPI_enables(0x0100);
@@ -1283,6 +1297,7 @@ void initialize_mote() {
 
     // Set HCLK source as HF_CLOCK
     set_asc_bit(1147);
+    
 
     // Set initial coarse/fine on HF_CLOCK
     // coarse 0:4 = 860 861 875b 876b 877b
@@ -1290,11 +1305,25 @@ void initialize_mote() {
     set_sys_clk_secondary_freq(scm3c_hw_interface_vars.HF_CLOCK_coarse,
                                scm3c_hw_interface_vars.HF_CLOCK_fine);
 
+    
+    
+    
+
     // Set RFTimer source as HF_CLOCK
     set_asc_bit(1151);
 
+    analog_scan_chain_write();
+    analog_scan_chain_load();
+        
+
     // Disable LF_CLOCK
-    set_asc_bit(553);
+    //set_asc_bit(553);
+
+    
+    //analog_scan_chain_write();
+    //analog_scan_chain_load();
+    //return;
+    
 
     // HF_CLOCK will be trimmed to 20MHz, so set RFTimer div value to 40 to get
     // 500kHz (inverted, so 1101 0111)
@@ -1307,8 +1336,12 @@ void initialize_mote() {
     set_asc_bit(43);
     set_asc_bit(42);
 
+    
+
     // Set 2M RC as source for chip CLK
     set_asc_bit(1156);
+
+    
 
     // Enable 32k for cal
     set_asc_bit(623);
@@ -1321,6 +1354,8 @@ void initialize_mote() {
     // scm3c_hw_interface_vars.ASC[0] |= 0x6F800000;
     for (t = 2; t < 9; t++) set_asc_bit(t);
 
+    
+    
     // Init RX
     radio_init_rx_MF();
 
@@ -1348,6 +1383,9 @@ void initialize_mote() {
     // Program analog scan chain
     analog_scan_chain_write();
     analog_scan_chain_load();
+
+    /////
+
     //--------------------------------------------------------
 }
 

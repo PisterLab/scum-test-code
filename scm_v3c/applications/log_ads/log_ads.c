@@ -16,12 +16,23 @@
 #define PWM_TIMER_ID 2
 
 // Start coarse code for the sweep to find 802.15.4 channels.
-#define START_COARSE_CODE 20
+#define START_COARSE_CODE 21
 // End coarse code for the sweep to find 802.15.4 channels.
-#define END_COARSE_CODE 27
-// 802.15.4 channel on which to transmit the ADC data.
-#define IEEE_802_15_4_TX_CHANNEL 17
+#define END_COARSE_CODE 21
 
+// Start medium code for the sweep to find 802.15.4 channels.
+#define START_MEDIUM_CODE 19
+// End medium code for the sweep to find 802.15.4 channels.
+#define END_MEDIUM_CODE 21
+
+// Start fine code for the sweep to find 802.15.4 channels.
+#define START_FINE_CODE 0
+// End fine code for the sweep to find 802.15.4 channels.
+#define END_FINE_CODE 31
+
+
+// 802.15.4 channel on which to transmit the ADC data.
+#define IEEE_802_15_4_TX_CHANNEL 15
 
 //=========================== variables =======================================
 
@@ -33,9 +44,9 @@ typedef struct {
 } app_vars_t;
 
 static tuning_code_t g_tuning_code = {
-  .coarse = 23, 
-  .mid = 18,
-  .fine = 2
+  .coarse = 21, 
+  .mid = 19,
+  .fine = 25
 };
 
 #define SINE_LUT_SIZE 4 
@@ -88,6 +99,49 @@ void init_pwm_dac(uint16_t freq, uint8_t duty_cycle)
   delay_ticks_asynchronous(100, PWM_TIMER_ID);
 }
 
+void tx_cal_open_loop(void) {
+  uint8_t packet[8] = {0}; // Initialize all elements to 0
+  while(1) {
+    for (uint8_t coarse = START_COARSE_CODE; coarse <= END_COARSE_CODE; coarse++) {
+      for (uint8_t mid = START_MEDIUM_CODE; mid <= END_MEDIUM_CODE; mid++) {
+        for (uint8_t fine = START_FINE_CODE; fine <= END_FINE_CODE; fine++) {
+          //printf("Sent - C:%u M:%u F:%u\n", coarse, mid, fine);
+          for(uint8_t i = 0; i < 16; i++) {
+            g_tuning_code.coarse = coarse;
+            g_tuning_code.mid = mid;
+            g_tuning_code.fine = fine;
+
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            radio_delayCPUCycles(6);
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            radio_delayCPUCycles(6);
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            tuning_tune_radio(&g_tuning_code);
+            radio_delayCPUCycles(6);
+            
+            
+            packet[0] = coarse;
+            packet[1] = mid;
+            packet[2] = fine;
+            packet[3] = 0x55; // 0x55 as a placeholder for additional data
+            send_packet_cpu(&packet[0], 10);  
+            radio_delayCPUMilliseconds(10);
+          }
+          radio_delayCPUCycles(10); // Delay to allow for transmission completion
+        }
+      }
+    }
+  }
+}
+
 int main(void) {
     uint32_t i, j;
     unsigned char print_reg;
@@ -99,35 +153,45 @@ int main(void) {
     /***    Initialize SCuM     ****/
     initialize_mote();
 
+    // Set the banks to use the ARM core's GPIOs for all of our available
+    // pins
+    
     printf("Initializing the channel calibration.\n");
-    if (!channel_cal_init(START_COARSE_CODE, END_COARSE_CODE)) {
-        return 0;
-    }
+    //if (!channel_cal_init(START_COARSE_CODE, END_COARSE_CODE)) {
+    //    return 0;
+    //}
 
     crc_check();
     perform_calibration();
 
+    set_VDDD_LDO_voltage(40); // 40 for U1, 64 for U2
+    // set_AUX_LDO_voltage(40);
+    // set_ALWAYSON_LDO_voltage(40);
 
-    /***    Initialize Radio     ****/
-    /*
-    printf("RUN CH CAL\n");
-    // Run the channel calibration.
+    GPO_control(6, 6, 6, 6); 
+    GPI_enable_clr(5); // /ADS_RESET
+    GPO_enable_set(5); 
+    // On Rev. 3 we use GPIO0 as the debug output
+    GPI_enable_clr(0);
+    GPO_enable_set(0);
+
+
+    analog_scan_chain_write();
+    analog_scan_chain_load();
+
+    gpio_5_set(); // /ADS_RESET
+    gpio_5_clr();
     
-    if (!channel_cal_run()) {
-        printf("CH CAL FAIL\n");
-        return 0;
-    }
 
-    // Get the tuning code for the 802.15.4 channel we want to use.
-    while(1) {
-      if (!channel_cal_get_tx_tuning_code(IEEE_802_15_4_TX_CHANNEL, &g_tuning_code)) {
-          printf("No TX tuning code found for channel %u.\n", IEEE_802_15_4_TX_CHANNEL);
-          
-      }
-    }
-    */
+    gpio_0_set();
+    gpio_0_clr();
+
+
+    // Start the open loop tuning
+    tx_cal_open_loop();
     
     tuning_tune_radio(&g_tuning_code);
+    
     printf("Transmitting on channel %u: (%u, %u, %u).\n",
            IEEE_802_15_4_TX_CHANNEL, g_tuning_code.coarse,
            g_tuning_code.mid, g_tuning_code.fine);
@@ -138,33 +202,25 @@ int main(void) {
     tuning_tune_radio(&g_tuning_code);
     tuning_tune_radio(&g_tuning_code);
 
-    GPO_control(6, 6, 6, 6);  // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
-
-    GPI_enable_clr(4);
-    GPO_enable_set(4);
-
-    // High-Z for rev. 1 boards
-    GPO_enable_clr(7);
-    GPI_enable_clr(7);
 
     // Program analog scan chain
     analog_scan_chain_write();
     analog_scan_chain_load();
 
-    gpio_7_set();
-
     // Bring ADS's CSB pin high so it has a chance to throw away HCLK garbage
     memset(&app_vars, 0, sizeof(app_vars_t));
-    delay_milliseconds_synchronous(100, 1);
+    // wait 1000 clock cycles
+    radio_delayCPUMilliseconds(5);
+    //delay_milliseconds_synchronous(100, 1);
 
-    gpio_4_set();
+    gpio_11_set(); // CSB
 
-    delay_milliseconds_synchronous(1000, 1);
+    radio_delayCPUMilliseconds(5);
 		
-		gpio_4_clr();
+		gpio_11_clr(); // CSB
 
     printf("Power up ADS1299 NOW!\r\n");
-    //delay_milliseconds_synchronous(1, 1000);
+    radio_delayCPUMilliseconds(5);
 
     /***    Initialize ADS1299     ****/
     ads_init();
@@ -266,13 +322,6 @@ int main(void) {
     }
 
 
-    // Read all the registers
-    //ads_rregs(ADS_REG_ID, ADS_REG_CONFIG4);
-
-
-    /***    Kickoff the PWM DAC interrupt routine     ****/
-    //init_pwm_dac(100, 50);
-
     /***    Read ADS data     ****/
     ads_start();
     ads_rdatac();
@@ -314,4 +363,5 @@ int main(void) {
 //=========================== public ==========================================
 
 //=========================== private =========================================
+
 

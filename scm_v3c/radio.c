@@ -144,7 +144,7 @@ void send_packet(void* packet, uint8_t pkt_len) {
     radio_vars.sendDone = false;
 
     while (!radio_vars.sendDone) {
-        gpio_4_set();  // debug
+        gpio_0_set();  // debug
         /*
         if(rftimer_readCounter() > trigger_time + TIMER_PERIOD_TX) {
             printf("TX timeout\n");
@@ -154,9 +154,35 @@ void send_packet(void* packet, uint8_t pkt_len) {
         }
         */
         radio_vars.sendDone = (rftimer_readCounter() > (trigger_time + 2*TIMER_PERIOD_TX)) ? true : false;
-        gpio_4_clr();
+        gpio_0_clr();
     }
     radio_rfOff();
+}
+
+// This version of send_packet uses the radio_delayCPUMilliseconds synchronous delay mechanism
+// instead of rftimer on SCuMs where RFTIMER cannot be calibrated correctly or is finnicky
+// It does not use rftimer at all
+//
+// pkt_len should include CRC bytes (add 2 bytes to desired pkt size)
+void send_packet_cpu(void* packet, uint8_t pkt_len) {
+    radio_vars.radio_mode = TX_MODE;
+    // Load the packet.
+    radio_loadPacket(packet, pkt_len);
+    
+    // Turn on the radio.
+    gpio_0_set(); // This will be cleared by cb_timer_radio();
+    radio_txEnable();
+    radio_vars.sendDone = false;
+    // Wait one millisecond
+    radio_delayCPUCycles(2000);
+    // Trigger the radio to send the packet.
+    cb_timer_radio();
+    // Wait 5 milliseconds
+    radio_delayCPUCycles(2000);
+    // Turn off the radio.
+    radio_rfOff();
+    radio_vars.sendDone = true;
+    gpio_0_set();
 }
 
 // Receive a packet of any length.
@@ -350,7 +376,7 @@ void default_radio_rx_cb(uint8_t* packet, uint8_t packet_len) {
 void cb_timer_radio(void) {
     if (radio_vars.radio_mode == TX_MODE) {
         // Tranmit the packet
-        gpio_4_clr();
+        gpio_0_clr();
         radio_txNow();
     } else if (radio_vars.radio_mode == RX_MODE) {
         // Stop attempting to receive
@@ -418,6 +444,20 @@ void radio_setRxCb(radio_rx_cbt radio_rx_cb) {
 void radio_reset(void) {
     // reset SCuM radio module
     RFCONTROLLER_REG__CONTROL = RF_RESET;
+}
+
+void radio_delayCPUCycles(uint32_t cycles) {
+    for (uint32_t i = 0; i < cycles; i++) {
+        __asm("nop");
+    }
+}   
+
+// Delays in milliseconds assuming a 20 MHz CPU clock
+// Best only when used in 3WB boot mode
+void radio_delayCPUMilliseconds(uint32_t milliseconds) {
+    // Each clock tick is 500ns
+    uint32_t cycles = milliseconds * 2000;
+    radio_delayCPUCycles(cycles);
 }
 
 void radio_setFrequency(uint8_t frequency, radio_freq_t tx_or_rx) {

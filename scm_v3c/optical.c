@@ -134,11 +134,13 @@ void optical_sfd_isr(void) {
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x100000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x140000);
     count_HFclock = rdata_lsb + (rdata_msb << 16);
+    //count_HFclock *= 2;
 
     // Read 2M counter
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
     count_2M = rdata_lsb + (rdata_msb << 16);
+    //count_2M -= (count_2M )
 
     // Read LC_div counter (via counter4)
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
@@ -149,6 +151,7 @@ void optical_sfd_isr(void) {
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000);
     count_IF = rdata_lsb + (rdata_msb << 16);
+    //count_IF *= 2;
 
     // Reset all counters
     ANALOG_CFG_REG__0 = 0x0000;

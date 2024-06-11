@@ -10,7 +10,7 @@
 #define DIN_PIN     13 // Used when reading data from the IMU thus a SCuM input
 #define DATA_PIN    12 // Used when writing to the IMU thus a SCuM output
 // ADS pin definitions
-#define RST_PIN     15  // need to check IO (output)
+#define RST_PIN     5  // need to check IO (output)
 #define DRDY_PIN    3  // need to check IO (input)
 #define ADS_DVDD 	7	// ADS1299 is powered by SCuM's GPIO pin 7, supplies 1.8V
 
@@ -89,6 +89,8 @@ void ads_init() {
 	digitalWrite(ADS_DVDD, 1);
     // toggle reset pin
     digitalWrite(RST_PIN, 0);
+    digitalWrite(RST_PIN, 1);
+
 
     // cortex clock 2MHz(0.5us)
     // power up ~32ms
