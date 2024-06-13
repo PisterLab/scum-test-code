@@ -99,8 +99,44 @@ void init_pwm_dac(uint16_t freq, uint8_t duty_cycle)
   delay_ticks_asynchronous(100, PWM_TIMER_ID);
 }
 
+void sulu_ads1299_self_test(void)
+{
+  // Self-test circuit that uses GPIO1 and GPIO2
+  // as inputs to an RC high-pass filter that is re-biased to 2.5V
+  // Occasional pulses from GPIO1 and GPIO2 should create interesting low-voltage waveforms
+
+  printf("Starting the self-test\n");
+
+  // Set up the GPIO 
+  GPO_enable_set(1);
+  GPI_enable_clr(1);
+
+  GPO_enable_set(2);
+  GPI_enable_clr(2);
+
+  analog_scan_chain_write();
+  analog_scan_chain_load();
+
+  // Initial conditions
+  gpio_1_clr();
+  gpio_2_set();
+  radio_delayCPUMilliseconds(5);
+
+  // Begin the loop
+
+  while(1) {
+    // Toggle GPIO1
+    gpio_1_set();
+    gpio_2_clr();
+    radio_delayCPUCycles(60);
+    gpio_1_clr();
+    gpio_2_set();
+    radio_delayCPUMilliseconds(10);
+  }
+}
+
 void tx_cal_open_loop(void) {
-  uint8_t packet[8] = {0}; // Initialize all elements to 0
+  uint8_t packet[64] = {0}; // Initialize all elements to 0
   while(1) {
     for (uint8_t coarse = START_COARSE_CODE; coarse <= END_COARSE_CODE; coarse++) {
       for (uint8_t mid = START_MEDIUM_CODE; mid <= END_MEDIUM_CODE; mid++) {
@@ -132,7 +168,7 @@ void tx_cal_open_loop(void) {
             packet[1] = mid;
             packet[2] = fine;
             packet[3] = 0x55; // 0x55 as a placeholder for additional data
-            send_packet_cpu(&packet[0], 10);  
+            send_packet_cpu(&packet[0], 66); // 64 + 2 for the CRC
             radio_delayCPUMilliseconds(10);
           }
           radio_delayCPUCycles(10); // Delay to allow for transmission completion
@@ -178,6 +214,8 @@ int main(void) {
 
     analog_scan_chain_write();
     analog_scan_chain_load();
+
+    sulu_ads1299_self_test();
 
     gpio_5_set(); // /ADS_RESET
     gpio_5_clr();
