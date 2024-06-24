@@ -1,3 +1,3 @@
 # hello_world
 
-Repeatedly prints a hello world message after performing calibration
+Repeatedly prints a Hello World message after performing calibration.

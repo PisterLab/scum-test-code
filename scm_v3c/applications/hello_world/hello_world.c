@@ -1,46 +1,27 @@
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
 
-#include "memory_map.h"
 #include "optical.h"
 #include "scm3c_hw_interface.h"
 
-//=========================== defines =========================================
+// Number of for loop cycles between Hello World messages.
+// 700000 for loop cycles roughly correspond to 1 second.
+#define NUM_CYCLES_BETWEEN_TX 1000000
 
-#define CRC_VALUE (*((unsigned int*)0x0000FFFC))
-#define CODE_LENGTH (*((unsigned int*)0x0000FFF8))
-
-//=========================== variables =======================================
-
-typedef struct {
-    uint8_t count;
-} app_vars_t;
-
-app_vars_t app_vars;
-
-//=========================== prototypes ======================================
-
-//=========================== main ============================================
+// TX counter.
+uint32_t g_tx_counter = 0;
 
 int main(void) {
-    uint32_t i;
-
-    memset(&app_vars, 0, sizeof(app_vars_t));
-
-    printf("Initializing...");
-
     initialize_mote();
     crc_check();
     perform_calibration();
 
-    while (1) {
-        printf("Hello World! %d\n", app_vars.count);
-        app_vars.count += 1;
+    while (true) {
+        printf("Hello World! %u\n", g_tx_counter);
+        ++g_tx_counter;
 
-        for (i = 0; i < 1000000; i++);
+        for (size_t i = 0; i < NUM_CYCLES_BETWEEN_TX; ++i);
     }
 }
-
-//=========================== public ==========================================
-
-//=========================== private =========================================
