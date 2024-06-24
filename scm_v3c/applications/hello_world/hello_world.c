@@ -11,7 +11,7 @@
 #define NUM_CYCLES_BETWEEN_TX 1000000
 
 // TX counter.
-uint32_t g_tx_counter = 0;
+static uint32_t g_tx_counter = 0;
 
 int main(void) {
     initialize_mote();

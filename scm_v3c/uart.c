@@ -17,17 +17,17 @@ enum {
 };
 
 // UART TX callback function.
-uart_tx_callback_t g_uart_tx_callback;
+static uart_tx_callback_t g_uart_tx_callback;
 
 // UART RX callback function.
-uart_rx_callback_t g_uart_rx_callback;
+static uart_rx_callback_t g_uart_rx_callback;
 
 // UART XON/XOFF escaping. If true, the current data character is being escaped
 // and has to be transmitted after the escape character.
-bool g_uart_xon_xoff_escaping = false;
+static bool g_uart_xon_xoff_escaping = false;
 
 // UART XON/XOFF escaped character.
-char g_uart_xon_xoff_escaped_char;
+static char g_uart_xon_xoff_escaped_char = 0;
 
 // UART TX interrupt service routine.
 void uart_tx_isr(void) {
@@ -48,11 +48,11 @@ void uart_rx_isr(void) {
     }
 }
 
-void uart_set_tx_callback(uart_tx_callback_t callback) {
+void uart_set_tx_callback(const uart_tx_callback_t callback) {
     g_uart_tx_callback = callback;
 }
 
-void uart_set_rx_callback(uart_rx_callback_t callback) {
+void uart_set_rx_callback(const uart_rx_callback_t callback) {
     g_uart_rx_callback = callback;
 }
 
@@ -66,7 +66,7 @@ void uart_disable_interrupt(void) {
     printf("UART interrupt disabled: 0x%x.\n", ICER);
 }
 
-void uart_set_cts(bool state) {
+void uart_set_cts(const bool state) {
     if (state) {
         UART_REG__TX_DATA = XON;
     } else {
@@ -74,7 +74,7 @@ void uart_set_cts(bool state) {
     }
 }
 
-void uart_write(char data) {
+void uart_write(const char data) {
     if (data == XOFF || data == XON || data == XONXOFF_MASK) {
         g_uart_xon_xoff_escaping = true;
         g_uart_xon_xoff_escaped_char = data;

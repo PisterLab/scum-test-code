@@ -8,7 +8,7 @@
 #include "optical.h"
 #include "scm3c_hw_interface.h"
 
-// Number of for loop cycles after between ADC reads.
+// Number of for loop cycles between ADC reads.
 // 700000 for loop cycles roughly correspond to 1 second.
 #define NUM_CYCLES_BETWEEN_ADC_READS 700000
 

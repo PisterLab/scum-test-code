@@ -66,6 +66,13 @@ static uint16_t g_adc_output = 0;
 // If true, ADC conversion has finished and the output is valid.
 static bool g_adc_output_valid = false;
 
+// ADC interrupt service routine.
+void adc_isr(void) {
+    // printf("ADC conversion complete.\n");
+    g_adc_output = ADC_REG__DATA;
+    g_adc_output_valid = true;
+}
+
 // Set the ASC bit to the specified value.
 static inline void adc_set_asc_bit(const adc_asc_bit_t asc_bit,
                                    const uint8_t value) {
@@ -223,11 +230,4 @@ uint16_t adc_average_output(void) {
         adc_output_sum += adc_read_output();
     }
     return adc_output_sum / NUM_ADC_OUTPUTS_TO_AVERAGE;
-}
-
-// ADC interrupt service routine.
-void adc_isr(void) {
-    // printf("ADC conversion complete.\n");
-    g_adc_output = ADC_REG__DATA;
-    g_adc_output_valid = true;
 }
