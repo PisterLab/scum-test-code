@@ -189,8 +189,8 @@ void adc_enable_interrupt(void) {
 }
 
 void adc_disable_interrupt(void) {
-    ISER &= ~(0x1 << 3);
-    printf("ADC interrupt disabled: 0x%x.\n", ISER);
+    ICER |= (0x1 << 3);
+    printf("ADC interrupt disabled: 0x%x.\n", ICER);
 }
 
 void adc_trigger(void) {
@@ -225,6 +225,7 @@ uint16_t adc_average_output(void) {
     return adc_output_sum / NUM_ADC_OUTPUTS_TO_AVERAGE;
 }
 
+// ADC interrupt service routine.
 void adc_isr(void) {
     // printf("ADC conversion complete.\n");
     g_adc_output = ADC_REG__DATA;
