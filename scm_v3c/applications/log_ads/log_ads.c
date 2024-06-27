@@ -16,12 +16,12 @@
 #define PWM_TIMER_ID 2
 
 // Start coarse code for the sweep to find 802.15.4 channels.
-#define START_COARSE_CODE 21
+#define START_COARSE_CODE 22
 // End coarse code for the sweep to find 802.15.4 channels.
-#define END_COARSE_CODE 21
+#define END_COARSE_CODE 22
 
 // Start medium code for the sweep to find 802.15.4 channels.
-#define START_MEDIUM_CODE 19
+#define START_MEDIUM_CODE 18
 // End medium code for the sweep to find 802.15.4 channels.
 #define END_MEDIUM_CODE 21
 
@@ -136,13 +136,13 @@ void sulu_ads1299_self_test(void)
 }
 
 void tx_cal_open_loop(void) {
-  uint8_t packet[64] = {0}; // Initialize all elements to 0
+  uint8_t packet[16] = {0}; // Initialize all elements to 0
   while(1) {
     for (uint8_t coarse = START_COARSE_CODE; coarse <= END_COARSE_CODE; coarse++) {
       for (uint8_t mid = START_MEDIUM_CODE; mid <= END_MEDIUM_CODE; mid++) {
         for (uint8_t fine = START_FINE_CODE; fine <= END_FINE_CODE; fine++) {
           //printf("Sent - C:%u M:%u F:%u\n", coarse, mid, fine);
-          for(uint8_t i = 0; i < 16; i++) {
+          for(uint8_t i = 0; i < 4; i++) {
             g_tuning_code.coarse = coarse;
             g_tuning_code.mid = mid;
             g_tuning_code.fine = fine;
@@ -168,8 +168,8 @@ void tx_cal_open_loop(void) {
             packet[1] = mid;
             packet[2] = fine;
             packet[3] = 0x55; // 0x55 as a placeholder for additional data
-            send_packet_cpu(&packet[0], 66); // 64 + 2 for the CRC
-            radio_delayCPUMilliseconds(10);
+            send_packet_cpu(&packet[0], 18); // 64 + 2 for the CRC
+            radio_delayCPUMilliseconds(1); 
           }
           radio_delayCPUCycles(10); // Delay to allow for transmission completion
         }
@@ -200,7 +200,7 @@ int main(void) {
     crc_check();
     perform_calibration();
 
-    set_VDDD_LDO_voltage(40); // 40 for U1, 64 for U2
+    set_VDDD_LDO_voltage(64); // 40 for U1, 64 for U2
     // set_AUX_LDO_voltage(40);
     // set_ALWAYSON_LDO_voltage(40);
 
@@ -215,7 +215,7 @@ int main(void) {
     analog_scan_chain_write();
     analog_scan_chain_load();
 
-    sulu_ads1299_self_test();
+    //sulu_ads1299_self_test();
 
     gpio_5_set(); // /ADS_RESET
     gpio_5_clr();
@@ -225,6 +225,7 @@ int main(void) {
     gpio_0_clr();
 
 
+    printf("Starting the open loop tuning.\n");
     // Start the open loop tuning
     tx_cal_open_loop();
     

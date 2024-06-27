@@ -1275,7 +1275,7 @@ void initialize_mote() {
 
     // Set LDO reference voltages
     // Can be between 0 and 127
-    set_VDDD_LDO_voltage(40); // 40 for U1, 64 for U2
+    set_VDDD_LDO_voltage(64); // 40 for U1, 64 for U2
     // set_AUX_LDO_voltage(20);
     // set_ALWAYSON_LDO_voltage(20);
 
