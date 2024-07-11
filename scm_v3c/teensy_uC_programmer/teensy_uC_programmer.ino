@@ -272,24 +272,61 @@ void loop() {
   }
 }
 
-
 void transfer_sram() {
-  Serial.println("Executing SRAM Transfer - SCM3B Rev 2");
+  Serial.println("SRAM Transfer - SCM3B Rev 2");
+  Serial.send_now();
+
+  // Look for \r\n to indicate we are ready to receive data
+  while((char)Serial.read() != '\r');
+  while((char)Serial.read() != '\n');
+  Serial.println("newline received!");
+
   int doneflag = 0;
   iindex = 0;
 
+  const int chunk_size = 1024;
+  const int buffer_size = chunk_size * 2; // 128 bytes * 2 hex chars + \r\n
+  char buffer[buffer_size] = {0}; // Buffer to hold chunk_size bytes * 2 hex chars + \r\n
+  int buffer_ptr = 0;
+  char hexh[3] = {0}; // Add null terminator
+  char* endptr;
+
   // Loop until entire 64kB received over serial
   while (!doneflag) {
-
     // Retrieve SRAM contents over serial
     if (Serial.available()) {
-      ram[iindex] = (byte)Serial.read();
-      iindex++;
+      while (Serial.available() > 0) {
+        char val = Serial.read();
+        buffer[buffer_ptr++] = val;
+      }
+
+      
+      Serial.println("DR at " + String(buffer_ptr));
+      for (int i = 0; i < buffer_ptr; i += 2) {
+        hexh[0] = buffer[i];
+        hexh[1] = buffer[i + 1];
+        hexh[2] = '\0';
+
+        // Convert hex string to byte
+        long value = strtol(hexh, &endptr, 16);
+
+        // Check for conversion errors
+        if (endptr != hexh + 2 || value < 0 || value > 255) {
+          Serial.println("Error: Invalid hex value");
+          break;
+        }
+        ram[iindex] = (byte)value;
+        iindex++;
+        if (iindex % chunk_size == 0) {
+          Serial.println(iindex);
+        }
+      }
+      buffer_ptr = 0; // Reset buffer pointer
     }
 
-    if (iindex == 65536)  {
+    if (iindex == 65536) {
       doneflag = 1;
-      //Serial.println("SRAM Transfer Complete");
+      Serial.println("SRAM Transfer Complete");
     }
   }
 }
@@ -299,7 +336,9 @@ void transfer_sram_4b5b() {
   int doneflag = 0;
   iindex = 0;
 
-  // Loop until entire 64kB received over serial
+
+
+
   while (!doneflag) {
 
     // Retrieve SRAM contents over serial

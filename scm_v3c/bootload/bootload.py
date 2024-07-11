@@ -3,7 +3,7 @@ import random
 import argparse
 import time
 
-def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.bin",
+def program_cortex(teensy_port="COM13", scum_port="COM18", binary_image="./code.bin",
         boot_mode='optical', skip_reset=False, insert_CRC=False,
         pad_random_payload=False):
     """
@@ -43,10 +43,13 @@ def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.
     # Open COM port to Teensy
     teensy_ser = serial.Serial(
         port=teensy_port,
-        baudrate=19200,
+        baudrate=10000000,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS)
+        bytesize=serial.EIGHTBITS,
+        timeout=2,
+        write_timeout=2
+    )
 
     # Open binary file from Keil
     with open(binary_image, 'rb') as f:
@@ -77,8 +80,37 @@ def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.
     # Transfer payload to Teensy
     teensy_ser.write(b'transfersram\n')
     print(teensy_ser.readline())
-    # Send the binary data over uart
-    teensy_ser.write(bindata)
+    teensy_ser.write(b'\r\n')
+    print(teensy_ser.readline())
+    # Transform the binary data into a hexadecimal string array
+    hexdata = bindata.hex()
+    chunk_size = 2048  # Each byte is represented by 2 hex characters
+    for i in range(0, len(hexdata), chunk_size):
+        chunk = hexdata[i:i+chunk_size]
+        pkt = chunk.encode('utf-8') + b'\n'
+        teensy_ser.write(pkt)
+        echo = teensy_ser.readline()
+        if echo.startswith(b'DR at'):
+            # Extract the value after 'NL at '
+            nl_value = int(echo.split(b'DR at ')[1].strip())
+            print(nl_value)
+            # If the value does not match the chunk size, resend the last chunk
+            # if nl_value != chunk_size:
+            #     print(f"Chunk size mismatch: expected {chunk_size}, got {nl_value}. Resending chunk.")
+            #     teensy_ser.write(pkt)
+            #     echo = teensy_ser.readline()
+        print(f"Sent chunk {i//chunk_size + 1}, received echo: {echo}")
+        time.sleep(0.05)
+
+    # Wait for the final confirmation
+    resp = teensy_ser.readline()
+    while(len(resp) == 0):
+        print("Waiting for reply...")
+        resp = teensy_ser.readline()
+
+    print(resp)
+    if(resp != b'SRAM Transfer Complete\r\n'):
+        raise ValueError("Teensy did not report ready after sending data")
 
     if insert_CRC:
         # Have Teensy calculate 32-bit CRC over the code length 
@@ -121,6 +153,8 @@ def program_cortex(teensy_port="COM15", scum_port="COM18", binary_image="./code.
 
     teensy_ser.close()
 
+    exit(0)
+
     # Open UART connection to SCM
     if scum_port != None:
         uart_ser = serial.Serial(
@@ -145,7 +179,7 @@ if __name__ == "__main__":
     
     parser.add_argument('-tp', '--teensy_port',
         dest='teensy_port', 
-        default='COM12',
+        default='COM13',
         action='store', 
         help='Name of the COM port that the Teensy\
             is connected to.'
@@ -162,7 +196,7 @@ if __name__ == "__main__":
     
     parser.add_argument('-i','--image',
         dest='binary_image',
-        default='pingpong_test.bin',
+        default="C:\\Projects\\Repositories\\scum-test-code\\scm_v3c\\applications\\log_ads\\Objects\\log_ads.bin",
         help='Path to the binary file to \
             feed to Teensy to program SCM. This binary file shold be\
             compiled using whatever software is meant to end up \
