@@ -62,6 +62,18 @@ def send_bin_packet(teensy_ser, bindata):
                 raise ValueError(f"Error in packet: {rsp}")
     print(rsp)
 
+def crc32(data):
+    crc = 0xFFFFFFFF
+    for byte in data:
+        if isinstance(data, bytearray):
+            byte = int(byte)
+        crc ^= byte
+        for _ in range(8):
+            if crc & 1:
+                crc = (crc >> 1) ^ 0xEDB88320
+            else:
+                crc = crc >> 1
+    return ~crc & 0xFFFFFFFF
 
 def program_cortex(teensy_port="COM13", scum_port="COM18", binary_image="./code.bin",
         boot_mode='optical', skip_reset=False, insert_CRC=False,
@@ -107,8 +119,8 @@ def program_cortex(teensy_port="COM13", scum_port="COM18", binary_image="./code.
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
         bytesize=serial.EIGHTBITS,
-        timeout=2,
-        write_timeout=2
+        timeout=5,
+        write_timeout=5
     )
 
     # Open binary file from Keil
@@ -160,6 +172,22 @@ def program_cortex(teensy_port="COM13", scum_port="COM18", binary_image="./code.
     if(resp != b'SRAM Transfer Complete\r\n'):
         raise ValueError("Teensy did not report ready after sending data")
 
+    time.sleep(1)
+
+    resp = teensy_ser.readline()
+    # Parse the CRC out of b'CRC: 0x[32-bit hex]
+    crc_str = resp.split(b'CRC: ')[1].split(b'\r\n')[0].decode('utf-8')
+    crc_val = int(crc_str, 16)
+
+    
+
+    # Calculate crc locally on bindata and compare with Teensy's
+    crc_local = crc32(bindata)
+    if crc_local != crc_val:
+        raise ValueError("CRC mismatch between Teensy and local calculation")
+    
+    print(f"CRC matched: Teensy: 0x{crc_val:08X}, PC: 0x{crc_local:08X}")
+
     if insert_CRC:
         # Have Teensy calculate 32-bit CRC over the code length 
         # It will store the 32-bit result at address 0x0000FFFC
@@ -184,7 +212,9 @@ def program_cortex(teensy_port="COM13", scum_port="COM18", binary_image="./code.
             teensy_ser.write(b'bootopt4b5bnorst\n')
 
         # Display confirmation message from Teensy
-        print(teensy_ser.readline())
+        print((rsp := teensy_ser.readline()))
+        if(rsp != b'Optical Boot Complete\r\n'):
+            raise ValueError("Optical Boot failed: Teensy did not report 'Optical Boot Complete'")
         # delay 2 seconds in case image takes long to complete CRC check for large size.
         time.sleep(2)
         teensy_ser.write(b'opti_cal\n');

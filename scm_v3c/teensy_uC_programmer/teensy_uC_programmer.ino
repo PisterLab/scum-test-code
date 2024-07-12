@@ -306,8 +306,6 @@ unsigned int parse_bindata_payload(char* payload, int payload_size, unsigned int
 // Hex data: 2 hex digits per byte
 // End of packet: "\n"
 unsigned int parse_bindata_buffer(char* buffer, int buffer_size, unsigned int sram_write_head ) {
-  int packet_start = 0;
-  int packet_end = 0;
   char* packet_head = buffer;
 
   unsigned int old_sram_write_head = sram_write_head;
@@ -364,6 +362,22 @@ unsigned int parse_bindata_buffer(char* buffer, int buffer_size, unsigned int sr
   return sram_write_head;
 }
 
+uint32_t calculate_crc32(uint8_t* ram) {
+  // Calculate CRC32 over the SRAM contents
+  uint32_t crc = 0xFFFFFFFF;
+  for (int i = 0; i < 65536; i++) {
+    uint8_t byte = ram[i];
+    crc ^= byte;
+    for (int j = 0; j < 8; j++) {
+      if (crc & 1)
+        crc = (crc >> 1) ^ 0xEDB88320;
+      else
+        crc = crc >> 1;
+    }
+  }
+  return ~crc;
+}
+
 void transfer_sram() {
   Serial.println("SRAM Transfer - SCM3B Rev 2");
   Serial.send_now();
@@ -380,8 +394,6 @@ void transfer_sram() {
   const int buffer_size = chunk_size * 2; // 128 bytes * 2 hex chars + \r\n
   char buffer[buffer_size] = {0}; // Buffer to hold chunk_size bytes * 2 hex chars + \r\n
   int buffer_ptr = 0;
-  char hexh[3] = {0}; // Add null terminator
-  char* endptr;
 
   // Loop until entire 64kB received over serial
   while (!doneflag) {
@@ -415,6 +427,14 @@ void transfer_sram() {
       Serial.println("SRAM Transfer Complete");
     }
   }
+  // Calculate CRC by passing back over sram array, send that CRC 
+
+
+  uint32_t crc = calculate_crc32(ram);
+
+  // Send the calculated CRC over serial
+  Serial.print("CRC: 0x");
+  Serial.println(crc, HEX);
 }
 
 void transfer_sram_4b5b() {
@@ -1610,7 +1630,7 @@ void opti_cal() {
     //delayMicroseconds(877);
     delay(96);
     delayMicroseconds(910);
-    }
+  }
 }
 
 // First use transfer_sram() to copy 64kB payload into Teensy SRAM variable ram[]
