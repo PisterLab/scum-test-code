@@ -3,6 +3,66 @@ import random
 import argparse
 import time
 
+def test_prep_bin_packet():
+    # Test with 2 bytes of binary data
+    test_data = bytes([0xAA, 0xBB])
+    result = prep_bin_packet(test_data)
+    
+    # Expected output:
+    # Ts000002AABB\n
+    expected = bytes("Ts000002aabb\n", 'utf-8')
+    
+    assert result == expected, f"Expected {expected}, but got {result}"
+
+def test_prep_bin_packet_random():
+    # Test with random length (1 to 1000 bytes) of binary data
+    length = random.randint(1, 1000)
+    test_data = bytes([random.randint(0, 255) for _ in range(length)])
+    result = prep_bin_packet(test_data)
+    
+    # Expected output format:
+    # Ts[6-digit length][hex data]\n
+    expected_prefix = f"Ts{length:06d}"
+    expected_suffix = "\n"
+    expected_hex = test_data.hex()
+    
+    assert result.startswith(bytes(expected_prefix, 'utf-8')), f"Expected to start with {expected_prefix}, but got {result[:8]}"
+    assert result.endswith(bytes(expected_suffix, 'utf-8')), f"Expected to end with {expected_suffix}, but got {result[-1:]}"
+    assert result[8:-1].decode('utf-8') == expected_hex, f"Expected hex data {expected_hex}, but got {result[8:-1].decode('utf-8')}"
+    
+    print(f"Random test passed with {length} bytes of data")
+
+def prep_bin_packet(bindata):
+    # Preamble: "T", "s"
+    # Next 6 bytes: length of payload as a string
+    # Payload is bindata transformed to string as hexadecimal
+    # representation, i.e. "0xAA", "0xF2", "0x00", "0x00", ...
+    # Ends with \n
+
+    hex_payload = bindata.hex()
+    packet = bytes("Ts" + "{:06d}".format(len(bindata)) + hex_payload + "\n", 'utf-8')
+    print(packet)
+    return packet
+
+def send_bin_packet(teensy_ser, bindata):
+    # time.sleep(0.005)
+    prepped_pkt = prep_bin_packet(bindata)
+    teensy_ser.write(prepped_pkt)
+
+    while b'OK' not in (rsp := teensy_ser.readline()):
+        print(rsp)
+        # Find Error: in rsp and abort
+        if b'Error' in rsp:
+            if b'Invalid packet format' in rsp:
+                # Try again
+                print('---- Dropped, trying again ----')
+                send_bin_packet(teensy_ser, bindata)
+                return
+            else:
+                raise ValueError(f"Error in packet: {rsp}")
+    print(rsp)
+
+
 def program_cortex(teensy_port="COM13", scum_port="COM18", binary_image="./code.bin",
         boot_mode='optical', skip_reset=False, insert_CRC=False,
         pad_random_payload=False):
@@ -82,25 +142,13 @@ def program_cortex(teensy_port="COM13", scum_port="COM18", binary_image="./code.
     print(teensy_ser.readline())
     teensy_ser.write(b'\r\n')
     print(teensy_ser.readline())
-    # Transform the binary data into a hexadecimal string array
-    hexdata = bindata.hex()
-    chunk_size = 2048  # Each byte is represented by 2 hex characters
-    for i in range(0, len(hexdata), chunk_size):
-        chunk = hexdata[i:i+chunk_size]
-        pkt = chunk.encode('utf-8') + b'\n'
-        teensy_ser.write(pkt)
-        echo = teensy_ser.readline()
-        if echo.startswith(b'DR at'):
-            # Extract the value after 'NL at '
-            nl_value = int(echo.split(b'DR at ')[1].strip())
-            print(nl_value)
-            # If the value does not match the chunk size, resend the last chunk
-            # if nl_value != chunk_size:
-            #     print(f"Chunk size mismatch: expected {chunk_size}, got {nl_value}. Resending chunk.")
-            #     teensy_ser.write(pkt)
-            #     echo = teensy_ser.readline()
-        print(f"Sent chunk {i//chunk_size + 1}, received echo: {echo}")
-        time.sleep(0.05)
+    time.sleep(0.1)
+    # We seem to have a limit of 64 total packet length
+    chunk_size = 16  # Each byte is represented by 2 hex characters
+                     # chunk_size = 16 results in a packet of 41
+    for i in range(0, len(bindata), chunk_size):
+        chunk = bindata[i:i+chunk_size]
+        send_bin_packet(teensy_ser, chunk)
 
     # Wait for the final confirmation
     resp = teensy_ser.readline()
@@ -174,6 +222,9 @@ def program_cortex(teensy_port="COM13", scum_port="COM18", binary_image="./code.
     return
 
 if __name__ == "__main__":
+
+    test_prep_bin_packet()
+    test_prep_bin_packet_random()
     
     parser = argparse.ArgumentParser(description='bootlaod script arguments')
     

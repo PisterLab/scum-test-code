@@ -272,6 +272,98 @@ void loop() {
   }
 }
 
+unsigned int parse_bindata_payload(char* payload, int payload_size, unsigned int sram_write_head) {
+  char hexh[3] = {0}; // Add null terminator
+  char* endptr;
+  byte byte_value;
+  // Process the hex data
+  for (int i = 0; i < payload_size; i++) {
+    hexh[0] = payload[i * 2];
+    hexh[1] = payload[i * 2 + 1];
+    hexh[2] = '\0';
+
+    byte_value = (byte)strtoul(hexh, &endptr, 16);
+
+    ram[sram_write_head++] = (byte)byte_value;
+  }
+
+  // debug: print back the byte array
+  // for (int i = 0; i < payload_size; i++) {
+  //   Serial.print(ram[sram_write_head - payload_size + i], HEX);
+  //   Serial.print(" ");
+  // }
+  // Serial.println(); 
+  return sram_write_head;
+}
+
+// Buffers can be any byte length, we need to loop over the buffer, find the preamble
+// Then pass the packet to parse_bindata_payload
+
+// Parses the received buffer from UART, writes to SRAM, and returns the new SRAM write head
+// Packets are in the format
+// Preamble: "T" "s"
+// Length: 6 digits
+// Hex data: 2 hex digits per byte
+// End of packet: "\n"
+unsigned int parse_bindata_buffer(char* buffer, int buffer_size, unsigned int sram_write_head ) {
+  int packet_start = 0;
+  int packet_end = 0;
+  char* packet_head = buffer;
+
+  unsigned int old_sram_write_head = sram_write_head;
+  
+  while (packet_head < buffer + buffer_size) {
+    unsigned int length;
+    // Check if the packet starts with "Ts"
+    unsigned int offset = 2;
+    if (packet_head[0] != 'T' || packet_head[1] != 's') {
+      // We can try to recover from the missing first byte
+      offset = 1;
+      if(packet_head[0] != 's') {
+        Serial.println("Error: Invalid packet format");
+        return sram_write_head;
+      }
+    }
+
+    // Extract the length from the next 6 characters
+    char length_str[7];
+    char* endptr;
+    strncpy(length_str, packet_head + offset, 6);
+    length_str[6] = '\0';
+    length = (unsigned int)strtoul(length_str, &endptr, 10);
+
+    // Validate that the length is valid and doesnt exceed our buffer size
+    if (endptr != length_str + 6 || length == 0) {
+      Serial.println("Error: Invalid length");
+      return sram_write_head;
+    }
+   
+    // Now its safe to hand off the payload to parse_bindata_payload
+    unsigned int tmp = parse_bindata_payload(packet_head + 6 + offset, length, sram_write_head);
+    if(tmp == sram_write_head) {
+      return old_sram_write_head;
+    }
+    sram_write_head = tmp;
+
+    // Check for the newline character at the end
+    if (packet_head[(6 + offset) + length * 2] != '\n') {
+      Serial.println("Error: Missing newline at end of packet");
+      Serial.flush();
+      return sram_write_head;
+    }
+
+    // Move the packet head forward by the length of the packet + newline
+    packet_head += (6+offset) + length * 2 + 1;
+
+    Serial.print("Processed ");
+    Serial.print(length);
+    Serial.println(" bytes");
+
+  }
+
+  return sram_write_head;
+}
+
 void transfer_sram() {
   Serial.println("SRAM Transfer - SCM3B Rev 2");
   Serial.send_now();
@@ -295,33 +387,27 @@ void transfer_sram() {
   while (!doneflag) {
     // Retrieve SRAM contents over serial
     if (Serial.available()) {
-      while (Serial.available() > 0) {
+      while (Serial.available()) {
         char val = Serial.read();
         buffer[buffer_ptr++] = val;
       }
 
-      
-      Serial.println("DR at " + String(buffer_ptr));
-      for (int i = 0; i < buffer_ptr; i += 2) {
-        hexh[0] = buffer[i];
-        hexh[1] = buffer[i + 1];
-        hexh[2] = '\0';
-
-        // Convert hex string to byte
-        long value = strtol(hexh, &endptr, 16);
-
-        // Check for conversion errors
-        if (endptr != hexh + 2 || value < 0 || value > 255) {
-          Serial.println("Error: Invalid hex value");
-          break;
-        }
-        ram[iindex] = (byte)value;
-        iindex++;
-        if (iindex % chunk_size == 0) {
-          Serial.println(iindex);
-        }
+      // print out the buffer as a string of characters
+      for (int i = 0; i < buffer_ptr; i++) {
+        Serial.print(buffer[i]);
       }
-      buffer_ptr = 0; // Reset buffer pointer
+      Serial.println();
+
+      // Now process the packet
+      int tmp  = parse_bindata_buffer(buffer, buffer_ptr, iindex);
+      buffer_ptr = 0;
+      if(tmp == iindex) 
+        continue;
+      iindex = tmp;
+
+      Serial.print("OK ");
+      Serial.println(iindex);
+      Serial.send_now();
     }
 
     if (iindex == 65536) {
