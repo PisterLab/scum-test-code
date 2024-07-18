@@ -246,9 +246,18 @@ void optical_sfd_isr(void) {
         analog_scan_chain_load();
     }
 
+    HF_CLOCK_coarse = 0;
+    HF_CLOCK_fine = 0;
+    // Override on buggy Sulu-ADS1299 Rev. 3 boards
+    set_sys_clk_secondary_freq(HF_CLOCK_coarse, HF_CLOCK_fine);
+    scm3c_hw_interface_set_HF_CLOCK_coarse(HF_CLOCK_coarse);
+    scm3c_hw_interface_set_HF_CLOCK_fine(HF_CLOCK_fine);
+    analog_scan_chain_write();
+    analog_scan_chain_load();
+
     // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n", count_HFclock,
-           HF_CLOCK_fine, count_2M, RC2M_coarse, RC2M_fine, RC2M_superfine,
+    printf("HF=%d-%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n", count_HFclock,
+           HF_CLOCK_coarse, HF_CLOCK_fine, count_2M, RC2M_coarse, RC2M_fine, RC2M_superfine,
            count_LC, optical_vars.LC_code, count_IF, IF_fine);
 
     if (optical_vars.optical_cal_iteration == 25) {
