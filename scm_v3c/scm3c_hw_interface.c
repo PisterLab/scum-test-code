@@ -1284,8 +1284,8 @@ void initialize_mote() {
                               // needed for 3WB cal
 
     // Select banks for GPIO outputs
-    GPO_control(6, 6, 0,
-                6);  // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
+    GPO_control(6, 6, 0, 0);  // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
+                              // Setting to 6 now for optical cal
 
     /////
     // Set GPI enables
@@ -1338,7 +1338,7 @@ void initialize_mote() {
 
     
 
-    // Set 2M RC as source for chip CLK
+    // Set 2M RC as source for chipping CLK
     set_asc_bit(1156);
 
     
@@ -1346,7 +1346,7 @@ void initialize_mote() {
     // Enable 32k for cal
     set_asc_bit(623);
 
-    // Enable passthrough on chip CLK divider
+    // Enable passthrough on chipping CLK divider
     set_asc_bit(41);
 
     // Init counter setup - set all to analog_cfg control
