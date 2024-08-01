@@ -200,7 +200,7 @@ int main(void) {
     crc_check();
     perform_calibration();
 
-    set_VDDD_LDO_voltage(64); // 40 for U1, 64 for U2
+    //set_VDDD_LDO_voltage(64); // 40 for U1, 64 for U2
     // set_AUX_LDO_voltage(40);
     // set_ALWAYSON_LDO_voltage(40);
 
@@ -216,9 +216,6 @@ int main(void) {
     analog_scan_chain_load();
 
     //sulu_ads1299_self_test();
-
-    gpio_5_set(); // /ADS_RESET
-    gpio_5_clr();
     
 
     gpio_0_set();
@@ -227,7 +224,7 @@ int main(void) {
 
     printf("Starting the open loop tuning.\n");
     // Start the open loop tuning
-    tx_cal_open_loop();
+    //tx_cal_open_loop();
     
     tuning_tune_radio(&g_tuning_code);
     
@@ -246,17 +243,6 @@ int main(void) {
     analog_scan_chain_write();
     analog_scan_chain_load();
 
-    // Bring ADS's CSB pin high so it has a chance to throw away HCLK garbage
-    memset(&app_vars, 0, sizeof(app_vars_t));
-    // wait 1000 clock cycles
-    radio_delayCPUMilliseconds(5);
-    //delay_milliseconds_synchronous(100, 1);
-
-    gpio_11_set(); // CSB
-
-    radio_delayCPUMilliseconds(5);
-		
-		gpio_11_clr(); // CSB
 
     printf("Power up ADS1299 NOW!\r\n");
     radio_delayCPUMilliseconds(5);

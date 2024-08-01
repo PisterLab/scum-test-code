@@ -2,6 +2,8 @@
 #include "Memory_Map.h"
 #include <stdio.h>
 #include "spi.h"
+#include "radio.h"
+
 
 
 // SPI bus definitions
@@ -62,20 +64,17 @@ void ads_init() {
     //  Pin 15 (ads_reset)
     // Hex nibble 3: 0x8 = 0b1000 =
     //  Pin 7 (ADS_DVDD 1.8V)
+    GPI_enable_clr(RST_PIN);
     GPO_enable_set(RST_PIN);
     //GPO_enable_set(7);
-
     
     analog_scan_chain_write();
     analog_scan_chain_load();
-    
 
     spi_config.CS = CS_PIN;
     spi_config.MISO = DIN_PIN;
     spi_config.MOSI = DATA_PIN;
     spi_config.SCLK = CLK_PIN;
-
-    
 
     spi_handle = spi_open(&spi_config, &spi_mode);
     
@@ -85,12 +84,9 @@ void ads_init() {
         return;
     }
 
-    // Enable power to the ADS1299
-	digitalWrite(ADS_DVDD, 1);
     // toggle reset pin
     digitalWrite(RST_PIN, 0);
     digitalWrite(RST_PIN, 1);
-
 
     // cortex clock 2MHz(0.5us)
     // power up ~32ms

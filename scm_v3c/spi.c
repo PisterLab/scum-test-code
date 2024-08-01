@@ -45,12 +45,19 @@ int spi_open(spi_pin_config_t *pin_config, spi_mode_t* mode)
     node_t* node;
     uint8_t new_handle;
 
+    // Enable MISO input
     GPI_enable_set(pin_config->MISO);
     GPO_enable_clr(pin_config->MISO);
+
+    // Enable CS output
     GPO_enable_set(pin_config->CS);
     GPI_enable_clr(pin_config->CS);
+
+    // Enable MOSI output
     GPO_enable_set(pin_config->MOSI);
     GPI_enable_clr(pin_config->MOSI);
+
+    // Enable SCLK output
     GPO_enable_set(pin_config->SCLK);
     GPI_enable_clr(pin_config->SCLK);
     
@@ -60,10 +67,9 @@ int spi_open(spi_pin_config_t *pin_config, spi_mode_t* mode)
 
     spi_digitalWrite(pin_config->MOSI, 0);    // reset low
     spi_digitalWrite(pin_config->SCLK, 0);    // reset low
-    spi_digitalWrite(pin_config->CS, 0);    // reset low
+    spi_digitalWrite(pin_config->CS, 1);    // reset high
 
     // Find first available handle in the bitmap
-    
     for(new_handle = 0; new_handle < SPI_MAX_DEVICES; new_handle++){
         if((spi_node_bmap & (1 << new_handle)) == 0){
             node = &spi_nodes[new_handle];

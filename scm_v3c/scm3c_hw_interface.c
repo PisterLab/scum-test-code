@@ -1285,7 +1285,7 @@ void initialize_mote() {
 
     // Select banks for GPIO outputs
     GPO_control(6, 6, 0, 0);  // 0 in 3rd arg connects clk_3wb to GPO8 for 3WB cal
-                              // Setting to 6 now for optical cal
+                              // Set to 6  for optical cal
 
     /////
     // Set GPI enables
