@@ -158,9 +158,12 @@ int spi_read(int handle, uint8_t* byte)
         __asm("nop");
         __asm("nop");
         __asm("nop");
-        __asm("nop");
 
         spi_digitalWrite(node->config.SCLK, 0);
+        
+        __asm("nop");
+        __asm("nop");
+        __asm("nop");
     
 	}
     __enable_irq();

@@ -59,8 +59,7 @@ void perform_calibration(void) {
     optical_enable();
 
     // Wait for optical cal to finish
-    while (optical_getCalibrationFinshed() == 0)
-        ;
+    while (optical_getCalibrationFinshed() == 0);
 
     // Disable the radio now that it is calibrated
     radio_rfOff();
@@ -94,7 +93,9 @@ void optical_32_isr(void) {
 // optical data transfer Need to make sure a new bit has been clocked in prior
 // to returning from this ISR, or else it will immediately execute again
 void optical_sfd_isr(void) {
-    // 1.1V (helps reorder assembly code)
+    // 1.1V/VDDD tap fix
+    // helps reorder assembly code
+    // Not completely sure why this works
     uint32_t dummy = 0;
 
     int32_t t;
@@ -134,13 +135,11 @@ void optical_sfd_isr(void) {
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x100000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x140000);
     count_HFclock = rdata_lsb + (rdata_msb << 16);
-    //count_HFclock *= 2;
 
     // Read 2M counter
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x180000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x1C0000);
     count_2M = rdata_lsb + (rdata_msb << 16);
-    //count_2M -= (count_2M )
 
     // Read LC_div counter (via counter4)
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x280000);
@@ -151,7 +150,6 @@ void optical_sfd_isr(void) {
     rdata_lsb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x300000);
     rdata_msb = *(unsigned int*)(APB_ANALOG_CFG_BASE + 0x340000);
     count_IF = rdata_lsb + (rdata_msb << 16);
-    //count_IF *= 2;
 
     // Reset all counters
     ANALOG_CFG_REG__0 = 0x0000;
@@ -247,9 +245,15 @@ void optical_sfd_isr(void) {
     }
 
     // Debugging output
-    printf("HF=%d-%d   2M=%d-%d,%d,%d   LC=%d-%d   IF=%d-%d\r\n", count_HFclock,
-           HF_CLOCK_fine, count_2M, RC2M_coarse, RC2M_fine, RC2M_superfine,
-           count_LC, optical_vars.LC_code, count_IF, IF_fine);
+    // 1.1V/VDDD tap fix
+    // The print is now broken down into 3 statements instead of one big
+    // print statement
+    // doing this prevent a long string of loads back to back
+    printf("HF=%d-%d   2M=%d-%d", count_HFclock, HF_CLOCK_fine, count_2M,
+           RC2M_coarse);
+    printf(",%d,%d   LC=%d-%d   ", RC2M_fine, RC2M_superfine, count_LC,
+           optical_vars.LC_code);
+    printf("IF=%d-%d\r\n", count_IF, IF_fine);
 
     if (optical_vars.optical_cal_iteration == 25) {
         // Disable this ISR

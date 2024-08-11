@@ -18,7 +18,7 @@
 // Start coarse code for the sweep to find 802.15.4 channels.
 #define START_COARSE_CODE 20
 // End coarse code for the sweep to find 802.15.4 channels.
-#define END_COARSE_CODE 21
+#define END_COARSE_CODE 23
 
 // Start medium code for the sweep to find 802.15.4 channels.
 #define START_MEDIUM_CODE 0
@@ -51,8 +51,8 @@ typedef struct {
 */
 static tuning_code_t g_tuning_code = {
 	.coarse = 20, 
-	.mid = 11,
-	.fine = 16
+	.mid = 8,
+	.fine = 5
 };
 
 #define SINE_LUT_SIZE 4 
@@ -356,7 +356,6 @@ int main(void) {
 			__asm("nop");
 			__asm("nop");
 			__asm("nop");
-
 			//printf("%d\r\n", adc_data[i]);
 			__asm("nop");
 			__asm("nop");
@@ -372,7 +371,7 @@ int main(void) {
 		__asm("nop");
 
 		//for(i = 0; i < 500; i++) __asm("nop");
-		//radio_delayCPUMilliseconds(1);
+		//radio_delayCPUMilliseconds(10);
 		//delay_milliseconds_synchronous(10, 1);
 	}
 	printf("exit\n");

@@ -178,7 +178,7 @@ void send_packet_cpu(void* packet, uint8_t pkt_len) {
     // Trigger the radio to send the packet.
     cb_timer_radio();
     // Wait 5 milliseconds
-    radio_delayCPUCycles(1000);
+    radio_delayCPUCycles(2000);
     // Turn off the radio.
     radio_rfOff();
     radio_vars.sendDone = true;
