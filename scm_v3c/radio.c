@@ -174,11 +174,11 @@ void send_packet_cpu(void* packet, uint8_t pkt_len) {
     radio_txEnable();
     radio_vars.sendDone = false;
     // Wait one millisecond
-    radio_delayCPUCycles(2000);
+    radio_delayCPUCycles(2000); // 2k
     // Trigger the radio to send the packet.
     cb_timer_radio();
     // Wait 5 milliseconds
-    radio_delayCPUCycles(2000);
+    radio_delayCPUCycles(700); // 2k
     // Turn off the radio.
     radio_rfOff();
     radio_vars.sendDone = true;

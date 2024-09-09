@@ -30,7 +30,7 @@
 // End fine code for the sweep to find 802.15.4 channels.
 #define END_FINE_CODE 31
 
-#define ACTIVE_ADS_CHANNEL 2
+#define ACTIVE_ADS_CHANNEL 1
 
 // 802.15.4 channel on which to transmit the ADC data.
 #define IEEE_802_15_4_TX_CHANNEL 15
@@ -64,26 +64,34 @@ app_vars_t app_vars;
 
 //=========================== main ============================================
 
-void self_test_isr(void) {
+static void self_test_isr(void) {
 	gpio_1_toggle();
 	gpio_2_toggle();
-	delay_ticks_asynchronous(1000, ISR_TIMER_ID);
+	
+	delay_ticks_asynchronous(100000, ISR_TIMER_ID);
 }
 
 void init_self_test_isr(void) {
+
+	// Set initial conditions	
+	GPI_enable_clr(1);
+	GPI_enable_clr(2);
+	radio_delayCPUMilliseconds(1);
+
+	//GPO_enable_set(1);
+	//GPO_enable_set(2);
+	radio_delayCPUMilliseconds(1);
+	
+	gpio_1_set();
+	gpio_2_clr();
+	radio_delayCPUMilliseconds(1);
+
+
 	rftimer_enable_interrupts();
 	rftimer_enable_interrupts_by_id(ISR_TIMER_ID);
 	rftimer_set_callback_by_id(self_test_isr, ISR_TIMER_ID);
-
-	// Set initial conditions
-	GPI_enable_clr(1);
-	GPI_enable_clr(2);
-	GPO_enable_set(1);
-	GPO_enable_set(2);
-	gpio_1_clr();
-	gpio_2_set();
-	radio_delayCPUMilliseconds(1);
-	delay_ticks_asynchronous(1000, ISR_TIMER_ID);
+	
+	delay_ticks_asynchronous(100000, ISR_TIMER_ID);
 }
 
 void sulu_ads1299_self_test(void)
@@ -212,18 +220,19 @@ int configure_ads1299(void) {
 	// 101 : Test signal
 	// 110 : BIAS_DRP (positive electrode is the driver)
 	// 111 : BIAS_DRN (negative electrode is the driver)
-	wreg_val |= 0x1;
+	wreg_val |= 0x0;
 
-	ads_wreg(ADS_REG_CH1SET, wreg_val);                   // enable channel 1 (0x60 = 0110 0000 where 110 is gain 24)
+	ads_wreg(ADS_REG_CH1SET, wreg_val);                
 	print_reg = ads_rreg(ADS_REG_CH1SET);             // confirm channel 1 is enabled
 	if(print_reg != wreg_val) {
 		printf("ERROR: REG_CH1SET FAILED CONFIG (%x)\r\n", print_reg);  // print the config off the ADS
 		return 0;
 	}
 
-	ads_wreg(ADS_REG_CH2SET, wreg_val | 5);                   // enable channel 2 (0x60 = 0110 0000 where 110 is gain 24)
-	ads_wreg(ADS_REG_CH3SET, wreg_val);                   // enable channel 3 (0x60 = 0110 0000 where 110 is gain 24)
-	ads_wreg(ADS_REG_CH4SET, wreg_val);                   // enable channel 4 (0x60 = 0110 0000 where 110 is gain 24)
+	uint8_t ch234_set = wreg_val |  0x1; // This should power down channels 2, 3, and 4
+	ads_wreg(ADS_REG_CH2SET, ch234_set);               
+	ads_wreg(ADS_REG_CH3SET, ch234_set);                   // enable channel 3 (0x60 = 0110 0000 where 110 is gain 24)
+	ads_wreg(ADS_REG_CH4SET, ch234_set);                   // enable channel 4 (0x60 = 0110 0000 where 110 is gain 24)
 
 	// REG_CONFIG2
 	wreg_val = 0x6 << 5;  // RESERVED
@@ -287,6 +296,8 @@ int main(void) {
 
 
 	GPO_control(6, 6, 6, 6); 
+	GPI_control(0, 0, 0, 0);
+
 	GPI_enable_clr(5); // /ADS_RESET
 	GPO_enable_set(5); 
 	// On Rev. 3 we use GPIO0 as the debug output
@@ -341,12 +352,22 @@ int main(void) {
 		return 0;
 	}
 
+	/***    Self Test     ***/
+	init_self_test_isr(); // Asynchronously stimulate GPIO1 and GPIO2
+
+	// DEBUG MARKER
+	gpio_0_set();
+	gpio_0_clr();
+
 	/***    Read ADS data     ****/
 	ads_start();
 	ads_rdatac();
 	uint8_t packet_size = (Nsample*4) + 2;
 	while(1) {
 		
+		// DEBUG MARKER
+		gpio_0_set();
+		gpio_0_clr();
 		for (i = 0; i < (Nsample+1); i++) {
 			ads_poll_measurements(&app_vars.ads_measurement[i]);
 		}
@@ -365,7 +386,7 @@ int main(void) {
 		__asm("nop");
 		__asm("nop");
 		__asm("nop");
-		send_packet_cpu(&adc_data[1], packet_size);
+		send_packet(&adc_data[1], packet_size);
 		__asm("nop");
 		__asm("nop");
 		__asm("nop");

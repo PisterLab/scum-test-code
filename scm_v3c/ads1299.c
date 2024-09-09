@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "spi.h"
 #include "radio.h"
+#include "rftimer.h"
 
 
 
@@ -209,6 +210,8 @@ static uint8_t read_gpio(uint8_t pin) {
 
 
 void ads_poll_measurements(ads_data_t* ads_measurement) {
+    
+    //rftimer_disable_interrupts();
 	uint8_t read_reg;
 	int nchan = 4;
 	int i, j;
@@ -245,4 +248,5 @@ void ads_poll_measurements(ads_data_t* ads_measurement) {
 	
 	}
     spi_ioctl(spi_handle, SPI_CS, 1);
+    //rftimer_enable_interrupts();
 }
