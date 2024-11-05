@@ -35,6 +35,9 @@
 // 802.15.4 channel on which to transmit the ADC data.
 #define IEEE_802_15_4_TX_CHANNEL 15
 
+#define ENABLE_SELF_TEST 0
+#define CHANNEL_GAIN 8
+
 //=========================== variables =======================================
 
 typedef struct {
@@ -58,17 +61,27 @@ static tuning_code_t g_tuning_code = {
 #define SINE_LUT_SIZE 4 
 uint8_t sine_lut[] = {4, 9, 4, 0};
 
+#define DELAY_LUT_SIZE 4
+//uint32_t delay_lut[] = {1000000, 1500000, 1300000, 240000};
+uint32_t delay_lut[] = {500000, 500000, 500000, 500000};
+
 app_vars_t app_vars;
+
+static uint32_t sine_lut_index = 0;
+static uint32_t delay_lut_index = 0;
 
 //=========================== prototypes ======================================
 
 //=========================== main ============================================
 
 static void self_test_isr(void) {
+	__disable_irq();
 	gpio_1_toggle();
 	gpio_2_toggle();
 	
-	delay_ticks_asynchronous(100000, ISR_TIMER_ID);
+	delay_lut_index = (delay_lut_index + 1) % DELAY_LUT_SIZE;
+	delay_ticks_asynchronous(delay_lut[delay_lut_index], ISR_TIMER_ID);
+	__enable_irq();
 }
 
 void init_self_test_isr(void) {
@@ -86,48 +99,14 @@ void init_self_test_isr(void) {
 	gpio_2_clr();
 	radio_delayCPUMilliseconds(1);
 
+	delay_lut_index = 0;
+	sine_lut_index = 0;
 
 	rftimer_enable_interrupts();
 	rftimer_enable_interrupts_by_id(ISR_TIMER_ID);
 	rftimer_set_callback_by_id(self_test_isr, ISR_TIMER_ID);
 	
-	delay_ticks_asynchronous(100000, ISR_TIMER_ID);
-}
-
-void sulu_ads1299_self_test(void)
-{
-	// Self-test circuit that uses GPIO1 and GPIO2
-	// as inputs to an RC high-pass filter that is re-biased to 2.5V
-	// Occasional pulses from GPIO1 and GPIO2 should create interesting low-voltage waveforms
-
-	printf("Starting the self-test\n");
-
-	// Set up the GPIO 
-	GPO_enable_set(1);
-	GPI_enable_clr(1);
-
-	GPO_enable_set(2);
-	GPI_enable_clr(2);
-
-	analog_scan_chain_write();
-	analog_scan_chain_load();
-
-	// Initial conditions
-	gpio_1_clr();
-	gpio_2_set();
-	radio_delayCPUMilliseconds(5);
-
-	// Begin the loop
-
-	while(1) {
-		// Toggle GPIO1
-		gpio_1_set();
-		gpio_2_clr();
-		radio_delayCPUCycles(60);
-		gpio_1_clr();
-		gpio_2_set();
-		radio_delayCPUMilliseconds(10);
-	}
+	delay_ticks_asynchronous(delay_lut[delay_lut_index], ISR_TIMER_ID);
 }
 
 void tx_cal_open_loop(void) {
@@ -203,7 +182,19 @@ int configure_ads1299(void) {
 	// 101 : 12
 	// 110 : 24
 	// 111 : Do not use
-	wreg_val |= 0x0 << 4; // 0 - gain 1, 1 - gain 2, 2 - gain 4, 3 - gain 6, 4 - gain 8, 5 - gain 12, 6 - gain 24
+	uint8_t gain_bits;
+    switch(CHANNEL_GAIN) {
+        case 1:  gain_bits = 0; break;
+        case 2:  gain_bits = 1; break;
+        case 4:  gain_bits = 2; break;
+        case 6:  gain_bits = 3; break;
+        case 8:  gain_bits = 4; break;
+        case 12: gain_bits = 5; break;
+        case 24: gain_bits = 6; break;
+        default: gain_bits = 0; break; // Default to gain of 1 if invalid
+    }
+	wreg_val |= gain_bits << 4;
+
 	// SRB2 connection
 	// This bit determines the SRB2 connection for the corresponding
 	// channel.
@@ -229,10 +220,45 @@ int configure_ads1299(void) {
 		return 0;
 	}
 
-	uint8_t ch234_set = wreg_val |  0x1; // This should power down channels 2, 3, and 4
-	ads_wreg(ADS_REG_CH2SET, ch234_set);               
-	ads_wreg(ADS_REG_CH3SET, ch234_set);                   // enable channel 3 (0x60 = 0110 0000 where 110 is gain 24)
-	ads_wreg(ADS_REG_CH4SET, ch234_set);                   // enable channel 4 (0x60 = 0110 0000 where 110 is gain 24)
+	uint8_t off_ch_reg = wreg_val |  0x1; // This should power down channels 2, 3, and 4
+	ads_wreg(ADS_REG_CH2SET, off_ch_reg);               
+	ads_wreg(ADS_REG_CH3SET, off_ch_reg);                   
+	ads_wreg(ADS_REG_CH4SET, off_ch_reg);
+
+	// REG_CONFIG1
+	print_reg = ads_rreg(ADS_REG_CONFIG1);
+	printf("CONFIG1: %x\r\n", print_reg);  // print the current config
+
+	wreg_val = 0x0;
+	
+	wreg_val = 0x1 << 7;  // Reserved bit must be 1
+	// DAISY_EN: Daisy-chain or multiple readback mode
+	// 0: Daisy-chain mode
+	// 1: Multiple readback mode
+	wreg_val |= 0x0 << 6;
+	// CLK_EN: Clock connection
+	// 0: Oscillator clock output disabled
+	// 1: Oscillator clock output enabled
+	wreg_val |= 0x0 << 5;
+	// Reserved bits [4:3] must be set to 2h
+	wreg_val |= 0x2 << 3;
+	// Output data rate
+	// 000: fMOD/64 (16 kSPS)
+	// 001: fMOD/128 (8 kSPS)
+	// 010: fMOD/256 (4 kSPS)
+	// 011: fMOD/512 (2 kSPS)
+	// 100: fMOD/1024 (1 kSPS)
+	// 101: fMOD/2048 (500 SPS)
+	// 110: fMOD/4096 (250 SPS)
+	// 111: Reserved (do not use)
+	wreg_val |= 0x4 << 0;  // Set to 1 kSPS
+	
+	ads_wreg(ADS_REG_CONFIG1, wreg_val);
+	print_reg = ads_rreg(ADS_REG_CONFIG1);
+	if(print_reg != wreg_val) {
+		printf("ERROR: REG_CONFIG1 FAILED CONFIG (%x)\r\n", print_reg);
+		return 0;
+	}
 
 	// REG_CONFIG2
 	wreg_val = 0x6 << 5;  // RESERVED
@@ -253,12 +279,92 @@ int configure_ads1299(void) {
 		return 0;
 	}
 
+	wreg_val = 0x0;
+
 	// REG_CONFIG3
-	wreg_val = 0xE0;
-	ads_wreg(ADS_REG_CONFIG3, wreg_val);                   // change the config on ADS
-	print_reg = ads_rreg(ADS_REG_CONFIG3);             // confirm the config on ADS
+	wreg_val = 0x1 << 7;  // PD_REFBUF: Power-down reference buffer
+	                      // 0: Power-down internal reference buffer
+	                      // 1: Enable internal reference buffer
+
+	// Reserved bits [6:5] must be set to 3h
+	wreg_val |= 0x3 << 5;
+
+	// BIAS_MEAS: BIAS measurement
+	// 0: Open
+	// 1: BIAS_IN signal is routed to the channel that has MUX_Setting 010
+	wreg_val |= 0x0 << 4;
+
+	// BIASREF_INT: BIASREF signal source
+	// 0: BIASREF signal fed externally
+	// 1: BIASREF signal (AVDD + AVSS)/2 generated internally
+	wreg_val |= 0x1 << 3;
+
+	// PD_BIAS: BIAS buffer power
+	// 0: BIAS buffer is powered down
+	// 1: BIAS buffer is enabled
+	wreg_val |= 0x1 << 2;
+
+	// BIAS_LOFF_SENS: BIAS sense function
+	// 0: BIAS sense is disabled
+	// 1: BIAS sense is enabled
+	wreg_val |= 0x0 << 1;
+
+	// BIAS_STAT is read-only, bit 0 not set in write operation
+	
+	ads_wreg(ADS_REG_CONFIG3, wreg_val);                   
+	print_reg = ads_rreg(ADS_REG_CONFIG3);             
 	if(print_reg != wreg_val) {
-		printf("ERROR: REG_CONFIG3 FAILED CONFIG (%x)\r\n", print_reg);  // print the config off the ADS
+		printf("ERROR: REG_CONFIG3 FAILED CONFIG (%x)\r\n", print_reg);  
+		return 0;
+	}
+
+	wreg_val = 0x0;
+	// REG_BIAS_SENSN: Bias Drive Negative Derivation Register
+	// Controls selection of negative signals from each channel for bias voltage derivation
+	wreg_val = 0x0 << 7;  // BIASN8: Route channel 8 negative signal into BIAS derivation
+	                      // 0: Disabled
+	                      // 1: Enabled
+
+	// BIASN7: Route channel 7 negative signal into BIAS derivation
+	// 0: Disabled
+	// 1: Enabled
+	wreg_val |= 0x0 << 6;
+
+	// BIASN6: Route channel 6 negative signal into BIAS derivation
+	// 0: Disabled
+	// 1: Enabled
+	wreg_val |= 0x0 << 5;
+
+	// BIASN5: Route channel 5 negative signal into BIAS derivation
+	// 0: Disabled
+	// 1: Enabled
+	wreg_val |= 0x0 << 4;
+
+	// BIASN4: Route channel 4 negative signal into BIAS derivation
+	// 0: Disabled
+	// 1: Enabled
+	wreg_val |= 0x0 << 3;
+
+	// BIASN3: Route channel 3 negative signal into BIAS derivation
+	// 0: Disabled
+	// 1: Enabled
+	wreg_val |= 0x0 << 2;
+
+	// BIASN2: Route channel 2 negative signal into BIAS derivation
+	// 0: Disabled
+	// 1: Enabled
+	wreg_val |= 0x0 << 1;
+
+	// BIASN1: Route channel 1 negative signal into BIAS derivation
+	// 0: Disabled
+	// 1: Enabled
+	wreg_val |= 0x0 << 0;  // Enable only channel 1's negative signal
+
+	ads_wreg(ADS_REG_BIAS_SENSN, wreg_val);
+	ads_wreg(ADS_REG_BIAS_SENSP, wreg_val); // CAREFUL! COPIES TO BOTH, ONLY OKAY FOR ZEROS ON ALL
+	print_reg = ads_rreg(ADS_REG_BIAS_SENSN);
+	if(print_reg != wreg_val) {
+		printf("ERROR: REG_BIAS_SENSN FAILED CONFIG (%x)\r\n", print_reg);
 		return 0;
 	}
 
@@ -353,7 +459,12 @@ int main(void) {
 	}
 
 	/***    Self Test     ***/
-	init_self_test_isr(); // Asynchronously stimulate GPIO1 and GPIO2
+	#if ENABLE_SELF_TEST
+		init_self_test_isr(); // Asynchronously stimulate GPIO1 and GPIO2
+	#else
+		GPI_enable_clr(1);
+		GPI_enable_clr(2);
+	#endif
 
 	// DEBUG MARKER
 	gpio_0_set();

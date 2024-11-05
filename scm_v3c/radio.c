@@ -153,7 +153,7 @@ void send_packet(void* packet, uint8_t pkt_len) {
             break;
         }
         */
-        radio_vars.sendDone = (rftimer_readCounter() > (trigger_time + 2*TIMER_PERIOD_TX)) ? true : false;
+        radio_vars.sendDone = (rftimer_readCounter() > (trigger_time + TIMER_PERIOD_TX)) ? true : false;
         gpio_0_clr();
     }
     radio_rfOff();
@@ -908,8 +908,8 @@ void radio_isr(void) {
     unsigned int interrupt = RFCONTROLLER_REG__INT;
     unsigned int error = RFCONTROLLER_REG__ERROR;
 
-    gpio_2_set();
-    gpio_6_set();
+    //gpio_2_set();
+    //gpio_6_set();
 
     radio_vars.crc_ok = true;
     if (error != 0) {
@@ -1005,8 +1005,8 @@ void radio_isr(void) {
 
     //    RFCONTROLLER_REG__INT_CLEAR = interrupt;
 
-    gpio_2_clr();
-    gpio_6_clr();
+    //gpio_2_clr();
+    //gpio_6_clr();
 }
 
 // This ISR goes off when the raw chip shift register interrupt goes high

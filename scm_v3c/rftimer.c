@@ -175,11 +175,11 @@ void delay_ticks_asynchronous(unsigned int delay_ticks, uint8_t id) {
 
     unsigned int rf_timer_count =
         delay_ticks; 
+
+    rftimer_setCompareIn_by_id(rftimer_readCounter() + rf_timer_count, id);
     rftimer_enable_interrupts_by_id(id);
     rftimer_enable_interrupts();
     timer_durations[id] = delay_ticks;
-
-    rftimer_setCompareIn_by_id(rftimer_readCounter() + rf_timer_count, id);
 }
 
 /* Performs a delay that will not return until the delay has completed.
@@ -202,7 +202,7 @@ void rftimer_isr(void) {
     int i = 0;
     int interrupt_id = 1;
 
-    gpio_2_set();
+    //gpio_2_set();
 
     interrupt = RFTIMER_REG__INT;
 
@@ -268,7 +268,7 @@ void rftimer_isr(void) {
 
     RFTIMER_REG__INT_CLEAR = interrupt;
 
-    gpio_2_clr();
+    //gpio_2_clr();
 }
 
 void handle_interrupt(uint8_t id) {

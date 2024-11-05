@@ -148,7 +148,7 @@ int spi_read(int handle, uint8_t* byte)
         return INVALID_HANDLE;
 
 	
-    __disable_irq();
+    //__disable_irq(); // Maybe need to allow interrupts, SPI should be robust to interrupts
 	for (bit = 7; bit >= 0; bit--)
     {
         spi_digitalWrite(node->config.SCLK, 1);
@@ -166,7 +166,7 @@ int spi_read(int handle, uint8_t* byte)
         __asm("nop");
     
 	}
-    __enable_irq();
+    //__enable_irq();
 
 
     // delay few clock cycles
