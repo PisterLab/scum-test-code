@@ -1165,7 +1165,7 @@ void initialize_mote() {
     GPO_enables(0xFFFF);
 
     // Set HCLK source as HF_CLOCK
-    set_asc_bit(1147);
+    set_asc_bit(1147);//****
 
     // Set initial coarse/fine on HF_CLOCK
     // coarse 0:4 = 860 861 875b 876b 877b
@@ -1174,13 +1174,15 @@ void initialize_mote() {
                                scm3c_hw_interface_vars.HF_CLOCK_fine);
 
     // Set RFTimer source as HF_CLOCK
-    set_asc_bit(1151);
+    set_asc_bit(1151);//****
 
     // Disable LF_CLOCK
-    set_asc_bit(553);
+    set_asc_bit(553);//*****
 
     // HF_CLOCK will be trimmed to 20MHz, so set RFTimer div value to 40 to get
     // 500kHz (inverted, so 1101 0111)
+		
+// HF_clock div		
     set_asc_bit(49);
     set_asc_bit(48);
     clear_asc_bit(47);
